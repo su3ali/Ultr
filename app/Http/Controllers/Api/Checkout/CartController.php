@@ -78,7 +78,7 @@ class CartController extends Controller
                         $price+=Icon::where('id',$icon_id)->first()->price;  
                     }
                 }
-                dd( $price );
+           
                 Cart::query()->create([
                     'user_id' => auth()->user()->id,
                     'service_id' => $service->id,
