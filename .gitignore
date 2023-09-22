@@ -4,6 +4,8 @@
 /storage/*.key
 /storage/debugbar/
 /storage/framework/cache/
+/storage/framework/sessions/
+/stograge/logs/
 /vendor
 .env
 .env.backup
