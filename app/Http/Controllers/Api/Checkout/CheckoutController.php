@@ -208,6 +208,7 @@ class CheckoutController extends Controller
             $validated['visits_status_id'] = 1;
             $visitInsert = Visit::query()->create($validated);
 
+            
 
             $allTechn = Technician::where('group_id',$visitInsert->assign_to_id)->whereNotNull('fcm_token')->get();
 
