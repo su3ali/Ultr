@@ -46,13 +46,20 @@ class ServiceController extends Controller
         return self::apiResponse(400, __('api.category not found'), $this->body);
     }
     protected function serviceDetails($id){
-        $service = Service::query()->where('id', $id)->first();
+        if($id =="all"){
+            $services = Service::with('serviceImages')->get();
+            $this->body['all_services'] = ServiceResource::collection($services);
+            return self::apiResponse(200, null, $this->body);
+        }else{
+           $service = Service::query()->where('id', $id)->first();
     
         if ($service){
             $this->body['service'] = ServiceDetailsResource::make($service);
             return self::apiResponse(200, null, $this->body);
         }
-        return self::apiResponse(400, __('api.service not found'), $this->body);
+        return self::apiResponse(400, __('api.service not found'), $this->body);  
+        }
+       
     }
 
 

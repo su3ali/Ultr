@@ -74,15 +74,17 @@ class CartController extends Controller
                 $price =  $service->price;
                 if($request->icon_ids){
                     $icon_ids = $request->icon_ids;
+                    
                     foreach($icon_ids as $icon_id){
+                        
                         $price+=Icon::where('id',$icon_id)->first()->price;  
                     }
                 }
-           
+          
                 Cart::query()->create([
                     'user_id' => auth()->user()->id,
                     'service_id' => $service->id,
-                    'icon_ids'=>$request->icon_ids,
+                    'icon_ids'=>json_encode($request->icon_ids),
                     'category_id' => $service->category->id,
                     'price' => $price ,
                     'quantity' => $request->quantity,

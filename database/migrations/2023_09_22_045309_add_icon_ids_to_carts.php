@@ -14,7 +14,7 @@ class AddIconIdsToCarts extends Migration
     public function up()
     {
         Schema::table('carts', function (Blueprint $table) {
-            //
+            $table->json('icon_ids')->nullable()->after('date');
         });
     }
 
