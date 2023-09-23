@@ -208,7 +208,7 @@ class CheckoutController extends Controller
             $validated['visits_status_id'] = 1;
             $visitInsert = Visit::query()->create($validated);
 
-            
+
 
             $allTechn = Technician::where('group_id',$visitInsert->assign_to_id)->whereNotNull('fcm_token')->get();
 
@@ -365,5 +365,40 @@ class CheckoutController extends Controller
 
     }
 
+    protected function paid(Request $request)
+    {
+        $rules = [
+            'order_id' => 'required|exists:orders,id',
+            'payment_method' => 'required|in:cache,visa,wallet',
+            'amount' => 'required|numeric',
+            'transaction_id' => 'nullable',
+            'wallet_discounts' => 'nullable|numeric',
+        ];
+        $request->validate($rules, $request->all());
+        $user = auth()->user('sanctum');
+
+        $request->validate($rules, $request->all());
+
+        Transaction::create([
+            'order_id' => $request->order_id,
+            'transaction_number' => $request->transaction_id,
+            'payment_result' => 'success',
+            'payment_method' => $request->payment_method,
+            'amount' => $request->amount,
+        ]);
+
+        $order = Order::where('id', $request->order_id)->first();
+
+        $order->update([
+            'payment_status' => 'paid',
+            'partial_amount' => 0,
+        ]);
+
+        $user->update([
+            'point' => $user->point - $request->wallet_discounts ?? 0
+        ]);
+
+        return self::apiResponse(200, __('api.paid successfully'), $this->body);
+    }
 
 }
