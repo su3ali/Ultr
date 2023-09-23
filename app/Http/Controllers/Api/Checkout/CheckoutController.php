@@ -460,7 +460,7 @@ class CheckoutController extends Controller
        $order = Order::where('id', $request->order_id)->first();
 
         $order->update([
-            'payment_status' => 'paid',
+   //         'payment_status' => 'paid',
             'partial_amount' => 0,
         ]);
 
