@@ -38,17 +38,32 @@ class CheckoutController extends Controller
 
     protected function checkout(Request $request)
     {
+        // $rules = [
+        //     'user_address_id' => 'required|exists:user_addresses,id',
+        //     'car_user_id' => 'required|exists:car_clients,id',
+        //     'payment_method' => 'required|in:cache,visa,wallet',
+        //     'coupon' => 'nullable|numeric',
+        //     'transaction_id' => 'nullable',
+        //     'notes' => 'nullable',
+        //     'wallet_discounts' => 'nullable|numeric',
+        //     'file' => 'nullable',
+        //     'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
+        //     'partial_amount' => 'nullable',
+        // ];
         $rules = [
             'user_address_id' => 'required|exists:user_addresses,id',
             'car_user_id' => 'required|exists:car_clients,id',
             'payment_method' => 'required|in:cache,visa,wallet',
+            'payment_status' => 'required|in:paid,due,partial',
             'coupon' => 'nullable|numeric',
             'transaction_id' => 'nullable',
-            'notes' => 'nullable',
             'wallet_discounts' => 'nullable|numeric',
+            'is_advance' => 'nullable',
+            'is_return' => 'nullable',
+            'amount' => 'nullable|numeric',
             'file' => 'nullable',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
-            'partial_amount' => 'nullable',
+            'notes' => 'nullable',
         ];
         $request->validate($rules, $request->all());
         $user = auth()->user('sanctum');
@@ -56,6 +71,8 @@ class CheckoutController extends Controller
         if (!$carts->first()) {
             return self::apiResponse(400, t_('Cart is empty'), []);
         }
+
+
         if ($carts->first()->type == 'package') {
             $total = $carts->first()->price;
             if ($request->payment_method == 'wallet' && $total > $user->point) {
@@ -93,19 +110,37 @@ class CheckoutController extends Controller
 
     private function saveOrder($user, $request, $total, $carts,$uploadImage,$uploadFile)
     {
+        $totalAfterDiscount = ($total - $request->coupon);
         $order = Order::create([
             'user_id' => $user->id,
             'discount' => $request->coupon,
             'user_address_id' => $request->user_address_id,
             'sub_total' => $total,
-            'total' => ($total - $request->coupon),
-            'payment_method' => $request->payment_method,
+            'total' => $totalAfterDiscount,
+            'payment_status' => $request->payment_status,
+            'partial_amount' => ($totalAfterDiscount - $request->amount),
             'status_id' => 2,
+            'is_advance' => $request->is_advance,
+            'is_return' => $request->is_return,
             'file' => $uploadFile,
             'image' => $uploadImage,
+            'notes' => $request->notes,
             'car_user_id' => $request->car_user_id,
-            'notes'=> $request->notes
         ]);
+        // $order = Order::create([
+        //     'user_id' => $user->id,
+        //     'discount' => $request->coupon,
+        //     'user_address_id' => $request->user_address_id,
+        //     'sub_total' => $total,
+        //     'total' => ($total - $request->coupon),
+        //     'payment_status' => $request->payment_status,
+        //     'payment_method' => $request->payment_method,
+        //     'status_id' => 2,
+        //     'file' => $uploadFile,
+        //     'image' => $uploadImage,
+        //     'car_user_id' => $request->car_user_id,
+        //     'notes'=> $request->notes
+        // ]);
         foreach ($carts as $cart) {
             OrderService::create([
                 'order_id' => $order->id,
@@ -133,20 +168,9 @@ class CheckoutController extends Controller
                     $minutes += $serviceMinutes;
                 }
             }
-            $bookingInsert = Booking::query()->create([
-                'booking_no' => $booking_no,
-                'user_id' => auth('sanctum')->user()->id,
-                'category_id' => $category_id,
-                'order_id' => $order->id,
-                'user_address_id' => $order->user_address_id,
-                'booking_status_id' => 1,
-                'notes' => $cart->notes,
-                'quantity' => $cart->quantity,
-                'date' => $cart->date,
-                'type' => 'service',
-                'time' => Carbon::parse($cart->time)->toTimeString(),
-                'end_time' => $minutes? Carbon::parse($cart->time)->addMinutes($minutes)->toTimeString() : null,
-            ]);
+
+
+   
 
 
             $address = UserAddresses::where('id',$order->user_address_id)->first();
@@ -197,6 +221,21 @@ class CheckoutController extends Controller
                     $assign_to_id = $visit->inRandomOrder()->first()->assign_to_id;
                 }
             }
+            $bookingInsert = Booking::query()->create([
+                'booking_no' => $booking_no,
+                'user_id' => auth('sanctum')->user()->id,
+                'category_id' => $category_id,
+                'order_id' => $order->id,
+                'user_address_id' => $order->user_address_id,
+                'booking_status_id' => 1,
+                'notes' => $cart->notes,
+                'quantity' => $cart->quantity,
+                'date' => $cart->date,
+                'type' => 'service',
+                'time' => Carbon::parse($cart->time)->toTimeString(),
+                'end_time' => $minutes? Carbon::parse($cart->time)->addMinutes($minutes)->toTimeString() : null,
+            ]);
+
             $start_time = Carbon::parse($cart->time)->toTimeString();
             $end_time =  $minutes? Carbon::parse($cart->time)->addMinutes($minutes)->toTimeString() : null;
             $validated['start_time'] =  $start_time;
@@ -210,7 +249,7 @@ class CheckoutController extends Controller
 
 
 
-            $allTechn = Technician::where('group_id',$visitInsert->assign_to_id)->whereNotNull('fcm_token')->get();
+            $allTechn = Technician::where('group_id', $assign_to_id)->whereNotNull('fcm_token')->get();
 
             if (count($allTechn) > 0){
 
@@ -239,28 +278,44 @@ class CheckoutController extends Controller
 
 
         }
-        if ($request->payment_method == 'cache') {
+        // if ($request->payment_method == 'cache') {
+        //     $transaction = Transaction::create([
+        //         'order_id' => $order->id,
+        //         'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
+        //         'payment_result' => 'success',
+        //     ]);
+
+        //     $order->update([
+        //         'partial_amount'=>$total
+        //     ]);
+
+        // } elseif ($request->payment_method == 'wallet'){
+        //     $transaction = Transaction::create([
+        //         'order_id' => $order->id,
+        //         'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
+        //         'payment_result' => 'success',
+        //     ]);
+        // }else {
+        //     Transaction::create([
+        //         'order_id' => $order->id,
+        //         'transaction_number' => $request->transaction_id,
+        //         'payment_result' => 'success',
+        //     ]);
+        // }
+        if ($request->payment_method == 'wallet') {
             $transaction = Transaction::create([
                 'order_id' => $order->id,
                 'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
                 'payment_result' => 'success',
+                'payment_method' => $request->payment_method,
             ]);
-
-            $order->update([
-                'partial_amount'=>$total
-            ]);
-
-        } elseif ($request->payment_method == 'wallet'){
-            $transaction = Transaction::create([
-                'order_id' => $order->id,
-                'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
-                'payment_result' => 'success',
-            ]);
-        }else {
+        } else {
             Transaction::create([
                 'order_id' => $order->id,
                 'transaction_number' => $request->transaction_id,
                 'payment_result' => 'success',
+                'payment_method' => $request->payment_method,
+                'amount' => $request->amount,
             ]);
         }
 
@@ -312,31 +367,46 @@ class CheckoutController extends Controller
                 'end_time' => Carbon::parse($cart->time)->addMinutes($minutes)->toTimeString(),
             ]);
         }
-        if ($request->payment_method == 'cache') {
+        // if ($request->payment_method == 'cache') {
+        //     $transaction = Transaction::create([
+        //         'contract_order_id' => $order->id,
+        //         'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
+        //         'payment_result' => 'success',
+        //     ]);
+
+        //     $order->update([
+        //         'partial_amount'=>$total
+        //     ]);
+
+        // }elseif ($request->payment_method == 'wallet'){
+        //     $transaction = Transaction::create([
+        //         'contract_order_id' => $order->id,
+        //         'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
+        //         'payment_result' => 'success',
+        //     ]);
+        // } else {
+        //     Transaction::create([
+        //         'contract_order_id' => $order->id,
+        //         'transaction_number' => $request->transaction_id,
+        //         'payment_result' => 'success',
+        //     ]);
+        // }
+        if ($request->payment_method == 'wallet') {
             $transaction = Transaction::create([
                 'contract_order_id' => $order->id,
                 'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
                 'payment_result' => 'success',
-            ]);
-
-            $order->update([
-                'partial_amount'=>$total
-            ]);
-
-        }elseif ($request->payment_method == 'wallet'){
-            $transaction = Transaction::create([
-                'contract_order_id' => $order->id,
-                'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
-                'payment_result' => 'success',
+                'payment_method' => $request->payment_method,
             ]);
         } else {
             Transaction::create([
                 'contract_order_id' => $order->id,
                 'transaction_number' => $request->transaction_id,
                 'payment_result' => 'success',
+                'payment_method' => $request->payment_method,
+                'amount' => $total,
             ]);
         }
-
         $user->update([
             'point' => $user->point - $request->wallet_discounts ?? 0
         ]);
