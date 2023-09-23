@@ -54,13 +54,13 @@ class CheckoutController extends Controller
             'user_address_id' => 'required|exists:user_addresses,id',
             'car_user_id' => 'required|exists:car_clients,id',
             'payment_method' => 'required|in:cache,visa,wallet',
-            'payment_status' => 'required|in:paid,due,partial',
+           
             'coupon' => 'nullable|numeric',
             'transaction_id' => 'nullable',
             'wallet_discounts' => 'nullable|numeric',
-            'is_advance' => 'nullable',
-            'is_return' => 'nullable',
-            'amount' => 'nullable|numeric',
+         //   'is_advance' => 'nullable',
+           // 'is_return' => 'nullable',
+          //  'amount' => 'nullable|numeric',
             'file' => 'nullable',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
             'notes' => 'nullable',
@@ -117,11 +117,11 @@ class CheckoutController extends Controller
             'user_address_id' => $request->user_address_id,
             'sub_total' => $total,
             'total' => $totalAfterDiscount,
-            'payment_status' => $request->payment_status,
-            'partial_amount' => ($totalAfterDiscount - $request->amount),
+   
+           // 'partial_amount' => ($totalAfterDiscount - $request->amount),
             'status_id' => 2,
-            'is_advance' => $request->is_advance,
-            'is_return' => $request->is_return,
+          //  'is_advance' => $request->is_advance,
+          //  'is_return' => $request->is_return,
             'file' => $uploadFile,
             'image' => $uploadImage,
             'notes' => $request->notes,
@@ -315,7 +315,7 @@ class CheckoutController extends Controller
                 'transaction_number' => $request->transaction_id,
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
-                'amount' => $request->amount,
+               // 'amount' => $request->amount,
             ]);
         }
 
@@ -404,7 +404,7 @@ class CheckoutController extends Controller
                 'transaction_number' => $request->transaction_id,
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
-                'amount' => $total,
+              //  'amount' => $total,
             ]);
         }
         $user->update([
@@ -440,7 +440,7 @@ class CheckoutController extends Controller
         $rules = [
             'order_id' => 'required|exists:orders,id',
             'payment_method' => 'required|in:cache,visa,wallet',
-            'amount' => 'required|numeric',
+         //   'amount' => 'required|numeric',
             'transaction_id' => 'nullable',
             'wallet_discounts' => 'nullable|numeric',
         ];
@@ -454,10 +454,10 @@ class CheckoutController extends Controller
             'transaction_number' => $request->transaction_id,
             'payment_result' => 'success',
             'payment_method' => $request->payment_method,
-            'amount' => $request->amount,
+       //     'amount' => $request->amount,
         ]);
 
-        $order = Order::where('id', $request->order_id)->first();
+       $order = Order::where('id', $request->order_id)->first();
 
         $order->update([
             'payment_status' => 'paid',
