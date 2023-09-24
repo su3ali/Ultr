@@ -60,7 +60,7 @@ class CheckoutController extends Controller
             'wallet_discounts' => 'nullable|numeric',
             //   'is_advance' => 'nullable',
             // 'is_return' => 'nullable',
-            //  'amount' => 'nullable|numeric',
+              'amount' => 'nullable|numeric',
             'file' => 'nullable',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
             'notes' => 'nullable',
@@ -120,7 +120,7 @@ class CheckoutController extends Controller
             'sub_total' => $total,
             'total' => $totalAfterDiscount,
 
-            // 'partial_amount' => ($totalAfterDiscount - $request->amount),
+            'partial_amount' => ($totalAfterDiscount - $request->amount),
             'status_id' => 2,
             //  'is_advance' => $request->is_advance,
             //  'is_return' => $request->is_return,
