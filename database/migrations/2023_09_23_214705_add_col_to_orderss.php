@@ -13,7 +13,7 @@ class AddColToOrderss extends Migration
      */
     public function up()
     {
-        Schema::table('orderss', function (Blueprint $table) {
+        Schema::table('orders', function (Blueprint $table) {
             $table->dropColumn('payment_status');
         });
     }
