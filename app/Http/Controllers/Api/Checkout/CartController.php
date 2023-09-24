@@ -54,12 +54,11 @@ class CartController extends Controller
                         'type' => 'package'
                     ]);
                 }
-//                $carts = Cart::query()->where('user_id', auth()->user()->id)->count();
-//                $this->body['total_items_in_cart'] = $carts;
+                //                $carts = Cart::query()->where('user_id', auth()->user()->id)->count();
+                //                $this->body['total_items_in_cart'] = $carts;
                 $this->body['total_items_in_cart'] = 1;
                 return self::apiResponse(200, __('api.Added To Cart Successfully'), $this->body);
             }
-
         } else {
             $service = Service::with('category')->find($request->service_id);
             if ($service && $service->active === 1) {
@@ -72,21 +71,21 @@ class CartController extends Controller
                     return self::apiResponse(400, __('api.finish current order first or clear the cart'), $this->body);
                 }
                 $price =  $service->price;
-                if($request->icon_ids){
+                if ($request->icon_ids) {
                     $icon_ids = $request->icon_ids;
-                    
-                    foreach($icon_ids as $icon_id){
-                        
-                        $price+=Icon::where('id',$icon_id)->first()->price;  
+
+                    foreach ($icon_ids as $icon_id) {
+
+                        $price += Icon::where('id', $icon_id)->first()->price;
                     }
                 }
-          
+
                 Cart::query()->create([
                     'user_id' => auth()->user()->id,
                     'service_id' => $service->id,
-                    'icon_ids'=>json_encode($request->icon_ids),
+                    'icon_ids' => json_encode($request->icon_ids),
                     'category_id' => $service->category->id,
-                    'price' => $price ,
+                    'price' => $price,
                     'quantity' => $request->quantity,
                     'type' => 'service'
                 ]);
@@ -94,11 +93,9 @@ class CartController extends Controller
                 $this->body['total_items_in_cart'] = $carts;
                 return self::apiResponse(200, __('api.Added To Cart Successfully'), $this->body);
             }
-
         }
 
         return self::apiResponse(400, __('api.service not found or an error happened.'), $this->body);
-
     }
 
 
@@ -139,7 +136,7 @@ class CartController extends Controller
 
                     $countGroup = CategoryGroup::where('category_id', $category_id)->count();
 
-                    $countInBooking = Booking::whereHas('visit' , function ($q) {
+                    $countInBooking = Booking::whereHas('visit', function ($q) {
                         $q->whereNotIn('visits_status_id', [5, 6]);
                     })->where('category_id', $category_id)->where('date', $request->date[$key])
                         ->where('time', Carbon::createFromFormat('H:i A', $request->time[$key])->format('H:i:s'))->count();
@@ -159,7 +156,7 @@ class CartController extends Controller
                 return self::apiResponse(200, __('api.date and time for reservations updated successfully'), $this->body);
             } else {
                 $cartCategoryCount = auth()->user()->carts->count();
-       
+
                 if (
                     count($request->category_ids) < $cartCategoryCount
                     ||
@@ -169,23 +166,23 @@ class CartController extends Controller
                 ) {
                     return self::apiResponse(400, __('api.date or time is missed'), $this->body);
                 }
-           
-                foreach (auth()->user()->carts as $key => $cart){
+
+                foreach (auth()->user()->carts as $key => $cart) {
 
                     $countGroup = CategoryGroup::where('category_id', $cart->category_id)->count();
-                    
+
 
                     $countInBooking = Booking::whereHas('visit', function ($q) {
                         $q->whereNotIn('visits_status_id', [5, 6]);
                     })->where('category_id', $cart->category_id)->where('date', $request->date[$key])
                         ->where('time', Carbon::createFromFormat('H:i A', $request->time[$key])->format('H:i:s'))->count();
-             
+
                     if ($countInBooking == $countGroup) {
                         return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
                     }
-                   
-                        error_log($cart->id);
-                    
+
+                    error_log($cart->id);
+
                     $cart->update([
                         'date' => $request->date[$key],
                         'time' => Carbon::parse($request->time[$key])->toTimeString(),
@@ -193,7 +190,6 @@ class CartController extends Controller
                     ]);
                 }
                 return self::apiResponse(200, __('api.date and time for reservations updated successfully'), $this->body);
-
             }
         }
         return self::apiResponse(400, __('api.cart empty'), $this->body);
@@ -204,9 +200,9 @@ class CartController extends Controller
         $cart = Cart::query()->find($request->cart_id);
         if ($cart) {
             if (request()->action == 'delete') {
-                if ($cart->type == 'package'){
+                if ($cart->type == 'package') {
                     Cart::query()->where('user_id', auth()->user()->id)->delete();
-                }else{
+                } else {
                     $cart->delete();
                 }
                 $response = ['success' => 'deleted successfully'];
@@ -242,7 +238,6 @@ class CartController extends Controller
             }
         }
         return self::apiResponse(400, __('api.Cart Not Found'), $this->body);
-
     }
 
     private function calc_total($carts)
@@ -261,9 +256,9 @@ class CartController extends Controller
         $rules = [
             'service_ids' => 'required|array',
             'service_ids.*' => 'required|exists:services,id',
-            'region_id' =>'required|exists:regions,id',
-            'package_id' =>'required',
-            'page_number'=>'required|numeric'
+            'region_id' => 'required|exists:regions,id',
+            'package_id' => 'required',
+            'page_number' => 'required|numeric'
         ];
         $request->validate($rules, $request->all());
 
@@ -275,13 +270,13 @@ class CartController extends Controller
         $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($request) {
             $qu->where('region_id', $request->region_id);
         })->whereIn('id', $groupIds)->get();
-        if ($group->isEmpty()){
+        if ($group->isEmpty()) {
             return self::apiResponse(400, __('api.Sorry, the service is currently unavailable'), []);
         }
 
         $timeDuration = 60;
-        if ($request->package_id != 0){
-            $contract = ContractPackage::where('id',$request->package_id)->first();
+        if ($request->package_id != 0) {
+            $contract = ContractPackage::where('id', $request->package_id)->first();
             $timeDuration = $contract->time * 30;
         }
 
@@ -289,10 +284,10 @@ class CartController extends Controller
         $bookingTimes = [];
         $bookingDates = [];
         foreach ($request->service_ids as $service_id) {
-            $bookSetting = BookingSetting::whereHas('regions',function ($q) use ($request){
-                $q->where('region_id',$request->region_id);
+            $bookSetting = BookingSetting::whereHas('regions', function ($q) use ($request) {
+                $q->where('region_id', $request->region_id);
             })->where('service_id', $service_id)->first();
-            if (!$bookSetting){
+            if (!$bookSetting) {
                 return self::apiResponse(400, __('api.Sorry, the service is currently unavailable'), []);
             }
             $dayStartIndex = array_search($bookSetting->service_start_date, $this->days);
@@ -302,12 +297,20 @@ class CartController extends Controller
                 $serviceDays[] = $this->days[$i];
             }
             $dates = [];
-            $page_size=14;
-            $page_number=0;
-            if($request->page_number){
-                $page_number=$request->page_number;
+            $page_size = 14;
+            $page_number = 0;
+            if ($request->page_number) {
+                $page_number = $request->page_number;
             }
-            for ($i = $page_number*$page_size; $i < ($page_number+1)*$page_size; $i++) {
+            $start = $page_number * $page_size;
+            $end = ($page_number + 1) * $page_size;
+            if ($start >= $timeDuration) {
+                $start = $timeDuration;
+            }
+            if ($end >= $timeDuration) {
+                $end = $timeDuration;
+            }
+            for ($i = $start; $i <  $end; $i++) {
                 $date = date('Y-m-d', strtotime('+' . $i . ' day'));
                 if (in_array(date('l', strtotime($date)), $serviceDays)) {
                     $dates[] = $date;
@@ -339,12 +342,10 @@ class CartController extends Controller
             })->whereHas('address', function ($qq) use ($request) {
                 $qq->where('region_id', $request->region_id);
             })->get();
-            foreach ($bookings as $booking){
-                array_push($bookingTimes,$booking->time);
-                array_push($bookingDates,$booking->date);
-
+            foreach ($bookings as $booking) {
+                array_push($bookingTimes, $booking->time);
+                array_push($bookingDates, $booking->date);
             }
-
         }
 
 
@@ -353,7 +354,7 @@ class CartController extends Controller
         $collectionOfTimesOfServices = [];
         foreach ($times as $service_id => $timesInDays) {
 
-            
+
             $category_id = Service::where('id', $service_id)->first()->category_id;
             $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
             $countGroup = Group::where('active', 1)->whereHas('regions', function ($qu) use ($request) {
@@ -396,54 +397,54 @@ class CartController extends Controller
 
 
 
-                        $inVisit = Visit::where([['start_time', '<', Carbon::parse($realTime)], ['end_time', '>', ($realTime)]])->get();
-                        $inVisit2 = collect();
-                        $inVisit3 = collect();
-                        if (($bookSetting->service_duration) > (Carbon::parse($bookSetting->service_start_time)->diffInMinutes(Carbon::parse($bookSetting->service_end_time)))) {
-                            $allowedDuration = (Carbon::parse($bookSetting->service_start_time)->diffInMinutes(Carbon::parse($bookSetting->service_end_time)));
-                            $diff = (($bookSetting->service_duration) - $allowedDuration) / 60;
-    
-                            //visits at the day of expected end with a start time before the expected end
-                            $inVisit2 = Visit::where('start_time', '<', Carbon::parse($bookSetting->service_start_time)->addHours($diff % ($allowedDuration / 60)))->whereHas('booking', function ($qu) use ($category_id, $request, $day, $diff, $allowedDuration) {
-                                $qu->where([['category_id', '=', $category_id], ['date', '=', Carbon::parse($day)->addDays(1 + intval($diff / ($allowedDuration / 60)))]])->whereHas(
-                                    'address.region',
-                                    function ($q) use ($request) {
-    
-                                        $q->where('id', $request->region_id);
-                                    }
-                                );
-                            })->get();
-    
-                            //visits between the expected start and expected end of the visit
-                            $inVisit3 = Visit::whereHas('booking', function ($qu) use ($category_id, $request, $day, $diff, $allowedDuration) {
-                                $qu->where([['category_id', '=', $category_id], ['date', '<', Carbon::parse($day)->addDays(1 + intval($diff / ($allowedDuration / 60)))], ['date', '>=', Carbon::parse($day)]])->whereHas(
-                                    'address.region',
-                                    function ($q) use ($request) {
-    
-                                        $q->where('id', $request->region_id);
-                                    }
-                                );
-                            })->get();
-                        }
-    
-    
-    
-    
-                        if ($day == $dayNow && $converTimestamp < $convertNowTimestamp) {
-    
-                            // error_log("A");
-                        } else if ($setting->is_resting == 1 && $time->between($startDate, $endDate, true)) {
-                            //  error_log("B");
-    
-                        } else if (in_array($day, $bookingDates) && in_array($converTimestamp, $bookingTimes) && ($countInBooking ==  $countGroup)) {
-                            //  error_log("C");
-    
-                        } else if (in_array($day, $bookingDates)  && ($countInBooking + $inVisit->count()) == $countGroup) {
-                        } else if (($inVisit2->IsNotEmpty()  || $inVisit3->IsNotEmpty()) && ($countInBooking + $inVisit->count() + $inVisit2->count() + $inVisit3->count()) == $countGroup) {
-                        } else {
-    
-                            return $time->format('g:i A');
-                        }
+                    $inVisit = Visit::where([['start_time', '<', Carbon::parse($realTime)], ['end_time', '>', ($realTime)]])->get();
+                    $inVisit2 = collect();
+                    $inVisit3 = collect();
+                    if (($bookSetting->service_duration) > (Carbon::parse($bookSetting->service_start_time)->diffInMinutes(Carbon::parse($bookSetting->service_end_time)))) {
+                        $allowedDuration = (Carbon::parse($bookSetting->service_start_time)->diffInMinutes(Carbon::parse($bookSetting->service_end_time)));
+                        $diff = (($bookSetting->service_duration) - $allowedDuration) / 60;
+
+                        //visits at the day of expected end with a start time before the expected end
+                        $inVisit2 = Visit::where('start_time', '<', Carbon::parse($bookSetting->service_start_time)->addHours($diff % ($allowedDuration / 60)))->whereHas('booking', function ($qu) use ($category_id, $request, $day, $diff, $allowedDuration) {
+                            $qu->where([['category_id', '=', $category_id], ['date', '=', Carbon::parse($day)->addDays(1 + intval($diff / ($allowedDuration / 60)))]])->whereHas(
+                                'address.region',
+                                function ($q) use ($request) {
+
+                                    $q->where('id', $request->region_id);
+                                }
+                            );
+                        })->get();
+
+                        //visits between the expected start and expected end of the visit
+                        $inVisit3 = Visit::whereHas('booking', function ($qu) use ($category_id, $request, $day, $diff, $allowedDuration) {
+                            $qu->where([['category_id', '=', $category_id], ['date', '<', Carbon::parse($day)->addDays(1 + intval($diff / ($allowedDuration / 60)))], ['date', '>=', Carbon::parse($day)]])->whereHas(
+                                'address.region',
+                                function ($q) use ($request) {
+
+                                    $q->where('id', $request->region_id);
+                                }
+                            );
+                        })->get();
+                    }
+
+
+
+
+                    if ($day == $dayNow && $converTimestamp < $convertNowTimestamp) {
+
+                        // error_log("A");
+                    } else if ($setting->is_resting == 1 && $time->between($startDate, $endDate, true)) {
+                        //  error_log("B");
+
+                    } else if (in_array($day, $bookingDates) && in_array($converTimestamp, $bookingTimes) && ($countInBooking ==  $countGroup)) {
+                        //  error_log("C");
+
+                    } else if (in_array($day, $bookingDates)  && ($countInBooking + $inVisit->count()) == $countGroup) {
+                    } else if (($inVisit2->IsNotEmpty()  || $inVisit3->IsNotEmpty()) && ($countInBooking + $inVisit->count() + $inVisit2->count() + $inVisit3->count()) == $countGroup) {
+                    } else {
+
+                        return $time->format('g:i A');
+                    }
 
 
                     // if ($day == $dayNow && $converTimestamp < $convertNowTimestamp){
