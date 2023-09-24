@@ -333,7 +333,7 @@ class CheckoutController extends Controller
 
     private function saveContract($user, $request, $total, $carts)
     {
-        $order = Contract::create([
+        $contract_order = Contract::create([
             'user_id' => $user->id,
             'discount' => $request->coupon,
             'user_address_id' => $request->user_address_id,
@@ -345,13 +345,33 @@ class CheckoutController extends Controller
             'price' => ($total - $request->coupon),
             'quantity' => $carts->count(),
         ]);
-
+        $order = Order::create([
+            'user_id' => $user->id,
+            'discount' => $request->coupon,
+            'user_address_id' => $request->user_address_id,
+            'sub_total' => $total,
+            'total' =>($total - $request->coupon),
+            'status_id' => 2,
+            'notes' => $request->notes,
+            'car_user_id' => $request->car_user_id,
+        ]);
 
         ///////////////////////////////////
 
         foreach ($carts as $key => $cart) {
+            OrderService::create([
+                'order_id' => $order->id,
+                'service_id' => $cart->service_id,
+                'price' => $cart->price,
+                'quantity' => $cart->quantity,
+                'category_id' => $cart->category_id,
+            ]);
+           
+
+
 
             $service = Service::query()->find($cart->service_id);
+            $service?->save();
             $category_id = $cart->category_id;
             $booking_no = 'dash2023/' . $cart->id;
             $minutes = 0;
@@ -405,7 +425,8 @@ class CheckoutController extends Controller
                 'category_id' => $category_id,
                 'service_id'=>$cart->service_id,
                 'package_id'=>$cart->contract_package_id,
-                'contract_order_id' => $order->id,
+                'order_id' => $order->id,
+                'contract_order_id' => $contract_order->id,
                 'user_address_id' => $order->user_address_id,
                 'booking_status_id' => 1,
                 'notes' => $cart->notes,
@@ -509,14 +530,16 @@ class CheckoutController extends Controller
         // }
         if ($request->payment_method == 'wallet') {
             $transaction = Transaction::create([
-                'contract_order_id' => $order->id,
+                'order_id' => $order->id,
+                'contract_order_id' => $contract_order->id,
                 'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
             ]);
         } else {
             Transaction::create([
-                'contract_order_id' => $order->id,
+                'order_id' => $order->id,
+                'contract_order_id' => $contract_order->id,
                 'transaction_number' => $request->transaction_id,
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
