@@ -220,7 +220,7 @@ class CheckoutController extends Controller
                 if (($visit->get()->count()) < ($group->get()->count())) {
                     $assign_to_id = $group->whereNotIn('id', $visit->pluck('assign_to_id')->toArray())->inRandomOrder()->first()->id;
                 } else {
-                    $assign_to_id = $visit->where('start_time','!=',$cart->time)->inRandomOrder()->first()->assign_to_id;
+                    $assign_to_id = $visit->where('start_time', '!=', $cart->time)->inRandomOrder()->first()->assign_to_id;
                 }
             }
             $bookingInsert = Booking::query()->create([
@@ -228,7 +228,7 @@ class CheckoutController extends Controller
                 'user_id' => auth('sanctum')->user()->id,
                 'category_id' => $category_id,
                 'order_id' => $order->id,
-                'service_id'=>$cart->service_id,
+                'service_id' => $cart->service_id,
                 'user_address_id' => $order->user_address_id,
                 'booking_status_id' => 1,
                 'notes' => $cart->notes,
@@ -310,6 +310,16 @@ class CheckoutController extends Controller
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
             ]);
+        } elseif ($request->payment_method == 'cache') {
+            $transaction = Transaction::create([
+                'order_id' => $order->id,
+                'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
+                'payment_result' => 'success',
+                'payment_method' => $request->payment_method,
+            ]);
+            $order->update([
+                'partial_amount' => $total
+            ]);
         } else {
             Transaction::create([
                 'order_id' => $order->id,
@@ -350,7 +360,7 @@ class CheckoutController extends Controller
             'discount' => $request->coupon,
             'user_address_id' => $request->user_address_id,
             'sub_total' => $total,
-            'total' =>($total - $request->coupon),
+            'total' => ($total - $request->coupon),
             'status_id' => 2,
             'notes' => $request->notes,
             'car_user_id' => $request->car_user_id,
@@ -366,7 +376,7 @@ class CheckoutController extends Controller
                 'quantity' => $cart->quantity,
                 'category_id' => $cart->category_id,
             ]);
-           
+
 
 
 
@@ -381,7 +391,7 @@ class CheckoutController extends Controller
             }
 
             $address = UserAddresses::where('id', $order->user_address_id)->first();
-          
+
             $booking_id = Booking::whereHas('address', function ($qu) use ($address) {
                 $qu->where('region_id', $address->region_id);
             })->whereHas('category', function ($qu) use ($category_id) {
@@ -411,20 +421,20 @@ class CheckoutController extends Controller
                 if ($group->count() == 0) {
                     return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
                 }
-            
+
                 if (($visit->get()->count()) < ($group->get()->count())) {
                     $assign_to_id = $group->whereNotIn('id', $visit->pluck('assign_to_id')->toArray())->inRandomOrder()->first()->id;
                 } else {
-                 
-                    $assign_to_id = $visit->where('start_time','!=',$cart->time)->inRandomOrder()->first()->assign_to_id;
+
+                    $assign_to_id = $visit->where('start_time', '!=', $cart->time)->inRandomOrder()->first()->assign_to_id;
                 }
             }
             $bookingInsert = Booking::query()->create([
                 'booking_no' => $booking_no,
                 'user_id' => auth('sanctum')->user()->id,
                 'category_id' => $category_id,
-                'service_id'=>$cart->service_id,
-                'package_id'=>$cart->contract_package_id,
+                'service_id' => $cart->service_id,
+                'package_id' => $cart->contract_package_id,
                 'order_id' => $order->id,
                 'contract_order_id' => $contract_order->id,
                 'user_address_id' => $order->user_address_id,
