@@ -162,7 +162,7 @@ class CheckoutController extends Controller
                 ->where('category_id', $category_id)->first();
             $booking_no = 'dash2023/' . $cart->id;
             $minutes = 0;
-            $bookSetting = BookingSetting::where('service_id', $service->id)->first();
+            $bookSetting = BookingSetting::where('service_id', $cart->service_id)->first();
             if ($bookSetting) {
                 foreach (Service::with('BookingSetting')->whereIn('id', $carts->pluck('service_id')->toArray())->get() as $service) {
                     $serviceMinutes = ($service->BookingSetting->buffering_time + $service->BookingSetting->service_duration)
@@ -228,6 +228,7 @@ class CheckoutController extends Controller
                 'user_id' => auth('sanctum')->user()->id,
                 'category_id' => $category_id,
                 'order_id' => $order->id,
+                'service_id'=>$cart->service_id,
                 'user_address_id' => $order->user_address_id,
                 'booking_status_id' => 1,
                 'notes' => $cart->notes,
@@ -354,7 +355,7 @@ class CheckoutController extends Controller
             $category_id = $cart->category_id;
             $booking_no = 'dash2023/' . $cart->id;
             $minutes = 0;
-            $bookSetting = BookingSetting::where('service_id', $service->id)->first();
+            $bookSetting = BookingSetting::where('service_id', $cart->service_id)->first();
             if ($bookSetting) {
                 $minutes =  ($service->BookingSetting->buffering_time + $service->BookingSetting->service_duration);
             }
@@ -402,13 +403,15 @@ class CheckoutController extends Controller
                 'booking_no' => $booking_no,
                 'user_id' => auth('sanctum')->user()->id,
                 'category_id' => $category_id,
+                'service_id'=>$cart->service_id,
+                'package_id'=>$cart->contract_package_id,
                 'contract_order_id' => $order->id,
                 'user_address_id' => $order->user_address_id,
                 'booking_status_id' => 1,
                 'notes' => $cart->notes,
                 'quantity' => $cart->quantity,
                 'date' => $cart->date,
-                'type' => 'service',
+                'type' => 'contract',
                 'time' => Carbon::parse($cart->time)->toTimeString(),
                 'end_time' => $minutes ? Carbon::parse($cart->time)->addMinutes($minutes)->toTimeString() : null,
             ]);
