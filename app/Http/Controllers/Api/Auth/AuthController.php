@@ -80,6 +80,9 @@ class AuthController extends Controller
                     'fcm_token' => $request->fcm_token
                 ]);
                 Auth::loginUsingId($user->id);
+                if(auth('sanctum')->check()){
+                    auth()->user()->tokens()->delete();
+                }
                 $this->message = __('api.login successfully');
                 $this->body['user'] = UserResource::make($user);
                 $this->body['accessToken'] = $user->createToken('user-token',['user'])->plainTextToken;
