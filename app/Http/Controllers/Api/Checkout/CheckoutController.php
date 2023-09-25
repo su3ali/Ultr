@@ -60,7 +60,7 @@ class CheckoutController extends Controller
             'wallet_discounts' => 'nullable|numeric',
             //   'is_advance' => 'nullable',
             // 'is_return' => 'nullable',
-            'amount' => 'nullable|numeric',
+              'amount' => 'nullable|numeric',
             'file' => 'nullable',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
             'notes' => 'nullable',
@@ -259,43 +259,24 @@ class CheckoutController extends Controller
                 $title = 'موعد زيارة جديد';
                 $message = 'لديك موعد زياره جديد';
 
-
                 foreach ($allTechn as $tech) {
                     Notification::send(
                         $tech,
                         new SendPushNotification($title, $message)
                     );
-                    $FcmToken = $tech->fcm_token;
-
-                    $notification = [
-                        'device_token' => $FcmToken,
-                        'title' => $title,
-                        'message' => $message,
-                        'type' => 'technician',
-                        'code' => 1,
-                    ];
-
-                    $this->pushNotification($notification);
                 }
 
-                // foreach ($allTechn as $tech) {
-                //     Notification::send(
-                //         $tech,
-                //         new SendPushNotification($title, $message)
-                //     );
-                // }
+                $FcmTokenArray = $allTechn->pluck('fcm_token');
 
-                // $FcmTokenArray = $allTechn->pluck('fcm_token');
+                $notification = [
+                    'device_token' => $FcmTokenArray,
+                    'title' => $title,
+                    'message' => $message,
+                    'type' => 'technician',
+                    'code' => 1,
+                ];
 
-                // $notification = [
-                //     'device_token' => $FcmTokenArray,
-                //     'title' => $title,
-                //     'message' => $message,
-                //     'type' => 'technician',
-                //     'code' => 1,
-                // ];
-
-                // $this->pushNotification($notification);
+                $this->pushNotification($notification);
             }
         }
         // if ($request->payment_method == 'cache') {
@@ -491,30 +472,19 @@ class CheckoutController extends Controller
                         $tech,
                         new SendPushNotification($title, $message)
                     );
-                    $FcmToken = $tech->fcm_token;
-
-                    $notification = [
-                        'device_token' => $FcmToken,
-                        'title' => $title,
-                        'message' => $message,
-                        'type' => 'technician',
-                        'code' => 1,
-                    ];
-
-                    $this->pushNotification($notification);
                 }
 
-                // $FcmTokenArray = $allTechn->pluck('fcm_token');
+                $FcmTokenArray = $allTechn->pluck('fcm_token');
 
-                // $notification = [
-                //     'device_token' => $FcmTokenArray,
-                //     'title' => $title,
-                //     'message' => $message,
-                //     'type' => 'technician',
-                //     'code' => 1,
-                // ];
+                $notification = [
+                    'device_token' => $FcmTokenArray,
+                    'title' => $title,
+                    'message' => $message,
+                    'type' => 'technician',
+                    'code' => 1,
+                ];
 
-                // $this->pushNotification($notification);
+                $this->pushNotification($notification);
             }
         }
         /////////////////////////////////////////
