@@ -18,6 +18,7 @@ trait NotificationTrait
             'title' => $notification['title'],
             'body' => $notification['message'],
             'type' => $notification['type'],
+            'code' => $notification['code'],
 
         ];
 
@@ -30,9 +31,21 @@ trait NotificationTrait
         //          'data' => $data
         //      ];
 
-        $fields = json_encode([
+        // $fields = json_encode([
+        //     'registration_ids' => $device_token,
+        //     //      'notification' => $notification,
+        //     "content_available" => true,
+        //     "ios" => [
+        //         "priority" => "HIGH"
+        //     ],
+        //     'data' => $data,
+        //     'sound' => 'default',
+        //     "priority" => "HIGH",
+        //     "mutable-content" => 1,
+        // ]);
+        $fields = [
             'registration_ids' => $device_token,
-            //      'notification' => $notification,
+            //          'notification' => $notification,
             "content_available" => true,
             "ios" => [
                 "priority" => "HIGH"
@@ -41,8 +54,7 @@ trait NotificationTrait
             'sound' => 'default',
             "priority" => "HIGH",
             "mutable-content" => 1,
-        ]);
-
+        ];
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
         curl_setopt($ch, CURLOPT_POST, true);
@@ -51,7 +63,7 @@ trait NotificationTrait
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+        curl_setopt($ch, CURLOPT_POSTFIELDS,  json_encode($fields));
         $result = curl_exec($ch);
 
         if ($result === FALSE) {
@@ -71,15 +83,16 @@ trait NotificationTrait
             'data' => $notification['data'],
         ];
 
-        $fields = json_encode([
+        $fields = [
             'registration_ids' => $device_token,
             "content_available" => true,
-            "ios" => [
-                "priority" => "HIGH"
+            "ios"=>[
+                "priority"=>"HIGH"
             ],
             'data' => $data,
             "priority" => "HIGH",
-        ]);
+        ];
+
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
@@ -89,7 +102,7 @@ trait NotificationTrait
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields)); 
         $result = curl_exec($ch);
 
         if ($result === FALSE) {
