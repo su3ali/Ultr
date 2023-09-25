@@ -259,24 +259,43 @@ class CheckoutController extends Controller
                 $title = 'موعد زيارة جديد';
                 $message = 'لديك موعد زياره جديد';
 
+
                 foreach ($allTechn as $tech) {
                     Notification::send(
                         $tech,
                         new SendPushNotification($title, $message)
                     );
+                    $FcmToken = $tech->fcm_token;
+
+                    $notification = [
+                        'device_token' => $FcmToken,
+                        'title' => $title,
+                        'message' => $message,
+                        'type' => 'technician',
+                        'code' => 1,
+                    ];
+
+                    $this->pushNotification($notification);
                 }
 
-                $FcmTokenArray = $allTechn->pluck('fcm_token');
+                // foreach ($allTechn as $tech) {
+                //     Notification::send(
+                //         $tech,
+                //         new SendPushNotification($title, $message)
+                //     );
+                // }
 
-                $notification = [
-                    'device_token' => $FcmTokenArray,
-                    'title' => $title,
-                    'message' => $message,
-                    'type' => 'technician',
-                    'code' => 1,
-                ];
+                // $FcmTokenArray = $allTechn->pluck('fcm_token');
 
-                $this->pushNotification($notification);
+                // $notification = [
+                //     'device_token' => $FcmTokenArray,
+                //     'title' => $title,
+                //     'message' => $message,
+                //     'type' => 'technician',
+                //     'code' => 1,
+                // ];
+
+                // $this->pushNotification($notification);
             }
         }
         // if ($request->payment_method == 'cache') {
