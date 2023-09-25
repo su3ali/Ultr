@@ -14,9 +14,9 @@ class BookingResource extends JsonResource
 {
     public function toArray($request)
     {
-        //$services = $this->order?->services->where('category_id', $this->category->id);
+        $services = $this->order?->services->where('category_id', $this->category->id);
 
-        $services = Service::where('id', $this->service_id)->get();
+        // $services = Service::where('id', $this->service_id)->get();
 
 
         return [
@@ -24,8 +24,8 @@ class BookingResource extends JsonResource
             'booking_no' => $this->booking_no,
             'status' => $this->visit ? StatusResource::make($this->visit->status) : null,
             'category' => CategoryBasicResource::make($this->category),
-            //  'services' => $services ? ServiceResource::collection($services) : [ServiceResource::make($this->package->service)],
-            'services' => ServiceResource::collection($services),
+            'services' => $services ? ServiceResource::collection($services) : [ServiceResource::make($this->package->service)],
+            //  'services' => ServiceResource::collection($services),
             'image' => $this->category->slug ? asset($this->category->slug) : '',
             'date' => Carbon::parse($this->date)->format('d M'),
             'time_start' => Carbon::parse($this->time)->format('g:i A'),
