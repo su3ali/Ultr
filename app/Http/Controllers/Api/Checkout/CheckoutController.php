@@ -60,7 +60,7 @@ class CheckoutController extends Controller
             'wallet_discounts' => 'nullable|numeric',
             //   'is_advance' => 'nullable',
             // 'is_return' => 'nullable',
-              'amount' => 'nullable|numeric',
+            'amount' => 'nullable|numeric',
             'file' => 'nullable',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
             'notes' => 'nullable',
@@ -310,6 +310,9 @@ class CheckoutController extends Controller
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
             ]);
+            $order->update([
+                'partial_amount' => 0
+            ]);
         } elseif ($request->payment_method == 'cache') {
             $transaction = Transaction::create([
                 'order_id' => $order->id,
@@ -327,6 +330,9 @@ class CheckoutController extends Controller
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
                 // 'amount' => $request->amount,
+            ]);
+            $order->update([
+                'partial_amount' => 0
             ]);
         }
 
@@ -546,6 +552,19 @@ class CheckoutController extends Controller
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
             ]);
+            $order->update([
+                'partial_amount' => 0
+            ]);
+        } elseif ($request->payment_method == 'cache') {
+            $transaction = Transaction::create([
+                'order_id' => $order->id,
+                'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
+                'payment_result' => 'success',
+                'payment_method' => $request->payment_method,
+            ]);
+            $order->update([
+                'partial_amount' => $total
+            ]);
         } else {
             Transaction::create([
                 'order_id' => $order->id,
@@ -554,6 +573,9 @@ class CheckoutController extends Controller
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
                 //  'amount' => $total,
+            ]);
+            $order->update([
+                'partial_amount' => 0
             ]);
         }
         $user->update([
