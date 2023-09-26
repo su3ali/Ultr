@@ -22,21 +22,24 @@ trait NotificationTrait
 
         ];
 
-//      $notification = [
-//          'title' => $notification['title'] ,
-//          'body' => $notification['message'],
-//          'sound' => 'default',
-//          "priority" => "high",
-//          "mutable-content"=> 1,
-//          'data' => $data
-//      ];
+        //      $notification = [
+        //          'title' => $notification['title'] ,
+        //          'body' => $notification['message'],
+        //          'sound' => 'default',
+        //          "priority" => "high",
+        //          "mutable-content"=> 1,
+        //          'data' => $data
+        //      ];
 
         $fields = [
             'registration_ids' => $device_token,
-//          'notification' => $notification,
+            //          'notification' => $notification,
             "content_available" => true,
-            "ios"=>[
-                "priority"=>"HIGH"
+            "android" => [
+                "priority" => "HIGH"
+            ],
+            "ios" => [
+                "priority" => "HIGH"
             ],
             'data' => $data,
             'sound' => 'default',
@@ -75,8 +78,11 @@ trait NotificationTrait
         $fields = [
             'registration_ids' => $device_token,
             "content_available" => true,
-            "ios"=>[
-                "priority"=>"HIGH"
+            "android" => [
+                "priority" => "HIGH"
+            ],
+            "ios" => [
+                "priority" => "HIGH"
             ],
             'data' => $data,
             "priority" => "HIGH",
