@@ -313,6 +313,7 @@ class CheckoutController extends Controller
             $order->update([
                 'partial_amount' => 0
             ]);
+            $order->save();
         } elseif ($request->payment_method == 'cache') {
             $transaction = Transaction::create([
                 'order_id' => $order->id,
@@ -323,6 +324,7 @@ class CheckoutController extends Controller
             $order->update([
                 'partial_amount' => $total
             ]);
+            $order->save();
         } else {
             Transaction::create([
                 'order_id' => $order->id,
@@ -334,6 +336,7 @@ class CheckoutController extends Controller
             $order->update([
                 'partial_amount' => 0
             ]);
+            $order->save();
         }
 
         $user->update([
@@ -555,6 +558,7 @@ class CheckoutController extends Controller
             $order->update([
                 'partial_amount' => 0
             ]);
+            $order->save();
         } elseif ($request->payment_method == 'cache') {
             $transaction = Transaction::create([
                 'order_id' => $order->id,
@@ -565,6 +569,7 @@ class CheckoutController extends Controller
             $order->update([
                 'partial_amount' => $total
             ]);
+            $order->save();
         } else {
             Transaction::create([
                 'order_id' => $order->id,
@@ -577,6 +582,7 @@ class CheckoutController extends Controller
             $order->update([
                 'partial_amount' => 0
             ]);
+            $order->save();
         }
         $user->update([
             'point' => $user->point - $request->wallet_discounts ?? 0
