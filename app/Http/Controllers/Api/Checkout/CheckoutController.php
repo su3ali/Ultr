@@ -310,10 +310,8 @@ class CheckoutController extends Controller
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
             ]);
-            $order->update([
-                'partial_amount' => 0
-            ]);
-            $order->save();
+            Order::where('id',$order->id)->update([ 'partial_amount' => 0]);
+          
         } elseif ($request->payment_method == 'cache') {
             $transaction = Transaction::create([
                 'order_id' => $order->id,
@@ -321,10 +319,8 @@ class CheckoutController extends Controller
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
             ]);
-            $order->update([
-                'partial_amount' => $total
-            ]);
-            $order->save();
+            Order::where('id',$order->id)->update([ 'partial_amount' => $total]);
+       
         } else {
             Transaction::create([
                 'order_id' => $order->id,
@@ -333,10 +329,7 @@ class CheckoutController extends Controller
                 'payment_method' => $request->payment_method,
                 // 'amount' => $request->amount,
             ]);
-            $order->update([
-                'partial_amount' => 0
-            ]);
-            $order->save();
+            Order::where('id',$order->id)->update([ 'partial_amount' => 0]);
         }
 
         $user->update([
@@ -555,10 +548,7 @@ class CheckoutController extends Controller
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
             ]);
-            $order->update([
-                'partial_amount' => 0
-            ]);
-            $order->save();
+            Order::where('id',$order->id)->update([ 'partial_amount' => 0]);
         } elseif ($request->payment_method == 'cache') {
             $transaction = Transaction::create([
                 'order_id' => $order->id,
@@ -566,10 +556,7 @@ class CheckoutController extends Controller
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
             ]);
-            $order->update([
-                'partial_amount' => $total
-            ]);
-            $order->save();
+            Order::where('id',$order->id)->update([ 'partial_amount' => $total]);
         } else {
             Transaction::create([
                 'order_id' => $order->id,
@@ -579,10 +566,7 @@ class CheckoutController extends Controller
                 'payment_method' => $request->payment_method,
                 //  'amount' => $total,
             ]);
-            $order->update([
-                'partial_amount' => 0
-            ]);
-            $order->save();
+            Order::where('id',$order->id)->update([ 'partial_amount' => 0]);
         }
         $user->update([
             'point' => $user->point - $request->wallet_discounts ?? 0
