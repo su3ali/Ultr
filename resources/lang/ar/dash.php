@@ -47,7 +47,12 @@ return [
     'logged_in_successfully' => 'تسجيل الدخول بنجاح',
     'logged_out_successfully' => 'خرجت بنجاح',
     'logout' => 'خروج',
-
+    'tech_orders'=>'طلبات الفنيين',
+    'orders_status'=>'حالات الطلبات',
+    'packages_management'=>'إدارة الباقات',
+    'packages'=>'الباقات',
+    'packages_orders'=>'طلبات الباقات',
+    'package_request'=>'طلب باقة',
 
     'login_firstly' => 'يجب عليك الدخول أولا',
     'quick_links' => 'روابط سريعة',
