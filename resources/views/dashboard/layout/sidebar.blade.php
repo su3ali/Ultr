@@ -105,7 +105,7 @@
                     <a href="#orders" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
                             <div class="icon-container">
-                                <i data-feather="shopping-cart"></i><span class="icon-name"> الطلبات </span>
+                                <i data-feather="shopping-cart"></i><span class="icon-name">{{__('dash.client_orders')}}</span>
                             </div>
                         </div>
                         <div>
@@ -120,12 +120,12 @@
                     <ul class="collapse submenu list-unstyled" id="orders" data-parent="#accordionExample">
                         @can('view_orders')
                             <li>
-                                <a href="{{route('dashboard.orders.index')}}"> الطلبات </a>
+                                <a href="{{route('dashboard.orders.index')}}">{{__('dash.client_orders')}}</a>
                             </li>
                         @endcan
                         @can('update_orders')
                             <li>
-                                <a href="{{route('dashboard.order_statuses.index')}}"> حالات الطلب </a>
+                                <a href="{{route('dashboard.order_statuses.index')}}">{{__('dash.orders_status')}}</a>
                             </li>
                         @endcan
 
