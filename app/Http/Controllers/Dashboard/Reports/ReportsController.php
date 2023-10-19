@@ -114,6 +114,57 @@ class ReportsController extends Controller
         return view('dashboard.reports.sales',compact('sub_total','tax'));
     }
 
+    protected function updateSummary(Request $request)
+    {
+        $date = $request->date;
+        $date2 = $request->date2;
+        $payment_method = $request->payment_method;
+        $orderQuery = Order::query();
+    
+        if ($date) {
+            error_log("date");
+            $carbonDate = \Carbon\Carbon::parse($date);
+            $formattedDate = $carbonDate->format('Y-m-d H:i:s');
+            $orderQuery->where('created_at', '>=', $formattedDate);
+        }
+    
+        if ($date2) {
+            error_log("date2");
+            $carbonDate2 = \Carbon\Carbon::parse($date2);
+            $formattedDate2 = $carbonDate2->format('Y-m-d H:i:s');
+            $carbonDate = \Carbon\Carbon::parse($date);
+            $formattedDate = $carbonDate->format('Y-m-d H:i:s');
+            $orderQuery->where([['created_at', '>=', $formattedDate], ['created_at', '<=', $formattedDate2]]);
+        }
+    
+        if ($payment_method && $payment_method!='all') {
+            
+            $orderQuery->whereHas('transaction', function ($q) use ($payment_method) {
+                $q->where('payment_method', $payment_method);
+            });
+        }
+    
+        // Calculate the total, tax, and tax-subtotal
+        $sub_total = $orderQuery->sum('sub_total');
+        $taxRate = 0.15; // 15% tax rate
+        $tax = $sub_total * $taxRate;
+        $taxSubTotal = $sub_total + $tax;
+        
+        error_log(response()->json([
+            'sub_total' => $sub_total,
+            'tax' => $tax,
+            'taxSubTotal' => $taxSubTotal,
+        ]));
+      
+        // Return the summary values as JSON
+        return response()->json([
+            'sub_total' => $sub_total,
+            'tax' => $tax,
+            'taxSubTotal' => $taxSubTotal,
+        ]);
+    }
+    
+
     protected function contractSales(Request $request)
     {
         if (request()->ajax()) {

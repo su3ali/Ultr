@@ -158,54 +158,54 @@
                 ]
             });
 
-            function updateSummary() {
-                var subTotal = 0;
+            function updateTableData() {
+                var date = $('.date').val();
+                var date2 = $('.date2').val();
+                var payment_method = $('.payment_method').val();
+                var url = '{{ route('dashboard.report.sales') }}';
 
-                table.rows({ search: 'applied' }).every(function (rowIdx, tableLoop, rowLoop) {
-                    var data = this.data();
-                    subTotal += parseFloat(data.price); // Assuming 'price' is the column containing subtotals
-                });
+                if (date) {
+                    url += '?date=' + date;
+                    if (date2) {
+                        url += '&date2=' + date2;
+                    }
+                }
 
-                var taxRate = 0.15; // 15% tax rate
-                var tax = subTotal * taxRate;
-                var taxSubTotal = subTotal + tax;
+                if (payment_method && payment_method !== 'all') {
+                    url += (date ? '&' : '?') + 'payment_method=' + payment_method;
+                }
 
-                $('#sub_total').text(subTotal.toFixed(2)); // Format the numbers as needed
-                $('#tax').text(tax.toFixed(2));
-                $('#tax_sub_total').text(taxSubTotal.toFixed(2));
+                // Update table data
+                table.ajax.url(url).load();
+
+                // Update summary
+                updateSummary();
             }
 
-            // Call the updateSummary function on table draw and when the page loads
-            table.on('draw', function () {
-                updateSummary();
+            function updateSummary() {
+                $.ajax({
+                    url: '{{ route('dashboard.report.updateSummary') }}',
+                    type: 'GET',
+                    data: {
+                        date: $('.date').val(),
+                        date2: $('.date2').val(),
+                        payment_method: $('.payment_method').val()
+                    },
+                    success: function (data) {
+                        $('#sub_total').text(data.sub_total.toFixed(2));
+                        $('#tax').text(data.tax.toFixed(2));
+                        $('#tax_sub_total').text(data.taxSubTotal.toFixed(2));
+                    }
+                });
+            }
+
+            // Attach event handlers
+            $('.date, .date2, .payment_method').change(function () {
+                updateTableData();
             });
-            
-            updateSummary(); 
-            $('.date').change(function(){
-                var date = $('.date').val();
-                var date2 = $('.date2').val();
-                if(date2)
-               {
-                 table.ajax.url( '{{ route('dashboard.report.sales') }}?date=' + date+'&date2=' + date2 ).load();}
-                else
-               { 
-                table.ajax.url( '{{ route('dashboard.report.sales') }}?date=' + date ).load();}
-            })
-            $('.date2').change(function(){
-                var date = $('.date').val();
-                var date2 = $('.date2').val();
-                if(date1 && date2)
-              {  table.ajax.url( '{{ route('dashboard.report.sales') }}?date=' + date+'&date2=' + date2 ).load();}
-            })
-            $('.payment_method').change(function(){
-                var payment_method = $('.payment_method').val();
-                if(payment_method=="all"){
-                    table.ajax.url( '{{ route('dashboard.report.sales') }}' ).load();
-                }else{
-                    table.ajax.url( '{{ route('dashboard.report.sales') }}?payment_method='+payment_method ).load();
-                }
-                
-            })
+
+            // Call the initial update
+            updateTableData();
         });
 
     </script>
