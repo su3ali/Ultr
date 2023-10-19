@@ -311,8 +311,8 @@ class CartController extends Controller
                 $end = $timeDuration;
             }
             for ($i = $start; $i <  $end; $i++) {
-                $date = date('Y-m-d', strtotime('+' . $i . ' day'));
-                if (in_array(date('l', strtotime($date)), $serviceDays)) {
+                $date = Carbon::now('Asia/Riyadh')->addDays($i)->format('Y-m-d');
+                if (in_array(Carbon::parse($date)->format('l'), $serviceDays)) {
                     $dates[] = $date;
                 }
             }
@@ -323,8 +323,8 @@ class CartController extends Controller
                     if ($get_time == true) {
                         $times[$service_id][$day] = CarbonInterval::minutes($bookSetting->service_duration + $bookSetting->buffering_time)
                             ->toPeriod(
-                                \Carbon\Carbon::now()->setTimeFrom($bookSetting->service_start_time ?? Carbon::now()->startOfDay()),
-                                Carbon::now()->setTimeFrom($bookSetting->service_end_time ?? Carbon::now()->endOfDay())
+                                \Carbon\Carbon::now('Asia/Riyadh')->setTimeFrom($bookSetting->service_start_time ?? Carbon::now('Asia/Riyadh')->startOfDay()),
+                                Carbon::now('Asia/Riyadh')->setTimeFrom($bookSetting->service_end_time ?? Carbon::now('Asia/Riyadh')->endOfDay())
                             );
                     }
                 }
