@@ -33,7 +33,7 @@ class ReportsController extends Controller
             $date = $request->date;
             $date2 = $request->date2;
             $payment_method = $request->payment_method;
-//            $service_id = $request->service_id;
+
             $order = Order::query();
 
             if($date) {
