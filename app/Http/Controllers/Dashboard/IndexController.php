@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers\Dashboard;
 
-use App\Charts\CommonChart;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Order;
 use App\Models\Technician;
 use App\Models\User;
+use App\Charts\CommonChart;
 use Yajra\DataTables\DataTables;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+
 class IndexController extends Controller
 {
     public function getCurrentFinancialYear()
