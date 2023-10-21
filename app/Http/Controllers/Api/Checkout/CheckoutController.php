@@ -121,7 +121,7 @@ class CheckoutController extends Controller
             'total' => $totalAfterDiscount,
 
             'partial_amount' => ($totalAfterDiscount - $request->amount),
-            'status_id' => 1
+            'status_id' => 1,
             //  'is_advance' => $request->is_advance,
             //  'is_return' => $request->is_return,
             'file' => $uploadFile,
