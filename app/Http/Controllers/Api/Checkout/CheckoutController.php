@@ -624,7 +624,7 @@ class CheckoutController extends Controller
         ]);
 
         $user->update([
-            'point' => $user->point - $request->wallet_discounts ?? 0
+            'point' => $user->point - $request->wallet_discounts ?? 0,
         ]);
 
         return self::apiResponse(200, __('api.paid successfully'), $this->body);
