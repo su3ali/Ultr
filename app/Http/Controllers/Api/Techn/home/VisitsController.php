@@ -98,7 +98,6 @@ class VisitsController extends Controller
             },'customer','address']);
 
         })->with('status')->where('id', $id)->first();
-
         $this->body['visits'] = VisitsResource::make($order);
         return self::apiResponse(200, null, $this->body);
     }
