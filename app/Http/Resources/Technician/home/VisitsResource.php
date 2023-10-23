@@ -11,6 +11,7 @@ use App\Http\Resources\Service\ServiceByCategoryResource;
 use App\Http\Resources\Service\ServiceResource;
 use App\Http\Resources\User\UserResource;
 use App\Models\RateService;
+use App\Models\User;
 use App\Models\RateTechnician;
 use App\Models\ReasonCancel;
 use App\Models\VisitsStatus;
@@ -35,13 +36,18 @@ class VisitsResource extends JsonResource
         if($rateTechn){
             $is_techn_rate = true;
         }
-
-
+        $cancel_reasons =null;
+        if(User::where('id',auth('sanctum')->user()->id)->first()){
+            $cancel_reasons = ReasonCancel::where('is_for_tech',0)->get();
+        }else{
+            $cancel_reasons = ReasonCancel::where('is_for_tech',1)->get();
+        }
+        
         return [
             'id' => $this->id,
             'group' => GroupResource::make($this->group),
             'all_statuses' => StatusResource::collection(VisitsStatus::all()),
-            'all_cancel_reasons' => CancelReasonsResource::collection(ReasonCancel::all()),
+            'all_cancel_reasons' => CancelReasonsResource::collection($cancel_reasons),
             'booking_details' => BookingResource::make($this->booking),
             'user' => UserResource::make($this->booking->customer),
             'address' => UserAddressResource::make($this->booking->address),
@@ -56,7 +62,6 @@ class VisitsResource extends JsonResource
             'file' =>$this->booking->order ? asset($this->booking->order->file) : null,
             'partial_amount' =>$this->booking?->order?->partial_amount ?? 0,
             'order_id' =>$this->booking?->order?->id,
-
         ];
     }
 }

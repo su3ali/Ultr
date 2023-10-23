@@ -72,7 +72,7 @@ class VisitsController extends Controller
         $groups=Group::where('technician_id',auth('sanctum')->user()->id)->first();
         $orders = Visit::whereHas('booking', function ($q) {
 
-            $q->where('date',Carbon::now()->format('Y-m-d'))->whereHas('customer')->whereHas('address');
+            $q->where('date',Carbon::now('Asia/Riyadh')->format('Y-m-d'))->whereHas('customer')->whereHas('address');
 
         })->with('booking', function ($q) {
             $q->with(['service' => function ($q) {
@@ -98,7 +98,6 @@ class VisitsController extends Controller
             },'customer','address']);
 
         })->with('status')->where('id', $id)->first();
-
         $this->body['visits'] = VisitsResource::make($order);
         return self::apiResponse(200, null, $this->body);
     }

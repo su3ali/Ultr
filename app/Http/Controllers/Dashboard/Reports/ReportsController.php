@@ -31,17 +31,30 @@ class ReportsController extends Controller
     {
         if (request()->ajax()) {
             $date = $request->date;
+            $date2 = $request->date2;
             $payment_method = $request->payment_method;
-//            $service_id = $request->service_id;
+
             $order = Order::query();
 
             if($date) {
+              
                 $carbonDate = \Carbon\Carbon::parse($date);
                 $formattedDate = $carbonDate->format('Y-m-d H:i:s');
-                $order = $order->where('created_at','=', $formattedDate);
+                $order = $order->where('created_at','>=', $formattedDate);
+            }
+            if($date2){
+         
+                $carbonDate2 = \Carbon\Carbon::parse($date2);
+                $formattedDate2 = $carbonDate2->format('Y-m-d H:i:s');
+
+                $carbonDate = \Carbon\Carbon::parse($date);
+                $formattedDate = $carbonDate->format('Y-m-d H:i:s');
+                $order = $order->where([['created_at','>=', $formattedDate],['created_at','<=', $formattedDate2]]);
             }
             if($payment_method) {
-                $order = $order->where('payment_method',$payment_method);
+                $order = $order->whereHas('transaction',function($q)use($payment_method){
+                    $q->where('payment_method',$payment_method);
+                });
             }
 
             $order = $order->get();
@@ -52,6 +65,9 @@ class ReportsController extends Controller
                 })
                 ->addColumn('user_name', function ($row) {
                     return $row->user?->first_name .''.$row->user?->last_name;
+                })
+                ->addColumn('created_at', function ($row) {
+                    return $row->created_at;
                 })
                 ->addColumn('category', function ($row) {
 
@@ -73,16 +89,20 @@ class ReportsController extends Controller
                     return $row->sub_total;
                 })
                 ->addColumn('payment_method', function ($row) {
-                    return $row->payment_method;
+                    return $row->transaction?->payment_method;
+                })   ->addColumn('sub_total', function ($row) {
+                    return $row->sub_total;
                 })
 
                 ->rawColumns([
                     'order_number',
                     'user_name',
+                    'created_at',
                     'category',
                     'service_number',
                     'price',
                     'payment_method',
+                    'sub_total'
                 ])
                 ->make(true);
         }
@@ -93,6 +113,57 @@ class ReportsController extends Controller
 
         return view('dashboard.reports.sales',compact('sub_total','tax'));
     }
+
+    protected function updateSummary(Request $request)
+    {
+        $date = $request->date;
+        $date2 = $request->date2;
+        $payment_method = $request->payment_method;
+        $orderQuery = Order::query();
+    
+        if ($date) {
+            error_log("date");
+            $carbonDate = \Carbon\Carbon::parse($date);
+            $formattedDate = $carbonDate->format('Y-m-d H:i:s');
+            $orderQuery->where('created_at', '>=', $formattedDate);
+        }
+    
+        if ($date2) {
+            error_log("date2");
+            $carbonDate2 = \Carbon\Carbon::parse($date2);
+            $formattedDate2 = $carbonDate2->format('Y-m-d H:i:s');
+            $carbonDate = \Carbon\Carbon::parse($date);
+            $formattedDate = $carbonDate->format('Y-m-d H:i:s');
+            $orderQuery->where([['created_at', '>=', $formattedDate], ['created_at', '<=', $formattedDate2]]);
+        }
+    
+        if ($payment_method && $payment_method!='all') {
+            
+            $orderQuery->whereHas('transaction', function ($q) use ($payment_method) {
+                $q->where('payment_method', $payment_method);
+            });
+        }
+    
+        // Calculate the total, tax, and tax-subtotal
+        $sub_total = $orderQuery->sum('sub_total');
+        $taxRate = 0.15; // 15% tax rate
+        $tax = $sub_total * $taxRate;
+        $taxSubTotal = $sub_total + $tax;
+        
+        error_log(response()->json([
+            'sub_total' => $sub_total,
+            'tax' => $tax,
+            'taxSubTotal' => $taxSubTotal,
+        ]));
+      
+        // Return the summary values as JSON
+        return response()->json([
+            'sub_total' => $sub_total,
+            'tax' => $tax,
+            'taxSubTotal' => $taxSubTotal,
+        ]);
+    }
+    
 
     protected function contractSales(Request $request)
     {

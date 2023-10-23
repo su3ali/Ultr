@@ -95,9 +95,5 @@ class NotificationController extends Controller
       $this->pushNotification($notification);
         session()->flash('success');
         return redirect()->back();
-
     }
-
-
-
 }

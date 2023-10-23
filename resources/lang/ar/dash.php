@@ -47,7 +47,16 @@ return [
     'logged_in_successfully' => 'تسجيل الدخول بنجاح',
     'logged_out_successfully' => 'خرجت بنجاح',
     'logout' => 'خروج',
-
+    'tech_orders'=>'طلبات الفنيين',
+    'tech_orders_today'=>'طلبات الفنيين اليوم',
+    'orders_status'=>'حالات طلبات العملاء',
+    'client_orders'=>'طلبات العملاء',
+    'client_orders_today'=>'طلبات العملاء اليوم',
+    'packages_management'=>'إدارة الباقات',
+    'packages'=>'الباقات',
+    'packages_orders'=>'طلبات الباقات',
+    'package_request'=>'طلب باقة',
+    'sells_last_7_days'=>'الطلبات خلال اخر اسبوع',
 
     'login_firstly' => 'يجب عليك الدخول أولا',
     'quick_links' => 'روابط سريعة',

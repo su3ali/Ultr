@@ -48,18 +48,26 @@
                             <div class="col-md-1">
                                 <label for="inputEmail4">{{__('dash.date')}}</label>
                             </div>
+                            <label>من</label>
                             <div class="col-md-4">
                                 <input type="datetime-local" name="date" class="form-control date" step="1"
                                        id="inputEmail4">
                             </div>
-
+                            <label>إلى</label>
+                            <div class="col-md-4">
+                                <input type="datetime-local" name="date2" class="form-control date2" step="1"
+                                       id="inputEmail42">
+                            </div>
+                        </div>
+                        <br>
+                            <div class="row">
 
                             <div class="col-md-1">
                                 <label for="inputEmail4">طريقه الدفع</label>
                             </div>
                             <div class="col-md-4">
                                 <select class="select2 payment_method form-control" name="payment_method">
-                                    <option selected disabled>اختر</option>
+                                    <option selected value="all">الكل</option>
                                     <option value="cache">كاش</option>
                                     <option value="wallet">محفظة</option>
                                     <option value="visa">مدي</option>
@@ -74,6 +82,7 @@
                         <tr>
                             <th>رقم الطلب</th>
                             <th>اسم العميل</th>
+                            <th>التاريخ</th>
                             <th>القسم</th>
                             <th>عدد الخدمات</th>
                             <th>المبلغ</th>
@@ -88,21 +97,20 @@
                 <table class="table table-bordered nowrap">
 
                     <thead>
-
-                    <tr>
-                        <th width="50%">إجمالي المبيعات بدون ضريبة</th>
-                        <td>{{$sub_total ?? 0}}</td>
-                    </tr>
-
-                    <tr>
-                        <th>إجمالي الضريبة %15</th>
-                        <td>{{$tax}}</td>
-                    </tr>
-
-                    <tr>
-                        <th>إجمالي المبيعات</th>
-                        <td>{{$tax + $sub_total}}</td>
-                    </tr>
+                        <tr>
+                            <th width="50%">إجمالي المبيعات بدون ضريبة</th>
+                            <td id="sub_total" >0</td>
+                        </tr>
+    
+                        <tr>
+                            <th>إجمالي الضريبة %15</th>
+                            <td id="tax">0</td>
+                        </tr>
+    
+                        <tr>
+                            <th>إجمالي المبيعات</th>
+                            <td id="tax_sub_total">0</td>
+                        </tr>
 
                     </thead>
 
@@ -128,10 +136,10 @@
                 },
                 buttons: {
                     buttons: [
-                        {extend: 'copy', className: 'btn btn-sm'},
-                        {extend: 'csv', className: 'btn btn-sm'},
-                        {extend: 'excel', className: 'btn btn-sm'},
-                        {extend: 'print', className: 'btn btn-sm'}
+                        {extend: 'copy', className: 'btn btn-sm',text:'نسخ'},
+                        {extend: 'csv', className: 'btn btn-sm',text:'تصدير إلى CSV'},
+                        {extend: 'excel', className: 'btn btn-sm',text:'تصدير إلى Excel'},
+                        {extend: 'print', className: 'btn btn-sm',text:'طباعة'}
                     ]
                 },
                 processing: true,
@@ -140,6 +148,7 @@
                 columns: [
                     {data: 'order_number', name: 'order_number',orderable: true, searchable: true},
                     {data: 'user_name', name: 'user_name',orderable: true, searchable: true},
+                    {data: 'created_at', name: 'created_at',orderable: true, searchable: true},
                     {data: 'category', name: 'category',orderable: true, searchable: true},
                     {data: 'service_number', name: 'service_number',orderable: true, searchable: true},
                     {data: 'price', name: 'price',orderable: true, searchable: true},
@@ -148,14 +157,55 @@
 
                 ]
             });
-            $('.date').change(function(){
+
+            function updateTableData() {
                 var date = $('.date').val();
-                table.ajax.url( '{{ route('dashboard.report.sales') }}?date=' + date ).load();
-            })
-            $('.payment_method').change(function(){
+                var date2 = $('.date2').val();
                 var payment_method = $('.payment_method').val();
-                table.ajax.url( '{{ route('dashboard.report.sales') }}?payment_method='+payment_method ).load();
-            })
+                var url = '{{ route('dashboard.report.sales') }}';
+
+                if (date) {
+                    url += '?date=' + date;
+                    if (date2) {
+                        url += '&date2=' + date2;
+                    }
+                }
+
+                if (payment_method && payment_method !== 'all') {
+                    url += (date ? '&' : '?') + 'payment_method=' + payment_method;
+                }
+
+                // Update table data
+                table.ajax.url(url).load();
+
+                // Update summary
+                updateSummary();
+            }
+
+            function updateSummary() {
+                $.ajax({
+                    url: '{{ route('dashboard.report.updateSummary') }}',
+                    type: 'GET',
+                    data: {
+                        date: $('.date').val(),
+                        date2: $('.date2').val(),
+                        payment_method: $('.payment_method').val()
+                    },
+                    success: function (data) {
+                        $('#sub_total').text(data.sub_total.toFixed(2));
+                        $('#tax').text(data.tax.toFixed(2));
+                        $('#tax_sub_total').text(data.taxSubTotal.toFixed(2));
+                    }
+                });
+            }
+
+            // Attach event handlers
+            $('.date, .date2, .payment_method').change(function () {
+                updateTableData();
+            });
+
+            // Call the initial update
+            updateTableData();
         });
 
     </script>
