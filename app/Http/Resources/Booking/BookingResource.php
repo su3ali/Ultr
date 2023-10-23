@@ -17,7 +17,7 @@ class BookingResource extends JsonResource
         $services = $this->order?->services->where('category_id', $this->category->id);
 
         // $services = Service::where('id', $this->service_id)->get();
-
+        
 
         return [
             'id' => $this->id,
@@ -28,8 +28,8 @@ class BookingResource extends JsonResource
             //  'services' => ServiceResource::collection($services),
             'image' => $this->category->slug ? asset($this->category->slug) : '',
             'date' => Carbon::parse($this->date)->format('d M'),
-            'time_start' => Carbon::parse($this->time)->format('g:i A'),
-            'time_end' => Carbon::parse($this->end_time)->format('g:i A')
+            'time_start' => Carbon::createFromTimestamp($this->time)->setTimezone('Asia/Riyadh')->format('g:i A'),
+            'time_end' => Carbon::createFromTimestamp($this->end_time)->setTimezone('Asia/Riyadh')->format('g:i A')
         ];
     }
 }

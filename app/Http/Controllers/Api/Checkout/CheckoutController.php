@@ -38,28 +38,13 @@ class CheckoutController extends Controller
 
     protected function checkout(Request $request)
     {
-        // $rules = [
-        //     'user_address_id' => 'required|exists:user_addresses,id',
-        //     'car_user_id' => 'required|exists:car_clients,id',
-        //     'payment_method' => 'required|in:cache,visa,wallet',
-        //     'coupon' => 'nullable|numeric',
-        //     'transaction_id' => 'nullable',
-        //     'notes' => 'nullable',
-        //     'wallet_discounts' => 'nullable|numeric',
-        //     'file' => 'nullable',
-        //     'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
-        //     'partial_amount' => 'nullable',
-        // ];
         $rules = [
             'user_address_id' => 'required|exists:user_addresses,id',
             'car_user_id' => 'required|exists:car_clients,id',
             'payment_method' => 'required|in:cache,visa,wallet',
-
             'coupon' => 'nullable|numeric',
             'transaction_id' => 'nullable',
             'wallet_discounts' => 'nullable|numeric',
-            //   'is_advance' => 'nullable',
-            // 'is_return' => 'nullable',
             'amount' => 'nullable|numeric',
             'file' => 'nullable',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
@@ -122,27 +107,12 @@ class CheckoutController extends Controller
 
             'partial_amount' => ($totalAfterDiscount - $request->amount),
             'status_id' => 1,
-            //  'is_advance' => $request->is_advance,
-            //  'is_return' => $request->is_return,
             'file' => $uploadFile,
             'image' => $uploadImage,
             'notes' => $request->notes,
             'car_user_id' => $request->car_user_id,
         ]);
-        // $order = Order::create([
-        //     'user_id' => $user->id,
-        //     'discount' => $request->coupon,
-        //     'user_address_id' => $request->user_address_id,
-        //     'sub_total' => $total,
-        //     'total' => ($total - $request->coupon),
-        //     'payment_status' => $request->payment_status,
-        //     'payment_method' => $request->payment_method,
-        //     'status_id' => 2,
-        //     'file' => $uploadFile,
-        //     'image' => $uploadImage,
-        //     'car_user_id' => $request->car_user_id,
-        //     'notes'=> $request->notes
-        // ]);
+
         foreach ($carts as $cart) {
             OrderService::create([
                 'order_id' => $order->id,
@@ -171,14 +141,7 @@ class CheckoutController extends Controller
                 }
             }
 
-
-
-
-
             $address = UserAddresses::where('id', $order->user_address_id)->first();
-            // $booking_id = Booking::whereHas('address',function ($qu) use($address){
-            //     $qu->where('region_id',$address->region_id);
-            // })->where('date',$cart->date)->pluck('id')->toArray();
             $booking_id = Booking::whereHas('address', function ($qu) use ($address) {
                 $qu->where('region_id', $address->region_id);
             })->whereHas('category', function ($qu) use ($category_id) {
@@ -189,16 +152,6 @@ class CheckoutController extends Controller
                 ->whereIn('booking_id', $booking_id)
                 ->groupBy('assign_to_id')
                 ->orderBy('group_id', 'ASC');
-
-
-            // if ($visit == null){
-            //     $group = Group::whereHas('regions',function($qu) use($address) {
-            //         $qu->where('region_id',$address->region_id);
-            //     })->where('active',1)->first();
-            //     $assign_to_id = $group->id;
-            // }else{
-            //     $assign_to_id = $visit->assign_to_id;
-            // }
             $assign_to_id = 0;
             if ($visit->get()->isEmpty()) {
                 $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
@@ -279,30 +232,6 @@ class CheckoutController extends Controller
                 $this->pushNotification($notification);
             }
         }
-        // if ($request->payment_method == 'cache') {
-        //     $transaction = Transaction::create([
-        //         'order_id' => $order->id,
-        //         'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
-        //         'payment_result' => 'success',
-        //     ]);
-
-        //     $order->update([
-        //         'partial_amount'=>$total
-        //     ]);
-
-        // } elseif ($request->payment_method == 'wallet'){
-        //     $transaction = Transaction::create([
-        //         'order_id' => $order->id,
-        //         'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
-        //         'payment_result' => 'success',
-        //     ]);
-        // }else {
-        //     Transaction::create([
-        //         'order_id' => $order->id,
-        //         'transaction_number' => $request->transaction_id,
-        //         'payment_result' => 'success',
-        //     ]);
-        // }
         if ($request->payment_method == 'wallet') {
             $transaction = Transaction::create([
                 'order_id' => $order->id,
@@ -325,7 +254,6 @@ class CheckoutController extends Controller
                 'transaction_number' => $request->transaction_id,
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
-                // 'amount' => $request->amount,
             ]);
             Order::where('id', $order->id)->update(array('partial_amount' => 0));
         }
