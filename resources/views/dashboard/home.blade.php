@@ -109,6 +109,7 @@
                        
                     </div>
                     <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
+                        <a href="{{route('dashboard.orders.index')}}" class="widget-link">
                         <div class="widget widget-one_hybrid widget-referral">
                             <div class="widget-heading">
                                 <div class="w-title">
@@ -121,6 +122,7 @@
                                 </div>
                             </div>
                         </div>
+                        </a>
                     </div>
                     <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                        
@@ -146,7 +148,7 @@
             </div>
 
             <div class="col-xl-6 col-lg-12 col-sm-12  layout-spacing">
-                <a href="{{route('dashboard.orders.index')}}" class="widget-link">
+               
                 <div class="widget-content widget-content-area br-6">
                     <div class="col-md-12 text-left mb-3">
 
@@ -170,7 +172,7 @@
 
 
                 </div>
-                </a>
+                
             </div>
 
             <div class="col-xl-6 col-lg-12 col-sm-12  layout-spacing">
