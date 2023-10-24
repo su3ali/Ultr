@@ -249,6 +249,11 @@ class VisitsController extends Controller
                 $order->update([
                     'status_id'=> 5
                 ]);
+                $booking = Booking::where('id', $bookingId)->first();
+                 $booking->update([
+                    'booking_status_id'=>2
+                 ]);
+
             }
             
             $user = User::where('id',$model->booking->user_id)->first('fcm_token');
