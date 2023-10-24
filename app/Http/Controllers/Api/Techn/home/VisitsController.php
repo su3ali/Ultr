@@ -243,6 +243,13 @@ class VisitsController extends Controller
                     $order->save();
                 }
             }
+            if($request->status_id==6){
+                $bookingId = Visit::where('id',$request->id)->first()->booking_id;
+                $order = Order::where('bookings',)->where('id',$bookingId)->first();
+                $order->update([
+                    'status_id'=> 5
+                ]);
+            }
             
             $user = User::where('id',$model->booking->user_id)->first('fcm_token');
 

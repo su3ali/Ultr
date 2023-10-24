@@ -59,7 +59,7 @@
                     <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
                         <thead>
                         <tr>
-                            <th>#</th>
+                            <th>رقم الطلب</th>
                             <th>{{__('dash.customer_name')}}</th>
                             <th>{{__('dash.category')}}</th>
                             <th>{{__('dash.quantity')}}</th>

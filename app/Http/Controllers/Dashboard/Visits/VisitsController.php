@@ -38,9 +38,9 @@ class VisitsController extends Controller
             }
            
             return DataTables::of($visit)
-                ->addColumn('visite_id', function ($row) {
-                    return $row->visite_id;
-                })
+                // ->addColumn('booking_id', function ($row) {
+                //     return $row->booking?->id;
+                // })
                 ->addColumn('date', function ($row) {
                     return $row->booking?->date;
                 })
@@ -74,7 +74,7 @@ class VisitsController extends Controller
                     return $html;
                 })
                 ->rawColumns([
-                    'visite_id',
+                   // 'visite_id',
                     'date',
                     'group_name',
                     'start_time',

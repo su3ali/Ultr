@@ -50,8 +50,8 @@
                     <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
                         <thead>
                         <tr>
-                            <th>#</th>
                             <th>رقم الطلب</th>
+                            {{-- <th>رقم الحجز</th> --}}
                             <th>موعد الحجز</th>
                             <th>الفريق</th>
                             <th>وقت البدء</th>
@@ -97,7 +97,8 @@
                 ajax: '{{ route('dashboard.visits.index') }}',
                 columns: [
                     {data: 'id', name: 'id'},
-                    {data: 'visite_id', name: 'visite_id'},
+                    // {data: 'booking_id', name: 'booking_id'},
+                    // {data: 'visite_id', name: 'visite_id'},
                     {data: 'date', name: 'date'},
                     {data: 'group_name', name: 'group_name'},
                     {data: 'start_time', name: 'start_time'},

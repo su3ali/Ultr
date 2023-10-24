@@ -83,7 +83,7 @@
                             <th>رقم الطلب</th>
                             <th>اسم العميل</th>
                             <th>التاريخ</th>
-                            <th>القسم</th>
+                            <th>الحدمة</th>
                             <th>عدد الخدمات</th>
                             <th>المبلغ</th>
                             <th>طريقة الدفع</th>
@@ -149,7 +149,7 @@
                     {data: 'order_number', name: 'order_number',orderable: true, searchable: true},
                     {data: 'user_name', name: 'user_name',orderable: true, searchable: true},
                     {data: 'created_at', name: 'created_at',orderable: true, searchable: true},
-                    {data: 'category', name: 'category',orderable: true, searchable: true},
+                    {data: 'service', name: 'service',orderable: true, searchable: true},
                     {data: 'service_number', name: 'service_number',orderable: true, searchable: true},
                     {data: 'price', name: 'price',orderable: true, searchable: true},
                     {data: 'payment_method', name: 'payment_method',orderable: true, searchable: true},

@@ -40,6 +40,10 @@ class BookingController extends Controller
             }
 
             return DataTables::of($bookings)
+            ->addColumn('visit_id', function ($row) {
+                $order = $row->visit->id;
+                return $order;
+            })
                 ->addColumn('order', function ($row) {
                     $order = $row->order?->id;
                     if (\request()->query('type') == 'package') {
@@ -99,6 +103,7 @@ class BookingController extends Controller
                     return $html;
                 })
                 ->rawColumns([
+                    'visit_id',
                     'order',
                     'customer',
                     'customer_phone',
