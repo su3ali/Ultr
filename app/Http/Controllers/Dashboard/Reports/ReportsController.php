@@ -34,7 +34,7 @@ class ReportsController extends Controller
             $date2 = $request->date2;
             $payment_method = $request->payment_method;
 
-            $order = Order::where()->orWhereHas('transaction',function($q){
+            $order = Order::where('status_id','<>',5)->orWhereHas('transaction',function($q){
                     $q->where('payment_method','!=','cache');
                 });
 
