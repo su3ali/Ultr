@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Order;
+use App\Models\Visit;
 use App\Models\Technician;
 use App\Models\User;
 use App\Charts\CommonChart;
@@ -64,25 +65,34 @@ class IndexController extends Controller
     }
     protected function index(){
         $customers = User::count();
-        $orders = Order::count();
+        $client_orders = Order::count();
         $technicians = Technician::count();
-        $booking = Booking::count();
+        $tech_visits = Visit::count();
 
         $now=Carbon::now('Asia/Riyadh')->toDateString();
 
-        $orders_today = Order::whereDate('created_at','=',$now)->count();
-        $booking_today = Booking::whereDate('created_at','=',$now)->count();
+        $client_orders_today = Order::whereDate('created_at','=',$now)->count();
+        $tech_visits_today = Visit::whereDate('created_at','=',$now)->count();
         $fy = $this->getCurrentFinancialYear();
         $least_7_days = Carbon::parse($fy['start'])->subDays(7)->format('Y-m-d');
      
 
+        // $all_sell_values = Transaction::select(\DB::raw("COUNT(*) as count"))
+
+        // ->whereBetween('transactions.created_at', [ $least_7_days, $fy['end']])
+
+        // ->groupBy(DB::raw('date(transactions.created_at)'))
+
+        // ->pluck('count');
+
+
+        $today = Carbon::now('Asia/Riyadh');
+        $sevenDaysAgo = Carbon::now('Asia/Riyadh')->subDays(6);
+
         $all_sell_values = Transaction::select(\DB::raw("COUNT(*) as count"))
-
-        ->whereBetween('transactions.created_at', [ $least_7_days, $fy['end']])
-
-        ->groupBy(DB::raw('date(transactions.created_at)'))
-
-        ->pluck('count');
+                ->whereBetween('transactions.created_at', [$sevenDaysAgo, $today])
+                ->groupBy(\DB::raw('date(transactions.created_at)'))
+                ->pluck('count');
 
         //Chart for sells last 7 days
         $labels = [];
@@ -104,7 +114,7 @@ class IndexController extends Controller
                 ['currency' => 'SAR']
             )));
         $sells_chart_1->dataset(__('dash.orders'), 'line', $all_sell_values);
-        return view('dashboard.home',compact('booking_today','orders_today','sells_chart_1','customers','orders','technicians','booking'));
+        return view('dashboard.home',compact('tech_visits_today','client_orders_today','sells_chart_1','customers','client_orders','technicians','tech_visits'));
     }
     private function __chartOptions($title)
     {
