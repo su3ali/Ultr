@@ -245,7 +245,7 @@ class VisitsController extends Controller
             }
             if($request->status_id==6){
                 $bookingId = Visit::where('id',$request->id)->first()->booking_id;
-                $order = Order::where('bookings',)->where('id',$bookingId)->first();
+                $order = Order::whereHas('bookings',function($q)use($bookingId){$q->where('id',$bookingId);})->first();
                 $order->update([
                     'status_id'=> 5
                 ]);
