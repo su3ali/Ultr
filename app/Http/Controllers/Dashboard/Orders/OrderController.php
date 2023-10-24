@@ -62,6 +62,7 @@ class OrderController extends Controller
                     return array_sum($qu);
                 })
                 ->addColumn('status', function ($row) {
+                   
                     return $row->status?->name;
                 })
                 ->addColumn('created_at', function ($row) {

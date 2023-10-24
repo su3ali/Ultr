@@ -45,7 +45,7 @@ class StatusesSeeder extends Seeder
                 'name_en' => 'under processing',
             ],
             [
-                'name_ar' => 'مكتمل',
+                'name_ar' => 'مغلق',
                 'name_en' => 'complete',
             ],
             [
@@ -71,7 +71,7 @@ class StatusesSeeder extends Seeder
                 'name_en' => 'complete request',
             ],
             [
-                'name_ar' => 'مكتمل',
+                'name_ar' => 'مغلق',
                 'name_en' => 'complete',
             ],
             [

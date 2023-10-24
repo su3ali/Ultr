@@ -33,6 +33,7 @@ class VisitsController extends Controller
 
     protected function myCurrentOrders()
     {  $groups=Group::where('technician_id',auth('sanctum')->user()->id)->first();
+        //dd(Group::all());
         $orders = Visit::whereHas('booking', function ($q) {
             $q->whereHas('customer')->whereHas('address');
           
