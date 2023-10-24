@@ -33,10 +33,13 @@ class ReportsController extends Controller
             $date = $request->date;
             $date2 = $request->date2;
             $payment_method = $request->payment_method;
-
-            $order = Order::where('status_id','<>',5)->orWhereHas('transaction',function($q){
+            $order = Order::where(function ($query) {
+                $query->where('status_id','!=',5)->orWhereHas('transaction',function($q){
                     $q->where('payment_method','!=','cache');
                 });
+            });
+
+         
 
             if($date) {
               
