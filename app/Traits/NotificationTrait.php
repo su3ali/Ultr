@@ -86,6 +86,7 @@ trait NotificationTrait
             ],
             'data' => $data,
             "priority" => "HIGH",
+            "mutable-content" => 1,
         ];
 
         $ch = curl_init();

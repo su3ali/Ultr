@@ -283,8 +283,8 @@ class VisitsController extends Controller
                 ]);
             }
 
-          //  $this->pushNotificationBackground($notify);
-$this->pushNotification($notify);
+            $this->pushNotificationBackground($notify);
+//$this->pushNotification($notify);
             $this->body['visits'] = $visit;
             return self::apiResponse(200, null, $this->body);
         }
@@ -328,8 +328,8 @@ $this->pushNotification($notify);
             ]
         ];
 
-       // $this->pushNotificationBackground($notify);
- $this->pushNotification($notify);
+        $this->pushNotificationBackground($notify);
+ //$this->pushNotification($notify);
         return self::apiResponse(200, __('api.Update Location successfully'), $this->body);
 
     }
