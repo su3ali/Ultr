@@ -32,6 +32,7 @@ class ReportsController extends Controller
         if (request()->ajax()) {
             $date = $request->date;
             $date2 = $request->date2;
+            $service = $request->service;
             $payment_method = $request->payment_method;
             $order = Order::where(function ($query) {
                 $query->where('status_id','!=',5)->orWhereHas('transaction',function($q){
@@ -61,6 +62,12 @@ class ReportsController extends Controller
                     $q->where('payment_method',$payment_method);
                 });
             }
+            if($service) {
+
+                $orders_ids=OrderService::where('service_id',$service)->get()->pluck('order_id')->toArray();
+                $order = $order->whereIn('id',$orders_ids);
+            }
+
 
             $order = $order->get();
 
@@ -125,8 +132,8 @@ class ReportsController extends Controller
         })->sum('total');
         error_log($total);
         $tax = ($total * 15)/100 ?? 0;
-
-        return view('dashboard.reports.sales',compact('total','tax'));
+        $services=Service::all()->pluck('title','id');
+        return view('dashboard.reports.sales',compact('total','tax','services'));
     }
 
     protected function updateSummary(Request $request)
@@ -134,6 +141,7 @@ class ReportsController extends Controller
         $date = $request->date;
         $date2 = $request->date2;
         $payment_method = $request->payment_method;
+        $service = $request->service;
         $orderQuery = Order::query();
     
         if ($date) {
@@ -157,6 +165,11 @@ class ReportsController extends Controller
             $orderQuery->whereHas('transaction', function ($q) use ($payment_method) {
                 $q->where('payment_method', $payment_method);
             });
+        }
+        if($service) {
+
+            $orders_ids=OrderService::where('service_id',$service)->get()->pluck('order_id')->toArray();
+            $orderQuery->whereIn('id',$orders_ids);
         }
     
         // Calculate the total, tax, and tax-subtotal

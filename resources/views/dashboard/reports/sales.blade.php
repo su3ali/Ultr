@@ -60,7 +60,7 @@
                             </div>
                         </div>
                         <br>
-                            <div class="row">
+                        <div class="row">
 
                             <div class="col-md-1">
                                 <label for="inputEmail4">طريقه الدفع</label>
@@ -73,6 +73,20 @@
                                     <option value="visa">مدي</option>
                                 </select>
                             </div>
+                            <div class="col-md-1">
+                               
+                            </div>
+                            <div class="col-md-1">
+                                <label for="inputEmail4">الخدمة</label>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="select2 service_filter form-control" name="service_filter">
+                                    <option value="all" selected>الكل</option>
+                                    @foreach($services as $id => $title)
+                                        <option value="{{ $id }}">{{ $title }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
 
                         </div>
 
@@ -83,7 +97,7 @@
                             <th>رقم الطلب</th>
                             <th>اسم العميل</th>
                             <th>التاريخ</th>
-                            <th>الحدمة</th>
+                            <th>الخدمة</th>
                             <th>عدد الخدمات</th>
                             <th>المبلغ</th>
                             <th>طريقة الدفع</th>
@@ -162,10 +176,11 @@
                 var date = $('.date').val();
                 var date2 = $('.date2').val();
                 var payment_method = $('.payment_method').val();
+                var service_filter = $('.service_filter').val();
                 var url = '{{ route('dashboard.report.sales') }}';
 
                 if (date) {
-                    url += '?date=' + date;
+                    
                     if (date2) {
                         url += '&date2=' + date2;
                     }
@@ -173,6 +188,10 @@
 
                 if (payment_method && payment_method !== 'all') {
                     url += (date ? '&' : '?') + 'payment_method=' + payment_method;
+                }
+
+                if (service_filter && service_filter !== 'all') {
+                    url += '?service=' + service_filter;
                 }
 
                 // Update table data
@@ -189,7 +208,8 @@
                     data: {
                         date: $('.date').val(),
                         date2: $('.date2').val(),
-                        payment_method: $('.payment_method').val()
+                        payment_method: $('.payment_method').val(),
+                        service: $('.service_filter').val(),
                     },
                     success: function (data) {
                         $('#total').text(data.total.toFixed(2));
@@ -200,7 +220,7 @@
             }
 
             // Attach event handlers
-            $('.date, .date2, .payment_method').change(function () {
+            $('.date, .date2, .payment_method, .service_filter').change(function () {
                 updateTableData();
             });
 
