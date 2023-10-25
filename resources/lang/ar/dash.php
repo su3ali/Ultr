@@ -56,7 +56,9 @@ return [
     'packages'=>'الباقات',
     'packages_orders'=>'طلبات الباقات',
     'package_request'=>'طلب باقة',
-    'sells_last_7_days'=>'الطلبات خلال اخر اسبوع',
+   // 'sells_last_7_days'=>'الطلبات خلال اخر اسبوع',
+    'sells_last_7_days_month'=>'الطلبات خلال اخر ( اسبوع / شهر )',
+    //'sells_last_month'=>'الطلبات خلال اخر شهر',
 
     'login_firstly' => 'يجب عليك الدخول أولا',
     'quick_links' => 'روابط سريعة',

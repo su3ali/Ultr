@@ -60,6 +60,7 @@
                         <thead>
                         <tr>
                             <th>رقم الطلب</th>
+                            <th>رقم الحجز</th>
                             <th>{{__('dash.customer_name')}}</th>
                             <th>{{__('dash.category')}}</th>
                             <th>{{__('dash.quantity')}}</th>
@@ -106,6 +107,7 @@
                 ajax: '{{ route('dashboard.orders.index') }}',
                 columns: [
                     {data: 'id', name: 'id'},
+                    {data: 'booking_id', name: 'booking_id'},
                     {data: 'user', name: 'user'},
                     {data: 'category', name: 'category'},
                     {data: 'quantity', name: 'quantity'},

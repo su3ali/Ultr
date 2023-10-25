@@ -74,7 +74,7 @@ class IndexController extends Controller
         $client_orders_today = Order::whereDate('created_at','=',$now)->count();
         $tech_visits_today = Visit::whereDate('created_at','=',$now)->count();
         $fy = $this->getCurrentFinancialYear();
-        $least_7_days = Carbon::parse($fy['start'])->subDays(7)->format('Y-m-d');
+        $least_7_days = Carbon::parse($fy['start'])->timezone('Asia/Riyadh')->subDays(7)->format('Y-m-d');
      
 
         // $all_sell_values = Transaction::select(\DB::raw("COUNT(*) as count"))
@@ -87,7 +87,7 @@ class IndexController extends Controller
 
 
         $today = Carbon::now('Asia/Riyadh');
-        $sevenDaysAgo = Carbon::now('Asia/Riyadh')->subDays(6);
+        $sevenDaysAgo = Carbon::now('Asia/Riyadh')->subDays(7);
 
         $all_sell_values = Transaction::select(\DB::raw("COUNT(*) as count"))
                 ->whereBetween('transactions.created_at', [$sevenDaysAgo, $today])
@@ -98,7 +98,7 @@ class IndexController extends Controller
         $labels = [];
     
         $dates = [];
-        for ($i = 6; $i >= 0; $i--) {
+        for ($i = $all_sell_values->count(); $i >= 0; $i--) {
              $date = Carbon::now('Asia/Riyadh')->subDays($i)->format('Y-m-d');
              $dates[] = $date;
  
@@ -114,7 +114,37 @@ class IndexController extends Controller
                 ['currency' => 'SAR']
             )));
         $sells_chart_1->dataset(__('dash.orders'), 'line', $all_sell_values);
-        return view('dashboard.home',compact('tech_visits_today','client_orders_today','sells_chart_1','customers','client_orders','technicians','tech_visits'));
+
+
+        $today = Carbon::now('Asia/Riyadh');
+        $monthAgo = Carbon::now('Asia/Riyadh')->subDays(30);
+
+        $all_sell_values2 = Transaction::select(\DB::raw("COUNT(*) as count"))
+                ->whereBetween('transactions.created_at', [$monthAgo, $today])
+                ->groupBy(\DB::raw('date(transactions.created_at)'))
+                ->pluck('count');
+
+        //Chart for sells last 7 days
+        $labels2 = [];
+ 
+        $dates2 = [];
+        for ($i = $all_sell_values2->count(); $i >= 0; $i--) {
+             $date2 = Carbon::now('Asia/Riyadh')->subDays($i)->format('Y-m-d');
+             $dates2[] = $date2;
+ 
+             $labels2[] = date('j M Y', strtotime($date2));
+ 
+        }
+
+        $sells_chart_2 = new CommonChart;
+    
+        $sells_chart_2->labels($labels2)->options($this->__chartOptions(
+            __(
+                __('dash.orders'),
+                ['currency' => 'SAR']
+            )));
+        $sells_chart_2->dataset(__('dash.orders'), 'line', $all_sell_values2);
+        return view('dashboard.home',compact('tech_visits_today','client_orders_today','sells_chart_1','sells_chart_2','customers','client_orders','technicians','tech_visits'));
     }
     private function __chartOptions($title)
     {

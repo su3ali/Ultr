@@ -188,12 +188,12 @@ class CheckoutController extends Controller
                 'quantity' => $cart->quantity,
                 'date' => $cart->date,
                 'type' => 'service',
-                'time' => Carbon::parse($cart->time)->toTimeString(),
-                'end_time' => $minutes ? Carbon::parse($cart->time)->addMinutes($minutes)->toTimeString() : null,
+                'time' => Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString(),
+                'end_time' => $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null,
             ]);
 
-            $start_time = Carbon::parse($cart->time)->toTimeString();
-            $end_time =  $minutes ? Carbon::parse($cart->time)->addMinutes($minutes)->toTimeString() : null;
+            $start_time = Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString();
+            $end_time =  $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null;
             $validated['start_time'] =  $start_time;
             $validated['end_time'] = $end_time;
             $validated['duration'] = $minutes;
@@ -371,12 +371,12 @@ class CheckoutController extends Controller
                 'quantity' => $cart->quantity,
                 'date' => $cart->date,
                 'type' => 'contract',
-                'time' => Carbon::parse($cart->time)->toTimeString(),
-                'end_time' => $minutes ? Carbon::parse($cart->time)->addMinutes($minutes)->toTimeString() : null,
+                'time' => Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString(),
+                'end_time' => $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null,
             ]);
 
-            $start_time = Carbon::parse($cart->time)->toTimeString();
-            $end_time =  $minutes ? Carbon::parse($cart->time)->addMinutes($minutes)->toTimeString() : null;
+            $start_time = Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString();
+            $end_time =  $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null;
             $validated['start_time'] =  $start_time;
             $validated['end_time'] = $end_time;
             $validated['duration'] = $minutes;

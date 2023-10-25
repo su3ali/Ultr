@@ -133,8 +133,8 @@
                 ajax: '{{ url('admin/bookings?type='.$type) }}',
                 columns: [
                     {data: 'id', name: 'id'},
-                    {data: 'visit_id', name: 'visit_id'},
-                    {data: 'order', name: 'order'},
+                    // {data: 'visit_id', name: 'visit_id'},
+                    // {data: 'order', name: 'order'},
                     {data: 'customer', name: 'customer'},
                     {data: 'customer_phone', name: 'customer_phone'},
                     {data: 'service', name: 'service'},

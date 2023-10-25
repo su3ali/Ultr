@@ -205,8 +205,10 @@
     <!-- sales chart start -->
     <div class="row">
         <div class="col-sm-12">
-            @component('components.widget', ['class' => 'box-primary', 'title' => __('dash.sells_last_7_days')])
-            {!! $sells_chart_1->container() !!}
+        
+            @component('components.widget', ['class' => 'box-primary', 'title' => __('dash.sells_last_7_days_month'), 'id' => 'chartToggleWidget'])
+            <div id="sellsChart1">{!! $sells_chart_1->container() !!}</div>
+            <div id="sellsChart2" style="display: none;">{!! $sells_chart_2->container() !!}</div>
             @endcomponent
         </div>
     </div>   
@@ -218,6 +220,18 @@
 @push('script')
 
     <script type="text/javascript">
+     $(document).ready(function () {
+        // Initial state: show chart 1 and hide chart 2
+        $('#sellsChart1').show();
+        $('#sellsChart2').hide();
+       
+
+        $('#chartToggleWidget .box-title').click(function () {
+            // Toggle the visibility of the charts
+            $('#sellsChart1').toggle();
+            $('#sellsChart2').toggle();
+        });
+    });
         $(document).ready(function () {
             var table;
             table= $('#html5-extension').DataTable({
@@ -307,4 +321,5 @@
 
 
 {!! $sells_chart_1->script() !!}
+{!! $sells_chart_2->script() !!}
 @endpush
