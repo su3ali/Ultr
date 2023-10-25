@@ -39,7 +39,14 @@ trait NotificationTrait
                 "priority" => "HIGH"
             ],
             "ios" => [
-                "priority" => "HIGH"
+                "priority" => "HIGH",
+                "apns" => [
+                    "payload" => [
+                        "aps" => [
+                            "contentAvailable" => true
+                        ]
+                    ]
+                ]
             ],
             'data' => $data,
             'sound' => 'default',
@@ -82,7 +89,14 @@ trait NotificationTrait
                 "priority" => "HIGH"
             ],
             "ios" => [
-                "priority" => "HIGH"
+                "priority" => "HIGH",
+                "apns" => [
+                    "payload" => [
+                        "aps" => [
+                            "contentAvailable" => true
+                        ]
+                    ]
+                ]
             ],
             'data' => $data,
             "priority" => "HIGH",
