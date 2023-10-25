@@ -97,12 +97,12 @@ class ReportsController extends Controller
                     return $service_count;
                 })
                 ->addColumn('price', function ($row) {
-                    return $row->sub_total;
+                    return $row->total;
                 })
                 ->addColumn('payment_method', function ($row) {
                     return $row->transaction?->payment_method;
-                })   ->addColumn('sub_total', function ($row) {
-                    return $row->sub_total;
+                })   ->addColumn('total', function ($row) {
+                    return $row->total;
                 })
 
                 ->rawColumns([
@@ -113,20 +113,20 @@ class ReportsController extends Controller
                     'service_number',
                     'price',
                     'payment_method',
-                    'sub_total'
+                    'total'
                 ])
                 ->make(true);
         }
        
-        $sub_total = Order::where(function ($query) {
+        $total = Order::where(function ($query) {
             $query->Where('status_id', '<>', 6)->orWhereHas('transaction',function($q){
                 $q->where('payment_method','!=','cahce');
             });
-        })->sum('sub_total');
+        })->sum('total');
+        error_log($total);
+        $tax = ($total * 15)/100 ?? 0;
 
-        $tax = ($sub_total * 15)/100 ?? 0;
-
-        return view('dashboard.reports.sales',compact('sub_total','tax'));
+        return view('dashboard.reports.sales',compact('total','tax'));
     }
 
     protected function updateSummary(Request $request)
@@ -160,22 +160,22 @@ class ReportsController extends Controller
         }
     
         // Calculate the total, tax, and tax-subtotal
-        $sub_total = $orderQuery->sum('sub_total');
+        $total = $orderQuery->sum('total');
         $taxRate = 0.15; // 15% tax rate
-        $tax = $sub_total * $taxRate;
-        $taxSubTotal = $sub_total + $tax;
+        $tax = $total * $taxRate;
+        $taxTotal = $total + $tax;
         
         error_log(response()->json([
-            'sub_total' => $sub_total,
+            'total' => $total,
             'tax' => $tax,
-            'taxSubTotal' => $taxSubTotal,
+            'taxTotal' => $taxTotal,
         ]));
       
         // Return the summary values as JSON
         return response()->json([
-            'sub_total' => $sub_total,
+            'total' => $total,
             'tax' => $tax,
-            'taxSubTotal' => $taxSubTotal,
+            'taxTotal' => $taxTotal,
         ]);
     }
     

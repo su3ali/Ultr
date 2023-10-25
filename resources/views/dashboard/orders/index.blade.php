@@ -62,7 +62,7 @@
                             <th>رقم الطلب</th>
                             <th>رقم الحجز</th>
                             <th>{{__('dash.customer_name')}}</th>
-                            <th>{{__('dash.category')}}</th>
+                            <th>{{__('dash.service')}}</th>
                             <th>{{__('dash.quantity')}}</th>
                             <th>{{__('dash.price_value')}}</th>
                             <th>{{__('dash.status')}}</th>
@@ -109,7 +109,7 @@
                     {data: 'id', name: 'id'},
                     {data: 'booking_id', name: 'booking_id'},
                     {data: 'user', name: 'user'},
-                    {data: 'category', name: 'category'},
+                    {data: 'service', name: 'service'},
                     {data: 'quantity', name: 'quantity'},
                     {data: 'total', name: 'total'},
                     {data: 'status', name: 'status'},

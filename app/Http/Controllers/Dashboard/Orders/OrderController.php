@@ -49,13 +49,13 @@ class OrderController extends Controller
                 ->addColumn('user', function ($row) {
                     return $row->user?->first_name .' ' . $row->user?->last_name;
                 })
-                ->addColumn('category', function ($row) {
-                    $qu = OrderService::where('order_id',$row->id)->get()->pluck('category_id')->toArray();
-                    $cat_ids = array_unique($qu);
-                    $categorys = Category::whereIn('id',$cat_ids)->get();
+                ->addColumn('service', function ($row) {
+                    $qu = OrderService::where('order_id',$row->id)->get()->pluck('service_id')->toArray();
+                    $services_ids = array_unique($qu);
+                    $services = Service::whereIn('id',$services_ids)->get();
                     $html ='';
-                    foreach ($categorys as $category){
-                        $html.='<button class="btn-sm btn-primary">'.$category->title.'</button>' ;
+                    foreach ($services as $service){
+                        $html.='<button class="btn-sm btn-primary">'.$service->title.'</button>' ;
                     }
 
                     return $html;
@@ -100,7 +100,7 @@ class OrderController extends Controller
                 ->rawColumns([
                     'booking_id',
                     'user',
-                    'category',
+                    'service',
                     'quantity',
                     'status',
                     'created_at',

@@ -99,7 +99,7 @@
                     <thead>
                         <tr>
                             <th width="50%">إجمالي المبيعات بدون ضريبة</th>
-                            <td id="sub_total" >0</td>
+                            <td id="total" >0</td>
                         </tr>
     
                         <tr>
@@ -109,7 +109,7 @@
     
                         <tr>
                             <th>إجمالي المبيعات</th>
-                            <td id="tax_sub_total">0</td>
+                            <td id="tax_total">0</td>
                         </tr>
 
                     </thead>
@@ -192,9 +192,9 @@
                         payment_method: $('.payment_method').val()
                     },
                     success: function (data) {
-                        $('#sub_total').text(data.sub_total.toFixed(2));
+                        $('#total').text(data.total.toFixed(2));
                         $('#tax').text(data.tax.toFixed(2));
-                        $('#tax_sub_total').text(data.taxSubTotal.toFixed(2));
+                        $('#tax_total').text(data.taxTotal.toFixed(2));
                     }
                 });
             }
