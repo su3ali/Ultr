@@ -166,7 +166,7 @@ class ReportsController extends Controller
                 $q->where('payment_method', $payment_method);
             });
         }
-        if($service) {
+        if($service && $service!='all') {
 
             $orders_ids=OrderService::where('service_id',$service)->get()->pluck('order_id')->toArray();
             $orderQuery->whereIn('id',$orders_ids);
