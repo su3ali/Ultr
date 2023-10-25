@@ -27,7 +27,7 @@ class GroupsController extends Controller
     {
         $technicians = Technician::all();
         if (request()->ajax()) {
-            $groups = Group::where('active',1)->get();
+            $groups = Group::all();
             return DataTables::of($groups)
                 ->addColumn('technician', function ($row) {
                     return $row->technician_id ? Technician::query()->find($row->technician_id)?Technician::query()->find($row->technician_id)->name : 'لا يوجد': 'لا يوجد' ;
