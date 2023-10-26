@@ -87,18 +87,18 @@ class IndexController extends Controller
 
 
         $today = Carbon::now('Asia/Riyadh');
-        $sevenDaysAgo = Carbon::now('Asia/Riyadh')->subDays(7);
+        $sevenDaysAgo = Carbon::now('Asia/Riyadh')->subDays(8);
 
-        $all_sell_values = Transaction::select(\DB::raw("COUNT(*) as count"))
-                ->whereBetween('transactions.created_at', [$sevenDaysAgo, $today])
-                ->groupBy(\DB::raw('date(transactions.created_at)'))
+        $all_sell_values = Order::select(\DB::raw("COUNT(*) as count"))
+                ->whereBetween('created_at', [$sevenDaysAgo, $today])
+                ->groupBy(\DB::raw('date(created_at)'))
                 ->pluck('count');
 
         //Chart for sells last 7 days
         $labels = [];
     
         $dates = [];
-        for ($i = $all_sell_values->count(); $i >= 0; $i--) {
+        for ($i = $all_sell_values->count()-1; $i >= 0; $i--) {
              $date = Carbon::now('Asia/Riyadh')->subDays($i)->format('Y-m-d');
              $dates[] = $date;
  
@@ -117,18 +117,18 @@ class IndexController extends Controller
 
 
         $today = Carbon::now('Asia/Riyadh');
-        $monthAgo = Carbon::now('Asia/Riyadh')->subDays(30);
+        $monthAgo = Carbon::now('Asia/Riyadh')->subDays(31);
 
-        $all_sell_values2 = Transaction::select(\DB::raw("COUNT(*) as count"))
-                ->whereBetween('transactions.created_at', [$monthAgo, $today])
-                ->groupBy(\DB::raw('date(transactions.created_at)'))
+        $all_sell_values2 = Order::select(\DB::raw("COUNT(*) as count"))
+                ->whereBetween('created_at', [$monthAgo, $today])
+                ->groupBy(\DB::raw('date(created_at)'))
                 ->pluck('count');
 
         //Chart for sells last 7 days
         $labels2 = [];
  
         $dates2 = [];
-        for ($i = $all_sell_values2->count(); $i >= 0; $i--) {
+        for ($i = $all_sell_values2->count()-1; $i >= 0; $i--) {
              $date2 = Carbon::now('Asia/Riyadh')->subDays($i)->format('Y-m-d');
              $dates2[] = $date2;
  
