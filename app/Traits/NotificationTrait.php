@@ -140,7 +140,7 @@ trait NotificationTrait
             ];
             $title = $notification['data']['order_details']['group']['name'] . $statusList[6] . $notification['data']['order_details']['id'];
             $body = '';
-            if ($notification['data']['order_details']['booking_details']['status']) {
+            if ($notification['data']['order_details']['booking_details']['status']!=null) {
 
                 if ($notification['data']['order_details']['booking_details']['status']['id'] == 6) {
                     $body = $statusList[$notification['data']['order_details']['booking_details']['status']['id'] - 1] . $notification['data']['order_details']['cancel_reason']['reason'];
