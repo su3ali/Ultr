@@ -24,7 +24,6 @@ class VisitsResource extends JsonResource
 
     public function toArray($request)
     {
-
         $rateService = RateService::where('visit_id',$this->id)->where('user_id',auth('sanctum')->user()->id)->first();
         $is_service_rate = false;
         if($rateService){
@@ -42,7 +41,7 @@ class VisitsResource extends JsonResource
         }else{
             $cancel_reasons = ReasonCancel::where('is_for_tech',1)->get();
         }
-        
+       
         return [
             'id' => $this->id,
             'group' => GroupResource::make($this->group),

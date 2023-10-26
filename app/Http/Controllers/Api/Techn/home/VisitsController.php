@@ -291,6 +291,25 @@ class VisitsController extends Controller
         }
 
     }
+
+    // public function test(){
+    //     $order = Visit::where('id',286)->with('booking', function ($q) {
+    //         $q->with(['service' => function ($q) {
+    //             $q->with('category');
+    //         },'customer','address']);
+
+    //     })->with('status')->first();
+    //     $visit = VisitsResource::make($order);
+    //     $notify = [
+    //         'fromFunc'=>'changeStatus',
+    //         'device_token'=>'',
+    //         'data' =>[
+    //             'order_details'=>$visit,
+    //             'type'=>'change status',
+    //         ]
+    //     ];
+    //     $this->pushNotificationBackground($notify);
+    // }
     protected function sendLatLong(Request $request)
     {
         $rules = [

@@ -140,15 +140,19 @@ trait NotificationTrait
             ];
             $title = $notification['data']['order_details']['group']['name'] . $statusList[6] . $notification['data']['order_details']['id'];
             $body = '';
-            $status = $notification['data']['order_details']['booking_details']['status'];
-            if (!(is_null($status))) {
-
-                if ($notification['data']['order_details']['booking_details']['status']['id'] == 6) {
-                    $body = $statusList[$notification['data']['order_details']['booking_details']['status']['id'] - 1] . $notification['data']['order_details']['cancel_reason']['reason'];
+            $notification=json_decode(json_encode($notification));
+           
+            $booking_details = $notification->data->order_details->booking_details;
+            if (!(is_null($booking_details->status))) {
+                
+                if ($booking_details->status->id == 6) {
+                    $body = $statusList[$booking_details->status->id - 1] . $notification->data->order_details->cancel_reason->reason;
                 } else {
-                    $body = $statusList[$notification['data']['order_details']['booking_details']['status']['id'] - 1];
+                    $body = $statusList[$booking_details->status->id - 1];
                 }
+          
             } else {
+              
                 $body = $statusList[0];
             }
 
