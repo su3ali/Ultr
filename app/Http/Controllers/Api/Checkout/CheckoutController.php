@@ -177,7 +177,12 @@ class CheckoutController extends Controller
                     $ids = $visit->where('start_time', '!=', $cart->time)->pluck('assign_to_id')->toArray();
                     $group = Group::where('active', 1)->whereIn('id', $ids)->inRandomOrder()->first();
                     if ($group == null) {
-                        return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+                        $group = $group->whereNotIn('id', $visit->pluck('assign_to_id')->toArray())->inRandomOrder()->first();
+                        if ($group == null) {
+                            return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+                        } else {
+                            $assign_to_id = $group->id;
+                        }
                     } else {
                         $assign_to_id = $group->id;
                     }
