@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Core\HomeController;
 use App\Http\Controllers\Api\Core\ServiceController;
 use App\Http\Controllers\Api\Coupons\CouponsController;
 use App\Http\Controllers\Api\Settings\SettingsController;
+use App\Http\Controllers\VersionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::post('check_update',[VersionController::class,'checkUpdate'])->name('check_update');
 
 Route::post('/login', [AuthController::class, 'login']);
 

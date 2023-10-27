@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Core\ContactUsController;
 use App\Http\Controllers\Api\Core\HomeController;
 use App\Http\Controllers\Api\Core\ServiceController;
 
+
 Route::prefix('home')->group(function (){
     Route::get('/', [HomeController::class, 'index']);
     Route::get('/city', [HomeController::class, 'getCity']);
@@ -17,6 +18,8 @@ Route::prefix('services')->group(function (){
     Route::get('/most_ordered', [ServiceController::class, 'orderedServices']);
     Route::get('/services_from_category/{id}', [ServiceController::class, 'getServiceFromCategory']);
 });
+
+
 
 Route::post('contactus',[ContactUsController::class,'store']);
 Route::post('home_search', [HomeController::class, 'search']);
