@@ -35,13 +35,18 @@ class OrderController extends Controller
     {
 
         if (request()->ajax()) {
-            $orders = null;
-            if (request()->status) {
-               // $now = Carbon::now('Asia/Riyadh')->toDateString();
-                $orders = Order::where('status_id',request()->status)->get();
-            } else {
-                $orders = Order::all();
+            $orders = Order::query();
+         
+            if (request()->page) {
+                $now = Carbon::now('Asia/Riyadh')->toDateString();
+                $orders->whereDate('created_at', '=', $now);
             }
+            if (request()->status) {
+
+                $orders->where('status_id', request()->status);
+            }
+
+            $orders->get();
 
             return DataTables::of($orders)
                 ->addColumn('booking_id', function ($row) {

@@ -29,14 +29,21 @@ class VisitsController extends Controller
     protected function index()
     {
         if (request()->ajax()) {
-            $visit=null;
-            if(request()->status){
-               // $now=Carbon::now('Asia/Riyadh')->toDateString();
-                $visit = Visit::where('visits_status_id',request()->status)->get();
-            }else{
-               $visit = Visit::all(); 
+            $visit = Visit::query();
+         
+            if (request()->page) {
+                $now = Carbon::now('Asia/Riyadh')->toDateString();
+                $visit->whereDate('created_at', '=', $now);
             }
-           
+            if (request()->status) {
+
+                $visit->where('visits_status_id', request()->status);
+            }
+
+            $visit->get();
+
+
+
             return DataTables::of($visit)
                 ->addColumn('booking_id', function ($row) {
                     return $row->booking?->id;
@@ -87,7 +94,7 @@ class VisitsController extends Controller
         }
         $statuses = VisitsStatus::all()->pluck('name', 'id');
 
-        return view('dashboard.visits.index',compact('statuses'));
+        return view('dashboard.visits.index', compact('statuses'));
     }
 
     protected function store(Request $request)
@@ -124,17 +131,17 @@ class VisitsController extends Controller
         $validated['visits_status_id'] = 1;
         Visit::query()->create($validated);
 
-        $allTechn = Technician::where('group_id',$request->assign_to_id)->whereNotNull('fcm_token')->get();
+        $allTechn = Technician::where('group_id', $request->assign_to_id)->whereNotNull('fcm_token')->get();
 
-        if (count($allTechn) > 0){
+        if (count($allTechn) > 0) {
 
             $title = 'موعد زيارة جديد';
             $message = 'لديك موعد زياره جديد';
 
-            foreach ($allTechn as $tech){
+            foreach ($allTechn as $tech) {
                 Notification::send(
                     $tech,
-                    new SendPushNotification($title,$message)
+                    new SendPushNotification($title, $message)
                 );
             }
 
@@ -144,8 +151,8 @@ class VisitsController extends Controller
                 'device_token' => $FcmTokenArray,
                 'title' => $title,
                 'message' => $message,
-                'type'=>'technician',
-                'code'=> 1,
+                'type' => 'technician',
+                'code' => 1,
             ];
 
             $this->pushNotification($notification);
@@ -159,15 +166,15 @@ class VisitsController extends Controller
     public function show($id)
     {
         $visits = Visit::where('id', $id)->first();
-        $service_ids = OrderService::where('order_id',$visits->booking->order_id)->where('category_id',$visits->booking->category_id)->get()->pluck('service_id');
-        $services = Service::whereIn('id',$service_ids)->get()->pluck('title');
+        $service_ids = OrderService::where('order_id', $visits->booking->order_id)->where('category_id', $visits->booking->category_id)->get()->pluck('service_id');
+        $services = Service::whereIn('id', $service_ids)->get()->pluck('title');
 
-        $visit_status = VisitsStatus::where('active',1)->get();
+        $visit_status = VisitsStatus::where('active', 1)->get();
 
-        return view('dashboard.visits.show', compact('visits','services','visit_status'));
+        return view('dashboard.visits.show', compact('visits', 'services', 'visit_status'));
     }
 
-    
+
     protected function update(Request $request, $id)
     {
         $visit = Visit::query()->where('id', $id)->first();
@@ -186,18 +193,18 @@ class VisitsController extends Controller
             $visit->update([
                 'assign_to_id' => $request->assign_to_id
             ]);
-        }else if ($visit->visits_status_id == 6){
-            $allTechn = Technician::where('group_id',$visit->assign_to_id)->whereNotNull('fcm_token')->get();
+        } else if ($visit->visits_status_id == 6) {
+            $allTechn = Technician::where('group_id', $visit->assign_to_id)->whereNotNull('fcm_token')->get();
 
-            if (count($allTechn) > 0){
+            if (count($allTechn) > 0) {
 
                 $title = 'تغيير الفريق';
                 $message = 'سيتم تغيير الفريق بسبب الغاء الطلب لاسباب فنيه';
 
-                foreach ($allTechn as $tech){
+                foreach ($allTechn as $tech) {
                     Notification::send(
                         $tech,
-                        new SendPushNotification($title,$message)
+                        new SendPushNotification($title, $message)
                     );
                 }
 
@@ -207,15 +214,15 @@ class VisitsController extends Controller
                     'device_token' => $FcmTokenArray,
                     'title' => $title,
                     'message' => $message,
-                    'type'=>'technician',
-                    'code'=> 1,
+                    'type' => 'technician',
+                    'code' => 1,
                 ];
 
                 $this->pushNotification($notification);
             }
             $this->store($request);
-        }else{
-            return redirect()->back()->withErrors(['visits_status_id'=>'يجب عليك تغيير حاله الزياره اولا']);
+        } else {
+            return redirect()->back()->withErrors(['visits_status_id' => 'يجب عليك تغيير حاله الزياره اولا']);
         }
 
         session()->flash('success');
@@ -230,12 +237,12 @@ class VisitsController extends Controller
 
         $latUser = $visits->booking?->address?->lat;
         $longUser = $visits->booking?->address?->long;
-        $latTechn = $visits->lat??0;
-        $longTechn = $visits->long??0;
+        $latTechn = $visits->lat ?? 0;
+        $longTechn = $visits->long ?? 0;
 
         $locations = [
-            ['lat'=>$latUser,'lng'=>$longUser],
-            ['lat'=>$latTechn,'lng'=>$longTechn],
+            ['lat' => $latUser, 'lng' => $longUser],
+            ['lat' => $latTechn, 'lng' => $longTechn],
         ];
 
         return response()->json($locations);
@@ -248,5 +255,4 @@ class VisitsController extends Controller
 
         return response()->json($visits->visits_status_id);
     }
-
 }
