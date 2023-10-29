@@ -52,6 +52,9 @@ return [
     'orders_status'=>'حالات طلبات العملاء',
     'client_orders'=>'طلبات العملاء',
     'client_orders_today'=>'طلبات العملاء اليوم',
+    'canceled_orders_today'=>'الطلبات الملغية اليوم',
+    'canceled_orders'=>'الطلبات الملغية',
+
     'packages_management'=>'إدارة الباقات',
     'packages'=>'الباقات',
     'packages_orders'=>'طلبات الباقات',

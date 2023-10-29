@@ -144,7 +144,9 @@ class IndexController extends Controller
                 ['currency' => 'SAR']
             )));
         $sells_chart_2->dataset(__('dash.orders'), 'line', $all_sell_values2);
-        return view('dashboard.home',compact('tech_visits_today','client_orders_today','sells_chart_1','sells_chart_2','customers','client_orders','technicians','tech_visits'));
+        $canceled_orders = Booking::where('booking_status_id',2)->count();
+        $canceled_orders_today = Booking::where([['created_at','=',$now],['booking_status_id',2]])->count();
+        return view('dashboard.home',compact('canceled_orders','canceled_orders_today','tech_visits_today','client_orders_today','sells_chart_1','sells_chart_2','customers','client_orders','technicians','tech_visits'));
     }
     private function __chartOptions($title)
     {

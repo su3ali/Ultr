@@ -33,12 +33,17 @@ class BookingController extends Controller
     {
 
         if (request()->ajax()) {
-            $bookings = Booking::with('visit.group')->where('type', 'service')->with(['order', 'customer', 'service', 'group', 'booking_status'])->get();
+            $bookings = Booking::with('visit.group')->where('type', 'service')->with(['order', 'customer', 'service', 'group', 'booking_status']);
 
             if (\request()->query('type') == 'package') {
-                $bookings = Booking::query()->where('type', 'contract')->with(['order', 'customer', 'service', 'group', 'booking_status'])->get();
+                $bookings = Booking::query()->where('type', 'contract')->with(['order', 'customer', 'service', 'group', 'booking_status']);
             }
-
+            if(\request()->query('status')){
+                $va = \request()->query('status');
+                $bookings->Where('booking_status_id', $va);
+                error_log(  $bookings->count());
+            }
+            $bookings->get();
             return DataTables::of($bookings)
             // ->addColumn('visit_id', function ($row) {
             //     $order = $row->visit->id;
@@ -115,8 +120,9 @@ class BookingController extends Controller
                 ->make(true);
         }
         $visitsStatuses = VisitsStatus::query()->get()->pluck('name', 'id');
+        $statuses = BookingStatus::get()->pluck('name', 'id');
 
-        return view('dashboard.bookings.index', compact('visitsStatuses'));
+        return view('dashboard.bookings.index', compact('visitsStatuses','statuses'));
     }
 
     protected function create()

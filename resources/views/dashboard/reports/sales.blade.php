@@ -225,7 +225,7 @@
             });
 
             // Call the initial update
-            updateTableData();
+          //  updateTableData();
         });
 
     </script>
