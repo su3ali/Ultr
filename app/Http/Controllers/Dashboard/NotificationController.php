@@ -89,11 +89,12 @@ class NotificationController extends Controller
             return redirect()->back()->withErrors(['fcm_token' => 'لا يمكن ارسال الاشعارت لعدم توفر رمز الجهاز']);
         }
 
+        $message = str_replace('&nbsp;', ' ', strip_tags($request->message));
 
         $notification = [
             'device_token' => isset($FcmToken) ? [$FcmToken] : $FcmTokenArray,
             'title' => $request->title,
-            'message' => strip_tags($request->message),
+            'message' =>  $message,
             'type' => $type ?? '',
             'code' => 2
         ];
