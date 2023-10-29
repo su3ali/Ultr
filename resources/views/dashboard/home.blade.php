@@ -105,6 +105,7 @@
             </div>
             <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
                 <div class="row widget-statistic">
+               
                     <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                         <a href="{{route('dashboard.visits.index')}}" class="widget-link">
                         <div class="widget widget-one_hybrid widget-engagement">
@@ -140,6 +141,41 @@
                         </div>
                         </a>
                     </div>
+                    
+                    <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
+                        <a href="{{route('dashboard.orders.index')}}" class="widget-link">
+                        <div class="widget widget-one_hybrid widget-referral">
+                            <div class="widget-heading">
+                                <div class="w-title">
+                                    <div class="w-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-shopping-cart"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>                                    </div>
+                                    <div class="">
+                                        <p class="w-value">{{$client_orders_today}}</p>
+                                        <h5 class="">{{__('dash.client_orders_today')}}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+                   
+                    <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
+                        <a href="{{route('dashboard.visits.index')}}" class="widget-link">
+                        <div class="widget widget-one_hybrid widget-engagement">
+                            <div class="widget-heading">
+                                <div class="w-title">
+                                    <div class="w-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>                                    </div>
+                                    <div class="">
+                                        <p class="w-value">{{$tech_visits_today}}</p>
+                                        <h5 class="">{{__('dash.tech_orders_today')}}</h5>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -149,7 +185,7 @@
                     <div class="col-md-12 text-left mb-3">
 
 
-                            <h5 class="">{{__('dash.client_orders_today')}}: ( {{$client_orders_today}} )</h5>
+                            <h5 class="">{{__('dash.client_orders_today')}}</h5>
 
 
                     </div>
@@ -175,7 +211,7 @@
                 <div class="widget-content widget-content-area br-6">
                     <div class="col-md-12 text-left mb-3">
 
-                            <h5 class="">{{__('dash.tech_orders_today')}}: ( {{$tech_visits_today}} )</h5>
+                            <h5 class="">{{__('dash.tech_orders_today')}}</h5>
 
 
                     </div>
