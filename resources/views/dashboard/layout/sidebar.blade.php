@@ -48,6 +48,11 @@
                                 <a href="{{ route('dashboard.visits.index') }}"> {{ __('dash.tech_orders') }}</a>
                             </li>
                         @endcan
+                        @can('view_visits')
+                        <li>
+                            <a href="{{ route('dashboard.visits.visitsToday') }}"> {{ __('dash.tech_orders_today') }}</a>
+                        </li>
+                    @endcan
                         @can('update_visits')
                             <li>
                                 <a href="{{ route('dashboard.visits_statuses.index') }}"> {{ __('dash.orders_status') }}</a>

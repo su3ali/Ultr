@@ -22,7 +22,7 @@
                             <ol class="breadcrumb mb-0 py-2">
                                 <li class="breadcrumb-item"><a
                                         href="{{route('dashboard.home')}}">{{__('dash.home')}}</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">{{__('dash.canceled_orders_today')}}</li>
+                                <li class="breadcrumb-item active" aria-current="page"> {{__('dash.tech_orders_today')}}</li>
                             </ol>
                         </nav>
 
@@ -34,7 +34,6 @@
         </header>
     </div>
 
-{{--    @include('dashboard.orders.create')--}}
 @endsection
 
 @section('content')
@@ -44,18 +43,43 @@
 
             <div class="col-xl-12 col-lg-12 col-sm-12  layout-spacing">
                 <div class="widget-content widget-content-area br-6">
-            
+                    <div class="col-md-12  mb-3">
+
+
+                        <div class="row">
+
+
+
+                            <div class="col-md-1">
+                                <label for="inputEmail4">الحالة</label>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="select2 status_filter form-control" name="status_filter">
+                                    <option value="all" selected>الكل</option>
+                                    @foreach ($statuses as $id => $status)
+                                        <option value="{{ $id }}">{{ $status }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <div class="col-md-12 text-right mb-3">
+
+
+                    </div>
                     <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
                         <thead>
                         <tr>
                             <th>رقم الطلب</th>
                             <th>رقم الحجز</th>
-                            <th>{{__('dash.customer_name')}}</th>
-                            <th>{{__('dash.service')}}</th>
-                            <th>{{__('dash.quantity')}}</th>
-                            <th>{{__('dash.price_value')}}</th>
-                            <th>{{__('dash.status')}}</th>
-                            <th>تاريخ الطلب</th>
+                            <th>موعد الحجز</th>
+                            <th>الفريق</th>
+                            <th>وقت البدء</th>
+                            <th>وقت الانتهاء</th>
+                            <th>المده</th>
+                            <th>الحاله</th>
                             <th class="no-content">{{__('dash.actions')}}</th>
                         </tr>
                         </thead>
@@ -68,14 +92,13 @@
         </div>
 
     </div>
-{{--    @include('dashboard.orders.edit')--}}
 @endsection
 
 @push('script')
 
     <script type="text/javascript">
         $(document).ready(function () {
-            var table = $('#html5-extension').DataTable({
+       var  table=     $('#html5-extension').DataTable({
                 dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-6 d-flex justify-content-md-start justify-content-center'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
                     "<'table-responsive'tr>" +
                     "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count  mb-sm-0 mb-3'i><'dt--pagination'p>>",
@@ -93,23 +116,24 @@
                 },
                 processing: true,
                 serverSide: true,
-                ajax: '{{ route('dashboard.order.canceledOrders') }}',
+                ajax: '{{ route('dashboard.visits.visitsToday') }}',
                 columns: [
                     {data: 'id', name: 'id'},
                     {data: 'booking_id', name: 'booking_id'},
-                    {data: 'user', name: 'user'},
-                    {data: 'service', name: 'service'},
-                    {data: 'quantity', name: 'quantity'},
-                    {data: 'total', name: 'total'},
+                    // {data: 'visite_id', name: 'visite_id'},
+                    {data: 'date', name: 'date'},
+                    {data: 'group_name', name: 'group_name'},
+                    {data: 'start_time', name: 'start_time'},
+                    {data: 'end_time', name: 'end_time'},
+                    {data: 'duration', name: 'duration'},
                     {data: 'status', name: 'status'},
-                    {data: 'created_at', name: 'created_at'},
                     {data: 'control', name: 'control', orderable: false, searchable: false},
 
                 ]
             });
             function updateTableData() {
                 var status_filter = $('.status_filter').val();
-                var url =  '{{ route('dashboard.order.canceledOrders') }}';
+                var url = '{{ route('dashboard.visits.visitsToday') }}';
 
                 if (status_filter && status_filter !== 'all') {
                     url += '?status=' + status_filter;
@@ -123,55 +147,6 @@
                 updateTableData();
             });
         });
-
-        {{--$(document).on('click', '#edit-order', function () {--}}
-        {{--    let id = $(this).data('id');--}}
-        {{--    let user_id = $(this).data('user_id');--}}
-        {{--    let category_id = $(this).data('category_id');--}}
-        {{--    let service_id = $(this).data('service_id');--}}
-        {{--    let price = $(this).data('price');--}}
-        {{--    let payment_method = $(this).data('payment_method');--}}
-        {{--    let notes = $(this).data('notes');--}}
-        {{--    $('#edit_customer_name').val(user_id).trigger('change')--}}
-        {{--    $('#edit_category_id').val(category_id).trigger('change')--}}
-        {{--    $('#edit_service_id').val(service_id).trigger('change')--}}
-        {{--    $('#edit_price').val(price)--}}
-        {{--    $('#edit_notes').html(notes)--}}
-
-        {{--    if (payment_method === 'visa'){--}}
-        {{--        $('#edit_payment_method_visa').prop('checked', true)--}}
-        {{--        $('#edit_payment_method_cache').prop('checked', false)--}}
-        {{--    }else {--}}
-        {{--        $('#edit_payment_method_visa').prop('checked', false)--}}
-        {{--        $('#edit_payment_method_cache').prop('checked', true)--}}
-        {{--    }--}}
-        {{--    let action = "{{route('dashboard.orders.update', 'id')}}";--}}
-        {{--    action = action.replace('id', id)--}}
-        {{--    $('#edit_order_form').attr('action', action);--}}
-
-
-        {{--})--}}
-
-        $("body").on('change', '#customSwitchtech', function () {
-            let active = $(this).is(':checked');
-            let id = $(this).attr('data-id');
-
-            $.ajax({
-                url: '{{route('dashboard.core.technician.change_status')}}',
-                type: 'get',
-                data: {id: id, active: active},
-                success: function (data) {
-                    swal({
-                        title: "{{__('dash.successful_operation')}}",
-                        text: "{{__('dash.request_executed_successfully')}}",
-                        type: 'success',
-                        padding: '2em'
-                    })
-                }
-            });
-        })
-
-
 
     </script>
 

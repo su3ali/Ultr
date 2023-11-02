@@ -109,7 +109,7 @@
             });
             function updateTableData() {
                 var status_filter = $('.status_filter').val();
-                var url =  '{{ route('dashboard.orders.index') }}';
+                var url =  '{{ route('dashboard.order.canceledOrdersToday') }}';
 
                 if (status_filter && status_filter !== 'all') {
                     url += '?status=' + status_filter;

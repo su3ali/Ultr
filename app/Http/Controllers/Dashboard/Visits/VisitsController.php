@@ -30,7 +30,7 @@ class VisitsController extends Controller
     {
         if (request()->ajax()) {
             $visit = Visit::query();
-         
+
             if (request()->page) {
                 $now = Carbon::now('Asia/Riyadh')->toDateString();
                 $visit->whereDate('created_at', '=', $now);
@@ -96,6 +96,78 @@ class VisitsController extends Controller
 
         return view('dashboard.visits.index', compact('statuses'));
     }
+
+    protected function visitsToday()
+    {
+        if (request()->ajax()) {
+            $visit = Visit::query();
+
+
+            $now = Carbon::now('Asia/Riyadh')->toDateString();
+            $visit->whereDate('created_at', '=', $now);
+
+            if (request()->status) {
+
+                $visit->where('visits_status_id', request()->status);
+            }
+
+            $visit->get();
+
+
+
+            return DataTables::of($visit)
+                ->addColumn('booking_id', function ($row) {
+                    return $row->booking?->id;
+                })
+                ->addColumn('date', function ($row) {
+                    return $row->booking?->date;
+                })
+                ->addColumn('group_name', function ($row) {
+                    return $row->group?->name;
+                })
+                ->addColumn('start_time', function ($row) {
+                    return \Carbon\Carbon::parse($row->start_time)->timezone('Asia/Riyadh')->format('g:i A');
+                })
+                ->addColumn('end_time', function ($row) {
+                    return \Carbon\Carbon::parse($row->end_time)->timezone('Asia/Riyadh')->format('g:i A');
+                })
+                ->addColumn('duration', function ($row) {
+                    return $row->duration;
+                })
+                ->addColumn('status', function ($row) {
+                    return $row->status->name;
+                })
+                ->addColumn('control', function ($row) {
+
+                    $html = '
+                    <a href="#" class="mr-2 btn btn-outline-primary btn-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+
+                                <a href="' . route('dashboard.visits.show', $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                            <i class="far fa-eye fa-2x"></i>
+
+                    </a>
+                                ';
+
+                    return $html;
+                })
+                ->rawColumns([
+                    'booking_id',
+                    'date',
+                    'group_name',
+                    'start_time',
+                    'end_time',
+                    'duration',
+                    'status',
+                    'control',
+                ])
+                ->make(true);
+        }
+        $statuses = VisitsStatus::all()->pluck('name', 'id');
+
+        return view('dashboard.visits.visits_today', compact('statuses'));
+    }
+
 
     protected function store(Request $request)
     {
