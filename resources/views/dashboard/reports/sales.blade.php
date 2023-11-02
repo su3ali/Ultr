@@ -140,6 +140,7 @@
 
     <script type="text/javascript">
         $(document).ready(function () {
+            updateSummary();
             var table = $('#html5-extension').DataTable({
                 dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-6 d-flex justify-content-md-start justify-content-center'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
                     "<'table-responsive'tr>" +
@@ -193,15 +194,17 @@
                 if (service_filter && service_filter !== 'all') {
                     url += '?service=' + service_filter;
                 }
-
+            
                 // Update table data
                 table.ajax.url(url).load();
 
                 // Update summary
                 updateSummary();
+          
             }
 
             function updateSummary() {
+              
                 $.ajax({
                     url: '{{ route('dashboard.report.updateSummary') }}',
                     type: 'GET',
@@ -212,6 +215,7 @@
                         service: $('.service_filter').val(),
                     },
                     success: function (data) {
+                      
                         $('#total').text(data.total.toFixed(2));
                         $('#tax').text(data.tax.toFixed(2));
                         $('#tax_total').text(data.taxTotal.toFixed(2));
