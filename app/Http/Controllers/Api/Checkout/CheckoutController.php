@@ -67,9 +67,9 @@ class CheckoutController extends Controller
             }
             return $this->saveContract($user, $request, $total, $carts);
         } else {
-            if ($request->payment_method == 'wallet' && $request->amount > $user->point) {
-                return self::apiResponse(400, __('api.Your wallet balance is not enough to complete this process'), []);
-            }
+            // if ($request->payment_method == 'wallet' && $request->amount > $user->point) {
+            //     return self::apiResponse(400, __('api.Your wallet balance is not enough to complete this process'), []);
+            // }
             $uploadImage = null;
             if ($request->image && $request->image != null) {
                 $image = $this->storeImages($request->image, 'order');
@@ -105,7 +105,7 @@ class CheckoutController extends Controller
             'sub_total' => $total,
             'total' => $totalAfterDiscount,
 
-            'partial_amount' => ($totalAfterDiscount - $request->amount),
+            'partial_amount' => ($totalAfterDiscount),
             'status_id' => 1,
             'file' => $uploadFile,
             'image' => $uploadImage,
@@ -256,7 +256,7 @@ class CheckoutController extends Controller
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
             ]);
-            Order::where('id', $order->id)->update(array('partial_amount' => $total));
+            Order::where('id', $order->id)->update(array('partial_amount' => $totalAfterDiscount));
         } else {
             Transaction::create([
                 'order_id' => $order->id,
@@ -491,7 +491,7 @@ class CheckoutController extends Controller
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
             ]);
-            Order::where('id', $order->id)->update(array('partial_amount' => $total));
+            Order::where('id', $order->id)->update(array('partial_amount' => $totalAfterDiscount));
         } else {
             Transaction::create([
                 'order_id' => $order->id,
