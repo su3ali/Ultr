@@ -261,7 +261,7 @@
                     <table id="html5-extension-order" class="table table-hover non-hover">
                         <thead>
                             <tr>
-                                {{-- <th>#</th> --}}
+                                <th>#</th>
                                 <th>رقم الطلب</th>
                                 <th>اسم العميل</th>
                                 <th>التاريخ</th>
@@ -287,7 +287,7 @@
                     <table id="html5-extension" class="table table-hover non-hover">
                         <thead>
                             <tr>
-                                {{-- <th>#</th> --}}
+                                <th>#</th>
                                 <th>رقم الطلب</th>
                                 <th>الفريق</th>
                                 <th>موعد الحجز</th>
@@ -380,6 +380,10 @@
                     }
                 },
                 columns: [{
+                        render: function(data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    }, {
                         data: 'id',
                         name: 'id'
                     },
@@ -455,8 +459,14 @@
                     }
                 },
                 columns: [{
+                        render: function(data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
+                    {
                         data: 'id',
-                        name: 'id'
+                        name: 'id',
+
                     },
                     {
                         data: 'user',
