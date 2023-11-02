@@ -375,8 +375,7 @@ class CartController extends Controller
 
                     //realtime
                     $realTime = $time->format('H:i:s');
-                    $converTimestamp = Carbon::parse($realTime)->timezone('Asia/Riyadh')->timestamp;
-
+                    $converTimestamp = Carbon::parse($realTime)->timezone('Asia/Riyadh')->addMinutes(15)->timestamp;
                     //check time between two times
                     $setting = Setting::query()->first();
                     $startDate = $setting->resting_start_time;
