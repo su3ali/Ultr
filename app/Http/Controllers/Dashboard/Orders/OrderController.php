@@ -36,7 +36,7 @@ class OrderController extends Controller
 
         if (request()->ajax()) {
             $orders = Order::query();
-         
+
             if (request()->page) {
                 $now = Carbon::now('Asia/Riyadh')->toDateString();
                 $orders->whereDate('created_at', '=', $now);
@@ -117,6 +117,246 @@ class OrderController extends Controller
         }
         $statuses = OrderStatus::all()->pluck('name', 'id');
         return view('dashboard.orders.index', compact('statuses'));
+    }
+
+    public function ordersToday()
+    {
+
+        if (request()->ajax()) {
+            $orders = Order::query();
+            $now = Carbon::now('Asia/Riyadh')->toDateString();
+            $orders->whereDate('created_at', '=', $now);
+
+            if (request()->status) {
+
+                $orders->where('status_id', request()->status);
+            }
+
+            $orders->get();
+
+            return DataTables::of($orders)
+                ->addColumn('booking_id', function ($row) {
+                    $booking = $row->bookings->first();
+                    return $booking ? $booking->id : '';
+                })
+                ->addColumn('user', function ($row) {
+                    return $row->user?->first_name . ' ' . $row->user?->last_name;
+                })
+                ->addColumn('service', function ($row) {
+                    $qu = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
+                    $services_ids = array_unique($qu);
+                    $services = Service::whereIn('id', $services_ids)->get();
+                    $html = '';
+                    foreach ($services as $service) {
+                        $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
+                    }
+
+                    return $html;
+                })
+                ->addColumn('quantity', function ($row) {
+                    $qu = OrderService::where('order_id', $row->id)->get()->pluck('quantity')->toArray();
+
+                    return array_sum($qu);
+                })
+                ->addColumn('status', function ($row) {
+
+                    return $row->status?->name;
+                })
+                ->addColumn('created_at', function ($row) {
+                    $date = Carbon::parse($row->created_at)->timezone('Asia/Riyadh');
+
+                    return $date->format("Y-m-d H:i:s");
+                })
+                ->addColumn('control', function ($row) {
+
+                    $html = '';
+                    if ($row->status_id == 2) {
+                        $html .= '<a href="' . route('dashboard.order.confirmOrder', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                            <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
+                        </a>';
+                    }
+                    $html .= '
+                    <a href="' . route('dashboard.order.orderDetail', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                            <i class="far fa-eye fa-2x"></i>
+                        </a>
+
+                        <a href="' . route('dashboard.order.showService', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                            <i class="far fa-eye fa-2x"></i>
+                        </a>
+                                <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
+                            <i class="far fa-trash-alt fa-2x"></i>
+                    </a>
+                                ';
+
+                    return $html;
+                })
+                ->rawColumns([
+                    'booking_id',
+                    'user',
+                    'service',
+                    'quantity',
+                    'status',
+                    'created_at',
+                    'control',
+                ])
+                ->make(true);
+        }
+        $statuses = OrderStatus::all()->pluck('name', 'id');
+        return view('dashboard.orders.clients_orders_today', compact('statuses'));
+    }
+
+    public function canceledOrdersToday()
+    {
+
+        if (request()->ajax()) {
+            $now = Carbon::now('Asia/Riyadh')->toDateString();
+            $orders = Order::whereDate('created_at', '=', $now)->where('status_id', 5)->get();
+            return DataTables::of($orders)
+                ->addColumn('booking_id', function ($row) {
+                    $booking = $row->bookings->first();
+                    return $booking ? $booking->id : '';
+                })
+                ->addColumn('user', function ($row) {
+                    return $row->user?->first_name . ' ' . $row->user?->last_name;
+                })
+                ->addColumn('service', function ($row) {
+                    $qu = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
+                    $services_ids = array_unique($qu);
+                    $services = Service::whereIn('id', $services_ids)->get();
+                    $html = '';
+                    foreach ($services as $service) {
+                        $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
+                    }
+
+                    return $html;
+                })
+                ->addColumn('quantity', function ($row) {
+                    $qu = OrderService::where('order_id', $row->id)->get()->pluck('quantity')->toArray();
+
+                    return array_sum($qu);
+                })
+                ->addColumn('status', function ($row) {
+
+                    return $row->status?->name;
+                })
+                ->addColumn('created_at', function ($row) {
+                    $date = Carbon::parse($row->created_at)->timezone('Asia/Riyadh');
+
+                    return $date->format("Y-m-d H:i:s");
+                })
+                ->addColumn('control', function ($row) {
+
+                    $html = '';
+                    if ($row->status_id == 2) {
+                        $html .= '<a href="' . route('dashboard.order.confirmOrder', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                            <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
+                        </a>';
+                    }
+                    $html .= '
+                    <a href="' . route('dashboard.order.orderDetail', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                            <i class="far fa-eye fa-2x"></i>
+                        </a>
+
+                        <a href="' . route('dashboard.order.showService', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                            <i class="far fa-eye fa-2x"></i>
+                        </a>
+                                <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
+                            <i class="far fa-trash-alt fa-2x"></i>
+                    </a>
+                                ';
+
+                    return $html;
+                })
+                ->rawColumns([
+                    'booking_id',
+                    'user',
+                    'service',
+                    'quantity',
+                    'status',
+                    'created_at',
+                    'control',
+                ])
+                ->make(true);
+        }
+        $statuses = OrderStatus::all()->pluck('name', 'id');
+        return view('dashboard.orders.canceled_orders_today', compact('statuses'));
+    }
+
+    public function canceledOrders()
+    {
+
+        if (request()->ajax()) {
+      
+            $orders = Order::where('status_id', 5)->get();
+            return DataTables::of($orders)
+                ->addColumn('booking_id', function ($row) {
+                    $booking = $row->bookings->first();
+                    return $booking ? $booking->id : '';
+                })
+                ->addColumn('user', function ($row) {
+                    return $row->user?->first_name . ' ' . $row->user?->last_name;
+                })
+                ->addColumn('service', function ($row) {
+                    $qu = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
+                    $services_ids = array_unique($qu);
+                    $services = Service::whereIn('id', $services_ids)->get();
+                    $html = '';
+                    foreach ($services as $service) {
+                        $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
+                    }
+
+                    return $html;
+                })
+                ->addColumn('quantity', function ($row) {
+                    $qu = OrderService::where('order_id', $row->id)->get()->pluck('quantity')->toArray();
+
+                    return array_sum($qu);
+                })
+                ->addColumn('status', function ($row) {
+
+                    return $row->status?->name;
+                })
+                ->addColumn('created_at', function ($row) {
+                    $date = Carbon::parse($row->created_at)->timezone('Asia/Riyadh');
+
+                    return $date->format("Y-m-d H:i:s");
+                })
+                ->addColumn('control', function ($row) {
+
+                    $html = '';
+                    if ($row->status_id == 2) {
+                        $html .= '<a href="' . route('dashboard.order.confirmOrder', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                            <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
+                        </a>';
+                    }
+                    $html .= '
+                    <a href="' . route('dashboard.order.orderDetail', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                            <i class="far fa-eye fa-2x"></i>
+                        </a>
+
+                        <a href="' . route('dashboard.order.showService', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                            <i class="far fa-eye fa-2x"></i>
+                        </a>
+                                <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
+                            <i class="far fa-trash-alt fa-2x"></i>
+                    </a>
+                                ';
+
+                    return $html;
+                })
+                ->rawColumns([
+                    'booking_id',
+                    'user',
+                    'service',
+                    'quantity',
+                    'status',
+                    'created_at',
+                    'control',
+                ])
+                ->make(true);
+        }
+        $statuses = OrderStatus::all()->pluck('name', 'id');
+        return view('dashboard.orders.canceled_orders', compact('statuses'));
     }
 
     public function showService()
