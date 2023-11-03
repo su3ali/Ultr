@@ -5,8 +5,8 @@
 route_group('core', function () {
 
     route_group('administration', function () {
-        Route::resource('profile', 'AdminProfileController')->except(['create','store','delete', 'show']);
-        Route::group(['prefix' => 'roles'], function (){
+        Route::resource('profile', 'AdminProfileController')->except(['create', 'store', 'delete', 'show']);
+        Route::group(['prefix' => 'roles'], function () {
             Route::get('/', 'RoleController@index')->name('roles.index')->middleware('permission:view_roles');
             Route::get('/create', 'RoleController@create')->name('roles.create')->middleware('permission:create_roles');
             Route::post('/', 'RoleController@store')->name('roles.store')->middleware('permission:create_roles');
@@ -14,7 +14,7 @@ route_group('core', function () {
             Route::post('/{id}', 'RoleController@update')->name('roles.update')->middleware('permission:update_roles');
             Route::get('/{id}/delete', 'RoleController@destroy')->name('roles.destroy')->middleware('permission:delete_roles');
         });
-        Route::group(['prefix' => 'admins'], function (){
+        Route::group(['prefix' => 'admins'], function () {
             Route::get('/', 'AdminController@index')->name('admins.index')->middleware('permission:view_admins');
             Route::get('/create', 'AdminController@create')->name('admins.create')->middleware('permission:create_admins');
             Route::post('/', 'AdminController@store')->name('admins.store')->middleware('permission:create_admins');
@@ -23,7 +23,6 @@ route_group('core', function () {
             Route::get('/{id}/delete', 'AdminController@destroy')->name('admins.destroy')->middleware('permission:delete_admins');
             Route::get('/change_status', 'AdminController@change_status')->name('admins.change_status');
         });
-
     });
 
 
@@ -71,7 +70,7 @@ route_group('core', function () {
 
     Route::get('icon/change_status', 'ServiceIconController@change_status')->name('icon.change_status');
     Route::resource('icon', 'ServiceIconController');
-
-
+    Route::resource('contact', 'ContactingController');
+    Route::get('order_contract', 'ContactingController@order_contract')->name('order_contract.index');
+    Route::delete('order_contract/{id}/delete', 'ContactingController@order_contract_destroy')->name('order_contract.destroy');
 });
-
