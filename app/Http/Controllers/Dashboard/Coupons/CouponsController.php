@@ -22,10 +22,10 @@ class CouponsController extends Controller
                     return $row->title;
                 })
                 ->addColumn('value', function ($row) {
-                    return $row->type == 'percentage'? $row->value.'%' : $row->value.' ريال سعودي ';
+                    return $row->type == 'percentage' ? $row->value . '%' : $row->value . ' ريال سعودي ';
                 })
                 ->addColumn('image', function ($row) {
-                    return '<img class="img-fluid" src="'.asset($row->image).'"/>';
+                    return '<img class="img-fluid" src="' . asset($row->image) . '"/>';
                 })
                 ->addColumn('status', function ($row) {
                     $checked = '';
@@ -40,16 +40,33 @@ class CouponsController extends Controller
                 ->addColumn('control', function ($row) {
 
                     $html = '
-                    <a href="'.route('dashboard.coupons.edit', $row->id).'"  id="edit-coupon" class="btn btn-primary btn-sm card-tools edit" data-id="' . $row->id . '"
-                          >
-                            <i class="far fa-edit fa-1x"></i>
-                       </a>
+                    <a href="' . route('dashboard.coupons.show', $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm"><i class="far fa-eye fa-2x"></i> </a>
+                    <a href="' . route('dashboard.coupons.edit', $row->id) . '"  id="edit-coupon" class="mr-2 btn btn-outline-warning btn-sm"><i class="far fa-edit fa-2x"></i> </a>
 
-                                <a data-table_id="html5-extension" data-href="' . route('dashboard.coupons.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
-                            <i class="far fa-trash-alt fa-1x"></i>
-                    </a>';
+                                <a data-href="' . route('dashboard.coupons.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
+                            <i class="far fa-trash-alt fa-2x"></i>
+                    </a>
+                                ';
+
                     return $html;
                 })
+                // ->addColumn('control', function ($row) {
+
+                //     $html = '
+                //     <a href="' . route('dashboard.coupons.show', $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                //             <i class="far fa-eye fa-2x"></i>
+
+                //     </a>
+                //     <a href="' . route('dashboard.coupons.edit', $row->id) . '"  id="edit-coupon" class="mr-2 btn btn-outline-warning btn-sm" data-id="' . $row->id . '"
+                //           >
+                //             <i class="far fa-edit fa-1x"></i>
+                //        </a>
+
+                //                 <a data-table_id="html5-extension" data-href="' . route('dashboard.coupons.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
+                //             <i class="far fa-trash-alt fa-1x"></i>
+                //     </a>';
+                //     return $html;
+                // })
                 ->rawColumns([
                     'title',
                     'value',
@@ -63,12 +80,14 @@ class CouponsController extends Controller
         return view('dashboard.coupons.index');
     }
 
-    protected function create(){
+    protected function create()
+    {
         $categories = Category::all();
         $services = Service::all();
         return view('dashboard.coupons.create', compact('categories', 'services'));
     }
-    protected function store(Request $request){
+    protected function store(Request $request)
+    {
         $rules = [
             'title_ar' => 'required|string|min:3|max:100',
             'title_en' => 'required|string|min:3|max:100',
@@ -83,10 +102,10 @@ class CouponsController extends Controller
             'image' => 'required|image|mimes:jpeg,jpg,png,gif',
 
         ];
-        if ($request->sale_area == 'category'){
+        if ($request->sale_area == 'category') {
             $rules['category_id'] = 'required|exists:categories,id';
         }
-        if ($request->sale_area == 'service'){
+        if ($request->sale_area == 'service') {
             $rules['service_id'] = 'required|exists:services,id';
         }
         $validated = Validator::make($request->all(), $rules);
@@ -94,30 +113,31 @@ class CouponsController extends Controller
             return redirect()->back()->withErrors($validated->errors());
         }
         $validated = $validated->validated();
-        if(!$validated['code']){
+        if (!$validated['code']) {
             $last = Coupon::query()->latest()->first()?->id;
-            $validated['code'] = 'coupon2023-'.$last?$last+1: 1;
+            $validated['code'] = 'coupon2023-' . $last ? $last + 1 : 1;
         }
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $filename = time() . '.' . $image->getClientOriginalExtension();
             $request->image->move(storage_path('app/public/images/coupons/'), $filename);
-            $validated['image'] = 'storage/images/coupons'.'/'. $filename;
+            $validated['image'] = 'storage/images/coupons' . '/' . $filename;
         }
 
         Coupon::query()->create($validated);
         session()->flash('success');
         return redirect()->route('dashboard.coupons.index');
-
     }
-    protected function edit($id){
+    protected function edit($id)
+    {
         $coupon = Coupon::query()->find($id);
         $categories = Category::all();
         $services = Service::all();
         return view('dashboard.coupons.edit', compact('coupon', 'categories', 'services'));
     }
-    protected function update(Request $request, $id){
+    protected function update(Request $request, $id)
+    {
         $coupon = Coupon::query()->findOrFail($id);
         $rules = [
             'title_ar' => 'required|string|min:3|max:100',
@@ -133,10 +153,10 @@ class CouponsController extends Controller
             'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
 
         ];
-        if ($request->sale_area == 'category'){
+        if ($request->sale_area == 'category') {
             $rules['category_id'] = 'required|exists:categories,id';
         }
-        if ($request->sale_area == 'service'){
+        if ($request->sale_area == 'service') {
             $rules['service_id'] = 'required|exists:services,id';
         }
         $validated = Validator::make($request->all(), $rules);
@@ -144,15 +164,15 @@ class CouponsController extends Controller
             return redirect()->back()->withErrors($validated->errors());
         }
         $validated = $validated->validated();
-        if(!$validated['code']){
+        if (!$validated['code']) {
             $last = Coupon::query()->latest()->first()?->id;
-            $validated['code'] = 'coupon2023-'.$last?$last+1: 1;
+            $validated['code'] = 'coupon2023-' . $last ? $last + 1 : 1;
         }
-        if (isset($validated['category_id']) && $validated['category_id']){
+        if (isset($validated['category_id']) && $validated['category_id']) {
             $validated['service_id'] = null;
-        }else if (isset($validated['service_id']) && $validated['service_id']){
+        } else if (isset($validated['service_id']) && $validated['service_id']) {
             $validated['category_id'] = null;
-        }else{
+        } else {
             $validated['service_id'] = null;
             $validated['category_id'] = null;
         }
@@ -164,14 +184,15 @@ class CouponsController extends Controller
             $image = $request->file('image');
             $filename = time() . '.' . $image->getClientOriginalExtension();
             $request->image->move(storage_path('app/public/images/coupons/'), $filename);
-            $validated['image'] = 'storage/images/coupons'.'/'. $filename;
+            $validated['image'] = 'storage/images/coupons' . '/' . $filename;
         }
 
-       $coupon->update($validated);
+        $coupon->update($validated);
         session()->flash('success');
         return redirect()->route('dashboard.coupons.index');
     }
-    protected function destroy($id){
+    protected function destroy($id)
+    {
         $coupon = Coupon::query()->findOrFail($id);
         $coupon->delete();
         return [
@@ -189,5 +210,11 @@ class CouponsController extends Controller
         }
         $coupon->save();
         return response('success');
+    }
+    protected function show($id)
+    {
+
+        return view('dashboard.coupons.show');
+    
     }
 }
