@@ -424,57 +424,7 @@ class CheckoutController extends Controller
                 $this->pushNotification($notification);
             }
         }
-        /////////////////////////////////////////
 
-        // foreach ($carts as $cart) {
-
-        //     $booking_no = 'dash2023/' . $cart->id;
-        //     $minutes = 0;
-        //     foreach (Service::with('BookingSetting')->whereIn('id', $carts->pluck('service_id')->toArray())->get() as $service) {
-        //         $serviceMinutes = ($service->BookingSetting->buffering_time + $service->BookingSetting->service_duration);
-        //         $minutes += $serviceMinutes;
-        //     }
-
-        //     Booking::query()->create([
-        //         'booking_no' => $booking_no,
-        //         'user_id' => auth('sanctum')->user()->id,
-        //         'category_id' => $cart->category_id,
-        //         'contract_order_id' => $order->id,
-        //         'user_address_id' => $order->user_address_id,
-        //         'booking_status_id' => 1,
-        //         'notes' => $cart->notes,
-        //         'quantity' => 1,
-        //         'package_id' => $cart->contract_package_id,
-        //         'date' => $cart->date,
-        //         'type' => 'contract',
-        //         'time' => Carbon::parse($cart->time)->toTimeString(),
-        //         'end_time' => Carbon::parse($cart->time)->addMinutes($minutes)->toTimeString(),
-        //     ]);
-        // }
-        // if ($request->payment_method == 'cache') {
-        //     $transaction = Transaction::create([
-        //         'contract_order_id' => $order->id,
-        //         'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
-        //         'payment_result' => 'success',
-        //     ]);
-
-        //     $order->update([
-        //         'partial_amount'=>$total
-        //     ]);
-
-        // }elseif ($request->payment_method == 'wallet'){
-        //     $transaction = Transaction::create([
-        //         'contract_order_id' => $order->id,
-        //         'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
-        //         'payment_result' => 'success',
-        //     ]);
-        // } else {
-        //     Transaction::create([
-        //         'contract_order_id' => $order->id,
-        //         'transaction_number' => $request->transaction_id,
-        //         'payment_result' => 'success',
-        //     ]);
-        // }
         if ($request->payment_method == 'wallet') {
             $transaction = Transaction::create([
                 'order_id' => $order->id,
@@ -491,7 +441,7 @@ class CheckoutController extends Controller
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
             ]);
-            Order::where('id', $order->id)->update(array('partial_amount' => $totalAfterDiscount));
+            Order::where('id', $order->id)->update(array('partial_amount' => ($total - $request->coupon)));
         } else {
             Transaction::create([
                 'order_id' => $order->id,
