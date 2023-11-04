@@ -203,10 +203,10 @@
 
                                         </div>
                                     </div>
-                                    <div class="col-md-5">
+                                    <div class="col-md-3">
 
                                         <div class="form-group">
-                                            <label for="times_limit">مرات الاستخدام الكلية (اتركه فارغ للإنشاء التلقائي)</label>
+                                            <label for="times_limit">مرات الاستخدام الكلية </label>
                                             <input type="number" name="times_limit" class="form-control"
                                                 id="times_limit" placeholder="أدخل العدد">
                                             @error('times_limit')
@@ -216,7 +216,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
 
                                         <div class="form-group">
                                             <label for="code">الكود (اتركه فارغ للإنشاء التلقائي)</label>
