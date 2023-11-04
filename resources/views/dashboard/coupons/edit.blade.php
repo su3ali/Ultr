@@ -205,17 +205,28 @@
                                 </div>
 
                                 <div class="form-row mb-2">
-                                    <div class="col-md-6">
+                                    <div class="col-md-3">
 
                                         <div class="form-group">
-                                            <label for="times_limit">مرات الاستخدام</label>
+                                            <label for="user_times">مرات الاستخدام للشخص الواحد</label>
+                                            <input type="number" name="user_times" class="form-control" id="user_times"
+                                            value="{{$coupon->user_times}}"
+                                                placeholder="أدخل العدد">
+                                            @error('user_times')
+                                                <div class="alert alert-danger">{{ $message }}</div>
+                                            @enderror
+
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+
+                                        <div class="form-group">
+                                            <label for="times_limit">مرات الاستخدام الكلية </label>
                                             <input type="number" name="times_limit" class="form-control"
-                                                   id="times_limit"
-                                                   placeholder="أدخل العدد"
-                                                   value="{{$coupon->times_limit}}"
-                                            >
+                                            value="{{$coupon->times_limit}}"
+                                                id="times_limit" placeholder="أدخل العدد">
                                             @error('times_limit')
-                                            <div class="alert alert-danger">{{ $message }}</div>
+                                                <div class="alert alert-danger">{{ $message }}</div>
                                             @enderror
 
                                         </div>
