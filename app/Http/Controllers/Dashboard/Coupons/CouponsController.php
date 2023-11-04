@@ -230,6 +230,7 @@ class CouponsController extends Controller
                     $users = $users->having('usage', '>', 0);
                 }
             }
+            
             return DataTables::of($users)
                 ->addColumn('name', function ($user) {
                     $name = $user->first_name . ' ' . $user->last_name;
@@ -257,7 +258,7 @@ class CouponsController extends Controller
                     return $html;
                 })
                 ->rawColumns([
-                    'id',
+                    
                     'name',
                     'phone',
                     'usage',

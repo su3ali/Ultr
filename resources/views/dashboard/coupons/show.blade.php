@@ -70,7 +70,7 @@
                     <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
                         <thead>
                             <tr>
-                                <th>#</th>
+
                                 <th>الاسم</th>
                                 <th>رقم الهاتف</th>
                                 <th>عدد مرات الاستخدام</th>
@@ -129,16 +129,13 @@
                 ajax: '{{ route('dashboard.coupons.viewSingleCoupon', $id) }}',
 
                 columns: [{
-                        data: 'id',
-                        name: 'id'
-                    },
-                    {
                         data: 'name',
                         name: 'name'
                     },
                     {
                         data: 'phone',
-                        name: 'phone'
+                        name: 'phone',
+
                     },
                     {
                         data: 'usage',
