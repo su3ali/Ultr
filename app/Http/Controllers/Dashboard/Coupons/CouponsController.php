@@ -100,6 +100,7 @@ class CouponsController extends Controller
             'start' => 'required|date',
             'end' => 'required|date',
             'times_limit' => 'required|numeric',
+            'user_times' => 'required|numeric',
             'code' => 'nullable|string',
             'description_ar' => 'nullable|string|min:3',
             'description_en' => 'nullable|string|min:3',
