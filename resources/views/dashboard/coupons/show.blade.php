@@ -53,11 +53,10 @@
                                 <label for="inputEmail4">الحالة</label>
                             </div>
                             <div class="col-md-4">
-                                <select class="select2 status_filter form-control" name="status_filter">
+                                <select class="select2 usage_filter form-control" name="usage_filter">
                                     <option value="all" selected>الكل</option>
-                                    {{-- @foreach ($statuses as $id => $status)
-                                        <option value="{{ $id }}">{{ $status }}</option>
-                                    @endforeach --}}
+                                    <option value="used">قام بالاستخدام</option>
+                                    <option value="notused">لم يستخدم بعد</option>
                                 </select>
                             </div>
 
@@ -71,10 +70,11 @@
                     <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
                         <thead>
                             <tr>
+                                <th>#</th>
                                 <th>الاسم</th>
                                 <th>رقم الهاتف</th>
                                 <th>عدد مرات الاستخدام</th>
-                                <th class="no-content">{{ __('dash.actions') }}</th>
+                                {{-- <th class="no-content">{{ __('dash.actions') }}</th> --}}
                             </tr>
                         </thead>
                     </table>
@@ -95,9 +95,9 @@
                 dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-6 d-flex justify-content-md-start justify-content-center'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
                     "<'table-responsive'tr>" +
                     "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count  mb-sm-0 mb-3'i><'dt--pagination'p>>",
-                order: [
-                    [0, 'desc']
-                ],
+                // order: [
+                //     [2, 'desc']
+                // ],
                 "language": {
                     "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
                 },
@@ -126,63 +126,47 @@
                 },
                 processing: true,
                 serverSide: true,
-                ajax: '{{ route('dashboard.visits.index') }}',
+                ajax: '{{ route('dashboard.coupons.viewSingleCoupon', $id) }}',
+
                 columns: [{
                         data: 'id',
                         name: 'id'
                     },
                     {
-                        data: 'booking_id',
-                        name: 'booking_id'
-                    },
-                    // {data: 'visite_id', name: 'visite_id'},
-                    {
-                        data: 'date',
-                        name: 'date'
+                        data: 'name',
+                        name: 'name'
                     },
                     {
-                        data: 'group_name',
-                        name: 'group_name'
+                        data: 'phone',
+                        name: 'phone'
                     },
                     {
-                        data: 'start_time',
-                        name: 'start_time'
+                        data: 'usage',
+                        name: 'usage',
                     },
-                    {
-                        data: 'end_time',
-                        name: 'end_time'
-                    },
-                    {
-                        data: 'duration',
-                        name: 'duration'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status'
-                    },
-                    {
-                        data: 'control',
-                        name: 'control',
-                        orderable: false,
-                        searchable: false
-                    },
+                    // {
+                    //     data: 'control',
+                    //     name: 'control',
+                    //     orderable: false,
+                    //     searchable: false
+                    // },
 
                 ]
             });
 
             function updateTableData() {
-                var status_filter = $('.status_filter').val();
-                var url = '{{ route('dashboard.visits.index') }}';
+                var usage_filter = $('.usage_filter').val();
+                var url = '{{ route('dashboard.coupons.viewSingleCoupon', $id) }}';
 
-                if (status_filter && status_filter !== 'all') {
-                    url += '?status=' + status_filter;
+                if (usage_filter && usage_filter !== 'all') {
+                    url += '?usage=' + usage_filter;
                 }
 
                 // Update table data
                 table.ajax.url(url).load();
 
             }
-            $('.status_filter').change(function() {
+            $('.usage_filter').change(function() {
                 updateTableData();
             });
         });

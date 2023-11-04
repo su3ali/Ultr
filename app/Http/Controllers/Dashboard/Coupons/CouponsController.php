@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Dashboard\Coupons;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Coupon;
+use App\Models\CouponUser;
 use App\Models\Service;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
@@ -15,7 +17,9 @@ class CouponsController extends Controller
 {
     protected function index()
     {
+
         if (request()->ajax()) {
+
             $coupons = Coupon::all();
             return DataTables::of($coupons)
                 ->addColumn('title', function ($row) {
@@ -40,7 +44,7 @@ class CouponsController extends Controller
                 ->addColumn('control', function ($row) {
 
                     $html = '
-                    <a href="' . route('dashboard.coupons.show', $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm"><i class="far fa-eye fa-2x"></i> </a>
+                    <a href="' . route('dashboard.coupons.viewSingleCoupon', $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm"><i class="far fa-eye fa-2x"></i> </a>
                     <a href="' . route('dashboard.coupons.edit', $row->id) . '"  id="edit-coupon" class="mr-2 btn btn-outline-warning btn-sm"><i class="far fa-edit fa-2x"></i> </a>
 
                                 <a data-href="' . route('dashboard.coupons.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
@@ -211,10 +215,56 @@ class CouponsController extends Controller
         $coupon->save();
         return response('success');
     }
-    protected function show($id)
+    protected function show()
     {
+        $id = request()->query('id');
+        $usage_filter = request()->query('usage');
 
-        return view('dashboard.coupons.show');
-    
+
+        if (request()->ajax()) {
+            $users = User::with(['couponUsers', 'couponUsers.coupon'])->select(['id', 'first_name', 'last_name', 'phone'])->withCount('couponUsers as usage')->orderBy('usage', 'desc');
+            if ($usage_filter) {
+                if ($usage_filter == 'notused') {
+                    $users = $users->having('usage', '=', 0);
+                } else {
+                    $users = $users->having('usage', '>', 0);
+                }
+            }
+            return DataTables::of($users)
+                ->addColumn('name', function ($user) {
+                    $name = $user->first_name . ' ' . $user->last_name;
+                    return $name;
+                })
+                ->addColumn('phone', function ($user) {
+                    return $user->phone;
+                })
+                ->addColumn('usage', function ($user) {
+
+
+                    return $user->usage;
+                })
+                ->addColumn('control', function ($user) {
+
+                    $html = '
+                    <a href="' . route('dashboard.core.address.index', 'id=' . $user->id) . '" class="mr-2 btn btn-outline-primary btn-sm"><i class="far fa-address-book fa-2x"></i> </a>
+                    <a href="' . route('dashboard.core.customer.edit', $user->id) . '" class="mr-2 btn btn-outline-warning btn-sm"><i class="far fa-edit fa-2x"></i> </a>
+
+                                <a data-href="' . route('dashboard.core.customer.destroy', $user->id) . '" data-id="' . $user->id . '" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
+                            <i class="far fa-trash-alt fa-2x"></i>
+                    </a>
+                                ';
+
+                    return $html;
+                })
+                ->rawColumns([
+                    'id',
+                    'name',
+                    'phone',
+                    'usage',
+                    'control',
+                ])
+                ->make(true);
+        }
+        return view('dashboard.coupons.show', compact('id'));
     }
 }
