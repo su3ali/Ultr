@@ -61,6 +61,23 @@
                             </div>
 
                         </div>
+                        <br>
+                        <div class="row">
+
+
+
+                            <div class="col-md-4">
+                                <label >عدد مرات الاستخدام للشخص الواحد:  {{ $coupon->user_times }}</label>
+                            </div>
+                            <div class="col-md-4">
+                                <label >عدد مرات الاستخدام الكلي:  {{ $coupon->times_limit }}</label>
+                            </div>
+                           
+
+                        </div>
+                      
+                        
+
 
                     </div>
                     <div class="col-md-12 text-right mb-3">
@@ -150,10 +167,10 @@
 
                 ]
             });
-
+          
             function updateTableData() {
                 var usage_filter = $('.usage_filter').val();
-                var url = '{{ route('dashboard.coupons.viewSingleCoupon', $id) }}';
+                var url = '{{ route('dashboard.coupons.viewSingleCoupon',['id'=>$id]) }}';
 
                 if (usage_filter && usage_filter !== 'all') {
                     url += '?usage=' + usage_filter;

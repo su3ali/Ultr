@@ -44,7 +44,7 @@ class CouponsController extends Controller
                 ->addColumn('control', function ($row) {
 
                     $html = '
-                    <a href="' . route('dashboard.coupons.viewSingleCoupon', $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm"><i class="far fa-eye fa-2x"></i> </a>
+                    <a href="' . route('dashboard.coupons.viewSingleCoupon', ['id'=>$row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm"><i class="far fa-eye fa-2x"></i> </a>
                     <a href="' . route('dashboard.coupons.edit', $row->id) . '"  id="edit-coupon" class="mr-2 btn btn-outline-warning btn-sm"><i class="far fa-edit fa-2x"></i> </a>
 
                                 <a data-href="' . route('dashboard.coupons.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
@@ -216,11 +216,11 @@ class CouponsController extends Controller
         $coupon->save();
         return response('success');
     }
-    protected function show()
+    protected function viewSingle()
     {
         $id = request()->query('id');
+       
         $usage_filter = request()->query('usage');
-
 
         if (request()->ajax()) {
             $users = User::with(['couponUsers', 'couponUsers.coupon'])->select(['id', 'first_name', 'last_name', 'phone'])->withCount('couponUsers as usage')->orderBy('usage', 'desc');
@@ -267,6 +267,7 @@ class CouponsController extends Controller
                 ])
                 ->make(true);
         }
-        return view('dashboard.coupons.show', compact('id'));
+        $coupon = Coupon::where('id',$id)->first();
+        return view('dashboard.coupons.show', compact('id','coupon'));
     }
 }
