@@ -11,6 +11,7 @@ use App\Models\Cart;
 use App\Models\Category;
 use App\Models\CategoryGroup;
 use App\Models\ContractPackage;
+use App\Models\ContractPackagesUser;
 use App\Models\Group;
 use App\Models\Service;
 use App\Models\Setting;
@@ -472,6 +473,18 @@ class CartController extends Controller
     protected function handleCartResponse(): void
     {
         $carts = Cart::with('coupon')->where('user_id', auth()->user()->id)->where('type', 'service')->orWhereNull('type')->get();
+        foreach ($carts as $cart) {
+            $contractPackagesUser = ContractPackagesUser::where('user_id', auth()->user()->id)
+                ->where('used', '<', 'contactPackage.visit_number')
+                ->whereHas('contactPackage', function ($query) use ($cart) {
+                    $query->where('service_id', $cart->service_id);
+                })->first();
+            if ($contractPackagesUser) {
+                $cart->price = 0;
+                $cart->coupon = null;
+            }
+        }
+
         $cat_ids = $carts->pluck('category_id');
         $this->body['cart_type'] = auth()->user()->carts->first()?->type;
         $this->body['carts'] = [];

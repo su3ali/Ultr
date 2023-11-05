@@ -16,6 +16,8 @@ use App\Models\Technician;
 use App\Models\Transaction;
 use App\Models\UserAddresses;
 use App\Models\CategoryGroup;
+use App\Models\ContractPackage;
+use App\Models\ContractPackagesUser;
 use App\Models\Visit;
 use App\Notifications\SendPushNotification;
 use App\Support\Api\ApiResponse;
@@ -80,7 +82,20 @@ class CheckoutController extends Controller
                 $file = $this->storeImages($request->file, 'order');
                 $uploadFile = 'storage/images/order' . '/' . $file;
             }
+            foreach ($carts as $cart) {
+                $contractPackagesUser = ContractPackagesUser::where('user_id', auth()->user()->id)
+                    ->where('used', '<', 'contactPackage.visit_number')
+                    ->whereHas('contactPackage', function ($query) use ($cart) {
+                        $query->where('service_id', $cart->service_id);
+                    })->first();
+                if ($contractPackagesUser) {
+                    $cart->price = 0;
+                    $cart->coupon = null;
+                    $contractPackagesUser->increment('used');
+                }
+            }
             $total = $this->calc_total($carts);
+
             return $this->saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile);
         }
     }
@@ -132,6 +147,15 @@ class CheckoutController extends Controller
                 ->where('category_id', $category_id)->first();
             $booking_no = 'dash2023/' . $cart->id;
             $minutes = 0;
+            // $contractPackages = ContractPackages::where('service_id',$cart->service_id)->get();
+            // $contractPackagesUser = ContractPackagesUser::where('user_id', $user->id)
+            //     ->where('used', '<', 'contactPackage.visit_number')
+            //     ->whereHas('contactPackage', function ($query) use ($cart) {
+            //         $query->where('service_id', $cart->service_id);
+            //     })->first();
+            // if ($contractPackagesUser) {
+            // }
+
             $bookSetting = BookingSetting::where('service_id', $cart->service_id)->first();
             if ($bookSetting) {
                 foreach (Service::with('BookingSetting')->whereIn('id', $carts->pluck('service_id')->toArray())->get() as $service) {
@@ -151,7 +175,7 @@ class CheckoutController extends Controller
             $visit = DB::table('visits')
                 ->select('*', DB::raw('COUNT(assign_to_id) as group_id'))
                 ->whereIn('booking_id', $booking_id)
-                ->whereIn('assign_to_id',$activeGroups)
+                ->whereIn('assign_to_id', $activeGroups)
                 ->groupBy('assign_to_id')
                 ->orderBy('group_id', 'ASC');
             $assign_to_id = 0;
@@ -175,7 +199,7 @@ class CheckoutController extends Controller
                 if (($visit->get()->count()) < ($group->get()->count())) {
                     $assign_to_id = $group->whereNotIn('id', $visit->pluck('assign_to_id')->toArray())->inRandomOrder()->first()->id;
                 } else {
-                      $assign_to_id = $visit->where('start_time', '!=', $cart->time)->inRandomOrder()->first()->assign_to_id;
+                    $assign_to_id = $visit->where('start_time', '!=', $cart->time)->inRandomOrder()->first()->assign_to_id;
                     // $ids = $visit->where('start_time', '!=', $cart->time)->pluck('assign_to_id')->toArray();
                     // $group = Group::where('active', 1)->whereIn('id', $ids)->inRandomOrder()->first();
                     // if ($group == null) {
@@ -280,179 +304,52 @@ class CheckoutController extends Controller
 
     private function saveContract($user, $request, $total, $carts)
     {
-        $contract_order = Contract::create([
+        //  $contractPackage = ContractPackage::where('id', $carts->first()->contract_package_id)->first();
+        $contractPackageUser = ContractPackagesUser::create([
+            'used' => 0,
+            // 'visit_number' => $contractPackage->visit_number,
             'user_id' => $user->id,
-            'discount' => $request->coupon,
-            'user_address_id' => $request->user_address_id,
-            'sub_total' => $total,
-            'total' => ($total - $request->coupon),
-            'payment_method' => $request->payment_method,
-            'status_id' => 1,
-            'package_id' => $carts->first()->contract_package_id,
-            'price' => ($total - $request->coupon),
-            'quantity' => $carts->count(),
-        ]);
-        $order = Order::create([
-            'user_id' => $user->id,
-            'discount' => $request->coupon,
-            'user_address_id' => $request->user_address_id,
-            'sub_total' => $total,
-            'total' => ($total - $request->coupon),
-            'status_id' => 1,
-            'notes' => $request->notes,
-            'car_user_id' => $request->car_user_id,
+            'contract_packages_id' => $carts->first()->contract_package_id,
         ]);
 
-        ///////////////////////////////////
+        // $order = Order::create([
+        //     'user_id' => $user->id,
+        //     'sub_total' => $total,
+        //     'total' => ($total),
+        //     'status_id' => 1,
+        //     'notes' => $request->notes,
+        // ]);
 
-        foreach ($carts as $key => $cart) {
-            OrderService::create([
-                'order_id' => $order->id,
-                'service_id' => $cart->service_id,
-                'price' => $cart->price,
-                'quantity' => $cart->quantity,
-                'category_id' => $cart->category_id,
-            ]);
-
-
-
-
-            $service = Service::query()->find($cart->service_id);
-            $service?->save();
-            $category_id = $cart->category_id;
-            $booking_no = 'dash2023/' . $cart->id;
-            $minutes = 0;
-            $bookSetting = BookingSetting::where('service_id', $cart->service_id)->first();
-            if ($bookSetting) {
-                $minutes =  ($service->BookingSetting->buffering_time + $service->BookingSetting->service_duration);
-            }
-
-            $address = UserAddresses::where('id', $order->user_address_id)->first();
-
-            $booking_id = Booking::whereHas('address', function ($qu) use ($address) {
-                $qu->where('region_id', $address->region_id);
-            })->whereHas('category', function ($qu) use ($category_id) {
-                $qu->where('category_id', $category_id);
-            })->where('date', $cart->date)->pluck('id')->toArray();
-            $visit = DB::table('visits')
-                ->select('*', DB::raw('COUNT(assign_to_id) as group_id'))
-                ->whereIn('booking_id', $booking_id)
-                ->groupBy('assign_to_id')
-                ->orderBy('group_id', 'ASC');
-
-            $assign_to_id = 0;
-            if ($visit->get()->isEmpty()) {
-                $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
-                $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
-                    $qu->where('region_id', $address->region_id);
-                })->whereIn('id', $groupIds)->inRandomOrder()->first();
-                if ($group == null) {
-                    return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
-                }
-                $assign_to_id = $group->id;
-            } else {
-                $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
-                $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
-                    $qu->where('region_id', $address->region_id);
-                })->whereIn('id', $groupIds);
-                if ($group->count() == 0) {
-                    return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
-                }
-
-                if (($visit->get()->count()) < ($group->get()->count())) {
-                    $assign_to_id = $group->whereNotIn('id', $visit->pluck('assign_to_id')->toArray())->inRandomOrder()->first()->id;
-                } else {
-
-                    $assign_to_id = $visit->where('start_time', '!=', $cart->time)->inRandomOrder()->first()->assign_to_id;
-                }
-            }
-            $bookingInsert = Booking::query()->create([
-                'booking_no' => $booking_no,
-                'user_id' => auth('sanctum')->user()->id,
-                'category_id' => $category_id,
-                'service_id' => $cart->service_id,
-                'package_id' => $cart->contract_package_id,
-                'order_id' => $order->id,
-                'contract_order_id' => $contract_order->id,
-                'user_address_id' => $order->user_address_id,
-                'booking_status_id' => 1,
-                'notes' => $cart->notes,
-                'quantity' => $cart->quantity,
-                'date' => $cart->date,
-                'type' => 'contract',
-                'time' => Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString(),
-                'end_time' => $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null,
-            ]);
-
-            $start_time = Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString();
-            $end_time =  $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null;
-            $validated['start_time'] =  $start_time;
-            $validated['end_time'] = $end_time;
-            $validated['duration'] = $minutes;
-            $validated['visite_id'] = rand(1111, 9999) . '_' . date('Ymd');
-            $validated['assign_to_id'] = $assign_to_id;
-            $validated['booking_id'] = $bookingInsert->id;
-            $validated['visits_status_id'] = 1;
-            $visitInsert = Visit::query()->create($validated);
-
-
-
-            $allTechn = Technician::where('group_id', $assign_to_id)->whereNotNull('fcm_token')->get();
-
-            if (count($allTechn) > 0) {
-
-                $title = 'موعد زيارة جديد';
-                $message = 'لديك موعد زياره جديد';
-
-                foreach ($allTechn as $tech) {
-                    Notification::send(
-                        $tech,
-                        new SendPushNotification($title, $message)
-                    );
-                }
-
-                $FcmTokenArray = $allTechn->pluck('fcm_token');
-
-                $notification = [
-                    'device_token' => $FcmTokenArray,
-                    'title' => $title,
-                    'message' => $message,
-                    'type' => 'technician',
-                    'code' => 1,
-                ];
-
-                $this->pushNotification($notification);
-            }
-        }
 
         if ($request->payment_method == 'wallet') {
             $transaction = Transaction::create([
-                'order_id' => $order->id,
-                'contract_order_id' => $contract_order->id,
-                'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
+                //      'order_id' => $order->id,
+                'contract_packages_users_id' => $contractPackageUser->id,
+                'transaction_number' => 'waller/' . rand(1111111111, 9999999999),
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
             ]);
-            Order::where('id', $order->id)->update(array('partial_amount' => 0));
+            //   Order::where('id', $order->id)->update(array('partial_amount' => 0));
         } elseif ($request->payment_method == 'cache') {
             $transaction = Transaction::create([
-                'order_id' => $order->id,
+                //      'order_id' => $order->id,
+                'contract_packages_users_id' => $contractPackageUser->id,
                 'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
             ]);
-            Order::where('id', $order->id)->update(array('partial_amount' => ($total - $request->coupon)));
+            //   Order::where('id', $order->id)->update(array('partial_amount' => ($total )));
         } else {
             Transaction::create([
-                'order_id' => $order->id,
-                'contract_order_id' => $contract_order->id,
+                //       'order_id' => $order->id,
+                'contract_packages_users_id' => $contractPackageUser->id,
                 'transaction_number' => $request->transaction_id,
                 'payment_result' => 'success',
                 'payment_method' => $request->payment_method,
                 //  'amount' => $total,
             ]);
 
-            Order::where('id', $order->id)->update(array('partial_amount' => 0));
+            //  Order::where('id', $order->id)->update(array('partial_amount' => 0));
         }
         $user->update([
             'point' => $user->point - $request->wallet_discounts ?? 0
@@ -460,7 +357,8 @@ class CheckoutController extends Controller
 
         $this->wallet($user, $total);
         Cart::query()->whereIn('id', $carts->pluck('id'))->delete();
-        $this->body['order_id'] = $order->id;
+        // $this->body['order_id'] = $order->id;
+        $this->body['order_id'] = $contractPackageUser->id;
         return self::apiResponse(200, __('api.order created successfully'), $this->body);
     }
 
