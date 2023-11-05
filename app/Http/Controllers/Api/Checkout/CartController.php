@@ -234,7 +234,7 @@ class CartController extends Controller
 
                 $carts = Cart::query()->where('user_id', auth()->user()->id)->get();
 
-                $tempTotal = 0;
+                $tempTotal = $this->calc_total($carts);
                 $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)
                     ->where(function ($query) use ($cart) {
                         $query->whereHas('contactPackage', function ($qu) use ($cart) {
