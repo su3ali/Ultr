@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Core\ServiceController;
 use App\Http\Controllers\Api\Coupons\CouponsController;
 use App\Http\Controllers\Api\Settings\SettingsController;
 use App\Http\Controllers\VersionController;
+use App\Models\ContractPackagesUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,7 +22,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::post('check_update',[VersionController::class,'checkUpdate'])->name('check_update');
+
+
+Route::post('check_update', [VersionController::class, 'checkUpdate'])->name('check_update');
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -30,7 +33,7 @@ Route::post('/verify', [AuthController::class, 'verify']);
 
 //Route::post('/payment-callback/{type?}',[CheckoutController::class,'callbackPayment']);
 
-Route::prefix('home')->group(function (){
+Route::prefix('home')->group(function () {
     Route::get('/index', [HomeController::class, 'index']);
     Route::get('/search', [HomeController::class, 'search']);
 });
@@ -39,7 +42,7 @@ Route::get('/coupons', [CouponsController::class, 'allCoupons']);
 Route::get('contact', [ServiceController::class, 'getContact']);
 require __DIR__ . '/settings.router.php';
 
-Route::middleware(['auth:sanctum','abilities:user'])->group(function () {
+Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
     Route::get('settings/walletDetails', [SettingsController::class, 'walletDetails']);
     require __DIR__ . '/core.router.php';
     require __DIR__ . '/auth.router.php';
