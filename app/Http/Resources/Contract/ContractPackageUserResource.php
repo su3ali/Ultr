@@ -19,9 +19,12 @@ class ContractPackageUserResource extends JsonResource
     {
         if ($this->count() > 1) {
             $packages = [];
-            foreach ($this as $packageuser) {
-                $curr = $packageuser;
-                $package = ContractPackage::query()->where('id',  $curr->contract_packages_id)->first();
+            $group = $this;
+            for ($i = 0; $i < $group->count(); $i++) {
+
+                $curr = $group[$i];
+
+                $package = ContractPackage::where('id',  $curr->contract_packages_id)->first();
                 $packages[] = [
                     'id' => $curr->id,
                     'used' => $curr->used,
@@ -29,8 +32,8 @@ class ContractPackageUserResource extends JsonResource
                     'contract_packages_id' =>  $curr->contract_packages_id,
                     'contract_package' => ContractResource::make($package),
                 ];
-                return  $packages;
             }
+            return  $packages;
         } else {
             $curr = $this[0];
             $package = ContractPackage::query()->where('id',  $curr->contract_packages_id)->first();
