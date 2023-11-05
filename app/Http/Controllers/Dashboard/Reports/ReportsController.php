@@ -69,7 +69,7 @@ class ReportsController extends Controller
             }
 
 
-            $order = $order->get();
+            $order = $order->where('is_active', 1)->get();
 
             return DataTables::of($order)
                 ->addColumn('order_number', function ($row) {
@@ -125,7 +125,7 @@ class ReportsController extends Controller
                 ->make(true);
         }
        
-        $total = Order::where(function ($query) {
+        $total = Order::where('is_active', 1)->where(function ($query) {
             $query->Where('status_id', '<>', 6)->orWhereHas('transaction',function($q){
                 $q->where('payment_method','!=','cahce');
             });
@@ -173,7 +173,7 @@ class ReportsController extends Controller
         }
     
         // Calculate the total, tax, and tax-subtotal
-        $total = $orderQuery->sum('total');
+        $total = $orderQuery->where('is_active', 1)->sum('total');
         $taxRate = 0.15; // 15% tax rate
         $tax = $total * $taxRate;
         $taxTotal = $total + $tax;

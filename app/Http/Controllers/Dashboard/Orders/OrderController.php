@@ -16,6 +16,7 @@ use App\Models\OrderStatus;
 use App\Models\Service;
 use App\Models\User;
 use App\Models\UserAddresses;
+use App\Models\Visit;
 use App\Traits\schedulesTrait;
 use Carbon\CarbonInterval;
 use Illuminate\Contracts\View\Factory;
@@ -46,7 +47,7 @@ class OrderController extends Controller
                 $orders->where('status_id', request()->status);
             }
 
-            $orders->get();
+            $orders->where('is_active', 1)->get();
 
             return DataTables::of($orders)
                 ->addColumn('booking_id', function ($row) {
@@ -132,7 +133,7 @@ class OrderController extends Controller
                 $orders->where('status_id', request()->status);
             }
 
-            $orders->get();
+            $orders->where('is_active', 1)->get();
 
             return DataTables::of($orders)
                 ->addColumn('booking_id', function ($row) {
@@ -210,7 +211,7 @@ class OrderController extends Controller
 
         if (request()->ajax()) {
             $now = Carbon::now('Asia/Riyadh')->toDateString();
-            $orders = Order::where('status_id',5)->whereDate('created_at',$now)->orWhereDate('updated_at',$now)->count();
+            $orders = Order::where('status_id', 5)->where('is_active', 1)->whereDate('created_at', $now)->orWhereDate('updated_at', $now)->count();
             return DataTables::of($orders)
                 ->addColumn('booking_id', function ($row) {
                     $booking = $row->bookings->first();
@@ -286,8 +287,8 @@ class OrderController extends Controller
     {
 
         if (request()->ajax()) {
-      
-            $orders = Order::where('status_id', 5)->get();
+
+            $orders = Order::where('status_id', 5)->where('is_active', 1)->get();
             return DataTables::of($orders)
                 ->addColumn('booking_id', function ($row) {
                     $booking = $row->bookings->first();
@@ -516,7 +517,27 @@ class OrderController extends Controller
     protected function destroy($id)
     {
         $order = Order::find($id);
-        $order->delete();
+        $order->update([
+            'is_active' => 0
+        ]);
+        //  $order->delete();
+
+        $bookings = Booking::where('order_id', $id)->get();
+        foreach ($bookings as $booking) {
+            $booking->update([
+                'is_active' => 0
+            ]);
+            $visits = Visit::where('booking_id', $booking->id)->get();
+            foreach ($visits as $visit) {
+                $visit->update([
+                    'is_active' => 0
+                ]);
+            }
+        }
+
+
+
+
         return [
             'success' => true,
             'msg' => __("dash.deleted_success")
@@ -639,6 +660,8 @@ class OrderController extends Controller
         $order->update([
             'status_id' => 1
         ]);
+
+
         session()->flash('success');
         return redirect()->back();
     }

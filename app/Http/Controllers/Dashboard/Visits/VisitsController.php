@@ -40,7 +40,7 @@ class VisitsController extends Controller
                 $visit->where('visits_status_id', request()->status);
             }
 
-            $visit->get();
+            $visit->where('is_active', 1)->get();
 
 
 
@@ -111,7 +111,7 @@ class VisitsController extends Controller
                 $visit->where('visits_status_id', request()->status);
             }
 
-            $visit->get();
+            $visit->where('is_active', 1)->get();
 
 
 
@@ -246,6 +246,29 @@ class VisitsController extends Controller
         return view('dashboard.visits.show', compact('visits', 'services', 'visit_status'));
     }
 
+    protected function destroy($id)
+    {
+        $visit = Visit::find($id);
+        $visit->update([
+            'is_active' => 0
+        ]);
+
+        $booking = Booking::where('id', $visit->booking_id)->first();
+        $booking->update([
+            'is_active' => 0
+        ]);
+        $visits = Visit::where('booking_id', $booking->id)->get();
+        foreach ($visits as $visit) {
+            $visit->update([
+                'is_active' => 0
+            ]);
+        }
+
+        return [
+            'success' => true,
+            'msg' => __("dash.deleted_success")
+        ];
+    }
 
     protected function update(Request $request, $id)
     {
