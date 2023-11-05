@@ -26,7 +26,7 @@ class ControlCart
                 })->first();
             if ($contractPackagesUser) {
                 $contractPackage = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
-                if ($cart->quantity <  $contractPackage->visit_number - $contractPackagesUser->used) {
+                if ($cart->quantity <  ($contractPackage->visit_number - $contractPackagesUser->used)) {
                     $cart->price = 0;
                 } else {
                     $cart->price = ($cart->quantity - ($contractPackage->visit_number - $contractPackagesUser->used)) * $service->price;
