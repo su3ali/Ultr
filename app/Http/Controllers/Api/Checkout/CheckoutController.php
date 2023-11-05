@@ -91,9 +91,13 @@ class CheckoutController extends Controller
                     })->first();
 
                 if ($contractPackagesUser) {
-                    $cart->price = 0;
+                    $contractPackage = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
                     $cart->coupon = null;
-                    $contractPackagesUser->increment('used');
+                    if ($cart->quantity <  $contractPackage->visit_number - $contractPackagesUser->used) {
+                        $contractPackagesUser->increment('used', $cart->quantity);
+                    } else {
+                        $contractPackagesUser->increment('used', ($contractPackage->visit_number - $contractPackagesUser->used));
+                    }
                 }
             }
             $total = $this->calc_total($carts);

@@ -80,7 +80,12 @@ class CartController extends Controller
                         });
                     })->first();
                 if ($contractPackagesUser) {
-                    $price = 0;
+                    $contractPackage = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
+                    if ($request->quantity <  $contractPackage->visit_number - $contractPackagesUser->used) {
+                        $price = 0;
+                    } else {
+                        $price = ($request->quantity - ($contractPackage->visit_number - $contractPackagesUser->used)) * $price;
+                    }
                 }
 
 
