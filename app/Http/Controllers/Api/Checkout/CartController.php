@@ -72,6 +72,17 @@ class CartController extends Controller
                     return self::apiResponse(400, __('api.finish current order first or clear the cart'), $this->body);
                 }
                 $price =  $service->price;
+
+                $contractPackagesUser = ContractPackagesUser::where('user_id', auth()->user()->id)
+                    ->where('used', '<', 'contactPackage.visit_number')
+                    ->whereHas('contactPackage', function ($query) use ($service) {
+                        $query->where('service_id',  $service->id);
+                    })->first();
+                if ($contractPackagesUser) {
+                    $price = 0;
+                }
+
+
                 if ($request->icon_ids) {
                     $icon_ids = $request->icon_ids;
 
@@ -473,18 +484,6 @@ class CartController extends Controller
     protected function handleCartResponse(): void
     {
         $carts = Cart::with('coupon')->where('user_id', auth()->user()->id)->where('type', 'service')->orWhereNull('type')->get();
-        foreach ($carts as $cart) {
-            $contractPackagesUser = ContractPackagesUser::where('user_id', auth()->user()->id)
-                ->where('used', '<', 'contactPackage.visit_number')
-                ->whereHas('contactPackage', function ($query) use ($cart) {
-                    $query->where('service_id', $cart->service_id);
-                })->first();
-            if ($contractPackagesUser) {
-                $cart->price = 0;
-                $cart->coupon = null;
-            }
-        }
-
         $cat_ids = $carts->pluck('category_id');
         $this->body['cart_type'] = auth()->user()->carts->first()?->type;
         $this->body['carts'] = [];
