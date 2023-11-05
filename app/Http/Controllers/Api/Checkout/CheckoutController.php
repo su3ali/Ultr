@@ -83,12 +83,13 @@ class CheckoutController extends Controller
                 $uploadFile = 'storage/images/order' . '/' . $file;
             }
             foreach ($carts as $cart) {
-                $contractPackagesUser =  ContractPackagesUser::where('user_id', 35)
-                    ->where(function ($query) {
-                        $query->whereHas('contactPackage', function ($qu)  {
-                            $qu->whereColumn('visit_number', '>', 'used')->where('service_id', 19);
+                $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)
+                    ->where(function ($query) use ($cart) {
+                        $query->whereHas('contactPackage', function ($qu) use ($cart) {
+                            $qu->whereColumn('visit_number', '>', 'used')->where('service_id', $cart->service_id);
                         });
-                    })->firs();
+                    })->first();
+
                 if ($contractPackagesUser) {
                     $cart->price = 0;
                     $cart->coupon = null;

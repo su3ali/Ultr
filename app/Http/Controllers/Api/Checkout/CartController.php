@@ -73,12 +73,12 @@ class CartController extends Controller
                 }
                 $price =  $service->price;
 
-                $contractPackagesUser = ContractPackagesUser::where('user_id', 35)
-                    ->where(function ($query) {
-                        $query->whereHas('contactPackage', function ($qu) {
-                            $qu->whereColumn('visit_number', '>', 'used')->where('service_id', 19);
+                $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)
+                    ->where(function ($query) use ($service) {
+                        $query->whereHas('contactPackage', function ($qu) use ($service) {
+                            $qu->whereColumn('visit_number', '>', 'used')->where('service_id', $service->id);
                         });
-                    })->firs();
+                    })->first();
                 if ($contractPackagesUser) {
                     $price = 0;
                 }
