@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddColToTransactions extends Migration
+class AddColToBookings extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,8 @@ class AddColToTransactions extends Migration
      */
     public function up()
     {
-        Schema::table('transactions', function (Blueprint $table) {
-            $table->unsignedBigInteger('contract_packages_users_id')->nullable();
-            $table->foreign('contract_packages_users_id')->references('id')->on('contract_packages_users')->onDelete('cascade');
+        Schema::table('bookings', function (Blueprint $table) {
+            $table->tinyInteger('is_active')->default(1)->comment('0 -> Disable , 1 -> Enable');
         });
     }
 
@@ -26,7 +25,7 @@ class AddColToTransactions extends Migration
      */
     public function down()
     {
-        Schema::table('transactions', function (Blueprint $table) {
+        Schema::table('bookings', function (Blueprint $table) {
             //
         });
     }

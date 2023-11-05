@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ContractPackagesUser extends Model
 {
     use HasFactory;
+    protected $guarded = [];
     public function contactPackage()
     {
         return $this->belongsTo(ContractPackage::class, 'contract_packages_id');
