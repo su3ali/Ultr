@@ -49,10 +49,10 @@
                             </li>
                         @endcan
                         @can('view_visits')
-                        <li>
-                            <a href="{{ route('dashboard.visits.visitsToday') }}"> {{ __('dash.tech_orders_today') }}</a>
-                        </li>
-                    @endcan
+                            <li>
+                                <a href="{{ route('dashboard.visits.visitsToday') }}"> {{ __('dash.tech_orders_today') }}</a>
+                            </li>
+                        @endcan
                         @can('update_visits')
                             <li>
                                 <a href="{{ route('dashboard.visits_statuses.index') }}"> {{ __('dash.orders_status') }}</a>
@@ -134,7 +134,8 @@
                         @endcan
                         @can('view_orders')
                             <li>
-                                <a href="{{ route('dashboard.order.canceledOrdersToday') }}">{{ __('dash.canceled_orders_today') }}</a>
+                                <a
+                                    href="{{ route('dashboard.order.canceledOrdersToday') }}">{{ __('dash.canceled_orders_today') }}</a>
                             </li>
                         @endcan
                         @can('update_orders')
@@ -309,28 +310,28 @@
                     <div class="">
                         <div class="icon-container">
                             <i data-feather="users"></i>
-                            <span class="icon-name">اداره التقاول والعقود</span>
+                            <span class="icon-name">{{ __('dash.companys_services_management') }}</span>
                         </div>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                             fill="none"
-                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                             class="feather feather-chevron-right">
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" class="feather feather-chevron-right">
                             <polyline points="9 18 15 12 9 6"></polyline>
                         </svg>
                     </div>
                 </a>
                 <ul class="collapse submenu list-unstyled" id="contact" data-parent="#accordionExample">
                     <li>
-                        <a href="{{route('dashboard.core.contact.index')}}"> التقاول والعقود </a>
+                        <a href="{{ route('dashboard.core.contact.index') }}">{{ __('dash.companys_services') }}</a>
                     </li>
                     <li>
-                        <a href="{{route('dashboard.core.order_contract.index')}}"> طلبات التقاول </a>
+                        <a
+                            href="{{ route('dashboard.core.order_contract.index') }}">{{ __('dash.services_requests') }}</a>
                     </li>
                 </ul>
             </li>
-            
+
 
 
             @can('view_technicians')

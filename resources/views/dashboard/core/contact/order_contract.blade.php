@@ -22,7 +22,7 @@
                             <ol class="breadcrumb mb-0 py-2">
                                 <li class="breadcrumb-item"><a
                                         href="{{route('dashboard.home')}}">{{__('dash.home')}}</a></li>
-                                <li class="breadcrumb-item active" aria-current="page"> طلبات التقاول والعقود</li>
+                                <li class="breadcrumb-item active" aria-current="page">{{ __('dash.services_requests') }}</li>
                             </ol>
                         </nav>
 
@@ -58,7 +58,7 @@
                         <tr>
                             <th>#</th>
                             <th>اسم الشركه </th>
-                            <th>خدمه التقاول</th>
+                            <th>الخدمة</th>
                             <th>اسم المستخدم</th>
                             <th>رقم الموبيل</th>
                             <th>ملاحظات</th>

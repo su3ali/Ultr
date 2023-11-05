@@ -63,6 +63,10 @@ return [
     'sells_last_7_days_month'=>'الطلبات خلال اخر ( اسبوع / شهر )',
     //'sells_last_month'=>'الطلبات خلال اخر شهر',
 
+    'companys_services_management'=>'إدارة خدمات الشركات',
+    'companys_services'=>'خدمات الشركات',
+    'services_requests'=>'طلبات الخدمات',
+
     'login_firstly' => 'يجب عليك الدخول أولا',
     'quick_links' => 'روابط سريعة',
     'group_admins' => 'مجموعات المسؤولين',
