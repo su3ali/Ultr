@@ -233,7 +233,25 @@ class CartController extends Controller
                 $response = $controlClass->makeAction($request->action, $cart, $service);
 
                 $carts = Cart::query()->where('user_id', auth()->user()->id)->get();
-                $total = number_format($this->calc_total($carts), 2);
+
+                $tempTotal = 0;
+                $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)
+                    ->where(function ($query) use ($cart) {
+                        $query->whereHas('contactPackage', function ($qu) use ($cart) {
+                            $qu->whereColumn('visit_number', '>', 'used')->where('service_id', $cart->service_id);
+                        });
+                    })->first();
+                if ($contractPackagesUser) {
+                    $contractPackage = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
+                    if ($cart->quantity <  ($contractPackage->visit_number - $contractPackagesUser->used)) {
+                        $tempTotal = 0;
+                    } else {
+                        $tempTotal = ($cart->quantity - ($contractPackage->visit_number - $contractPackagesUser->used)) * $service->price;
+                    }
+                }
+
+
+                $total = number_format($tempTotal, 2);
                 $cat_ids = $carts->pluck('category_id');
                 if (key_exists('success', $response)) {
                     $this->body['total'] = $total;
