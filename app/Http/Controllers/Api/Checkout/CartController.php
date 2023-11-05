@@ -17,7 +17,7 @@ use App\Models\Service;
 use App\Models\Setting;
 use App\Models\Visit;
 use App\Models\Icon;
-
+use Illuminate\Support\Facades\DB;
 use App\Support\Api\ApiResponse;
 use App\Traits\schedulesTrait;
 use Carbon\CarbonInterval;
@@ -74,7 +74,7 @@ class CartController extends Controller
                 $price =  $service->price;
 
                 $contractPackagesUser = ContractPackagesUser::where('user_id', auth()->user()->id)
-                    ->where('used', '<', 'contactPackage.visit_number')
+                    ->where('used', '<',  \DB::raw('contactPackage.visit_number'))
                     ->whereHas('contactPackage', function ($query) use ($service) {
                         $query->where('service_id',  $service->id);
                     })->first();

@@ -84,7 +84,7 @@ class CheckoutController extends Controller
             }
             foreach ($carts as $cart) {
                 $contractPackagesUser = ContractPackagesUser::where('user_id', auth()->user()->id)
-                    ->where('used', '<', 'contactPackage.visit_number')
+                    ->where('used', '<', \DB::raw('contactPackage.visit_number'))
                     ->whereHas('contactPackage', function ($query) use ($cart) {
                         $query->where('service_id', $cart->service_id);
                     })->first();
