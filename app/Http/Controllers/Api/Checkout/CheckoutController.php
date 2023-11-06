@@ -84,12 +84,16 @@ class CheckoutController extends Controller
             }
             foreach ($carts as $cart) {
                 $now = Carbon::now('Asia/Riyadh');
-                $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)->whereDate('end_date', '>=', $now)
-                    ->where(function ($query) use ($cart) {
-                        $query->whereHas('contactPackage', function ($qu) use ($cart) {
-                            $qu->whereColumn('visit_number', '>', 'used')->where('service_id', $cart->service_id);
+                $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)
+                ->whereDate('end_date', '>=', $now)
+                ->where(function ($query) use ($cart) {
+                    $query->whereHas('contactPackage', function ($qu) use ($cart) {
+                        $qu->whereHas('ContractPackagesServices', function ($qu) use ($cart) {
+                            $qu->where('service_id', $cart->service_id);
                         });
-                    })->first();
+                    });
+                })->first();
+            
 
                 if ($contractPackagesUser) {
                     $contractPackage = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();

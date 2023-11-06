@@ -25,11 +25,15 @@ class CartResource extends JsonResource
             }
         }
         $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)
+
             ->where(function ($query) {
                 $query->whereHas('contactPackage', function ($qu) {
-                    $qu->whereColumn('visit_number', '>', 'used')->where('service_id', $this->service_id);
+                    $qu->whereHas('ContractPackagesServices', function ($qu) {
+                        $qu->where('service_id', $this->service_id);
+                    });
                 });
             })->first();
+
         $tempTotal = ($this->price * $this->quantity);
         if ($contractPackagesUser) {
             $contractPackage = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();

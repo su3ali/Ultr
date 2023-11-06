@@ -73,12 +73,16 @@ class CartController extends Controller
                 }
                 $price =  $service->price;
                 $now = Carbon::now('Asia/Riyadh');
-                $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)->whereDate('end_date', '>=', $now)
+                $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)
+                    ->whereDate('end_date', '>=', $now)
                     ->where(function ($query) use ($service) {
                         $query->whereHas('contactPackage', function ($qu) use ($service) {
-                            $qu->whereColumn('visit_number', '>', 'used')->where('service_id', $service->id);
+                            $qu->whereHas('ContractPackagesServices', function ($qu) use ($service) {
+                                $qu->where('service_id', $service->id);
+                            });
                         });
                     })->first();
+
                 if ($contractPackagesUser) {
                     $contractPackage = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
                     if ($request->quantity < ($contractPackage->visit_number - $contractPackagesUser->used)) {
@@ -236,12 +240,16 @@ class CartController extends Controller
 
                 $tempTotal = $this->calc_total($carts);
                 $now = Carbon::now('Asia/Riyadh');
-                $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)->whereDate('end_date', '>=', $now)
-                    ->where(function ($query) use ($cart) {
-                        $query->whereHas('contactPackage', function ($qu) use ($cart) {
-                            $qu->whereColumn('visit_number', '>', 'used')->where('service_id', $cart->service_id);
+                $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)
+                    ->whereDate('end_date', '>=', $now)
+                    ->where(function ($query) use ($service) {
+                        $query->whereHas('contactPackage', function ($qu) use ($service) {
+                            $qu->whereHas('ContractPackagesServices', function ($qu) use ($service) {
+                                $qu->where('service_id', $service->id);
+                            });
                         });
                     })->first();
+
                 if ($contractPackagesUser) {
                     $contractPackage = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
                     if ($cart->quantity <  ($contractPackage->visit_number - $contractPackagesUser->used)) {
