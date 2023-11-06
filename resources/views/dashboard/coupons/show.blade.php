@@ -142,7 +142,7 @@
                     ]
                 },
                 processing: true,
-                serverSide: true,
+                 serverSide: false,
                 ajax: '{{ route('dashboard.coupons.viewSingleCoupon', $id) }}',
 
                 columns: [{
