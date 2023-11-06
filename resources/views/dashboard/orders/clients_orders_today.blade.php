@@ -114,7 +114,7 @@
                     ]
                 },
                 processing: true,
-                serverSide: true,
+                serverSide: false,
                 ajax: '{{ route('dashboard.order.ordersToday') }}',
                 columns: [
                     {data: 'id', name: 'id'},

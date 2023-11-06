@@ -92,7 +92,7 @@
                     ]
                 },
                 processing: true,
-                serverSide: true,
+                serverSide: false,
                 ajax: '{{ route('dashboard.order.canceledOrders') }}',
                 columns: [
                     {data: 'id', name: 'id'},

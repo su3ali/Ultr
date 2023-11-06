@@ -115,7 +115,7 @@
                     ]
                 },
                 processing: true,
-                serverSide: true,
+                serverSide: false,
                 ajax: '{{ route('dashboard.visits.visitsToday') }}',
                 columns: [
                     {data: 'id', name: 'id'},
