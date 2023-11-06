@@ -19,20 +19,16 @@ class CartResource extends JsonResource
     public function toArray($request)
     {
         $images = [];
-        foreach ($this->service->serviceImages as $serviceImage) {
-            if ($serviceImage->image) {
-                $images[] = asset($serviceImage->image);
+        if ($this->service) {
+            foreach ($this->service->serviceImages as $serviceImage) {
+                if ($serviceImage->image) {
+                    $images[] = asset($serviceImage->image);
+                }
             }
         }
-        $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)
 
-            ->where(function ($query) {
-                $query->whereHas('contactPackage', function ($qu) {
-                    $qu->whereHas('ContractPackagesServices', function ($qu) {
-                        $qu->where('service_id', $this->service_id);
-                    });
-                });
-            })->first();
+
+        $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)->where('contract_packages_id', $this->contract_package_id)->first();
 
         $tempTotal = ($this->price * $this->quantity);
         if ($contractPackagesUser) {
@@ -40,7 +36,7 @@ class CartResource extends JsonResource
             if ($this->quantity <  ($contractPackage->visit_number - $contractPackagesUser->used)) {
                 $tempTotal = 0;
             } else {
-                $tempTotal = ($this->quantity - ($contractPackage->visit_number - $contractPackagesUser->used)) * $this->service->price;
+                $tempTotal = ($this->quantity - ($contractPackage->visit_number - $contractPackagesUser->used)) * $this->price ;
             }
         }
         return [
