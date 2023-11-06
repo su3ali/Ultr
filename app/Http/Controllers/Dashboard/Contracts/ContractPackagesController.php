@@ -75,7 +75,7 @@ class ContractPackagesController extends Controller
                     'status',
                     'control'
                 ])
-                
+
                 ->make(true);
         }
 
@@ -131,8 +131,8 @@ class ContractPackagesController extends Controller
     {
         $ContractPackage = ContractPackage::query()->where('id', $id)->first();
         $services = Service::where('active', 1)->get()->pluck('title', 'id');
-
-        return view('dashboard.contract_packages.edit', compact('ContractPackage', 'services'));
+        $selectedServices = ContractPackagesService::where('contract_packages_id', $id)->pluck('service_id');
+        return view('dashboard.contract_packages.edit', compact('ContractPackage', 'services', 'selectedServices'));
     }
     protected function update(Request $request, $id)
     {
@@ -142,19 +142,34 @@ class ContractPackagesController extends Controller
             'avatar' => 'nullable|image|mimes:jpeg,jpg,png,gif',
             'description_ar' => 'required',
             'description_en' => 'required',
-            'service_id' => 'required|exists:services,id',
+            'service_ids' => 'required|array',
+            'service_ids.*' => 'required',
             'price' => 'required|numeric',
             'time' => 'required|string',
             'visit_number' => 'required|numeric',
 
         ]);
         $ContractPackage = ContractPackage::find($id);
-        $data = $request->except('_token', 'avatar');
+        $data = $request->except('_token', 'avatar', 'service_ids');
 
         if ($request->has('avatar')) {
             $image = $this->storeImages($request->avatar, 'contract_packages');
             $data['image'] = 'storage/images/contract_packages' . '/' . $image;
         }
+
+        ContractPackagesService::where('contract_packages_id', $id)->delete();
+
+        $services_ids = $request->service_ids;
+        foreach ($services_ids as   $services_id) {
+            ContractPackagesService::create([
+                'contract_packages_id' => $ContractPackage->id,
+                'service_id' => $services_id,
+            ]);
+        }
+
+
+
+
         $ContractPackage->update($data);
 
         session()->flash('success');

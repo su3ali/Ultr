@@ -48,8 +48,6 @@ class CartController extends Controller
                     Cart::query()->create([
                         'user_id' => auth()->user()->id,
                         'contract_package_id' => $package->id,
-                        'service_id' => $package->service_id,
-                        'category_id' => $package->service->category_id,
                         'price' => $package->price,
                         'quantity' => $package->visit_number,
                         'type' => 'package'
