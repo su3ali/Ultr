@@ -34,8 +34,14 @@ class ContractPackagesController extends Controller
                 ->addColumn('name', function ($row) {
                     return $row->name;
                 })
-                ->addColumn('service name', function ($row) {
-                    return $row->service?->title;
+                ->addColumn('services', function ($row) {
+                    $services_ids = $row->ContractPackagesServices->pluck('service_id');
+                    $html = '';
+                    foreach ($services_ids as $service_id) {
+                        $service = Service::where('id', $service_id)->first();
+                        $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
+                    }
+                    return $html;
                 })
                 ->addColumn('visit_number', function ($row) {
                     return $row->visit_number;
@@ -64,11 +70,12 @@ class ContractPackagesController extends Controller
                 })
                 ->rawColumns([
                     'name',
-                    'service name',
+                    'services',
                     'visit_number',
                     'status',
                     'control'
                 ])
+                
                 ->make(true);
         }
 

@@ -49,6 +49,7 @@
                             {{__('dash.add_new')}}
                         </a>
 
+                        
                     </div>
                     <div class="table-responsive">
                         <table id="html5-extension" class="table table-hover non-hover">
