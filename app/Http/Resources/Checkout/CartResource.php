@@ -36,14 +36,14 @@ class CartResource extends JsonResource
             if ($this->quantity <  ($contractPackage->visit_number - $contractPackagesUser->used)) {
                 $tempTotal = 0;
             } else {
-                $tempTotal = ($this->quantity - ($contractPackage->visit_number - $contractPackagesUser->used)) * $this->price ;
+                $tempTotal = ($this->quantity - ($contractPackage->visit_number - $contractPackagesUser->used)) * $this->price;
             }
         }
         return [
             'id' => $this->id,
             'service_id' => $this->service_id,
-            'category_id' => $this->service->category->id,
-            'category_title' => $this->service->category->title,
+            'category_id' => $this->service?->category->id,
+            'category_title' => $this->service?->category->title,
             'service_title' => $this->service?->title,
             'quantity' => $this->quantity,
             'service_image' => $images,
