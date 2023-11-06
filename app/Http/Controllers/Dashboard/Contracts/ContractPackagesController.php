@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingStatus;
 use App\Models\ContractPackage;
+use App\Models\ContractPackagesService;
 use App\Models\Group;
 use App\Models\Order;
 use App\Models\Service;
@@ -41,7 +42,7 @@ class ContractPackagesController extends Controller
                 })
                 ->addColumn('status', function ($row) {
                     $checked = '';
-                    if ($row->active == 1){
+                    if ($row->active == 1) {
                         $checked = 'checked';
                     }
                     return '<label class="switch s-outline s-outline-info  mb-4 mr-2">
@@ -51,7 +52,7 @@ class ContractPackagesController extends Controller
                 })
                 ->addColumn('control', function ($row) {
                     $html = '
-                    <a href="'.route('dashboard.contract_packages.edit', $row->id).'"  id="edit-booking" class="btn btn-primary btn-sm card-tools edit" data-id="' . $row->id . '"
+                    <a href="' . route('dashboard.contract_packages.edit', $row->id) . '"  id="edit-booking" class="btn btn-primary btn-sm card-tools edit" data-id="' . $row->id . '"
                           >
                             <i class="far fa-edit fa-2x"></i>
                        </a>
@@ -76,9 +77,9 @@ class ContractPackagesController extends Controller
 
     protected function create()
     {
-        $services = Service::where('active',1)->get()->pluck('title','id');
+        $services = Service::where('active', 1)->get()->pluck('title', 'id');
 
-        return view('dashboard.contract_packages.create',compact('services'));
+        return view('dashboard.contract_packages.create', compact('services'));
     }
 
     /**
@@ -92,31 +93,39 @@ class ContractPackagesController extends Controller
             'avatar' => 'nullable|image|mimes:jpeg,jpg,png,gif',
             'description_ar' => 'required',
             'description_en' => 'required',
-            'service_id' => 'required|exists:services,id',
+            'service_ids' => 'required|array',
+            'service_ids.*' => 'required',
             'price' => 'required|numeric',
             'time' => 'required|string',
             'visit_number' => 'required|numeric',
 
         ]);
-        $data=$request->except('_token','avatar');
+        $data = $request->except('_token', 'avatar', 'service_ids');
 
-        if ($request->has('avatar')){
-            $image=$this->storeImages($request->avatar,'contract_packages');
-            $data['image']= 'storage/images/contract_packages'.'/'.$image;
+        if ($request->has('avatar')) {
+            $image = $this->storeImages($request->avatar, 'contract_packages');
+            $data['image'] = 'storage/images/contract_packages' . '/' . $image;
         }
 
-        ContractPackage::updateOrCreate($data);
+        $ContractPackage = ContractPackage::updateOrCreate($data);
+        $services_ids = $request->service_ids;
+        foreach ($services_ids as   $services_id) {
+            ContractPackagesService::create([
+                'contract_packages_id' => $ContractPackage->id,
+                'service_id' => $services_id,
+            ]);
+        }
 
         session()->flash('success');
         return redirect()->route('dashboard.contract_packages.index');
     }
 
-    protected function edit($id){
+    protected function edit($id)
+    {
         $ContractPackage = ContractPackage::query()->where('id', $id)->first();
-        $services = Service::where('active',1)->get()->pluck('title','id');
+        $services = Service::where('active', 1)->get()->pluck('title', 'id');
 
-        return view('dashboard.contract_packages.edit', compact('ContractPackage','services'));
-
+        return view('dashboard.contract_packages.edit', compact('ContractPackage', 'services'));
     }
     protected function update(Request $request, $id)
     {
@@ -133,11 +142,11 @@ class ContractPackagesController extends Controller
 
         ]);
         $ContractPackage = ContractPackage::find($id);
-        $data=$request->except('_token','avatar');
+        $data = $request->except('_token', 'avatar');
 
-        if ($request->has('avatar')){
-            $image=$this->storeImages($request->avatar,'contract_packages');
-            $data['image']= 'storage/images/contract_packages'.'/'.$image;
+        if ($request->has('avatar')) {
+            $image = $this->storeImages($request->avatar, 'contract_packages');
+            $data['image'] = 'storage/images/contract_packages' . '/' . $image;
         }
         $ContractPackage->update($data);
 
@@ -166,5 +175,4 @@ class ContractPackagesController extends Controller
         $ContractPackage->save();
         return response('success');
     }
-
 }
