@@ -407,11 +407,11 @@ class CartController extends Controller
                 $subTimes['times'] = collect($times)->map(function ($time) use ($category_id,   $countGroup, $bookSetting, $bookingTimes, $bookingDates, $day, $request) {
 
                     $now = Carbon::now('Asia/Riyadh')->format('H:i:s');
-                    $convertNowTimestamp = Carbon::parse($now)->timezone('Asia/Riyadh')->timestamp;
+                    $convertNowTimestamp = Carbon::parse($now)->timezone('Asia/Riyadh')->addHour()->timestamp;
                     $dayNow = Carbon::now('Asia/Riyadh')->format('Y-m-d');
 
                     //realtime
-                    $realTime = $time->addHour()->format('H:i:s');
+                    $realTime = $time->format('H:i:s');
                     $converTimestamp = Carbon::parse($realTime)->timezone('Asia/Riyadh')->timestamp;
                     //check time between two times
                     $setting = Setting::query()->first();

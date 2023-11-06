@@ -45,17 +45,6 @@ class BookingController extends Controller
             }
             $bookings->get();
             return DataTables::of($bookings)
-                // ->addColumn('visit_id', function ($row) {
-                //     $order = $row->visit->id;
-                //     return $order;
-                // })
-                // ->addColumn('order', function ($row) {
-                //     $order = $row->order?->id;
-                //     if (\request()->query('type') == 'package') {
-                //         $order = $row->contract?->id;
-                //     }
-                //     return $order;
-                // })
                 ->addColumn('customer', function ($row) {
                     return $row->customer?->first_name . ' ' . $row->customer?->last_name;
                 })
