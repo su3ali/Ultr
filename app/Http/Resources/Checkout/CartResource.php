@@ -32,6 +32,7 @@ class CartResource extends JsonResource
 
         $tempTotal = ($this->price * $this->quantity);
         if ($contractPackagesUser) {
+            
             $contractPackage = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
             if ($this->quantity <  ($contractPackage->visit_number - $contractPackagesUser->used)) {
                 $tempTotal = 0;
@@ -39,12 +40,13 @@ class CartResource extends JsonResource
                 $tempTotal = ($this->quantity - ($contractPackage->visit_number - $contractPackagesUser->used)) * $this->price;
             }
         }
+
         return [
             'id' => $this->id,
-            'service_id' => $this->service_id,
-            'category_id' => $this->service?->category->id,
-            'category_title' => $this->service?->category->title,
-            'service_title' => $this->service?->title,
+            'service_id' => $this->service_id??0,
+            'category_id' => $this->service?->category->id??0,
+            'category_title' => $this->service?->category->title??'',
+            'service_title' => $this->service?->title??'',
             'quantity' => $this->quantity,
             'service_image' => $images,
             'price' => $tempTotal,
