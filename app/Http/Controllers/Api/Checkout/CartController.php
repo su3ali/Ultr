@@ -37,7 +37,7 @@ class CartController extends Controller
     protected function add_to_cart(Request $request): JsonResponse
     {
         if ($request->type == 'package') {
-            $package = ContractPackage::with('service.category')->find($request->package_id);
+            $package = ContractPackage::where('id', $request->package_id);
             if ($package && $package->active === 1) {
                 $cart = Cart::query()->where('user_id', auth()->user()->id)
                     ->first();
@@ -236,7 +236,7 @@ class CartController extends Controller
 
                 $carts = Cart::query()->where('user_id', auth()->user()->id)->get();
 
-                
+
                 $tempTotal = $this->calc_total($carts);
                 $now = Carbon::now('Asia/Riyadh');
                 $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)
