@@ -82,6 +82,7 @@ class ServiceController extends Controller
     protected function ContractPackageDetails($id)
     {
         $userPackage = ContractPackagesUser::where('id', $id)->get();
+        $userPackage->from='ContractPackageDetails';
         if ($userPackage) {
             $this->body['package'] = ContractPackageUserResource::make($userPackage);
             return self::apiResponse(200, null, $this->body);
@@ -92,6 +93,7 @@ class ServiceController extends Controller
     protected function MyContractPackages()
     {
         $userPackages = ContractPackagesUser::where('user_id', auth()->user()->id)->get();
+        $userPackages->from='MyContractPackages';
         if ($userPackages) {
             $this->body['package'] = ContractPackageUserResource::make($userPackages);
             return self::apiResponse(200, null, $this->body);

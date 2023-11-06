@@ -17,7 +17,7 @@ class ContractPackageUserResource extends JsonResource
      */
     public function toArray($request)
     {
-        if ($this->count() > 1) {
+        if ($this->from == 'MyContractPackages') {
             $packages = [];
             $group = $this;
             for ($i = 0; $i < $group->count(); $i++) {
