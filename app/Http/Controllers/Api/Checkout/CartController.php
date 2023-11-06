@@ -37,7 +37,7 @@ class CartController extends Controller
     protected function add_to_cart(Request $request): JsonResponse
     {
         if ($request->type == 'package') {
-            $package = ContractPackage::where('id', $request->package_id);
+            $package = ContractPackage::where('id', $request->package_id)->first();
             if ($package && $package->active === 1) {
                 $cart = Cart::query()->where('user_id', auth()->user()->id)
                     ->first();
