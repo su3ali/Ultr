@@ -173,6 +173,7 @@ class CheckoutController extends Controller
             $activeGroups = Group::where('active', 1)->pluck('id')->toArray();
             $visit = DB::table('visits')
                 ->select('*', DB::raw('COUNT(assign_to_id) as group_id'))
+                ->where('start_time', '!=', $cart->time)
                 ->whereIn('booking_id', $booking_id)
                 ->whereIn('assign_to_id', $activeGroups)
                 ->groupBy('assign_to_id')
@@ -198,14 +199,7 @@ class CheckoutController extends Controller
                 if (($visit->get()->count()) < ($group->get()->count())) {
                     $assign_to_id = $group->whereNotIn('id', $visit->pluck('assign_to_id')->toArray())->inRandomOrder()->first()->id;
                 } else {
-                    $assign_to_id = $visit->where('start_time', '!=', $cart->time)->inRandomOrder()->first()->assign_to_id;
-                    // $ids = $visit->where('start_time', '!=', $cart->time)->pluck('assign_to_id')->toArray();
-                    // $group = Group::where('active', 1)->whereIn('id', $ids)->inRandomOrder()->first();
-                    // if ($group == null) {
-
-                    // } else {
-                    //     $assign_to_id = $group->id;
-                    // }
+                    $assign_to_id = $visit->inRandomOrder()->first()->assign_to_id;
                 }
             }
             $bookingInsert = Booking::query()->create([
