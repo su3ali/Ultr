@@ -82,6 +82,7 @@ class CheckoutController extends Controller
                 $file = $this->storeImages($request->file, 'order');
                 $uploadFile = 'storage/images/order' . '/' . $file;
             }
+            
             foreach ($carts as $cart) {
                 $now = Carbon::now('Asia/Riyadh');
                 $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)
