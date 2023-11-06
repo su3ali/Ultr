@@ -268,8 +268,8 @@ class CartController extends Controller
                     foreach ($cat_ids as $cat_id) {
                         if ($cat_id) {
                             $this->body['carts'][] = [
-                                'category_id' => $cat_id,
-                                'category_title' => Category::query()->find($cat_id)?->title,
+                                'category_id' => $cat_id??0,
+                                'category_title' => Category::query()->find($cat_id)?->title??'',
                                 'cart-services' => CartResource::collection($carts->where('category_id', $cat_id))
                             ];
                         }
@@ -523,8 +523,8 @@ class CartController extends Controller
         foreach ($cat_ids as $cat_id) {
             if ($cat_id) {
                 $this->body['carts'][] = [
-                    'category_id' => $cat_id,
-                    'category_title' => Category::query()->find($cat_id)?->title,
+                    'category_id' => $cat_id??0,
+                    'category_title' => Category::query()->find($cat_id)?->title??'',
                     'cart-services' => CartResource::collection($carts->where('category_id', $cat_id))
                 ];
             }
@@ -540,8 +540,8 @@ class CartController extends Controller
             $this->body['total_items_in_cart'] = 1;
             $cat_id = $cart_package->category_id;
             $this->body['cart_package'][] = [
-                'category_id' => $cat_id,
-                'category_title' => Category::query()->find($cat_id)?->title,
+                'category_id' => $cat_id??0,
+                'category_title' => Category::query()->find($cat_id)?->title??'',
                 'cart-services' => CartResource::make($cart_package)
             ];
         } else {
