@@ -43,7 +43,7 @@ class CheckoutController extends Controller
         $rules = [
             'user_address_id' => 'required|exists:user_addresses,id',
             'car_user_id' => 'required|exists:car_clients,id',
-            'payment_method' => 'required|in:cache,visa,wallet',
+            'payment_method' => 'required|in:cache,visa,wallet,package',
             'coupon' => 'nullable|numeric',
             'transaction_id' => 'nullable',
             'wallet_discounts' => 'nullable|numeric',
@@ -282,7 +282,7 @@ class CheckoutController extends Controller
                 'payment_method' => $payment_method,
             ]);
             Order::where('id', $order->id)->update(array('partial_amount' => $totalAfterDiscount));
-        } elseif (strlen($payment_method) == 0) {
+        } elseif ($payment_method == 'package') {
             $transaction = Transaction::create([
                 'order_id' => $order->id,
                 'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
