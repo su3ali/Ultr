@@ -29,7 +29,7 @@ class IndexController extends Controller
         $client_orders_today = Order::whereDate('created_at', '=', $now)->where('is_active', 1)->count();
         $tech_visits_today = Visit::whereDate('created_at', '=', $now)->where('is_active', 1)->count();
 
-        
+
 
 
         // $all_sell_values = Transaction::select(\DB::raw("COUNT(*) as count"))
@@ -100,7 +100,9 @@ class IndexController extends Controller
         ));
         $sells_chart_2->dataset(__('dash.orders'), 'line', $all_sell_values2);
         $canceled_orders = Order::where('status_id', 5)->where('is_active', 1)->count();
-        $canceled_orders_today = Order::where('status_id',5)->where('is_active', 1)->whereDate('created_at',$now)->orWhereDate('updated_at',$now)->count();
+        $canceled_orders_today = Order::where('status_id', 5)->where('is_active', 1)->where(function ($qu) use ($now) {
+            $qu->whereDate('created_at', $now)->orWhereDate('updated_at', $now);
+        })->count();
         return view('dashboard.home', compact('canceled_orders', 'canceled_orders_today', 'tech_visits_today', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers', 'client_orders', 'technicians', 'tech_visits'));
     }
     private function __chartOptions($title)

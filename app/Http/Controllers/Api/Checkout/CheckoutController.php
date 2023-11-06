@@ -103,7 +103,6 @@ class CheckoutController extends Controller
                 }
             }
             $total = $this->calc_total($carts);
-
             return $this->saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method);
         }
     }

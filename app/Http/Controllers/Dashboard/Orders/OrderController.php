@@ -210,9 +210,11 @@ class OrderController extends Controller
     {
 
         if (request()->ajax()) {
-            
+
             $now = Carbon::now('Asia/Riyadh')->toDateString();
-            $orders = Order::where('status_id', 5)->where('is_active', 1)->whereDate('created_at', $now)->orWhereDate('updated_at', $now);
+            $orders = Order::where('status_id', 5)->where('is_active', 1)->where(function ($qu) use ($now) {
+                $qu->whereDate('created_at', $now)->orWhereDate('updated_at', $now);
+            });
             return DataTables::of($orders)
                 ->addColumn('booking_id', function ($row) {
                     $booking = $row->bookings->first();
