@@ -22,6 +22,7 @@ class ContractResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
+            'duration'=>$this->time,
             'price' => $this->price,
             'visit_number' => $this->visit_number,
             'image' => asset($this->image),

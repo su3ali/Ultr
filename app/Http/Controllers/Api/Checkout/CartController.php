@@ -72,8 +72,8 @@ class CartController extends Controller
                     return self::apiResponse(400, __('api.finish current order first or clear the cart'), $this->body);
                 }
                 $price =  $service->price;
-
-                $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)
+                $now = Carbon::now('Asia/Riyadh');
+                $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)->whereDate('end_date', '>=', $now)
                     ->where(function ($query) use ($service) {
                         $query->whereHas('contactPackage', function ($qu) use ($service) {
                             $qu->whereColumn('visit_number', '>', 'used')->where('service_id', $service->id);
@@ -235,7 +235,8 @@ class CartController extends Controller
                 $carts = Cart::query()->where('user_id', auth()->user()->id)->get();
 
                 $tempTotal = $this->calc_total($carts);
-                $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)
+                $now = Carbon::now('Asia/Riyadh');
+                $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)->whereDate('end_date', '>=', $now)
                     ->where(function ($query) use ($cart) {
                         $query->whereHas('contactPackage', function ($qu) use ($cart) {
                             $qu->whereColumn('visit_number', '>', 'used')->where('service_id', $cart->service_id);

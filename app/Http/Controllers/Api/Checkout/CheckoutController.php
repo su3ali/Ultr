@@ -83,7 +83,8 @@ class CheckoutController extends Controller
                 $uploadFile = 'storage/images/order' . '/' . $file;
             }
             foreach ($carts as $cart) {
-                $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)
+                $now = Carbon::now('Asia/Riyadh');
+                $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)->whereDate('end_date', '>=', $now)
                     ->where(function ($query) use ($cart) {
                         $query->whereHas('contactPackage', function ($qu) use ($cart) {
                             $qu->whereColumn('visit_number', '>', 'used')->where('service_id', $cart->service_id);
@@ -310,10 +311,11 @@ class CheckoutController extends Controller
 
     private function saveContract($user, $request, $total, $carts)
     {
-        //  $contractPackage = ContractPackage::where('id', $carts->first()->contract_package_id)->first();
+        $contractPackage = ContractPackage::where('id', $carts->first()->contract_package_id)->first();
+        $date = Carbon::now('Asia/Riyadh')->addDays($contractPackage->time)->format('Y-m-d');
         $contractPackageUser = ContractPackagesUser::create([
             'used' => 0,
-            // 'visit_number' => $contractPackage->visit_number,
+            'end_date' => $date,
             'user_id' => $user->id,
             'contract_packages_id' => $carts->first()->contract_package_id,
         ]);
