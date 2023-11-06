@@ -272,28 +272,37 @@ class CheckoutController extends Controller
                 $this->pushNotification($notification);
             }
         }
-        if ($request->payment_method == 'wallet') {
+        $payment_method = $request->payment_method;
+        if ($payment_method == 'wallet') {
             $transaction = Transaction::create([
                 'order_id' => $order->id,
                 'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
                 'payment_result' => 'success',
-                'payment_method' => $request->payment_method,
+                'payment_method' =>  $payment_method,
             ]);
             Order::where('id', $order->id)->update(array('partial_amount' => 0));
-        } elseif ($request->payment_method == 'cache') {
+        } elseif ($payment_method == 'cache') {
             $transaction = Transaction::create([
                 'order_id' => $order->id,
                 'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
                 'payment_result' => 'success',
-                'payment_method' => $request->payment_method,
+                'payment_method' => $payment_method,
             ]);
             Order::where('id', $order->id)->update(array('partial_amount' => $totalAfterDiscount));
+        } elseif (strlen($payment_method) == 0) {
+            $transaction = Transaction::create([
+                'order_id' => $order->id,
+                'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
+                'payment_result' => 'success',
+                'payment_method' => 'fromPackage',
+            ]);
+            Order::where('id', $order->id)->update(array('partial_amount' => 0));
         } else {
             Transaction::create([
                 'order_id' => $order->id,
                 'transaction_number' => $request->transaction_id,
                 'payment_result' => 'success',
-                'payment_method' => $request->payment_method,
+                'payment_method' =>  $payment_method,
             ]);
             Order::where('id', $order->id)->update(array('partial_amount' => 0));
         }
