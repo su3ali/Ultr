@@ -173,7 +173,7 @@
                 var url = '{{ route('dashboard.coupons.viewSingleCoupon',['id'=>$id]) }}';
 
                 if (usage_filter && usage_filter !== 'all') {
-                    url += '?usage=' + usage_filter;
+                    url += '&usage=' + usage_filter;
                 }
 
                 // Update table data
