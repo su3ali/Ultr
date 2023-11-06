@@ -43,7 +43,7 @@ class CheckoutController extends Controller
         $rules = [
             'user_address_id' => 'required|exists:user_addresses,id',
             'car_user_id' => 'required|exists:car_clients,id',
-            'payment_method' => 'required|in:cache,visa,wallet',
+            '' => 'required|in:cache,visa,wallet',
             'coupon' => 'nullable|numeric',
             'transaction_id' => 'nullable',
             'wallet_discounts' => 'nullable|numeric',
@@ -55,7 +55,7 @@ class CheckoutController extends Controller
         $request->validate($rules, $request->all());
         $user = auth()->user('sanctum');
         $carts = Cart::query()->where('user_id', $user->id)->get();
-
+        $parent_payment_method = null;
 
         if (!$carts->first()) {
             return self::apiResponse(400, t_('Cart is empty'), []);
@@ -94,6 +94,7 @@ class CheckoutController extends Controller
                 if ($contractPackagesUser) {
                     $contractPackage = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
                     $cart->coupon = null;
+                    $parent_payment_method = $contractPackagesUser->payment_method;
                     if ($cart->quantity <  $contractPackage->visit_number - $contractPackagesUser->used) {
                         $contractPackagesUser->increment('used', $cart->quantity);
                     } else {
@@ -103,7 +104,7 @@ class CheckoutController extends Controller
             }
             $total = $this->calc_total($carts);
 
-            return $this->saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile);
+            return $this->saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method);
         }
     }
 
@@ -117,7 +118,7 @@ class CheckoutController extends Controller
         return array_sum($total);
     }
 
-    private function saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile)
+    private function saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method)
     {
         $totalAfterDiscount = ($total - $request->coupon);
         $order = Order::create([
@@ -154,14 +155,6 @@ class CheckoutController extends Controller
                 ->where('category_id', $category_id)->first();
             $booking_no = 'dash2023/' . $cart->id;
             $minutes = 0;
-            // $contractPackages = ContractPackages::where('service_id',$cart->service_id)->get();
-            // $contractPackagesUser = ContractPackagesUser::where('user_id', $user->id)
-            //     ->where('used', '<', 'contactPackage.visit_number')
-            //     ->whereHas('contactPackage', function ($query) use ($cart) {
-            //         $query->where('service_id', $cart->service_id);
-            //     })->first();
-            // if ($contractPackagesUser) {
-            // }
 
             $bookSetting = BookingSetting::where('service_id', $cart->service_id)->first();
             if ($bookSetting) {
@@ -294,7 +287,7 @@ class CheckoutController extends Controller
                 'order_id' => $order->id,
                 'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
                 'payment_result' => 'success',
-                'payment_method' => 'fromPackage',
+                'payment_method' => $parent_payment_method,
             ]);
             Order::where('id', $order->id)->update(array('partial_amount' => 0));
         } else {
@@ -327,6 +320,7 @@ class CheckoutController extends Controller
             'end_date' => $date,
             'user_id' => $user->id,
             'contract_packages_id' => $carts->first()->contract_package_id,
+            'payment_method' => $request->payment_method,
         ]);
 
         // $order = Order::create([
