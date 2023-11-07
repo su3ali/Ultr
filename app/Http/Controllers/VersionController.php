@@ -39,7 +39,7 @@ class VersionController extends Controller
         ];
         $request->validate($rules, $request->all());
         $version = Version::where('os', $request->os)->first();
-        if ($this->compareVersions($version->version, $request->version) >= 0) {
+        if ($this->compareVersions($request->version, $version->version) >= 0) {
 
 
 
