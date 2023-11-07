@@ -39,7 +39,7 @@ class HomeController extends Controller
         $this->middleware('localization');
     }
 
-    protected function index(Request $request)
+    protected function index()
     {
         if (!auth()->check()){
             $addresses = [];
@@ -68,7 +68,11 @@ class HomeController extends Controller
             ->get()->shuffle();
         $this->body['services_most_wanted'] = ServiceResource::collection($mostSellingServices);
         $this->body['services'] = ServiceResource::collection(Service::query()->where('active', 1)->take(9)->get()->shuffle());
-        $this->body['contracts'] = ContractResource::collection(ContractPackage::query()->where('active', 1)->take(9)->get()->shuffle());
+        if(request()->query('is_new')){
+            $this->body['contracts'] = ContractResource::collection(ContractPackage::query()->where('active', 1)->take(9)->get()->shuffle());
+        }else{
+            $this->body['contracts']= [];
+        }
         $this->body['contact'] = ContactResource::collection(Contacting::query()->take(9)->get()->shuffle());
         $this->body['total_items_in_cart'] = auth()->check() ? auth()->user()->carts->count() : 0;
         $servicesCategories = Category::query()->where('active', 1)->get();
