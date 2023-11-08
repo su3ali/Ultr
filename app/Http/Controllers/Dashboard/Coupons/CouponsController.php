@@ -44,7 +44,7 @@ class CouponsController extends Controller
                 ->addColumn('control', function ($row) {
 
                     $html = '
-                    <a href="' . route('dashboard.coupons.viewSingleCoupon', ['id'=>$row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm"><i class="far fa-eye fa-2x"></i> </a>
+                    <a href="' . route('dashboard.coupons.viewSingleCoupon', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm"><i class="far fa-eye fa-2x"></i> </a>
                     <a href="' . route('dashboard.coupons.edit', $row->id) . '"  id="edit-coupon" class="mr-2 btn btn-outline-warning btn-sm"><i class="far fa-edit fa-2x"></i> </a>
 
                                 <a data-href="' . route('dashboard.coupons.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
@@ -219,7 +219,7 @@ class CouponsController extends Controller
     protected function viewSingle()
     {
         $id = request()->query('id');
-       
+
         $usage_filter = request()->query('usage');
 
         if (request()->ajax()) {
@@ -231,7 +231,7 @@ class CouponsController extends Controller
                     $users = $users->having('usage', '>', 0);
                 }
             }
-            
+
             return DataTables::of($users)
                 ->addColumn('name', function ($user) {
                     $name = $user->first_name . ' ' . $user->last_name;
@@ -259,7 +259,7 @@ class CouponsController extends Controller
                     return $html;
                 })
                 ->rawColumns([
-                    
+
                     'name',
                     'phone',
                     'usage',
@@ -267,7 +267,7 @@ class CouponsController extends Controller
                 ])
                 ->make(true);
         }
-        $coupon = Coupon::where('id',$id)->first();
-        return view('dashboard.coupons.show', compact('id','coupon'));
+        $coupon = Coupon::where('id', $id)->first();
+        return view('dashboard.coupons.show', compact('id', 'coupon'));
     }
 }

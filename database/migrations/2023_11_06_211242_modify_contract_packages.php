@@ -19,9 +19,7 @@ class ModifyContractPackages extends Migration
         Schema::table('contract_packages', function (Blueprint $table) {
             $table->unsignedBigInteger('service_id')->nullable();
             $table->foreign('service_id')->references('id')->on('services')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreign('service_id')->references('id')->on('services')
-            ->onDelete('cascade')
-            ->onUpdate('cascade');
+       
         });
     }
 }
