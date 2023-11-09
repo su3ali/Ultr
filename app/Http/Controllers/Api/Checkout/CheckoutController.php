@@ -93,7 +93,7 @@ class CheckoutController extends Controller
                 })->get();
                 foreach ($bookings as $booking) {
                     array_push($bookingTimes, $booking->time);
-                    array_push($bookingDates, $booking->date);
+                 
                 }
                 $groupIds = CategoryGroup::where('category_id', $cart->category_id)->pluck('group_id')->toArray();
                 $countGroup = Group::where('active', 1)->whereHas('regions', function ($qu) use ($regionId) {
