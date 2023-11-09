@@ -28,6 +28,7 @@ trait NotificationTrait
                 'notification' => [
                     'title' => $notification['title'],
                     'body' => $notification['message'],
+                    'sound' => 'default',
                 ],
                 "content_available" => true,
                 "android" => [
