@@ -672,9 +672,10 @@ class OrderController extends Controller
     protected function orderDetail()
     {
         $order = Order::with('bookings')->findOrFail(\request()->id);
+        $userPhone = User::where('id', $order->user_id)->first()->phone;
         $category_ids = $order->services->pluck('category_id')->toArray();
         $category_ids = array_unique($category_ids);
         $categories = Category::whereIn('id', $category_ids)->get();
-        return view('dashboard.orders.show', compact('order', 'categories'));
+        return view('dashboard.orders.show', compact('userPhone', 'order', 'categories'));
     }
 }

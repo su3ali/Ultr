@@ -96,6 +96,10 @@
                                     <td>{{$order->user?->first_name . '' .$order->user?->last_name}}</td>
                                 </tr>
                                 <tr>
+                                    <th>هاتف العميل</th>
+                                    <td>{{$userPhone}}</td>
+                                </tr>
+                                <tr>
                                     <th>حاله الطلب</th>
                                     <td>{{$order->status?->name}}</td>
                                 </tr>
