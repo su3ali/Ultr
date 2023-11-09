@@ -41,9 +41,8 @@ class ReportsController extends Controller
             });
 
          
-
             if($date) {
-              
+              error_log($date);
                 $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
                 $formattedDate = $carbonDate->format('Y-m-d H:i:s');
                 $order = $order->where('created_at','>=', $formattedDate);
@@ -52,10 +51,7 @@ class ReportsController extends Controller
          
                 $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
                 $formattedDate2 = $carbonDate2->format('Y-m-d H:i:s');
-
-                $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
-                $formattedDate = $carbonDate->format('Y-m-d H:i:s');
-                $order = $order->where([['created_at','>=', $formattedDate],['created_at','<=', $formattedDate2]]);
+                $order = $order->where('created_at','<=', $formattedDate2);
             }
             if($payment_method) {
                 $order = $order->whereHas('transaction',function($q)use($payment_method){
@@ -145,14 +141,14 @@ class ReportsController extends Controller
         $orderQuery = Order::query();
     
         if ($date) {
-            error_log("date");
+       
             $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
             $formattedDate = $carbonDate->format('Y-m-d H:i:s');
             $orderQuery->where('created_at', '>=', $formattedDate);
         }
     
         if ($date2) {
-            error_log("date2");
+     
             $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
             $formattedDate2 = $carbonDate2->format('Y-m-d H:i:s');
             $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
@@ -178,11 +174,7 @@ class ReportsController extends Controller
         $tax = $total * $taxRate;
         $taxTotal = $total + $tax;
         
-        error_log(response()->json([
-            'total' => $total,
-            'tax' => $tax,
-            'taxTotal' => $taxTotal,
-        ]));
+  
       
         // Return the summary values as JSON
         return response()->json([

@@ -86,8 +86,22 @@
                             </li>
                         </ul>
                         <div class="col-md-12  mb-3">
-
-
+                            <div class="row">
+                                <div class="col-md-1">
+                                    <label for="inputEmail4">{{ __('dash.date') }}</label>
+                                </div>
+                                <label>من</label>
+                                <div class="col-md-4">
+                                    <input type="datetime-local" name="date" class="form-control date" step="1"
+                                        id="inputEmail4">
+                                </div>
+                                <label>إلى</label>
+                                <div class="col-md-4">
+                                    <input type="datetime-local" name="date2" class="form-control date2" step="1"
+                                        id="inputEmail42">
+                                </div>
+                            </div>
+<br>
                             <div class="row">
 
 
@@ -228,18 +242,25 @@
             function updateTableData() {
                 var status_filter = $('.status_filter').val();
                 var url;
-
+                var date = $('.date').val();
+                var date2 = $('.date2').val();
                 if (status_filter && status_filter !== 'all') {
                     url = '{{ url('admin/bookings?type=' . $type) }}' + '&status=' + status_filter;
                 } else {
                     url = '{{ url('admin/bookings?type=' . $type) }}';
+                }
+                if (date) {
+                    url += '&date=' + date;
+                }
+                if (date2) {
+                    url += '&date2=' + date2;
                 }
 
                 // Update table data
                 table.ajax.url(url).load();
 
             }
-            $('.status_filter').change(function() {
+            $('.date, .date2, .status_filter').change(function() {
                 updateTableData();
             });
 

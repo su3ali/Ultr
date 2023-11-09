@@ -33,6 +33,8 @@ class BookingController extends Controller
     {
 
         if (request()->ajax()) {
+            $date = \request()->query('date');
+            $date2 = \request()->query('date2');
             $bookings = Booking::with('visit.group')->where('is_active', 1)->where('type', 'service')->with(['order', 'customer', 'service', 'group', 'booking_status']);
 
             if (\request()->query('type') == 'package') {
@@ -41,8 +43,19 @@ class BookingController extends Controller
             if (\request()->query('status')) {
                 $va = \request()->query('status');
                 $bookings->Where('booking_status_id', $va);
-                error_log($bookings->count());
             }
+            if($date) {
+                  $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
+                  $formattedDate = $carbonDate->format('Y-m-d');
+                  $order = $bookings->where('date','>=', $formattedDate);
+              }
+              if($date2){
+           
+                  $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
+                  $formattedDate2 = $carbonDate2->format('Y-m-d');
+                  $order = $bookings->where('date','<=', $formattedDate2);
+              }
+
             $bookings->get();
             return DataTables::of($bookings)
                 ->addColumn('customer', function ($row) {
