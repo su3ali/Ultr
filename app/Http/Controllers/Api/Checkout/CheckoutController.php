@@ -82,19 +82,51 @@ class CheckoutController extends Controller
                 $file = $this->storeImages($request->file, 'order');
                 $uploadFile = 'storage/images/order' . '/' . $file;
             }
-            
+            $regionId = UserAddresses::where('id', $request->user_address_id)->first()->region_id;
+            foreach ($carts as $cart) {
+                $bookingTimes = [];
+                // $category_id = Service::where('id', $cart->service_id)->first()->category_id;
+                $bookings = Booking::where('category_id',  $cart->category_id)->whereHas('visit', function ($qq) {
+                    $qq->whereIn('visits_status_id', [1, 2, 3, 4]);
+                })->whereHas('address', function ($qq) use ($regionId) {
+                    $qq->where('region_id',  $regionId);
+                })->get();
+                foreach ($bookings as $booking) {
+                    array_push($bookingTimes, $booking->time);
+                    array_push($bookingDates, $booking->date);
+                }
+                $groupIds = CategoryGroup::where('category_id', $cart->category_id)->pluck('group_id')->toArray();
+                $countGroup = Group::where('active', 1)->whereHas('regions', function ($qu) use ($regionId) {
+                    $qu->where('region_id',  $regionId);
+                })->whereIn('id', $groupIds)->count();
+                $countInBooking = Booking::whereHas('visit', function ($q) {
+                    $q->whereNotIn('visits_status_id', [5, 6]);
+                })->whereHas(
+                    'address.region',
+                    function ($q) use ($regionId) {
+
+                        $q->where('id',  $regionId);
+                    }
+                )->where([['category_id', '=', $cart->category_id], ['date', '=',  $cart->date], ['time', '=', $cart->time]])
+                    ->count();
+
+                    if( ($countInBooking ==  $countGroup)){
+                        return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+                    }
+            }
+
             foreach ($carts as $cart) {
                 $now = Carbon::now('Asia/Riyadh');
                 $contractPackagesUser =  ContractPackagesUser::where('user_id', auth()->user()->id)
-                ->whereDate('end_date', '>=', $now)
-                ->where(function ($query) use ($cart) {
-                    $query->whereHas('contactPackage', function ($qu) use ($cart) {
-                        $qu->whereHas('ContractPackagesServices', function ($qu) use ($cart) {
-                            $qu->where('service_id', $cart->service_id);
+                    ->whereDate('end_date', '>=', $now)
+                    ->where(function ($query) use ($cart) {
+                        $query->whereHas('contactPackage', function ($qu) use ($cart) {
+                            $qu->whereHas('ContractPackagesServices', function ($qu) use ($cart) {
+                                $qu->where('service_id', $cart->service_id);
+                            });
                         });
-                    });
-                })->first();
-            
+                    })->first();
+
 
                 if ($contractPackagesUser) {
                     $contractPackage = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
