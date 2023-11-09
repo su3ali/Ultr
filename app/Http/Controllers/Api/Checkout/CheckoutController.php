@@ -41,7 +41,7 @@ class CheckoutController extends Controller
     protected function checkout(Request $request)
     {
         $rules = [
-            'user_address_id' => 'required|exists:user_addresses,id',
+            'user_address_id' => 'required',
             'car_user_id' => 'required|exists:car_clients,id',
             'payment_method' => 'required|in:cache,visa,wallet,package',
             'coupon' => 'nullable|numeric',

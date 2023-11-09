@@ -79,7 +79,7 @@
 
                                     <div class="form-group col-md-4">
 
-                                        <label for="service">الخدمة</label>
+                                        <label for="service">الخدمات</label>
                                         <select multiple required class="select2 form-control pt-1"
                                                 name="service_ids[]">
                                             <option  disabled>{{__('dash.choose')}}</option>
