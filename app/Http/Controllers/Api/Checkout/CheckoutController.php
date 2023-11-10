@@ -84,17 +84,17 @@ class CheckoutController extends Controller
             }
             $regionId = UserAddresses::where('id', $request->user_address_id)->first()->region_id;
             foreach ($carts as $cart) {
-                $bookingTimes = [];
-                // $category_id = Service::where('id', $cart->service_id)->first()->category_id;
-                $bookings = Booking::where('category_id',  $cart->category_id)->whereHas('visit', function ($qq) {
-                    $qq->whereIn('visits_status_id', [1, 2, 3, 4]);
-                })->whereHas('address', function ($qq) use ($regionId) {
-                    $qq->where('region_id',  $regionId);
-                })->get();
-                foreach ($bookings as $booking) {
-                    array_push($bookingTimes, $booking->time);
-                 
-                }
+                // $bookingTimes = [];
+                // // $category_id = Service::where('id', $cart->service_id)->first()->category_id;
+                // $bookings = Booking::where('category_id',  $cart->category_id)->whereHas('visit', function ($qq) {
+                //     $qq->whereIn('visits_status_id', [1, 2, 3, 4]);
+                // })->whereHas('address', function ($qq) use ($regionId) {
+                //     $qq->where('region_id',  $regionId);
+                // })->get();
+                // foreach ($bookings as $booking) {
+                //     array_push($bookingTimes, $booking->time);
+
+                // }
                 $groupIds = CategoryGroup::where('category_id', $cart->category_id)->pluck('group_id')->toArray();
                 $countGroup = Group::where('active', 1)->whereHas('regions', function ($qu) use ($regionId) {
                     $qu->where('region_id',  $regionId);
@@ -110,9 +110,9 @@ class CheckoutController extends Controller
                 )->where([['category_id', '=', $cart->category_id], ['date', '=',  $cart->date], ['time', '=', $cart->time]])
                     ->count();
 
-                    if( ($countInBooking ==  $countGroup)){
-                        return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
-                    }
+                if (($countInBooking ==  $countGroup)) {
+                    return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+                }
             }
 
             foreach ($carts as $cart) {
@@ -236,7 +236,12 @@ class CheckoutController extends Controller
                 if (($visit->get()->count()) < ($group->get()->count())) {
                     $assign_to_id = $group->whereNotIn('id', $visit->pluck('assign_to_id')->toArray())->inRandomOrder()->first()->id;
                 } else {
-                    $assign_to_id = $visit->inRandomOrder()->first()->assign_to_id;
+                    $alreadyTaken = Visit::where('start_time', $cart->time)->first();
+                    if ($alreadyTaken) {
+                        $assign_to_id = $visit->where('assign_to_id', '!=',  $alreadyTaken->assign_to_id)->inRandomOrder()->first()->assign_to_id;
+                    } else {
+                        $assign_to_id = $visit->inRandomOrder()->first()->assign_to_id;
+                    }
                 }
             }
             $bookingInsert = Booking::query()->create([
