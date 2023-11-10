@@ -210,14 +210,15 @@ class CheckoutController extends Controller
             $activeGroups = Group::where('active', 1)->pluck('id')->toArray();
             $visit = DB::table('visits')
                 ->select('*', DB::raw('COUNT(assign_to_id) as group_id'))
-                ->where('start_time', '!=', $cart->time)
+                //  ->where('start_time', '!=', $cart->time)
                 ->whereIn('booking_id', $booking_id)
                 ->whereIn('assign_to_id', $activeGroups)
                 ->groupBy('assign_to_id')
                 ->orderBy('group_id', 'ASC');
             $assign_to_id = 0;
+            $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
             if ($visit->get()->isEmpty()) {
-                $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
+
                 $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
                     $qu->where('region_id', $address->region_id);
                 })->whereIn('id', $groupIds)->inRandomOrder()->first();
@@ -226,7 +227,7 @@ class CheckoutController extends Controller
                 }
                 $assign_to_id = $group->id;
             } else {
-                $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
+
                 $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
                     $qu->where('region_id', $address->region_id);
                 })->whereIn('id', $groupIds);
