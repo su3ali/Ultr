@@ -42,7 +42,7 @@ class CheckoutController extends Controller
     {
         $user = auth()->user('sanctum');
         $carts = Cart::query()->where('user_id', $user->id)->get();
-        $regionId = UserAddresses::where('id', request()->quesry('user_address_id'))->first()->region_id;
+        $regionId = UserAddresses::where('id', \request()->quesry('user_address_id'))->first()->region_id;
         foreach ($carts as $cart) {
             $groupIds = CategoryGroup::where('category_id', $cart->category_id)->pluck('group_id')->toArray();
             $countGroup = Group::where('active', 1)->whereHas('regions', function ($qu) use ($regionId) {
