@@ -236,9 +236,10 @@ class CheckoutController extends Controller
                 if (($visit->get()->count()) < ($group->get()->count())) {
                     $assign_to_id = $group->whereNotIn('id', $visit->pluck('assign_to_id')->toArray())->inRandomOrder()->first()->id;
                 } else {
-                    $alreadyTaken = Visit::where('start_time', $cart->time)->first();
-                    if ($alreadyTaken) {
-                        $assign_to_id = $visit->where('assign_to_id', '!=',  $alreadyTaken->assign_to_id)->inRandomOrder()->first()->assign_to_id;
+                    $alreadyTaken = Visit::where('start_time', $cart->time)->whereIn('booking_id', $booking_id)->whereIn('assign_to_id', $activeGroups)->get();
+                    if ($alreadyTaken->isNotEmpty()) {
+                        $ids = $alreadyTaken->pluck('assign_to_id')->toArray();
+                        $assign_to_id = $visit->whereNotIn('assign_to_id', $ids)->inRandomOrder()->first()->assign_to_id;
                     } else {
                         $assign_to_id = $visit->inRandomOrder()->first()->assign_to_id;
                     }
