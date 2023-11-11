@@ -35,33 +35,33 @@ class ReportsController extends Controller
             $service = $request->service;
             $payment_method = $request->payment_method;
             $order = Order::where(function ($query) {
-                $query->where('status_id','!=',5)->orWhereHas('transaction',function($q){
-                    $q->where('payment_method','!=','cache');
+                $query->where('status_id', '!=', 5)->orWhereHas('transaction', function ($q) {
+                    $q->where('payment_method', '!=', 'cache');
                 });
             });
 
-         
-            if($date) {
-              error_log($date);
+
+            if ($date) {
+                error_log($date);
                 $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
                 $formattedDate = $carbonDate->format('Y-m-d H:i:s');
-                $order = $order->where('created_at','>=', $formattedDate);
+                $order = $order->where('created_at', '>=', $formattedDate);
             }
-            if($date2){
-         
+            if ($date2) {
+
                 $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
                 $formattedDate2 = $carbonDate2->format('Y-m-d H:i:s');
-                $order = $order->where('created_at','<=', $formattedDate2);
+                $order = $order->where('created_at', '<=', $formattedDate2);
             }
-            if($payment_method) {
-                $order = $order->whereHas('transaction',function($q)use($payment_method){
-                    $q->where('payment_method',$payment_method);
+            if ($payment_method) {
+                $order = $order->whereHas('transaction', function ($q) use ($payment_method) {
+                    $q->where('payment_method', $payment_method);
                 });
             }
-            if($service) {
+            if ($service) {
 
-                $orders_ids=OrderService::where('service_id',$service)->get()->pluck('order_id')->toArray();
-                $order = $order->whereIn('id',$orders_ids);
+                $orders_ids = OrderService::where('service_id', $service)->get()->pluck('order_id')->toArray();
+                $order = $order->whereIn('id', $orders_ids);
             }
 
 
@@ -72,17 +72,17 @@ class ReportsController extends Controller
                     return $row->id;
                 })
                 ->addColumn('user_name', function ($row) {
-                    return $row->user?->first_name .''.$row->user?->last_name;
+                    return $row->user?->first_name . '' . $row->user?->last_name;
                 })
                 ->addColumn('created_at', function ($row) {
                     return $row->created_at;
                 })
                 ->addColumn('service', function ($row) {
-                    $services_ids = OrderService::where('order_id',$row->id)->get()->pluck('service_id')->toArray();
-                    $services = Service::whereIn('id',$services_ids)->get();
+                    $services_ids = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
+                    $services = Service::whereIn('id', $services_ids)->get();
                     $html = '';
                     foreach ($services as $item) {
-                        $html.='<button class="btn-sm btn-primary">'.$item->title_ar.'</button>';
+                        $html .= '<button class="btn-sm btn-primary">' . $item->title_ar . '</button>';
                     }
                     // $category_ids = OrderService::where('order_id',$row->id)->get()->pluck('category_id')->toArray();
                     // $category_ids = array_unique($category_ids);
@@ -94,17 +94,19 @@ class ReportsController extends Controller
                     return $html;
                 })
                 ->addColumn('service_number', function ($row) {
-                  //  $service_ids = OrderService::where('order_id',$row->id)->get()->pluck('service_id')->toArray();
-                    $service_count = OrderService::where('order_id',$row->id)->count();
+                    //  $service_ids = OrderService::where('order_id',$row->id)->get()->pluck('service_id')->toArray();
+                    $service_count = OrderService::where('order_id', $row->id)->count();
 
                     return $service_count;
                 })
                 ->addColumn('price', function ($row) {
                     return $row->total;
                 })
-                ->addColumn('payment_method', function ($row) {
+                ->addColumn('payment_method', function ($row) use ($payment_method) {
+                    if ($payment_method)
+                        return $payment_method;
                     return $row->transaction?->payment_method;
-                })   ->addColumn('total', function ($row) {
+                })->addColumn('total', function ($row) {
                     return $row->total;
                 })
 
@@ -120,16 +122,16 @@ class ReportsController extends Controller
                 ])
                 ->make(true);
         }
-       
+
         $total = Order::where('is_active', 1)->where(function ($query) {
-            $query->Where('status_id', '<>', 6)->orWhereHas('transaction',function($q){
-                $q->where('payment_method','!=','cahce');
+            $query->Where('status_id', '<>', 6)->orWhereHas('transaction', function ($q) {
+                $q->where('payment_method', '!=', 'cahce');
             });
         })->sum('total');
         error_log($total);
-        $tax = ($total * 15)/100 ?? 0;
-        $services=Service::all()->pluck('title','id');
-        return view('dashboard.reports.sales',compact('total','tax','services'));
+        $tax = ($total * 15) / 100 ?? 0;
+        $services = Service::all()->pluck('title', 'id');
+        return view('dashboard.reports.sales', compact('total', 'tax', 'services'));
     }
 
     protected function updateSummary(Request $request)
@@ -139,43 +141,43 @@ class ReportsController extends Controller
         $payment_method = $request->payment_method;
         $service = $request->service;
         $orderQuery = Order::query();
-    
+
         if ($date) {
-       
+
             $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
             $formattedDate = $carbonDate->format('Y-m-d H:i:s');
             $orderQuery->where('created_at', '>=', $formattedDate);
         }
-    
+
         if ($date2) {
-     
+
             $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
             $formattedDate2 = $carbonDate2->format('Y-m-d H:i:s');
             $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
             $formattedDate = $carbonDate->format('Y-m-d H:i:s');
             $orderQuery->where([['created_at', '>=', $formattedDate], ['created_at', '<=', $formattedDate2]]);
         }
-    
-        if ($payment_method && $payment_method!='all') {
-            
+
+        if ($payment_method && $payment_method != 'all') {
+
             $orderQuery->whereHas('transaction', function ($q) use ($payment_method) {
                 $q->where('payment_method', $payment_method);
             });
         }
-        if($service && $service!='all') {
+        if ($service && $service != 'all') {
 
-            $orders_ids=OrderService::where('service_id',$service)->get()->pluck('order_id')->toArray();
-            $orderQuery->whereIn('id',$orders_ids);
+            $orders_ids = OrderService::where('service_id', $service)->get()->pluck('order_id')->toArray();
+            $orderQuery->whereIn('id', $orders_ids);
         }
-    
+
         // Calculate the total, tax, and tax-subtotal
         $total = $orderQuery->where('is_active', 1)->sum('total');
         $taxRate = 0.15; // 15% tax rate
         $tax = $total * $taxRate;
         $taxTotal = $total + $tax;
-        
-  
-      
+
+
+
         // Return the summary values as JSON
         return response()->json([
             'total' => $total,
@@ -183,17 +185,17 @@ class ReportsController extends Controller
             'taxTotal' => $taxTotal,
         ]);
     }
-    
+
 
     protected function contractSales(Request $request)
     {
         if (request()->ajax()) {
             $order = Contract::query();
             $date = $request->date;
-            if($date) {
+            if ($date) {
                 $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
                 $formattedDate = $carbonDate->format('Y-m-d H:i:s');
-                $order = $order->where('created_at','=', $formattedDate);
+                $order = $order->where('created_at', '=', $formattedDate);
             }
 
             $order = $order->get();
@@ -202,7 +204,7 @@ class ReportsController extends Controller
                     return $row->id;
                 })
                 ->addColumn('user_name', function ($row) {
-                    return $row->user?->first_name .''.$row->user?->last_name;
+                    return $row->user?->first_name . '' . $row->user?->last_name;
                 })
                 ->addColumn('package', function ($row) {
                     return $row->package?->name;
@@ -233,7 +235,7 @@ class ReportsController extends Controller
             $order = User::all();
             return DataTables::of($order)
                 ->addColumn('user_name', function ($row) {
-                    return $row->first_name .''.$row->last_name;
+                    return $row->first_name . '' . $row->last_name;
                 })
                 ->addColumn('city', function ($row) {
                     $city = $row->address->first();
@@ -245,11 +247,11 @@ class ReportsController extends Controller
                 ->addColumn('email', function ($row) {
                     return $row->email;
                 })->addColumn('service_count', function ($row) {
-                    $order_ids = $row->orders()->with('transaction',function($q){
-                        $q->where('payment_result','success');
+                    $order_ids = $row->orders()->with('transaction', function ($q) {
+                        $q->where('payment_result', 'success');
                     })->pluck('id');
 
-                    $services_count = OrderService::whereIn('order_id',$order_ids)->count();
+                    $services_count = OrderService::whereIn('order_id', $order_ids)->count();
                     return $services_count;
                 })->addColumn('point', function ($row) {
                     return $row->point;
@@ -285,33 +287,33 @@ class ReportsController extends Controller
                 })->addColumn('group', function ($row) {
                     return $row->group?->name;
                 })->addColumn('service_count', function ($row) {
-                    $booking_ids = Visit::where('assign_to_id',$row->group_id)->where('visits_status_id',5)->pluck('booking_id')->toArray();
-                    $order_ids = Booking::where('id',$booking_ids)->pluck('order_id')->toArray();
+                    $booking_ids = Visit::where('assign_to_id', $row->group_id)->where('visits_status_id', 5)->pluck('booking_id')->toArray();
+                    $order_ids = Booking::where('id', $booking_ids)->pluck('order_id')->toArray();
 
-                    $services_count = OrderService::whereIn('order_id',$order_ids)->count();
+                    $services_count = OrderService::whereIn('order_id', $order_ids)->count();
                     return $services_count;
                 })->addColumn('point', function ($row) {
                     return $row->point;
                 })->addColumn('rate', function ($row) {
 
-                    return number_format($row->rates->pluck('rate')->avg(),'2');
+                    return number_format($row->rates->pluck('rate')->avg(), '2');
                 })
                 ->addColumn('late', function ($row) {
-                    $visits = Visit::where('assign_to_id',$row->group_id)->where('visits_status_id',5)->get();
+                    $visits = Visit::where('assign_to_id', $row->group_id)->where('visits_status_id', 5)->get();
                     $booking_ids = $visits->pluck('booking_id')->toArray();
-                    $order_ids = Booking::where('id',$booking_ids)->pluck('order_id')->toArray();
-                    $service_ids = OrderService::whereIn('order_id',$order_ids)->pluck('service_id')->toArray();
-                    if ($service_ids != []){
-                        $service = BookingSetting::whereIn('service_id',$service_ids)->pluck('service_duration')->toArray();
+                    $order_ids = Booking::where('id', $booking_ids)->pluck('order_id')->toArray();
+                    $service_ids = OrderService::whereIn('order_id', $order_ids)->pluck('service_id')->toArray();
+                    if ($service_ids != []) {
+                        $service = BookingSetting::whereIn('service_id', $service_ids)->pluck('service_duration')->toArray();
                         $SumServiceDuration = array_sum($service);
                         $duration = 0;
-                        foreach ($visits as $visit){
+                        foreach ($visits as $visit) {
                             $start_time = Carbon::parse($visit->start_time)->timezone('Asia/Riyadh')->format('H:i:s');
                             $end_time = Carbon::parse($visit->end_time)->timezone('Asia/Riyadh')->format('H:i:s');
                             $duration += Carbon::parse($end_time)->diffInMinutes(Carbon::parse($start_time));
                         }
                         $sum = $SumServiceDuration - $duration;
-                        $total = $sum/count($service_ids);
+                        $total = $sum / count($service_ids);
                     }
 
                     return $total ?? 0;
@@ -345,16 +347,16 @@ class ReportsController extends Controller
                     return $row->category?->title;
                 })
                 ->addColumn('service_count', function ($row) {
-                    $services_count = OrderService::whereHas('orders',function ($q){
-                        $q->whereHas('bookings',function($q){
-                            $q->whereHas('visit',function($q){
-                                $q->where('visits_status_id',5);
+                    $services_count = OrderService::whereHas('orders', function ($q) {
+                        $q->whereHas('bookings', function ($q) {
+                            $q->whereHas('visit', function ($q) {
+                                $q->where('visits_status_id', 5);
                             });
                         });
-                    })->where('service_id',$row->id)->count();
+                    })->where('service_id', $row->id)->count();
                     return $services_count;
                 })->addColumn('rate', function ($row) {
-                    return number_format($row->rates->pluck('rate')->avg(),'2');
+                    return number_format($row->rates->pluck('rate')->avg(), '2');
                 })
 
                 ->rawColumns([
@@ -368,6 +370,4 @@ class ReportsController extends Controller
         }
         return view('dashboard.reports.services');
     }
-
-
 }
