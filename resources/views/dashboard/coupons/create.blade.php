@@ -229,6 +229,20 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="form-row mb-2">
+                                    <div class="form-group col-md-6">
+                                        <label for="is_hidden"></label>
+                                        <label class="switch s-outline s-outline-info  mb-4 mx-4 mt-3 d-block w-50">
+                                            <label class="mx-5" for="is_hidden">مخفي عن العملاء</label>
+                                            <input type="checkbox" name="is_hidden" id="is_hidden" >
+                                            <span class="slider round"></span>
+                                        </label>
+                                        @error('is_hidden')
+                                            <div class="alert alert-danger">{{ $message }}</div>
+                                        @enderror
+
+                                    </div>
+                                </div>
 
                                 <div class="form-row mb-2">
 

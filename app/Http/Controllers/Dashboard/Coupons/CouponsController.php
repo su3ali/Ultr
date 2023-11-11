@@ -105,8 +105,10 @@ class CouponsController extends Controller
             'description_ar' => 'nullable|string|min:3',
             'description_en' => 'nullable|string|min:3',
             'image' => 'required|image|mimes:jpeg,jpg,png,gif',
+            'is_hidden' => 'nullable|in:on,off',
 
         ];
+
         if ($request->sale_area == 'category') {
             $rules['category_id'] = 'required|exists:categories,id';
         }
@@ -130,6 +132,11 @@ class CouponsController extends Controller
             $validated['image'] = 'storage/images/coupons' . '/' . $filename;
         }
 
+        if ($request['is_hidden'] && $request['is_hidden'] == 'on'){
+            $validated['is_hidden'] = 1;
+        }else{
+            $validated['is_hidden'] = 0;
+        }
         Coupon::query()->create($validated);
         session()->flash('success');
         return redirect()->route('dashboard.coupons.index');
