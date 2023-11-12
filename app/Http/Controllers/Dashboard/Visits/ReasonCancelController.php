@@ -15,8 +15,17 @@ class ReasonCancelController extends Controller
         if (request()->ajax()) {
             $banners = ReasonCancel::all();
             return DataTables::of($banners)
+
                 ->addColumn('reason', function ($row) {
                     return $row->reason;
+                })
+                ->addColumn('is_for_tech', function ($row) {
+                    if ($row->is_for_tech == 0) {
+                        $type = "عميل";
+                    } elseif ($row->is_for_tech == 1) {
+                        $type = "فني";
+                    }
+                    return $type ?? '';
                 })
                 ->addColumn('status', function ($row) {
                     $checked = '';
@@ -46,17 +55,21 @@ class ReasonCancelController extends Controller
                 })
                 ->rawColumns([
                     'title',
+                    'is_for_tech',
                     'status',
                     'control',
                 ])
                 ->make(true);
         }
-        return view('dashboard.reason_cancel.index');
+        $reasons=ReasonCancel::all();
+        return view('dashboard.reason_cancel.index',compact('reasons'));
     }
-    protected function store(Request $request){
+    protected function store(Request $request)
+    {
         $rules = [
             'reason_ar' => 'required|String|min:3|max:100',
-            'reason_en' => 'required|String|min:3|max:100'
+            'reason_en' => 'required|String|min:3|max:100',
+            'is_for_tech' => 'required',
         ];
         $validated = Validator::make($request->all(), $rules);
         if ($validated->fails()) {
@@ -67,11 +80,13 @@ class ReasonCancelController extends Controller
         session()->flash('success');
         return redirect()->back();
     }
-    protected function update(Request $request, $id){
+    protected function update(Request $request, $id)
+    {
         $banner = ReasonCancel::query()->where('id', $id)->first();
         $rules = [
             'reason_ar' => 'required|String|min:3|max:100',
-            'reason_en' => 'required|String|min:3|max:100'
+            'reason_en' => 'required|String|min:3|max:100',
+            'is_for_tech' => 'required',
         ];
         $validated = Validator::make($request->all(), $rules);
         if ($validated->fails()) {
@@ -91,15 +106,15 @@ class ReasonCancelController extends Controller
             'msg' => __("dash.deleted_success")
         ];
     }
-    protected function change_status (Request $request){
+    protected function change_status(Request $request)
+    {
         $banner = ReasonCancel::query()->where('id', $request->id)->first();
-        if ($request->active == "false"){
+        if ($request->active == "false") {
             $banner->active = 0;
-        }else{
+        } else {
             $banner->active = 1;
         }
         $banner->save();
         return response('success');
     }
-
 }

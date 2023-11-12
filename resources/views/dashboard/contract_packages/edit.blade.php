@@ -80,15 +80,15 @@
 
                                     <div class="form-group col-md-4">
 
-                                        <label for="service">الخدمة</label>
-                                        <select required class="select2 form-control pt-1"
-                                                name="service_id">
-                                            <option selected disabled>{{__('dash.choose')}}</option>
+                                        <label for="service">الخدمات</label>
+                                        <select multiple required class="select2 form-control pt-1"
+                                                name="service_ids[]">
+                                            <option disabled>{{__('dash.choose')}}</option>
                                             @foreach($services as $key => $service)
-                                                <option value="{{$key}}" @if($ContractPackage->service_id == $key) selected @endif>{{$service}}</option>
+                                                <option  value="{{$key}}" @if($selectedServices->contains($key)) selected @endif>{{$service}}</option>
                                             @endforeach
                                         </select>
-                                        @error('service_id')
+                                        @error('service_ids')
                                         <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
 

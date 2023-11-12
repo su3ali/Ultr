@@ -67,7 +67,7 @@
                                 </tr>
                                 <tr>
                                     @php
-                                        $date = Illuminate\Support\Carbon::parse($order->created_at);
+                                        $date = Illuminate\Support\Carbon::parse($order->created_at)->timezone('Asia/Riyadh');
                                     @endphp
                                     <th>تاريخ الطلب</th>
                                     <td>{{ $date->format("Y-m-d H:i:s")}}</td>
@@ -94,6 +94,10 @@
                                 <tr>
                                     <th>اسم العميل</th>
                                     <td>{{$order->user?->first_name . '' .$order->user?->last_name}}</td>
+                                </tr>
+                                <tr>
+                                    <th>هاتف العميل</th>
+                                    <td>{{$userPhone}}</td>
                                 </tr>
                                 <tr>
                                     <th>حاله الطلب</th>

@@ -57,6 +57,7 @@
                         <tr>
                             <th>#</th>
                             <th>سبب الالغاء</th>
+                            <th>النوع</th>
                             <th>حالة النشاط</th>
                             <th class="no-content">{{__('dash.actions')}}</th>
                         </tr>
@@ -94,11 +95,12 @@
                     ]
                 },
                 processing: true,
-                serverSide: true,
+                 serverSide: false,
                 ajax: '{{ route('dashboard.reason_cancel.index') }}',
                 columns: [
                     {data: 'id', name: 'id'},
                     {data: 'reason', name: 'reason'},
+                    {data: 'is_for_tech', name: 'is_for_tech'},
                     {data: 'status', name: 'status'},
                     {data: 'control', name: 'control', orderable: false, searchable: false},
 

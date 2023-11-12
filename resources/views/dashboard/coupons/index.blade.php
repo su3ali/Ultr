@@ -22,7 +22,7 @@
                             <ol class="breadcrumb mb-0 py-2">
                                 <li class="breadcrumb-item"><a
                                         href="{{route('dashboard.home')}}">{{__('dash.home')}}</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">الكوبونات</li>
+                                <li class="breadcrumb-item active" aria-current="page">{{__('dash.coupons')}}</li>
                             </ol>
                         </nav>
 
@@ -63,6 +63,7 @@
                                 <th>تاريخ الانتهاء</th>
                                 <th>حالة النشاط</th>
                                 <th class="no-content">{{__('dash.actions')}}</th>
+                            
                             </tr>
                             </thead>
                         </table>
@@ -99,7 +100,7 @@
                 },
                 processing: true,
                 responsive: true,
-                serverSide: true,
+                 serverSide: false,
                 ajax: '{{ route('dashboard.coupons.index') }}',
                 columns: [
                     {data: 'id', name: 'id'},
