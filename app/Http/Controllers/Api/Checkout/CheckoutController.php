@@ -457,14 +457,25 @@ class CheckoutController extends Controller
         $user = auth()->user('sanctum');
 
         $request->validate($rules, $request->all());
+        $trans = Transaction::where('order_id', $request->order_id)->get();
+        if ($trans->isEmpty()) {
+            Transaction::create([
+                'order_id' => $request->order_id,
+                'transaction_number' => $request->transaction_id,
+                'payment_result' => 'success',
+                'payment_method' => $request->payment_method,
+                //     'amount' => $request->amount,
+            ]);
+        } else {
+            Transaction::where('order_id', $request->order_id)->update([
+                //   'order_id' => $request->order_id,
+                'transaction_number' => $request->transaction_id,
+                'payment_result' => 'success',
+                'payment_method' => $request->payment_method,
+                //     'amount' => $request->amount,
+            ]);
+        }
 
-        Transaction::create([
-            'order_id' => $request->order_id,
-            'transaction_number' => $request->transaction_id,
-            'payment_result' => 'success',
-            'payment_method' => $request->payment_method,
-            //     'amount' => $request->amount,
-        ]);
 
         $order = Order::where('id', $request->order_id)->first();
 

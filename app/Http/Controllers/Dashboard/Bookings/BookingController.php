@@ -44,17 +44,17 @@ class BookingController extends Controller
                 $va = \request()->query('status');
                 $bookings->Where('booking_status_id', $va);
             }
-            if($date) {
-                  $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
-                  $formattedDate = $carbonDate->format('Y-m-d');
-                  $order = $bookings->where('date','>=', $formattedDate);
-              }
-              if($date2){
-           
-                  $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
-                  $formattedDate2 = $carbonDate2->format('Y-m-d');
-                  $order = $bookings->where('date','<=', $formattedDate2);
-              }
+            if ($date) {
+                $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
+                $formattedDate = $carbonDate->format('Y-m-d');
+                $order = $bookings->where('date', '>=', $formattedDate);
+            }
+            if ($date2) {
+
+                $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
+                $formattedDate2 = $carbonDate2->format('Y-m-d');
+                $order = $bookings->where('date', '<=', $formattedDate2);
+            }
 
             $bookings->get();
             return DataTables::of($bookings)
@@ -239,6 +239,7 @@ class BookingController extends Controller
 
     protected function getGroupByService(Request $request)
     {
+
         if ($request->type == 'package') {
 
             $package = ContractPackage::where('id', $request->service_id)->first();
@@ -255,12 +256,21 @@ class BookingController extends Controller
         } else {
             $groupIds = CategoryGroup::where('category_id', $request->category_id)->pluck('group_id')->toArray();
             $address = UserAddresses::where('id', $request->address_id)->first();
-            $group = Group::where('active', 1)->whereIn('id', $groupIds)->whereHas('regions', function ($qu) use ($address) {
+            $booking = Booking::where('id', $request->booking_id)->first();
+            $booking_id = Booking::whereHas('address', function ($qu) use ($address) {
+                $qu->where('region_id', $address->region_id);
+            })->whereHas('category', function ($qu) use ($request) {
+                $qu->where('category_id', $request->category_id);
+            })->where('date', $booking->date)->pluck('id')->toArray();
+            $activeGroups = Group::where('active', 1)->pluck('id')->toArray();
+            $takenIds = Visit::where('start_time', $booking->time)->whereIn('booking_id', $booking_id)->whereIn('assign_to_id', $activeGroups)->get();
+            $group = Group::where('active', 1)->whereIn('id', $groupIds)->whereNotIn('id', $takenIds)->whereHas('regions', function ($qu) use ($address) {
                 $qu->where('region_id', $address->region_id);
             })->get()->pluck('name', 'id')->toArray();
-            $groups = Group::where('active', 1)->whereIn('id', $groupIds)->get();
         }
-
+        foreach($group as $te){
+            error_log($te->name);
+        }
         return response($group);
     }
 }

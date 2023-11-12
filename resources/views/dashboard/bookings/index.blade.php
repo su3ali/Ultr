@@ -317,7 +317,7 @@
 
                 }
             });
-        })
+        });
 
 
         $("body").on('change', '#customSwitchStatus', function() {
@@ -340,7 +340,7 @@
                     })
                 }
             });
-        })
+        });
 
 
         // $("body").on('change', '#status', function () {
