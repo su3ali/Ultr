@@ -44,7 +44,7 @@ class ComplaintController extends Controller
         if ($request->hasFile('video')) {
             $video = $request->file('video');
             $filename = time() . '.' . $video->getClientOriginalExtension();
-            $request->image->move(storage_path('app/public/complaints/videos/coupons/'), $filename);
+            $request->video->move(storage_path('app/public/complaints/videos/coupons/'), $filename);
             $validated['video'] = 'storage/complaints/videos/coupons' . '/' . $filename;
         }
         $validated = collect($validated)->except('images')->toArray();
