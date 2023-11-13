@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Api\Core;
+namespace App\Http\Controllers\Api\Complaint;
 
 use App\Http\Controllers\Controller;
+use App\Models\CustomerComplaint;
+use App\Models\CustomerComplaintImage;
 use App\Support\Api\ApiResponse;
 use Illuminate\Http\Request;
 use Validator;
