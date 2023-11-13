@@ -98,6 +98,7 @@
                                     <tr>
                                         <th>الفيديو</th>
                                         <td>
+                                            @if($customerComplaint->video !=null)
                                             <div class="card-body p-0" style="margin: auto">
 
                                                 <video width="500" height="240" controls>
@@ -107,6 +108,7 @@
                                                 </video>
 
                                             </div>
+                                            @endif
                                         </td>
                                     </tr>
 
