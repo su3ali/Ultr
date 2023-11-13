@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\Core\CustomerComplaintController;
+use App\Http\Controllers\Api\Core\ComplaintController;
 
-
-Route::post('complaints/store', [CustomerComplaintController::class, 'store']);
+Route::post('complaints/store', [ComplaintController::class, 'store']);

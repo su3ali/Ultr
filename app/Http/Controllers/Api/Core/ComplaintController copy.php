@@ -1,16 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\Core;
 
-use App\Models\CustomerComplaint;
-use App\Models\CustomerComplaintImage;
+use App\Http\Controllers\Controller;
 use App\Support\Api\ApiResponse;
 use Illuminate\Http\Request;
 use Validator;
 
-class CustomerComplaintController extends Controller
+class ComplaintController extends Controller
 {
-
     use ApiResponse;
 
     public function __construct()
