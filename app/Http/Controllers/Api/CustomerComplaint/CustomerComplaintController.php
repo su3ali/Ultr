@@ -25,6 +25,7 @@ class CustomerComplaintController extends Controller
             'video' => 'nullable',
             'images' => 'nullable|array',
             'images.*' => 'nullable|image|mimes:jpeg,jpg,png,gif',
+            'order_id' => 'required|exists:orders,id',
         ];
 
         $validated = Validator::make($request->all(), $rules);
