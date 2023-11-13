@@ -2,4 +2,11 @@
 
 use App\Http\Controllers\Api\Complaint\ComplaintController;
 
-Route::post('complaints/store', [ComplaintController::class, 'store']);
+
+
+
+
+Route::prefix('complaints')->group(function () {
+    Route::post('/store', [ComplaintController::class, 'store']);
+    Route::get('/', [ComplaintController::class, 'index']);
+});

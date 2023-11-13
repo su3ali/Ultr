@@ -14,7 +14,7 @@ class CustomerComplaint extends Model
     {
         return $this->belongsTo(User::class,  'user_id');
     }
-    public function customerComplaintImage()
+    public function customerComplaintImages()
     {
         return $this->hasMany(CustomerComplaintImage::class,  'customer_complaints_id');
     }

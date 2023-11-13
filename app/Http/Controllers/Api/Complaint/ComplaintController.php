@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Complaint;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Complaint\ComplaintResource;
 use App\Models\CustomerComplaint;
 use App\Models\CustomerComplaintImage;
 use App\Support\Api\ApiResponse;
@@ -16,6 +17,13 @@ class ComplaintController extends Controller
     public function __construct()
     {
         $this->middleware('localization');
+    }
+
+    protected function index()
+    {
+        $complaints = CustomerComplaint::where('user_id', auth()->user('sanctum')->id)->get();
+        $this->body['complaints'] = ComplaintResource::collection($complaints);
+        return self::apiResponse(200, null, $this->body);
     }
 
     protected function store(Request $request)
