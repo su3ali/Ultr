@@ -85,29 +85,34 @@
                                     <tr>
                                         <th>الصور</th>
                                         <td>
-                                            @foreach ($customerComplaintImages as $customerComplaintImage)
-                                                <div class="container__img-holder">
-                                                    <img class="img-fluid"
-                                                        src="{{ asset($customerComplaintImage->image) }}">
+                                            @if ($customerComplaintImages && count($customerComplaintImages) > 0)
+                                                @foreach ($customerComplaintImages as $customerComplaintImage)
+                                                    <div class="container__img-holder">
+                                                        <img class="img-fluid"
+                                                            src="{{ asset($customerComplaintImage->image) }}">
 
-                                                </div>
-                                            @endforeach
-
+                                                    </div>
+                                                @endforeach
+                                            @else
+                                                لا يوجد صور
+                                            @endif
                                         </td>
                                     </tr>
                                     <tr>
                                         <th>الفيديو</th>
                                         <td>
-                                            @if($customerComplaint->video !=null)
-                                            <div class="card-body p-0" style="margin: auto">
+                                            @if ($customerComplaint->video != null)
+                                                <div class="card-body p-0" style="margin: auto">
 
-                                                <video width="500" height="240" controls>
-                                                    <source src="{{ URL::asset($customerComplaint->video) }}"
-                                                        type="video/mp4">
-                                                    Your browser does not support the video tag.
-                                                </video>
+                                                    <video width="500" height="240" controls>
+                                                        <source src="{{ URL::asset($customerComplaint->video) }}"
+                                                            type="video/mp4">
+                                                        Your browser does not support the video tag.
+                                                    </video>
 
-                                            </div>
+                                                </div>
+                                            @else
+                                                لا يوجد فيديو
                                             @endif
                                         </td>
                                     </tr>
