@@ -30,4 +30,7 @@ Route::post('contract_contact', [HomeController::class, 'contract_contact']);
 
 Route::get('package/{id}', [ServiceController::class, 'PackageDetails']);
 
-Route::post('complaints/store', [ComplaintController::class, 'store']);
+
+Route::prefix('complaints')->group(function () {
+    Route::post('/store', [ComplaintController::class, 'store']);
+});
