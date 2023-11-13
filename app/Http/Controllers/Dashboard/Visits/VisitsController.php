@@ -33,7 +33,9 @@ class VisitsController extends Controller
 
             if (request()->page) {
                 $now = Carbon::now('Asia/Riyadh')->toDateString();
-                $visit->whereDate('created_at', '=', $now);
+                $visit->where('visits_status_id', '!=', 6)->whereHas('booking', function ($qu) use ($now) {
+                    $qu->whereDate('date', '=', $now);
+                });
             }
             if (request()->status) {
 
@@ -104,7 +106,8 @@ class VisitsController extends Controller
 
 
             $now = Carbon::now('Asia/Riyadh')->toDateString();
-            $visit->whereDate('created_at', '=', $now);
+
+            $visit->whereDate('start_date', '=', $now);
 
             if (request()->status) {
 

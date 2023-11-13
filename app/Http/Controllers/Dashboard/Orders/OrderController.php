@@ -40,7 +40,7 @@ class OrderController extends Controller
 
             if (request()->page) {
                 $now = Carbon::now('Asia/Riyadh')->toDateString();
-                $orders->whereDate('created_at', '=', $now);
+                $orders->where('status_id', '!=', 5)->whereDate('created_at', '=', $now);
             }
             if (request()->status) {
 
@@ -72,6 +72,9 @@ class OrderController extends Controller
                     $qu = OrderService::where('order_id', $row->id)->get()->pluck('quantity')->toArray();
 
                     return array_sum($qu);
+                })
+                ->addColumn('payment_method', function ($row) {
+                    return $row->transaction?->payment_method;
                 })
                 ->addColumn('status', function ($row) {
 
@@ -110,6 +113,7 @@ class OrderController extends Controller
                     'user',
                     'service',
                     'quantity',
+                    'payment_method',
                     'status',
                     'created_at',
                     'control',
@@ -248,6 +252,11 @@ class OrderController extends Controller
 
                     return $date->format("Y-m-d H:i:s");
                 })
+                ->addColumn('updated_at', function ($row) {
+                    $date = Carbon::parse($row->updated_at)->timezone('Asia/Riyadh');
+
+                    return $date->format("Y-m-d H:i:s");
+                })
                 ->addColumn('control', function ($row) {
 
                     $html = '';
@@ -278,6 +287,7 @@ class OrderController extends Controller
                     'quantity',
                     'status',
                     'created_at',
+                    'updated_at',
                     'control',
                 ])
                 ->make(true);
@@ -325,6 +335,11 @@ class OrderController extends Controller
 
                     return $date->format("Y-m-d H:i:s");
                 })
+                ->addColumn('updated_at', function ($row) {
+                    $date = Carbon::parse($row->updated_at)->timezone('Asia/Riyadh');
+
+                    return $date->format("Y-m-d H:i:s");
+                })
                 ->addColumn('control', function ($row) {
 
                     $html = '';
@@ -355,6 +370,7 @@ class OrderController extends Controller
                     'quantity',
                     'status',
                     'created_at',
+                    'updated_at',
                     'control',
                 ])
                 ->make(true);
