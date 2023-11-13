@@ -97,14 +97,17 @@
                                     </tr>
                                     <tr>
                                         <th>الفيديو</th>
-                                        <div class="card-body p-0" style="margin: auto">
+                                        <td>
+                                            <div class="card-body p-0" style="margin: auto">
 
-                                            <video width="500" height="240" controls>
-                                                <source src="{{ URL::asset($customerComplaint->video) }}" type="video/mp4">
-                                                Your browser does not support the video tag.
-                                            </video>
+                                                <video width="500" height="240" controls>
+                                                    <source src="{{ URL::asset($customerComplaint->video) }}"
+                                                        type="video/mp4">
+                                                    Your browser does not support the video tag.
+                                                </video>
 
-                                        </div>
+                                            </div>
+                                        </td>
                                     </tr>
 
                                 </thead>
