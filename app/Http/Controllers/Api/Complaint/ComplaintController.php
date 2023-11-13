@@ -44,8 +44,8 @@ class ComplaintController extends Controller
         if ($request->hasFile('video')) {
             $video = $request->file('video');
             $filename = time() . '.' . $video->getClientOriginalExtension();
-            $request->video->move(storage_path('app/public/complaints/videos/coupons/'), $filename);
-            $validated['video'] = 'storage/complaints/videos/coupons' . '/' . $filename;
+            $request->video->move(storage_path('app/public/images/complaints/videos/'), $filename);
+            $validated['video'] = 'storage/images/complaints/videos' . '/' . $filename;
         }
         $validated = collect($validated)->except('images')->toArray();
         $validated['user_id'] = auth()->user('sanctum')->id;
@@ -54,8 +54,8 @@ class ComplaintController extends Controller
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $imageFilename = time() . '_' . rand(100, 999) . '.' . $image->getClientOriginalExtension();
-                $image->move(storage_path('app/public/complaints/images/coupons/'), $imageFilename);
-                $imagePath = 'storage/complaints/images/coupons' . '/' . $imageFilename;
+                $image->move(storage_path('app/public/images/complaints/images/'), $imageFilename);
+                $imagePath = 'storage/images/complaints/images' . '/' . $imageFilename;
                 CustomerComplaintImage::create([
                     'customer_complaints_id' => $customer_complaints_id,
                     'image' => $imagePath
