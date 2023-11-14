@@ -103,9 +103,15 @@ class ReportsController extends Controller
                     return $row->total;
                 })
                 ->addColumn('payment_method', function ($row) use ($payment_method) {
+                    $payment_methodd = $row->transaction?->payment_method;
                     if ($payment_method)
-                        return $payment_method;
-                    return $row->transaction?->payment_method;
+                        $payment_methodd = $payment_method;
+                    if ($payment_methodd == "cache" || $payment_methodd == "cash")
+                        return "شبكة";
+                    else if ($payment_methodd == "wallet")
+                        return "محفظة";
+                    else
+                        return "فيزا";
                 })->addColumn('total', function ($row) {
                     return $row->total;
                 })

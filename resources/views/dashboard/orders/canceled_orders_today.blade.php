@@ -55,6 +55,7 @@
                                 <th>{{ __('dash.service') }}</th>
                                 <th>{{ __('dash.quantity') }}</th>
                                 <th>{{ __('dash.price_value') }}</th>
+                                <th>طريقة الدفع</th>
                                 <th>{{ __('dash.status') }}</th>
                                 <th>تاريخ إنشاء الطلب</th>
                                 <th>تاريخ إلغاء الطلب</th>
@@ -135,6 +136,10 @@
                     {
                         data: 'total',
                         name: 'total'
+                    },
+                    {
+                        data: 'payment_method',
+                        name: 'payment_method'
                     },
                     {
                         data: 'status',

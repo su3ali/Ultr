@@ -76,7 +76,13 @@ class OrderController extends Controller
                     return array_sum($qu);
                 })
                 ->addColumn('payment_method', function ($row) {
-                    return $row->transaction?->payment_method;
+                    $payment_method = $row->transaction?->payment_method;
+                    if ($payment_method == "cache" || $payment_method == "cash")
+                        return "شبكة";
+                    else if ($payment_method == "wallet")
+                        return "محفظة";
+                    else
+                        return "فيزا";
                 })
                 ->addColumn('status', function ($row) {
 
@@ -165,6 +171,15 @@ class OrderController extends Controller
 
                     return array_sum($qu);
                 })
+                ->addColumn('payment_method', function ($row) {
+                    $payment_method = $row->transaction?->payment_method;
+                    if ($payment_method == "cache" || $payment_method == "cash")
+                        return "شبكة";
+                    else if ($payment_method == "wallet")
+                        return "محفظة";
+                    else
+                        return "فيزا";
+                })
                 ->addColumn('status', function ($row) {
 
                     return $row->status?->name;
@@ -202,6 +217,7 @@ class OrderController extends Controller
                     'user',
                     'service',
                     'quantity',
+                    'payment_method',
                     'status',
                     'created_at',
                     'control',
@@ -245,6 +261,15 @@ class OrderController extends Controller
 
                     return array_sum($qu);
                 })
+                ->addColumn('payment_method', function ($row) {
+                    $payment_method = $row->transaction?->payment_method;
+                    if ($payment_method == "cache" || $payment_method == "cash")
+                        return "شبكة";
+                    else if ($payment_method == "wallet")
+                        return "محفظة";
+                    else
+                        return "فيزا";
+                })
                 ->addColumn('status', function ($row) {
 
                     return $row->status?->name;
@@ -287,6 +312,7 @@ class OrderController extends Controller
                     'user',
                     'service',
                     'quantity',
+                    'payment_method',
                     'status',
                     'created_at',
                     'updated_at',
@@ -417,7 +443,7 @@ class OrderController extends Controller
         $category_ids = $order->services->pluck('category_id')->toArray();
         $category_ids = array_unique($category_ids);
         $categories = Category::whereIn('id', $category_ids)->get();
-        return view('dashboard.orders.show_complaint', compact('categories','customerComplaint', 'customerComplaintImages', 'user', 'order'));
+        return view('dashboard.orders.show_complaint', compact('categories', 'customerComplaint', 'customerComplaintImages', 'user', 'order'));
     }
     public function complaints()
     {
@@ -468,7 +494,7 @@ class OrderController extends Controller
                     'complaint_images',
                     'complaint_video',
                     'created_at',
-                      'control',
+                    'control',
                 ])
                 ->make(true);
         }
