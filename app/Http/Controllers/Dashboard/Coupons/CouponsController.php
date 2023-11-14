@@ -132,9 +132,9 @@ class CouponsController extends Controller
             $validated['image'] = 'storage/images/coupons' . '/' . $filename;
         }
 
-        if ($request['is_hidden'] && $request['is_hidden'] == 'on'){
+        if ($request['is_hidden'] && $request['is_hidden'] == 'on') {
             $validated['is_hidden'] = 1;
-        }else{
+        } else {
             $validated['is_hidden'] = 0;
         }
         Coupon::query()->create($validated);
@@ -159,6 +159,7 @@ class CouponsController extends Controller
             'start' => 'required|date',
             'end' => 'required|date',
             'times_limit' => 'required|numeric',
+            'user_times' => 'required|numeric',
             'code' => 'nullable|string',
             'description_ar' => 'nullable|string|min:3',
             'description_en' => 'nullable|string|min:3',
