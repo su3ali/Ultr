@@ -204,13 +204,19 @@
                 selectElement.empty();
                 selectElement.append('<option value="all" selected>الكل</option>');
                 subjects.forEach(function(subject) {
-                    selectElement.append('<option value="' + subject.id + '">' + subject
+                    if(selectedType == 'technician'){
+                        selectElement.append('<option value="' + subject.id + '">' + subject
+                        .name + ' - ' + subject.phone + '</option>');
+                    }else{
+                            selectElement.append('<option value="' + subject.id + '">' + subject
                         .first_name + ' - ' + subject.phone + '</option>');
+                    }
+                
                 });
 
                 // Update the label based on the selected type
                 if (selectedType == 'technician') {
-                    label.text('الأخصائيين');
+                    label.text('الفنيين');
                 } else if (selectedType == 'customersWithNoOrders') {
                     label.text('العملاء الجدد');
                 } else {
