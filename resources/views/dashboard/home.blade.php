@@ -248,7 +248,7 @@
                 </div>
             </div>
 
-     
+
             <div class="col-xl-6 col-lg-12 col-sm-12  layout-spacing">
 
                 <div class="widget-content widget-content-area br-6">
@@ -306,7 +306,7 @@
                 </div>
 
             </div>
-            
+
             <div class="col-xl-6 col-lg-12 col-sm-12  layout-spacing">
                 <div class="widget-content widget-content-area br-6">
                     <div class="col-md-12 text-left mb-3">
@@ -354,8 +354,7 @@
 
 @push('script')
     <script type="text/javascript">
-
-$(document).ready(function() {
+        $(document).ready(function() {
             // Initial state: show chart 1 and hide chart 2
             $('#sellsChart1').show();
             $('#sellsChart2').hide();
@@ -404,20 +403,19 @@ $(document).ready(function() {
                 },
                 processing: true,
                 responsive: true,
-                 serverSide: false,
+                serverSide: false,
                 ajax: {
                     url: '{{ url('admin/bookings?type=service') }}',
                     data: function(d) {
                         d.page = "home";
                     }
                 },
-                columns: [
-                    {
+                columns: [{
                         render: function(data, type, row, meta) {
                             return meta.row + 1;
                         }
                     },
-                     {
+                    {
                         data: 'id',
                         name: 'id'
                     },
@@ -447,8 +445,8 @@ $(document).ready(function() {
                     },
                 ]
             });
-         
-        });       
+
+        });
         $(document).ready(function() {
             var table;
             table = $('#html5-extension').DataTable({
@@ -486,20 +484,19 @@ $(document).ready(function() {
                 },
                 processing: true,
                 responsive: true,
-                 serverSide: false,
+                serverSide: false,
                 ajax: {
                     url: '{{ route('dashboard.visits.index') }}',
                     data: function(d) {
                         d.page = "home";
                     }
                 },
-                columns: [
-                    {
+                columns: [{
                         render: function(data, type, row, meta) {
                             return meta.row + 1;
                         }
                     },
-                     {
+                    {
                         data: 'id',
                         name: 'id'
                     },
@@ -566,7 +563,7 @@ $(document).ready(function() {
                     ]
                 },
                 processing: true,
-                 serverSide: false,
+                serverSide: false,
                 responsive: true,
                 ajax: {
                     url: '{{ route('dashboard.orders.index') }}',

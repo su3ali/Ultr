@@ -456,7 +456,6 @@ class CheckoutController extends Controller
         $request->validate($rules, $request->all());
         $user = auth()->user('sanctum');
 
-        $request->validate($rules, $request->all());
         $trans = Transaction::where('order_id', $request->order_id)->get();
         if ($trans->isEmpty()) {
             Transaction::create([
