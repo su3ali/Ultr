@@ -62,24 +62,26 @@
                                     <div class="form-group col-md-4">
                                         <div class="n-chk">
                                             <label class="new-control new-radio radio-classic-primary">
-                                                <input type="radio" class="new-control-input type" value="customer" checked name="type">
+                                                <input type="radio" class="new-control-input type" value="customer"
+                                                    checked name="type">
                                                 <span class="new-control-indicator"></span>العملاء
                                             </label>
                                         </div>
                                         @error('type')
-                                        <div class="alert alert-danger">{{ $message }}</div>
+                                            <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
 
                                     </div>
                                     <div class="form-group col-md-4">
                                         <div class="n-chk">
                                             <label class="new-control new-radio radio-classic-primary">
-                                                <input type="radio" class="new-control-input type" value="customersWithNoOrders"  name="type">
+                                                <input type="radio" class="new-control-input type"
+                                                    value="customersWithNoOrders" name="type">
                                                 <span class="new-control-indicator"></span>العملاء الجدد
                                             </label>
                                         </div>
                                         @error('type')
-                                        <div class="alert alert-danger">{{ $message }}</div>
+                                            <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
 
                                     </div>
@@ -87,33 +89,35 @@
 
                                         <div class="n-chk">
                                             <label class="new-control new-radio radio-classic-primary">
-                                                <input type="radio" class="new-control-input type" value="technician" name="type">
+                                                <input type="radio" class="new-control-input type" value="technician"
+                                                    name="type">
                                                 <span class="new-control-indicator"></span>الفنيين
                                             </label>
                                         </div>
                                         @error('type')
-                                        <div class="alert alert-danger">{{ $message }}</div>
+                                            <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
 
                                     </div>
 
 
-                                    <div class="form-group col-md-6 div-customer">
-                                        <label for="customer">العملاء</label>
-                                        <select  class="form-control customer_id"  style="width: 100%; padding: 8px"
-                                                name="customer_id">
+                                    <div class="form-group col-md-4">
+                                        <label class="lable_subject_id" for="subject_id">العملاء</label>
+                                        <select class="form-control subject_id" style="width: 100%; padding: 8px"
+                                            name="subject_id">
                                             <option value="all" selected>الكل</option>
-                                            @foreach($customers as $customer)
-                                            <option value="{{$customer->id}}">{{$customer->first_name}} - {{ $customer->phone}}</option>
-                                                @endforeach
+                                            @foreach ($subjects as $subject)
+                                                <option value="{{ $subject->id }}">{{ $subject->first_name }} -
+                                                    {{ $subject->phone }}</option>
+                                            @endforeach
                                         </select>
-                                        @error('customer_id')
-                                        <div class="alert alert-danger">{{ $message }}</div>
+                                        @error('subject_id')
+                                            <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
 
                                     </div>
 
-                                    <div class="form-group col-md-6 div-technician" style="display:none;">
+                                    {{-- <div class="form-group col-md-6 div-technician" style="display:none;">
                                         <label for="customer">الفنيين</label>
                                         <select  class="form-control technician_id" disabled style="width: 100%; padding: 8px"
                                                 name="technician_id">
@@ -126,7 +130,7 @@
                                         <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
 
-                                    </div>
+                                    </div> --}}
 
                                     <div class="form-group col-md-6">
                                         <label for="title">العنوان</label>
@@ -181,8 +185,45 @@
 @endsection
 
 @push('script')
+<script type="text/javascript">
+    $("body").on('change', '.type, .gender_filter', function() {
+        var label = $('.lable_subject_id');
+        var selectedType = $('.type:checked').val();
+       
 
-    <script type="text/javascript">
+        $.ajax({
+            url: '{{ route('dashboard.notification.showNotification') }}',
+            type: 'GET',
+            data: {
+                type: selectedType,
+              
+            },
+            success: function(response) {
+                var subjects = response.subjects;
+                var selectElement = $('.subject_id');
+                selectElement.empty();
+                selectElement.append('<option value="all" selected>الكل</option>');
+                subjects.forEach(function(subject) {
+                    selectElement.append('<option value="' + subject.id + '">' + subject
+                        .first_name + ' - ' + subject.phone + '</option>');
+                });
+
+                // Update the label based on the selected type
+                if (selectedType == 'technician') {
+                    label.text('الأخصائيين');
+                } else if (selectedType == 'customersWithNoOrders') {
+                    label.text('العملاء الجدد');
+                } else {
+                    label.text('العملاء');
+                }
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        });
+    });
+</script>
+    {{-- <script type="text/javascript">
         $("body").on('change', '.type', function () {
 
             if ($(this).val() == 'technician') {
@@ -207,6 +248,6 @@
         })
 
 
-    </script>
+    </script> --}}
 
 @endpush
