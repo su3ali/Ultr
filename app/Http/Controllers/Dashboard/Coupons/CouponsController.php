@@ -146,6 +146,7 @@ class CouponsController extends Controller
         $coupon = Coupon::query()->find($id);
         $categories = Category::all();
         $services = Service::all();
+        return $coupon;
         return view('dashboard.coupons.edit', compact('coupon', 'categories', 'services'));
     }
     protected function update(Request $request, $id)
@@ -160,6 +161,7 @@ class CouponsController extends Controller
             'end' => 'required|date',
             'times_limit' => 'required|numeric',
             'user_times' => 'required|numeric',
+            'is_hidden' => 'required',
             'code' => 'nullable|string',
             'description_ar' => 'nullable|string|min:3',
             'description_en' => 'nullable|string|min:3',
