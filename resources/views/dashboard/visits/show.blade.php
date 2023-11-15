@@ -410,21 +410,8 @@
                 if (status == 'OK') {
                     // Display the updated route on the map
                     directionsRenderer.setDirections(result);
-
-                    var startMarker = new google.maps.Marker({
-                        position: startingPoint,
-                        map: map,
-                        label: 'Start'
-                    });
-
-                    // Create a marker for the destination with a label 'End'
-                    var endMarker = new google.maps.Marker({
-                        position: destination,
-                        map: map,
-                        label: 'End'
-                    });
                     map.setZoom(currentZoomLevel);
-                    map.setCenter(currentMapCenter);
+                    map.setCenter(currentMapCenter);    
 
                 }
             });
