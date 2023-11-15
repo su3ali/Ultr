@@ -247,7 +247,7 @@
                                         <label class="switch s-outline s-outline-info  mb-4 mx-4 mt-3 d-block w-50">
                                             <label class="mx-5" for="is_hidden">مخفي عن العملاء</label>
                                             <input type="checkbox" name="is_hidden" id="is_hidden"
-                                                value="{{ $coupon->is_hidden }}">
+                                                {{ $coupon->is_hidden == 1 ? 'checked' : '' }}>
                                             <span class="slider round"></span>
                                         </label>
                                         @error('is_hidden')

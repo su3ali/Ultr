@@ -448,25 +448,7 @@ $(document).ready(function() {
                 ]
             });
          
-        });
-
-
-
-
-
-
-        $(document).ready(function() {
-            // Initial state: show chart 1 and hide chart 2
-            $('#sellsChart1').show();
-            $('#sellsChart2').hide();
-
-
-            $('#chartToggleWidget .box-title').click(function() {
-                // Toggle the visibility of the charts
-                $('#sellsChart1').toggle();
-                $('#sellsChart2').toggle();
-            });
-        });
+        });       
         $(document).ready(function() {
             var table;
             table = $('#html5-extension').DataTable({

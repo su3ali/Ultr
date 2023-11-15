@@ -146,7 +146,6 @@ class CouponsController extends Controller
         $coupon = Coupon::query()->find($id);
         $categories = Category::all();
         $services = Service::all();
-       
         return view('dashboard.coupons.edit', compact('coupon', 'categories', 'services'));
     }
     protected function update(Request $request, $id)
@@ -201,7 +200,11 @@ class CouponsController extends Controller
             $request->image->move(storage_path('app/public/images/coupons/'), $filename);
             $validated['image'] = 'storage/images/coupons' . '/' . $filename;
         }
-
+        if ($request['is_hidden'] && $request['is_hidden'] == 'on') {
+            $validated['is_hidden'] = 1;
+        } else {
+            $validated['is_hidden'] = 0;
+        }
         $coupon->update($validated);
         session()->flash('success');
         return redirect()->route('dashboard.coupons.index');
