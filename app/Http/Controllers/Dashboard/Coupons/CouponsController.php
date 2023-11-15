@@ -146,7 +146,7 @@ class CouponsController extends Controller
         $coupon = Coupon::query()->find($id);
         $categories = Category::all();
         $services = Service::all();
-        return $coupon;
+       
         return view('dashboard.coupons.edit', compact('coupon', 'categories', 'services'));
     }
     protected function update(Request $request, $id)
