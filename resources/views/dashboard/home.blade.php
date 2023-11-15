@@ -297,6 +297,7 @@
                                 <th>اسم العميل</th>
                                 <th>التاريخ</th>
                                 <th>المبلغ</th>
+                                <th>طريقة الدفع</th>
                                 <th>الحالة</th>
                             </tr>
                         </thead>
@@ -592,6 +593,10 @@
                     {
                         data: 'total',
                         name: 'total'
+                    },
+                    {
+                        data: 'payment_method',
+                        name: 'payment_method'
                     },
                     {
                         data: 'status',
