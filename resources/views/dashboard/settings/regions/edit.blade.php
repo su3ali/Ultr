@@ -167,7 +167,7 @@
             });
             addMarker(center);
 
-            var circleRadius = parseFloat("{{ $region->space_km }}"); // Convert to float
+            var circleRadius = parseFloat($('#spaceKmInput').val()); // Convert to float
             addCircle(center, circleRadius);
 
             // This event listener will call addMarker() when the map is clicked.
