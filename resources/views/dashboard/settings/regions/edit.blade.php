@@ -189,7 +189,7 @@
             updateCircle({
                 lat: parseFloat($('.lat').val()),
                 lng: parseFloat($('.lon').val())
-            }, newRadius);
+            }, circleRadius);
 
             // You might want to update the map center as well
             map.setCenter({
