@@ -350,7 +350,7 @@
                 zoom: 16,
                 center: myLatLng
             });
-            const startMarker = new google.maps.Marker({
+            startMarker = new google.maps.Marker({
                 position: {
                     lat: Number(locations[1].lat),
                     lng: Number(locations[1].lng)
@@ -359,7 +359,7 @@
                 icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
                 map: map
             });
-            const endMarker = new google.maps.Marker({
+            endMarker = new google.maps.Marker({
                 position: myLatLng,
                 label: 'العميل'
                 map: map
@@ -428,7 +428,12 @@
                 if (status == 'OK') {
                     // Display the updated route on the map
                     directionsRenderer.setDirections(result);
-
+                    startMarker = new google.maps.Marker({
+                        position: destination,
+                        label: 'الفني'
+                        icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                        map: map
+                    });
                     map.setZoom(currentZoomLevel);
                     map.setCenter(currentMapCenter);
 
