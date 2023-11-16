@@ -358,9 +358,9 @@
 
                 icon: {
                     url: '{{ asset('storage/images/technicians/tech.png') }}',
-                    scaledSize: new google.maps.Size(50, 50), // scaled size
+                    scaledSize: new google.maps.Size(60, 60), // scaled size
                     origin: new google.maps.Point(0, 0), // origin
-                    anchor: new google.maps.Point(0, 0) // anchor
+                    anchor: new google.maps.Point(30, 30) // anchor
                 },
 
                 map: map
