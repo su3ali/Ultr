@@ -355,13 +355,19 @@
                     lat: Number(locations[1].lat),
                     lng: Number(locations[1].lng)
                 },
-                label: 'الفني'
+                label: {
+                    text: 'الفني',
+
+                },
                 icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
                 map: map
             });
             endMarker = new google.maps.Marker({
                 position: myLatLng,
-                label: 'العميل'
+                label: {
+                    text: 'العميل',
+
+                },
                 map: map
             });
 
@@ -411,8 +417,8 @@
 
 
         function updateRoute(locations) {
-            var startingPoint = new google.maps.LatLng(locations[0].lat, locations[0].lng);
-            var destination = new google.maps.LatLng(locations[1].lat, locations[1].lng);
+            var startingPoint = new google.maps.LatLng(locations[1].lat, locations[1].lng);
+            var destination = new google.maps.LatLng(locations[0].lat, locations[0].lng);
 
             currentZoomLevel = map.getZoom();
             currentMapCenter = map.getCenter();
@@ -428,12 +434,10 @@
                 if (status == 'OK') {
                     // Display the updated route on the map
                     directionsRenderer.setDirections(result);
-                    startMarker = new google.maps.Marker({
-                        position: destination,
-                        label: 'الفني'
-                        icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-                        map: map
-                    });
+                    // Update the position of the start marker
+                    startMarker.setPosition(result.routes[0].legs[0].start_location);
+                    // Update the position of the end marker
+                    endMarker.setPosition(result.routes[0].legs[0].end_location);
                     map.setZoom(currentZoomLevel);
                     map.setCenter(currentMapCenter);
 
