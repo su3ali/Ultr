@@ -359,7 +359,8 @@
                     text: 'الفني',
 
                 },
-                icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                icon:  '{{asset('storage/images/technicians/tech.png')}}',
+               
                 map: map
             });
             endMarker = new google.maps.Marker({
