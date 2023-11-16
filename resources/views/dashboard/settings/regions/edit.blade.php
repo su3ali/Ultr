@@ -93,7 +93,7 @@
                                 <div class="form-group col-md-6">
 
                                     <label for="inputEmail4">مسافه التغطيه بالكيلومتر</label>
-                                    <input type="text" name="space_km" value="{{ $region->space_km }}"
+                                    <input type="text" name="space_km" value="{{ $region->space_km }}" id="spaceKmInput"
                                         class="form-control" id="inputEmail4" placeholder="مسافه التغطيه بالكيلومتر">
                                     @error('space_km')
                                         <div class="alert alert-danger">{{ $message }}</div>
@@ -181,6 +181,21 @@
 
 
         }
+        $('#spaceKmInput').on('change', function() {
+            var newRadius = parseFloat($(this).val());
+
+            // Update the circle with the new radius
+            updateCircle({
+                lat: parseFloat($('.lat').val()),
+                lng: parseFloat($('.lon').val())
+            }, newRadius);
+
+            // You might want to update the map center as well
+            map.setCenter({
+                lat: parseFloat($('.lat').val()),
+                lng: parseFloat($('.lon').val())
+            });
+        });
 
         function addCircle(location, radius) {
             circle = new google.maps.Circle({
