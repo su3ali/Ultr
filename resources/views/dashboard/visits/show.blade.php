@@ -331,6 +331,8 @@
 
     <script type="text/javascript">
         var map, directionsService, directionsRenderer, currentZoomLevel, currentMapCenter;
+        var startMarker;
+        var endMarker;
 
         function initMap() {
             // Create a new map centered on the starting point
@@ -348,15 +350,29 @@
                 zoom: 16,
                 center: myLatLng
             });
-
-            const marker = new google.maps.Marker({
-                position: myLatLng,
-                map,
+            const startMarker = new google.maps.Marker({
+                position: {
+                    lat: Number(locations[1].lat),
+                    lng: Number(locations[1].lng)
+                },
+                icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                map: map
             });
+            const endMarker = new google.maps.Marker({
+                position: myLatLng,
+         
+                map: map
+            });
+
+            // const marker = new google.maps.Marker({
+            //     position: myLatLng,
+            //     map,
+            // });
 
             directionsService = new google.maps.DirectionsService();
             directionsRenderer = new google.maps.DirectionsRenderer({
-                map: map
+                map: map,
+                suppressMarkers: true
             });
             currentZoomLevel = map.getZoom();
             currentMapCenter = map.getCenter();
@@ -376,7 +392,8 @@
                 },
                 success: function(data) {
                     if (data[1].lat != 0 && data[1].lng != 0 && data[0].lat != 0 && data[0].lng != 0) {
-                        updateRoute(data)
+                        updateRoute(data);
+                        //  clearMarkers();
                     } else {
                         const myLatLng = {
                             lat: data[0].lat,
@@ -410,8 +427,9 @@
                 if (status == 'OK') {
                     // Display the updated route on the map
                     directionsRenderer.setDirections(result);
+
                     map.setZoom(currentZoomLevel);
-                    map.setCenter(currentMapCenter);    
+                    map.setCenter(currentMapCenter);
 
                 }
             });
