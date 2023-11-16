@@ -37,6 +37,11 @@ class BookingController extends Controller
             $date2 = \request()->query('date2');
             $bookings = Booking::with('visit.group')->where('is_active', 1)->where('type', 'service')->with(['order', 'customer', 'service', 'group', 'booking_status']);
 
+            if (request()->page) {
+                $now = Carbon::now('Asia/Riyadh')->toDateString();
+                $bookings->where('booking_status_id', '!=', 2)->whereDate('date', '=', $now);
+            }
+
             if (\request()->query('type') == 'package') {
                 $bookings = Booking::query()->where('is_active', 1)->where('type', 'contract')->with(['order', 'customer', 'service', 'group', 'booking_status']);
             }
@@ -239,7 +244,6 @@ class BookingController extends Controller
 
     protected function getGroupByService(Request $request)
     {
-
         if ($request->type == 'package') {
 
             $package = ContractPackage::where('id', $request->service_id)->first();
@@ -256,21 +260,74 @@ class BookingController extends Controller
         } else {
             $groupIds = CategoryGroup::where('category_id', $request->category_id)->pluck('group_id')->toArray();
             $address = UserAddresses::where('id', $request->address_id)->first();
-            $booking = Booking::where('id', $request->booking_id)->first();
-            $booking_id = Booking::whereHas('address', function ($qu) use ($address) {
-                $qu->where('region_id', $address->region_id);
-            })->whereHas('category', function ($qu) use ($request) {
-                $qu->where('category_id', $request->category_id);
-            })->where('date', $booking->date)->pluck('id')->toArray();
-            $activeGroups = Group::where('active', 1)->pluck('id')->toArray();
-            $takenIds = Visit::where('start_time', $booking->time)->whereIn('booking_id', $booking_id)->whereIn('assign_to_id', $activeGroups)->get();
-            $group = Group::where('active', 1)->whereIn('id', $groupIds)->whereNotIn('id', $takenIds)->whereHas('regions', function ($qu) use ($address) {
+            $group = Group::where('active', 1)->whereIn('id', $groupIds)->whereHas('regions', function ($qu) use ($address) {
                 $qu->where('region_id', $address->region_id);
             })->get()->pluck('name', 'id')->toArray();
+            $groups = Group::where('active', 1)->whereIn('id', $groupIds)->get();
+            // error_log("BBBBBBB");
+            // error_log(sizeof($groups));
+            // foreach ($groups as $key => $value){
+            //     error_log($value);
+            // }
         }
-        foreach($group as $te){
-            error_log($te->name);
-        }
+
         return response($group);
     }
+    // {
+
+
+    //     $groupIds = CategoryGroup::where('category_id', $request->category_id)->pluck('group_id')->toArray();
+    //     $address = UserAddresses::where('id', $request->address_id)->first();
+    //     $booking = Booking::where('id', $request->booking_id)->first();
+    //     $booking_id = Booking::whereHas('address', function ($qu) use ($address) {
+    //         $qu->where('region_id', $address->region_id);
+    //     })->whereHas('category', function ($qu) use ($request) {
+    //         $qu->where('category_id', $request->category_id);
+    //     })->where('date', $booking->date)->pluck('id')->toArray();
+    //     $activeGroups = Group::where('active', 1)->pluck('id')->toArray();
+    //     $takenIds = Visit::where('start_time', $booking->time)->whereIn('booking_id', $booking_id)->whereIn('assign_to_id', $activeGroups)->get();
+    //     $group = Group::where('active', 1)->whereIn('id', $groupIds)->whereNotIn('id', $takenIds)->whereHas('regions', function ($qu) use ($address) {
+    //         $qu->where('region_id', $address->region_id);
+    //     })->get()->pluck('name', 'id')->toArray();
+
+    //     foreach($group as $te){
+    //         error_log($te->name);
+    //     }
+    //     return response($group);
+
+
+
+    // //     if ($request->type == 'package') {
+
+    // //         $package = ContractPackage::where('id', $request->service_id)->first();
+
+    // //         $service = Service::where('id', $package->service_id)->first('category_id');
+
+    // //         $groupIds = CategoryGroup::where('category_id', $service->category_id)->pluck('group_id')->toArray();
+
+    // //         $address = UserAddresses::where('id', $request->address_id)->first();
+
+    // //         $group = Group::where('active', 1)->whereIn('id', $groupIds)->whereHas('regions', function ($qu) use ($address) {
+    // //             $qu->where('region_id', $address->region_id);
+    // //         })->get()->pluck('name', 'id')->toArray();
+    // //     } else {
+    // //         $groupIds = CategoryGroup::where('category_id', $request->category_id)->pluck('group_id')->toArray();
+    // //         $address = UserAddresses::where('id', $request->address_id)->first();
+    // //         $booking = Booking::where('id', $request->booking_id)->first();
+    // //         $booking_id = Booking::whereHas('address', function ($qu) use ($address) {
+    // //             $qu->where('region_id', $address->region_id);
+    // //         })->whereHas('category', function ($qu) use ($request) {
+    // //             $qu->where('category_id', $request->category_id);
+    // //         })->where('date', $booking->date)->pluck('id')->toArray();
+    // //         $activeGroups = Group::where('active', 1)->pluck('id')->toArray();
+    // //         $takenIds = Visit::where('start_time', $booking->time)->whereIn('booking_id', $booking_id)->whereIn('assign_to_id', $activeGroups)->get();
+    // //         $group = Group::where('active', 1)->whereIn('id', $groupIds)->whereNotIn('id', $takenIds)->whereHas('regions', function ($qu) use ($address) {
+    // //             $qu->where('region_id', $address->region_id);
+    // //         })->get()->pluck('name', 'id')->toArray();
+    // //     }
+    // //     foreach($group as $te){
+    // //         error_log($te->name);
+    // //     }
+    // //     return response($group);
+    // // }
 }

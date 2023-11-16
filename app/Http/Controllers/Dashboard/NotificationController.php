@@ -19,13 +19,26 @@ class NotificationController extends Controller
     use NotificationTrait;
     public function showNotification()
     {
+        $type = request()->input('type');
 
-        $technicians = Technician::query()->whereNotNull('fcm_token')->pluck('name', 'id')->all();
-        $customers = User::whereNotNull('fcm_token')->get();
-        $customersWithNoOrders = User::whereNotNull('fcm_token')->doesntHave('orders')->get();
+        $subjects = User::whereNotNull('fcm_token');
+
+        if (request()->ajax()) {
+            if ($type == 'technician') {
+                $subjects = Technician::whereNotNull('fcm_token');
+            } elseif ($type == 'customersWithNoOrders') {
+                $subjects = User::whereNotNull('fcm_token')->doesntHave('orders');
+            }
+
+            $subjects = $subjects->get();
+
+            return response()->json(['subjects' => $subjects]);
+        }
 
 
-        return view('dashboard.notification.notification', compact('customers', 'technicians', 'customersWithNoOrders'));
+
+        $subjects = $subjects->get();
+        return view('dashboard.notification.notification', compact('subjects'));
     }
 
     public function sendNotification(Request $request)

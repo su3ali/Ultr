@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Core\ComplaintController;
 use App\Http\Controllers\Api\Core\ContactUsController;
 use App\Http\Controllers\Api\Core\HomeController;
 use App\Http\Controllers\Api\Core\ServiceController;
@@ -28,3 +29,5 @@ Route::post('home_filter', [HomeController::class, 'filter']);
 Route::post('contract_contact', [HomeController::class, 'contract_contact']);
 
 Route::get('package/{id}', [ServiceController::class, 'PackageDetails']);
+
+

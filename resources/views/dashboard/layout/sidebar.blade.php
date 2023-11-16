@@ -143,6 +143,12 @@
                                 <a href="{{ route('dashboard.order_statuses.index') }}">{{ __('dash.orders_status') }}</a>
                             </li>
                         @endcan
+                        @can('view_orders')
+                        <li>
+                            <a
+                                href="{{ route('dashboard.order.complaints') }}">{{ __('dash.complaints') }}</a>
+                        </li>
+                    @endcan
 
                     </ul>
                 </li>

@@ -8,6 +8,8 @@ use App\Models\BookingSetting;
 use App\Models\Category;
 use App\Models\CategoryGroup;
 use App\Models\City;
+use App\Models\CustomerComplaint;
+use App\Models\CustomerComplaintImage;
 use App\Models\Group;
 use App\Models\Order;
 use App\Models\OrderService;
@@ -40,7 +42,7 @@ class OrderController extends Controller
 
             if (request()->page) {
                 $now = Carbon::now('Asia/Riyadh')->toDateString();
-                $orders->whereDate('created_at', '=', $now);
+                $orders->where('status_id', '!=', 5)->whereDate('created_at', '=', $now);
             }
             if (request()->status) {
 
@@ -72,6 +74,15 @@ class OrderController extends Controller
                     $qu = OrderService::where('order_id', $row->id)->get()->pluck('quantity')->toArray();
 
                     return array_sum($qu);
+                })
+                ->addColumn('payment_method', function ($row) {
+                    $payment_method = $row->transaction?->payment_method;
+                    if ($payment_method == "cache" || $payment_method == "cash")
+                        return "شبكة";
+                    else if ($payment_method == "wallet")
+                        return "محفظة";
+                    else
+                        return "فيزا";
                 })
                 ->addColumn('status', function ($row) {
 
@@ -110,6 +121,7 @@ class OrderController extends Controller
                     'user',
                     'service',
                     'quantity',
+                    'payment_method',
                     'status',
                     'created_at',
                     'control',
@@ -159,6 +171,15 @@ class OrderController extends Controller
 
                     return array_sum($qu);
                 })
+                ->addColumn('payment_method', function ($row) {
+                    $payment_method = $row->transaction?->payment_method;
+                    if ($payment_method == "cache" || $payment_method == "cash")
+                        return "شبكة";
+                    else if ($payment_method == "wallet")
+                        return "محفظة";
+                    else
+                        return "فيزا";
+                })
                 ->addColumn('status', function ($row) {
 
                     return $row->status?->name;
@@ -196,6 +217,7 @@ class OrderController extends Controller
                     'user',
                     'service',
                     'quantity',
+                    'payment_method',
                     'status',
                     'created_at',
                     'control',
@@ -239,12 +261,26 @@ class OrderController extends Controller
 
                     return array_sum($qu);
                 })
+                ->addColumn('payment_method', function ($row) {
+                    $payment_method = $row->transaction?->payment_method;
+                    if ($payment_method == "cache" || $payment_method == "cash")
+                        return "شبكة";
+                    else if ($payment_method == "wallet")
+                        return "محفظة";
+                    else
+                        return "فيزا";
+                })
                 ->addColumn('status', function ($row) {
 
                     return $row->status?->name;
                 })
                 ->addColumn('created_at', function ($row) {
                     $date = Carbon::parse($row->created_at)->timezone('Asia/Riyadh');
+
+                    return $date->format("Y-m-d H:i:s");
+                })
+                ->addColumn('updated_at', function ($row) {
+                    $date = Carbon::parse($row->updated_at)->timezone('Asia/Riyadh');
 
                     return $date->format("Y-m-d H:i:s");
                 })
@@ -276,8 +312,10 @@ class OrderController extends Controller
                     'user',
                     'service',
                     'quantity',
+                    'payment_method',
                     'status',
                     'created_at',
+                    'updated_at',
                     'control',
                 ])
                 ->make(true);
@@ -325,6 +363,11 @@ class OrderController extends Controller
 
                     return $date->format("Y-m-d H:i:s");
                 })
+                ->addColumn('updated_at', function ($row) {
+                    $date = Carbon::parse($row->updated_at)->timezone('Asia/Riyadh');
+
+                    return $date->format("Y-m-d H:i:s");
+                })
                 ->addColumn('control', function ($row) {
 
                     $html = '';
@@ -355,6 +398,7 @@ class OrderController extends Controller
                     'quantity',
                     'status',
                     'created_at',
+                    'updated_at',
                     'control',
                 ])
                 ->make(true);
@@ -390,7 +434,72 @@ class OrderController extends Controller
 
         return view('dashboard.orders.showService');
     }
+    protected function complaintDetails()
+    {
+        $customerComplaint = CustomerComplaint::findOrFail(\request()->id);
+        $customerComplaintImages = CustomerComplaintImage::where('customer_complaints_id', $customerComplaint->id)->get();
+        $user = User::where('id', $customerComplaint->user_id)->first();
+        $order = Order::where('id', $customerComplaint->order_id)->first();
+        $category_ids = $order->services->pluck('category_id')->toArray();
+        $category_ids = array_unique($category_ids);
+        $categories = Category::whereIn('id', $category_ids)->get();
+        return view('dashboard.orders.show_complaint', compact('categories', 'customerComplaint', 'customerComplaintImages', 'user', 'order'));
+    }
+    public function complaints()
+    {
 
+        if (request()->ajax()) {
+            $customerComplaint = CustomerComplaint::all();
+
+            return DataTables::of($customerComplaint)
+                ->addColumn('customer_name', function ($row) {
+                    return $row->user?->first_name . ' ' . $row->user?->last_name;
+                })
+                ->addColumn('customer_phone', function ($row) {
+                    return $row->user?->phone;
+                })
+                ->addColumn('complaint_text', function ($row) {
+                    return $row->text;
+                })
+                ->addColumn('complaint_images', function ($row) {
+                    return "images";
+                })
+                ->addColumn('complaint_video', function ($row) {
+
+                    return "video";
+                })
+                ->addColumn('created_at', function ($row) {
+                    $date = Carbon::parse($row->created_at)->timezone('Asia/Riyadh');
+
+                    return $date->format("Y-m-d H:i:s");
+                })
+                ->addColumn('control', function ($row) {
+
+                    $html = '';
+                    $html .= '
+                    <a href="' . route('dashboard.order.complaintDetails', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                            <i class="far fa-eye fa-2x"></i>
+                        </a>
+
+                            
+                                ';
+
+                    return $html;
+                })
+                ->rawColumns([
+
+                    'customer_name',
+                    'customer_phone',
+                    'complaint_text',
+                    'complaint_images',
+                    'complaint_video',
+                    'created_at',
+                    'control',
+                ])
+                ->make(true);
+        }
+        return view('dashboard.orders.complaints',);
+    }
 
     public function create()
     {

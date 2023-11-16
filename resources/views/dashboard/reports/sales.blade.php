@@ -67,9 +67,9 @@
                             <div class="col-md-4">
                                 <select class="select2 payment_method form-control" name="payment_method">
                                     <option selected value="all">الكل</option>
-                                    <option value="cache">كاش</option>
+                                    <option value="cache">شبكة</option>
                                     <option value="wallet">محفظة</option>
-                                    <option value="visa">مدي</option>
+                                    <option value="visa">فيزا</option>
                                 </select>
                             </div>
                             <div class="col-md-1">
