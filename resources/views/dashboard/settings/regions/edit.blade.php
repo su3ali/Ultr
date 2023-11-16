@@ -154,6 +154,7 @@
     <script>
         var map;
         var markers = [];
+        var circleRadius = parseFloat("{{ $region->space_km }}");
 
         function initMap() {
             var center = {
@@ -167,7 +168,7 @@
             });
             addMarker(center);
 
-            var circleRadius = parseFloat($('#spaceKmInput').val()); // Convert to float
+            // Convert to float
             addCircle(center, circleRadius);
 
             // This event listener will call addMarker() when the map is clicked.
@@ -182,7 +183,7 @@
 
         }
         $('#spaceKmInput').on('change', function() {
-            var newRadius = parseFloat($(this).val());
+            circleRadius = parseFloat($(this).val());
 
             // Update the circle with the new radius
             updateCircle({
