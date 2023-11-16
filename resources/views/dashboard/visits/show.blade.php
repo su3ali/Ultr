@@ -355,12 +355,13 @@
                     lat: Number(locations[1].lat),
                     lng: Number(locations[1].lng)
                 },
+                label: 'الفني'
                 icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
                 map: map
             });
             const endMarker = new google.maps.Marker({
                 position: myLatLng,
-         
+                label: 'العميل'
                 map: map
             });
 
