@@ -355,19 +355,19 @@
                     lat: Number(locations[1].lat),
                     lng: Number(locations[1].lng)
                 },
-                label: {
-                    text: 'الفني',
 
+                icon: {
+                    url: '{{ asset('storage/images/technicians/tech.png') }}',
+                    scaledSize: new google.maps.Size(60, 60), // scaled size
+                    origin: new google.maps.Point(0, 0), // origin
+                    anchor: new google.maps.Point(30, 30) // anchor
                 },
-                icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+
                 map: map
             });
             endMarker = new google.maps.Marker({
                 position: myLatLng,
-                label: {
-                    text: 'العميل',
 
-                },
                 map: map
             });
 
@@ -377,10 +377,11 @@
             // });
 
             directionsService = new google.maps.DirectionsService();
-            directionsRenderer = new google.maps.DirectionsRenderer({
-                map: map,
-                suppressMarkers: true
-            });
+            directionsRenderer = new google.maps
+                .DirectionsRenderer({
+                    map: map,
+                    suppressMarkers: true
+                });
             currentZoomLevel = map.getZoom();
             currentMapCenter = map.getCenter();
 
