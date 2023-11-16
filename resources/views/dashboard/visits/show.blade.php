@@ -351,106 +351,101 @@
                 center: myLatLng
             });
             startMarker = new google.maps.Marker({
-                position: {
-                    lat: Number(locations[1].lat),
-                    lng: Number(locations[1].lng)
-                },
-                label: {
-                    text: 'الفني',
+                    position: {
+                        lat: Number(locations[1].lat),
+                        lng: Number(locations[1].lng)
+                    },
 
-                },
-                icon:  '{{asset('storage/images/technicians/tech.png')}}',
-               
-                map: map
-            });
-            endMarker = new google.maps.Marker({
-                position: myLatLng,
-                label: {
-                    text: 'العميل',
+                    icon: {
+                        url: '{{ asset('storage/images/technicians/tech.png') }}',
+                        scaledSize: new google.maps.Size(50, 50), // scaled size
+                        origin: new google.maps.Point(0, 0), // origin
+                        anchor: new google.maps.Point(0, 0) // anchor},
 
-                },
-                map: map
-            });
+                        map: map
+                    }); endMarker = new google.maps.Marker({
+                    position: myLatLng,
 
-            // const marker = new google.maps.Marker({
-            //     position: myLatLng,
-            //     map,
-            // });
+                    map: map
+                });
 
-            directionsService = new google.maps.DirectionsService();
-            directionsRenderer = new google.maps.DirectionsRenderer({
-                map: map,
-                suppressMarkers: true
-            });
-            currentZoomLevel = map.getZoom();
-            currentMapCenter = map.getCenter();
+                // const marker = new google.maps.Marker({
+                //     position: myLatLng,
+                //     map,
+                // });
 
-            setInterval(getLocation, 10000);
-        };
+                directionsService = new google.maps.DirectionsService(); directionsRenderer = new google.maps
+                .DirectionsRenderer({
+                    map: map,
+                    suppressMarkers: true
+                }); currentZoomLevel = map.getZoom(); currentMapCenter = map.getCenter();
 
-
-        function getLocation() {
-            var id = "{{ $visits->id }}";
-            $.ajax({
-                url: '{{ route('dashboard.visits.getLocation') }}',
-                type: 'post',
-                data: {
-                    id: id,
-                    _token: "{{ csrf_token() }}"
-                },
-                success: function(data) {
-                    if (data[1].lat != 0 && data[1].lng != 0 && data[0].lat != 0 && data[0].lng != 0) {
-                        updateRoute(data);
-                        //  clearMarkers();
-                    } else {
-                        const myLatLng = {
-                            lat: data[0].lat,
-                            lng: data[0].lng
-                        };
-                        const marker = new google.maps.Marker({
-                            position: myLatLng,
-                            map,
-                        });
-                    }
-                }
-            });
-        };
-
-
-        function updateRoute(locations) {
-            var startingPoint = new google.maps.LatLng(locations[1].lat, locations[1].lng);
-            var destination = new google.maps.LatLng(locations[0].lat, locations[0].lng);
-
-            currentZoomLevel = map.getZoom();
-            currentMapCenter = map.getCenter();
-
-
-            var request = {
-                origin: startingPoint,
-                destination: destination,
-                travelMode: 'DRIVING'
+                setInterval(getLocation, 10000);
             };
 
-            directionsService.route(request, function(result, status) {
-                if (status == 'OK') {
-                    // Display the updated route on the map
-                    directionsRenderer.setDirections(result);
-                    // Update the position of the start marker
-                    startMarker.setPosition(result.routes[0].legs[0].start_location);
-                    // Update the position of the end marker
-                    endMarker.setPosition(result.routes[0].legs[0].end_location);
-                    map.setZoom(currentZoomLevel);
-                    map.setCenter(currentMapCenter);
 
-                }
-            });
-        };
+            function getLocation() {
+                var id = "{{ $visits->id }}";
+                $.ajax({
+                    url: '{{ route('dashboard.visits.getLocation') }}',
+                    type: 'post',
+                    data: {
+                        id: id,
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function(data) {
+                        if (data[1].lat != 0 && data[1].lng != 0 && data[0].lat != 0 && data[0].lng != 0) {
+                            updateRoute(data);
+                            //  clearMarkers();
+                        } else {
+                            const myLatLng = {
+                                lat: data[0].lat,
+                                lng: data[0].lng
+                            };
+                            const marker = new google.maps.Marker({
+                                position: myLatLng,
+                                map,
+                            });
+                        }
+                    }
+                });
+            };
+
+
+            function updateRoute(locations) {
+                var startingPoint = new google.maps.LatLng(locations[1].lat, locations[1].lng);
+                var destination = new google.maps.LatLng(locations[0].lat, locations[0].lng);
+
+                currentZoomLevel = map.getZoom();
+                currentMapCenter = map.getCenter();
+
+
+                var request = {
+                    origin: startingPoint,
+                    destination: destination,
+                    travelMode: 'DRIVING'
+                };
+
+                directionsService.route(request, function(result, status) {
+                    if (status == 'OK') {
+                        // Display the updated route on the map
+                        directionsRenderer.setDirections(result);
+                        // Update the position of the start marker
+                        startMarker.setPosition(result.routes[0].legs[0].start_location);
+                        // Update the position of the end marker
+                        endMarker.setPosition(result.routes[0].legs[0].end_location);
+                        map.setZoom(currentZoomLevel);
+                        map.setCenter(currentMapCenter);
+
+                    }
+                });
+            };
 
 
 
-        window.initMap = initMap;
+            window.initMap = initMap;
 
-        setInterval(visitStatus, 10000);
+            setInterval(visitStatus, 10000);
     </script>
 
 
