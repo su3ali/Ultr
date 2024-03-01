@@ -22,6 +22,9 @@ class ServiceResource extends JsonResource
                 $images[] = asset($serviceImage->image);
             }
         }
+        if (empty($images)) {
+            $images[] = asset(\App\Models\Setting::first()->logo);
+        }
         if (isset($this['quantity'])) {
             $quantity = $this['quantity'];
         }

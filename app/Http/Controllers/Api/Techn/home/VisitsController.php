@@ -34,7 +34,10 @@ class VisitsController extends Controller
     protected function myCurrentOrders()
     {
         $groups = Group::where('technician_id', auth('sanctum')->user()->id)->first();
-        //dd(Group::all());
+        if (!$groups) {
+            $this->body['visits'] = [];
+            return self::apiResponse(200, null, $this->body);
+        }
         $orders = Visit::whereHas('booking', function ($q) {
             $q->whereHas('customer')->whereHas('address');
         })->with('booking', function ($q) {
@@ -51,6 +54,10 @@ class VisitsController extends Controller
     protected function myPreviousOrders()
     {
         $groups = Group::where('technician_id', auth('sanctum')->user()->id)->first();
+        if (!$groups) {
+            $this->body['visits'] = [];
+            return self::apiResponse(200, null, $this->body);
+        }
         $orders = Visit::whereHas('booking', function ($q) {
             $q->whereHas('customer')->whereHas('address');
         })->with('booking', function ($q) {
@@ -67,6 +74,10 @@ class VisitsController extends Controller
     {
 
         $groups = Group::where('technician_id', auth('sanctum')->user()->id)->first();
+        if (!$groups) {
+            $this->body['visits'] = [];
+            return self::apiResponse(200, null, $this->body);
+        }
         $orders = Visit::whereHas('booking', function ($q) {
 
             $q->where('date', Carbon::now('Asia/Riyadh')->format('Y-m-d'))->whereHas('customer')->whereHas('address');
