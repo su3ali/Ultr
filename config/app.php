@@ -57,7 +57,7 @@ return [
     'asset_url' => env('ASSET_URL', null),
 
     // 'firebase_credentials' => 'AAAAzP_ECEE:APA91bHhUSzXzwC-f64_WNGRmSyu26V0evulWLjyNwxd29Q9sFIAWSPZN_QkIGkN_Wx9XqKt3B1OZF_QCcfa75pR7vAL12stPUtOSv8VulKvyNgcU08CuNa2fapQKdbkZ3OfiddmCGYX',
- 'firebase_credentials' => 'AAAAFrwTTyU:APA91bFwlhCUo1YyYOxVS1hxvDLH7iiR7DTgLnV21fP6WE0MwiReekVur3Tm0zHxBV6kMbetfGYRjJ3h9eewXPDtI-0WMiiGTDzAAoUtGyoQmKdkp9sl9N7rwLm-CZkT0OHXXuj1FLye',
+ 'firebase_credentials' => 'AAAAJhayUl0:APA91bE5oXlU6Mz_DMCYBCmxNkYlxF_mqFTN5AMcCse_kISQQMa021PpfYpR0rw2K5b_sO33DcA1D18I08JotzPL-95ADDs-OOKQ5DIPE5mNxrTmNrhFukahAb6TDgwo3z7EClrY0E81',
 
     'GOOGLE_MAP_KEY'=>'AIzaSyDR0MGyuJhRhzPTe65zy-WymhBirnmVTd4',
 
