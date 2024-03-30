@@ -22,7 +22,7 @@
                             <ol class="breadcrumb mb-0 py-2">
                                 <li class="breadcrumb-item"><a
                                         href="{{route('dashboard.home')}}">{{__('dash.home')}}</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">الكوبونات</li>
+                                <li class="breadcrumb-item active" aria-current="page">{{__('dash.coupons')}}</li>
                             </ol>
                         </nav>
 
@@ -63,6 +63,7 @@
                                 <th>تاريخ الانتهاء</th>
                                 <th>حالة النشاط</th>
                                 <th class="no-content">{{__('dash.actions')}}</th>
+                            
                             </tr>
                             </thead>
                         </table>
@@ -91,15 +92,15 @@
                 },
                 buttons: {
                     buttons: [
-                        {extend: 'copy', className: 'btn btn-sm'},
-                        {extend: 'csv', className: 'btn btn-sm'},
-                        {extend: 'excel', className: 'btn btn-sm'},
-                        {extend: 'print', className: 'btn btn-sm'}
+                        {extend: 'copy', className: 'btn btn-sm',text:'نسخ'},
+                        {extend: 'csv', className: 'btn btn-sm',text:'تصدير إلى CSV'},
+                        {extend: 'excel', className: 'btn btn-sm',text:'تصدير إلى Excel'},
+                        {extend: 'print', className: 'btn btn-sm',text:'طباعة'}
                     ]
                 },
                 processing: true,
                 responsive: true,
-                serverSide: true,
+                 serverSide: false,
                 ajax: '{{ route('dashboard.coupons.index') }}',
                 columns: [
                     {data: 'id', name: 'id'},

@@ -24,9 +24,9 @@
         }
         .btn-primary {
             color: #fff !important;
-            background-color: #1b4269 !important;
-            border-color: #1b4269;
-            box-shadow: 0 10px 20px -10px #1b4269;
+            background-color: #2B68A6 !important;
+            border-color: #2B68A6;
+            box-shadow: 0 10px 20px -10px #2B68A6;
         }
 
     </style>

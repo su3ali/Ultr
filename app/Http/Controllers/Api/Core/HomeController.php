@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Checkout\UserAddressResource;
 use App\Http\Resources\Contract\ContractResource;
 use App\Http\Resources\Core\CityResource;
+use App\Http\Resources\Core\ContactResource;
 use App\Http\Resources\Core\RegionResource;
 use App\Http\Resources\MainCategory\MainCategoryResource;
 use App\Http\Resources\Product\ProductResource;
@@ -15,9 +16,11 @@ use App\Http\Resources\Store\StoreResource;
 use App\Models\Banner;
 use App\Models\Category;
 use App\Models\City;
+use App\Models\Contacting;
 use App\Models\Contract;
 use App\Models\ContractPackage;
 use App\Models\Order;
+use App\Models\OrderContract;
 use App\Models\Region;
 use App\Models\Service;
 use App\Models\UserAddresses;
@@ -36,7 +39,7 @@ class HomeController extends Controller
         $this->middleware('localization');
     }
 
-    protected function index(Request $request)
+    protected function index()
     {
         if (!auth()->check()){
             $addresses = [];
@@ -65,7 +68,12 @@ class HomeController extends Controller
             ->get()->shuffle();
         $this->body['services_most_wanted'] = ServiceResource::collection($mostSellingServices);
         $this->body['services'] = ServiceResource::collection(Service::query()->where('active', 1)->take(9)->get()->shuffle());
-        $this->body['contracts'] = ContractResource::collection(ContractPackage::query()->where('active', 1)->take(9)->get()->shuffle());
+        if(request()->query('is_new')){
+            $this->body['contracts'] = ContractResource::collection(ContractPackage::query()->where('active', 1)->take(9)->get()->shuffle());
+        }else{
+            $this->body['contracts']= [];
+        }
+        $this->body['contact'] = ContactResource::collection(Contacting::query()->take(9)->get()->shuffle());
         $this->body['total_items_in_cart'] = auth()->check() ? auth()->user()->carts->count() : 0;
         $servicesCategories = Category::query()->where('active', 1)->get();
         $this->body['services_categories'] = ServiceCategoryResource::collection($servicesCategories);
@@ -214,5 +222,30 @@ class HomeController extends Controller
     }
 
 
+
+    protected function contract_contact(Request $request): JsonResponse
+    {
+        $request->validate([
+            'contract_id' => 'required|exists:contactings,id',
+            'company_name' => 'required|String|min:3',
+            'notes' => 'required|String',
+        ]);
+
+
+        OrderContract::create([
+            'contract_id' => $request->contract_id,
+            'company_name' => $request->company_name,
+            'notes' => $request->notes,
+            'user_id' => auth()->user()->id,
+            'phone' => auth()->user()->phone,
+        ]);
+
+
+
+        return self::apiResponse(200, __('api.added successfully'), $this->body);
+
+    }
+
+    
 
 }

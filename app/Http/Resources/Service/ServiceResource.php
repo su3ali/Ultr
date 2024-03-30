@@ -22,6 +22,9 @@ class ServiceResource extends JsonResource
                 $images[] = asset($serviceImage->image);
             }
         }
+        if (empty($images)) {
+            $images[] = asset(\App\Models\Setting::first()->logo);
+        }
         if (isset($this['quantity'])) {
             $quantity = $this['quantity'];
         }
@@ -30,6 +33,7 @@ class ServiceResource extends JsonResource
             'title' => $this['title'],
             'price' => $service['price'],
             'images' => $images,
+            'terms_and_conditions' => $service->ter_cond_ar,
             'icons' => IconResource::collection($this->icons),
             'able_to_add_quantity_in_cart' => isset($this['is_quantity']) ? $this['is_quantity'] : null,
             'quantity' => $quantity ?? $this->pivot?->quantity

@@ -25,6 +25,7 @@ use Illuminate\Validation\ValidationException;
 class ContractController extends Controller
 {
 
+    
     public function index()
     {
         if (request()->ajax()) {
