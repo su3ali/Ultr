@@ -17,8 +17,8 @@ trait NotificationTrait
             'id' => random_int(1, 9999),
             'title' => $notification['title'],
             'body' => $notification['message'],
-            'type' => $notification['type'],
-            'code' => $notification['code'],
+            'type' => $type ?? '',
+            'code' => 2
 
         ];
         $fields = [];
