@@ -2,7 +2,7 @@
 @push('style')
     <style>
         .card-wallet{
-            background-color: #1b4269 !important;
+            background-color: #2B68A6 !important;
             text-align: center;
             height: 46px;
             line-height: 2.7;

@@ -1,5 +1,6 @@
 <?php
 
+// use App\Http\Controllers\Api\Techn\home\VisitsController;
 
 Route::get('/clear', function() {
 
@@ -12,7 +13,7 @@ Route::get('/clear', function() {
     return "Cleared!";
 
 });
-
+// Route::get('/testest',[VisitsController::class, 'test'])->name('testest');
 
 Route::get('/', function (){
     return redirect()->route('dashboard.home');

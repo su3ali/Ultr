@@ -24,7 +24,7 @@ class TechnicianController extends Controller
 
     public function index()
     {
-        $groups = Group::where('active',1)->get();
+        $groups = Group::all();
         $specs = Specialization::all();
         if (request()->ajax()) {
             $technician = Technician::all();
@@ -170,13 +170,13 @@ class TechnicianController extends Controller
         ];
     }
     protected function changeStatus(Request $request){
-        $tech = Technician::query()->where('id', $request->id)->first();
-        if ($request->active){
-            $tech->active = 1;
+        if ($request->active == 'true'){
+            error_log(1);
+            Technician::query()->where('id', $request->id)->update(['active'=>1]);
         }else{
-            $tech->active = 0;
+            error_log(2);
+            Technician::query()->where('id', $request->id)->update(['active'=>0]);
         }
-        $tech->save();
         return response('success');
     }
 

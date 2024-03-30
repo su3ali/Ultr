@@ -44,4 +44,8 @@ class Coupon extends Model
     public function service(){
         return $this->hasOne(Service::class, 'id', 'service_id');
     }
+    public function couponUsers()
+    {
+        return $this->hasMany(CouponUser::class, 'coupon_id');
+    }
 }

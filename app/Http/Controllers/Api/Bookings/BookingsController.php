@@ -39,6 +39,7 @@ class BookingsController extends Controller
 
         })->with('status')->where('id', $visit_id)->first();
         $this->body['visit'] = VisitsResource::make($order);
+       
         return self::apiResponse(200, null, $this->body);
     }
     // protected function bookingDetails($id){
