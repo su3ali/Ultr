@@ -64,8 +64,8 @@ class NotificationController extends Controller
             if ($request->subject_id == 'all') {
                 $FcmTokenArray = User::whereNotNull('fcm_token')->doesntHave('orders')->get()->pluck('fcm_token');
             } else {
-                $user = User::where('id', $request->subject_id)->first('fcm_token');
-                $FcmToken = $user->fcm_token;
+                $FcmToken = User::where('id', $request->subject_id)->first('fcm_token');
+                // $FcmToken = $user->fcm_token;
             }
             $type = 'customer';
         } else {
