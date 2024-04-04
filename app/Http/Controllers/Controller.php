@@ -74,6 +74,7 @@ class Controller extends BaseController
 
     protected function queryBuilder(): Builder
     {
+        
         return ($this->model)::query();
     }
 
