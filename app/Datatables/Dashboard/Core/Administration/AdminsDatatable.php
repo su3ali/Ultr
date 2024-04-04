@@ -16,6 +16,7 @@ class AdminsDatatable extends BaseDatatable
 
     protected function getColumns(): array
     {
+        
         return [
             Column::make('name')->title(__('dash.first name')),
             Column::make('roles')->title(__('dash.roles')),
