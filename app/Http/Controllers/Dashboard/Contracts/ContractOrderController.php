@@ -39,7 +39,7 @@ class ContractOrderController extends Controller
                     return $row->user?->first_name . ' ' . $row->user?->last_name;
                 })
                 ->addColumn('package_name', function ($row) {
-                    return $row->package?->name;
+                    return $row->contactPackage?->name ?? '';
                 })
 
                 ->addColumn('control', function ($row) {
@@ -49,6 +49,9 @@ class ContractOrderController extends Controller
                             <i class="far fa-trash-alt fa-2x"></i>
                     </a>';
                     return $html;
+                })
+                ->addColumn('price', function ($row) {
+                    return $row->contactPackage?->price ?? '0';
                 })
                 ->rawColumns([
                     'name',
