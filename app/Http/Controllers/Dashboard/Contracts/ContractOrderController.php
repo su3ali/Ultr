@@ -53,6 +53,11 @@ class ContractOrderController extends Controller
                 ->addColumn('price', function ($row) {
                     return $row->contactPackage?->price ?? '0';
                 })
+                ->addColumn('used_visits', function ($row) {
+                    return $row->used ?? '0';
+                })->addColumn('visits_number', function ($row) {
+                    return $row->contactPackage?->visit_number ?? '0';
+                })
                 ->rawColumns([
                     'name',
                     'package_name',
