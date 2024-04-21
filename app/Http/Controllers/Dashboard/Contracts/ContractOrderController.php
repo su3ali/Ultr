@@ -32,10 +32,10 @@ class ContractOrderController extends Controller
     public function index()
     {
         if (request()->ajax()) {
-            $contracts = Contract::all();
+            $contracts = ContractPackage::all();
             return DataTables::of($contracts)
                 ->addColumn('name', function ($row) {
-                    return $row->user?->first_name .' '. $row->user?->last_name;
+                    return $row->user?->first_name . ' ' . $row->user?->last_name;
                 })
                 ->addColumn('package_name', function ($row) {
                     return $row->package?->name;
@@ -62,9 +62,9 @@ class ContractOrderController extends Controller
 
     protected function create()
     {
-        $cities = City::where('active',1)->get()->pluck('title','id');
+        $cities = City::where('active', 1)->get()->pluck('title', 'id');
 
-        return view('dashboard.contract_order.create',compact('cities'));
+        return view('dashboard.contract_order.create', compact('cities'));
     }
 
     /**
@@ -109,7 +109,7 @@ class ContractOrderController extends Controller
         $num = $last ? $last + 1 : 1;
         $booking_no = 'dash2023/' . $num;
 
-        foreach ($request->day as $key => $item){
+        foreach ($request->day as $key => $item) {
             $booking = [
                 'booking_no' => $booking_no,
                 'user_id' => $request->user_id,
@@ -123,7 +123,6 @@ class ContractOrderController extends Controller
                 'time' => \Illuminate\Support\Carbon::createFromTimestamp($request->start_time[$key])->toTimeString(),
             ];
             Booking::query()->create($booking);
-
         }
 
 
@@ -139,25 +138,21 @@ class ContractOrderController extends Controller
         if ($request->has('q')) {
 
             $search = $request->q;
-            if (app()->getLocale() == 'ar'){
+            if (app()->getLocale() == 'ar') {
                 $contract = ContractPackage::where('name_ar', 'LIKE', "%$search%")->get();
-
-            }else{
+            } else {
                 $contract = ContractPackage::where('name_en', 'LIKE', "%$search%")->get();
             }
-
         }
 
         return response()->json($contract);
-
     }
 
     protected function getContractById(Request $request)
     {
-        $contract = ContractPackage::where('id',$request->contract_id)->first();
+        $contract = ContractPackage::where('id', $request->contract_id)->first();
 
         return response()->json($contract);
-
     }
 
 
@@ -166,14 +161,14 @@ class ContractOrderController extends Controller
         $itr = $request->itr;
         $day = \Illuminate\Support\Carbon::parse($request->date)->timezone('Asia/Riyadh')->locale('en')->dayName;
 
-        $package = ContractPackage::where('id',$request->id)->first();
+        $package = ContractPackage::where('id', $request->id)->first();
 
         $bookSetting = BookingSetting::where('service_id', $package->service_id)->first();
 
-        $get_time = $this->getTime($day,$bookSetting);
+        $get_time = $this->getTime($day, $bookSetting);
 
         $times = [];
-        if($get_time == true){
+        if ($get_time == true) {
             $times = CarbonInterval::minutes($bookSetting->service_duration + $bookSetting->buffering_time)
                 ->toPeriod(
                     \Carbon\Carbon::now('Asia/Riyadh')->setTimeFrom($bookSetting->service_start_time ?? Carbon::now('Asia/Riyadh')->startOfDay()),
@@ -181,16 +176,16 @@ class ContractOrderController extends Controller
                 );
         }
 
-        $notAvailable = Booking::where('type','contract')->where('package_id',$request->id)->where('date',$request->date)->where('booking_status_id', 1)->get();
+        $notAvailable = Booking::where('type', 'contract')->where('package_id', $request->id)->where('date', $request->date)->where('booking_status_id', 1)->get();
 
-        return view('dashboard.contract_order.schedules-times-available', compact('times','notAvailable','package','itr'));
+        return view('dashboard.contract_order.schedules-times-available', compact('times', 'notAvailable', 'package', 'itr'));
     }
 
 
     protected function showBookingDiv(Request $request)
     {
 
-        $package = ContractPackage::where('id',$request->id)->first('visit_number');
+        $package = ContractPackage::where('id', $request->id)->first('visit_number');
 
         return view('dashboard.contract_order.time', compact('package'));
     }
@@ -204,6 +199,4 @@ class ContractOrderController extends Controller
             'msg' => __("dash.deleted_success")
         ];
     }
-
-
 }
