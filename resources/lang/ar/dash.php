@@ -803,6 +803,8 @@ rejected_bills
     'customer name' => 'اسم العميل',
     'user addresses' => 'عناوين العميل',
     'r.s' => 'ريال سعودي',
+    'used_visits' => 'الزيارات المستخدمة',
+    'visits_number' => 'عدد الزيارات',
 
 
 ];

@@ -63,6 +63,8 @@
                             <th>{{__('dash.customer_name')}}</th>
                             <th>الباقه</th>
                             <th>{{__('dash.price_value')}}</th>
+                            <th>{{__('dash.used_visits')}}</th>
+                            <th>{{__('dash.visits_number')}}</th>
                             <th class="no-content">{{__('dash.actions')}}</th>
                         </tr>
                         </thead>
@@ -106,6 +108,8 @@
                     {data: 'name', name: 'name'},
                     {data: 'package_name', name: 'package_name'},
                     {data: 'price', name: 'price'},
+                    {data: 'used_visits', name: 'used_visits'},
+                    {data: 'visits_number', name: 'visits_number'},
                     {data: 'control', name: 'control', orderable: false, searchable: false},
 
                 ]
