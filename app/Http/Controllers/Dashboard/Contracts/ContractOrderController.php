@@ -32,7 +32,7 @@ class ContractOrderController extends Controller
     public function index()
     {
         if (request()->ajax()) {
-            $contracts = ContractPackage::all();
+            $contracts = Contract::all();
             return DataTables::of($contracts)
                 ->addColumn('name', function ($row) {
                     return $row->user?->first_name . ' ' . $row->user?->last_name;
