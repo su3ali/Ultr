@@ -9,6 +9,7 @@ use App\Models\BookingStatus;
 use App\Models\City;
 use App\Models\Contract;
 use App\Models\ContractPackage;
+use App\Models\ContractPackagesUser;
 use App\Models\Group;
 use App\Models\Order;
 use App\Models\Service;
@@ -32,7 +33,7 @@ class ContractOrderController extends Controller
     public function index()
     {
         if (request()->ajax()) {
-            $contracts = Contract::all();
+            $contracts = ContractPackagesUser::all();
             return DataTables::of($contracts)
                 ->addColumn('name', function ($row) {
                     return $row->user?->first_name . ' ' . $row->user?->last_name;
