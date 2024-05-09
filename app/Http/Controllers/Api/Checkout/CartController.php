@@ -36,7 +36,7 @@ class CartController extends Controller
 
     protected function add_to_cart(Request $request): JsonResponse
     {
-        return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+        // return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
         if ($request->type == 'package') {
             $package = ContractPackage::where('id', $request->package_id)->first();
             if ($package && $package->active === 1) {

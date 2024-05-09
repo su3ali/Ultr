@@ -36,7 +36,7 @@ class TechnicianController extends Controller
                     return $row->specialization?->name;
                 })
                 ->addColumn('t_image', function ($row) {
-                    return '<img class="img-fluid" style="width: 85px;" src="'.asset($row->image).'"/>';
+                    return '<img class="img-fluid" style="width: 85px;" src="' . asset($row->image) . '"/>';
                 })
                 ->addColumn('status', function ($row) {
                     $checked = '';
@@ -49,14 +49,14 @@ class TechnicianController extends Controller
                         </label>';
                 })
                 ->addColumn('control', function ($row) {
-                    $html = '<button type="button" id="edit-tech" class="btn btn-primary btn-sm card-tools edit" data-id="'.$row->id.'"  data-name="'.$row->name.'" data-user_name="'.$row->user_name.'"
-                                 data-email="'.$row->email.'" data-phone="'.$row->phone.'" data-specialization="'.$row->spec_id.'"
-                                 data-active="'.$row->active.'" data-group_id="'.$row->group_id.'"
-                                  data-country_id="'.$row->country_id.'" data-address="'.$row->address.'" data-wallet_id="'.$row->wallet_id.'"
-                                  data-birth_date="'.$row->birth_date.'" data-identity_number="'.$row->identity_id.'" data-image="'.asset($row->image).'"
+                    $html = '<button type="button" id="edit-tech" class="btn btn-primary btn-sm card-tools edit" data-id="' . $row->id . '"  data-name="' . $row->name . '" data-user_name="' . $row->user_name . '"
+                                 data-email="' . $row->email . '" data-phone="' . $row->phone . '" data-specialization="' . $row->spec_id . '"
+                                 data-active="' . $row->active . '" data-group_id="' . $row->group_id . '"
+                                  data-country_id="' . $row->country_id . '" data-address="' . $row->address . '" data-wallet_id="' . $row->wallet_id . '"
+                                  data-birth_date="' . $row->birth_date . '" data-identity_number="' . $row->identity_id . '" data-image="' . asset($row->image) . '"
                                   data-toggle="modal" data-target="#editTechModel">
                             <i class="far fa-edit fa-2x"></i>
-                       </button><a data-table_id="html5-extension" data-href="'.route('dashboard.core.technician.destroy', $row->id).'" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech"><i class="far fa-trash-alt fa-2x"></i></a>';
+                       </button><a data-table_id="html5-extension" data-href="' . route('dashboard.core.technician.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech"><i class="far fa-trash-alt fa-2x"></i></a>';
 
                     return $html;
                 })
@@ -70,7 +70,16 @@ class TechnicianController extends Controller
                 ->make(true);
         }
 
-        return view('dashboard.core.technicians.index', compact('groups', 'specs'));
+        $nationalities = [
+            "فلبين"  =>  "1",
+            "اندونيسيا" =>   "2",
+            "الهند"    =>   "3",
+            "تايلند"  =>   "4",
+            "ماليزيا"  =>   "5",
+            "باكستان"  =>   "6",
+            "مصر" =>   "7"
+        ];
+        return view('dashboard.core.technicians.index', compact('groups', 'specs', 'nationalities'));
     }
 
     /**
@@ -95,33 +104,34 @@ class TechnicianController extends Controller
             'image' => 'required|image|mimes:jpeg,jpg,png,gif',
             'active' => 'nullable|in:on,off',
         ];
-        $validated = Validator::make($request->all(), $rules, [ 'user_name.regex' => 'يجب أن لا يحتوي اسم المستخدم على أي مسافات']);
+        $validated = Validator::make($request->all(), $rules, ['user_name.regex' => 'يجب أن لا يحتوي اسم المستخدم على أي مسافات']);
         if ($validated->fails()) {
             return redirect()->back()->withErrors($validated->errors());
         }
         $validated = $validated->validated();
-        if ($validated['active'] && $validated['active'] == 'on'){
+        if ($validated['active'] && $validated['active'] == 'on') {
             $validated['active'] = 1;
-        }else{
+        } else {
             $validated['active'] = 0;
         }
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $filename = time() . '.' . $image->getClientOriginalExtension();
             $request->image->move(storage_path('app/public/images/technicians/'), $filename);
-            $validated['image'] = 'storage/images/technicians'.'/'. $filename;
+            $validated['image'] = 'storage/images/technicians' . '/' . $filename;
         }
         Technician::query()->create($validated);
         session()->flash('success');
         return redirect()->back();
     }
-    protected function update(Request $request, $id){
+    protected function update(Request $request, $id)
+    {
         $tech = Technician::query()->where('id', $id)->first();
         $rules = [
             'name' => 'required|String|min:3',
-            'email' => 'required|Email|unique:technicians,email,'.$id,
-            'phone' => 'required|unique:technicians,phone,'.$id,
-            'user_name' => ['required', 'regex:/^[^\s]+$/', 'unique:technicians,user_name,'.$id],
+            'email' => 'required|Email|unique:technicians,email,' . $id,
+            'phone' => 'required|unique:technicians,phone,' . $id,
+            'user_name' => ['required', 'regex:/^[^\s]+$/', 'unique:technicians,user_name,' . $id],
             'spec_id' => 'required|exists:specializations,id',
             'country_id' => 'required',
             'identity_id' => 'required|Numeric',
@@ -138,9 +148,9 @@ class TechnicianController extends Controller
             return redirect()->to(route('dashboard.core.technician.index'))->withErrors($validated->errors());
         }
         $validated = $validated->validated();
-        if ($validated['active'] && $validated['active'] == 'on'){
+        if ($validated['active'] && $validated['active'] == 'on') {
             $validated['active'] = 1;
-        }else{
+        } else {
             $validated['active'] = 0;
         }
         if ($request->hasFile('image')) {
@@ -150,7 +160,7 @@ class TechnicianController extends Controller
             $image = $request->file('image');
             $filename = time() . '.' . $image->getClientOriginalExtension();
             $request->image->move(storage_path('app/public/images/technicians/'), $filename);
-            $validated['image'] = 'storage/images/technicians'.'/'. $filename;
+            $validated['image'] = 'storage/images/technicians' . '/' . $filename;
         }
         $tech->update($validated);
         session()->flash('success');
@@ -169,15 +179,15 @@ class TechnicianController extends Controller
             'msg' => __("dash.deleted_success")
         ];
     }
-    protected function changeStatus(Request $request){
-        if ($request->active == 'true'){
+    protected function changeStatus(Request $request)
+    {
+        if ($request->active == 'true') {
             error_log(1);
-            Technician::query()->where('id', $request->id)->update(['active'=>1]);
-        }else{
+            Technician::query()->where('id', $request->id)->update(['active' => 1]);
+        } else {
             error_log(2);
-            Technician::query()->where('id', $request->id)->update(['active'=>0]);
+            Technician::query()->where('id', $request->id)->update(['active' => 0]);
         }
         return response('success');
     }
-
 }
