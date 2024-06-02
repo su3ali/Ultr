@@ -2,6 +2,7 @@
 
 // use App\Http\Controllers\Api\Techn\home\VisitsController;
 
+use Illuminate\Support\Facades\DB;
 
 Route::get('/delete_access_tokens', function () {
     try {
