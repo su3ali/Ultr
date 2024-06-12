@@ -106,6 +106,18 @@
                                         <th>الحاله</th>
                                         <td>{{ $visits->status?->name }}</td>
                                     </tr>
+                                    @if ($visits->start_date)
+                                        <tr>
+                                            <th>وقت البدء الفعلي</th>
+                                            <td>{{  Carbon\Carbon::parse($visits->start_date)->format('H:i:s') }}</td>
+                                        </tr>
+                                    @endif
+                                    @if ($visits->end_date)
+                                        <tr>
+                                            <th>وقت الاننتهاء الفعلي</th>
+                                            <td>{{ Carbon\Carbon::parse($visits->end_date)->format('H:i:s') }}</td>
+                                        </tr>
+                                    @endif
                                     @if ($visits->visits_status_id == 6)
                                         <tr>
                                             <th>سبب الالغاء</th>
