@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Dashboard\Orders\OrderController;
+
 Route::resource('orders', 'Orders\OrderController');
 Route::resource('order_statuses', 'Orders\OrderStatusController');
 Route::get('order_statuses/change_status/change', 'Orders\OrderStatusController@change_status')->name('order_statuses.change_status');
@@ -18,3 +20,5 @@ Route::get('ordersCanceled', 'Orders\OrderController@canceledOrders')->name('ord
 Route::get('ordersTodayCanceled', 'Orders\OrderController@canceledOrdersToday')->name('order.canceledOrdersToday');
 Route::get('complaints', 'Orders\OrderController@complaints')->name('order.complaints');
 Route::get('complaints/complaintDetails', 'Orders\OrderController@complaintDetails')->name('order.complaintDetails');
+
+Route::get('/orders/{order}/bookings', [OrderController::class, 'getBookings'])->name('orders.bookings');

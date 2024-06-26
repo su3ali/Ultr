@@ -37,8 +37,9 @@ class OrderController extends Controller
     public function index()
     {
 
+
         if (request()->ajax()) {
-            $orders = Order::query();
+            $orders = Order::query()->with(['user', 'transaction', 'status', 'bookings', 'services.category']);
 
             if (request()->page) {
                 $now = Carbon::now('Asia/Riyadh')->toDateString();
@@ -60,9 +61,11 @@ class OrderController extends Controller
                     return $row->user?->first_name . ' ' . $row->user?->last_name;
                 })
                 ->addColumn('service', function ($row) {
-                    $qu = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
-                    $services_ids = array_unique($qu);
-                    $services = Service::whereIn('id', $services_ids)->get();
+                    /* $qu = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray(); */
+                   /*  $qu = $row->orderservice->pluck('service_id'); */
+                    /* $services_ids = array_unique($qu); */
+                    /*      $services = Service::whereIn('id', $services_ids)->get(); */
+                    $services = $row->services->unique();
                     $html = '';
                     foreach ($services as $service) {
                         $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
@@ -71,7 +74,7 @@ class OrderController extends Controller
                     return $html;
                 })
                 ->addColumn('quantity', function ($row) {
-                    $qu = OrderService::where('order_id', $row->id)->get()->pluck('quantity')->toArray();
+                    $qu =  $row->services->pluck('pivot.quantity')->toArray();
 
                     return array_sum($qu);
                 })
@@ -102,7 +105,12 @@ class OrderController extends Controller
                         </a>';
                     }
                     $html .= '
-                    <a href="' . route('dashboard.order.orderDetail', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                        <button type="button" id="show-bookings" class="btn btn-sm btn-outline-primary" data-id="' . $row->id . '"
+                            data-toggle="modal" data-target="#changeGroupModel">
+                            <i class="far fa-eye fa-2x"></i>
+                        </button>
+
+                        <a href="' . route('dashboard.order.orderDetail', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
                             <i class="far fa-eye fa-2x"></i>
                         </a>
 
@@ -786,5 +794,30 @@ class OrderController extends Controller
         $category_ids = array_unique($category_ids);
         $categories = Category::whereIn('id', $category_ids)->get();
         return view('dashboard.orders.show', compact('userPhone', 'order', 'categories'));
+    }
+
+    public function getBookings($orderId)
+    {
+        $order = Order::with('bookings')->findOrFail($orderId);
+        $bookings = $order->bookings;
+
+        return DataTables::of($bookings)
+            ->addColumn('booking_id', function ($booking) {
+                return $booking->id;
+            })
+            ->addColumn('technican_name', function ($booking) {
+                return $booking->group->name_ar ?? null;
+            })
+            ->addColumn('date', function ($booking) {
+                return $booking->date; 
+            })
+            ->addColumn('time', function ($booking) {
+                return Carbon::parse($booking->time)->format('g:ia'); 
+            })
+            ->addColumn('status', function ($booking) {
+                return $booking->booking_status->name_ar;
+            })
+            ->rawColumns(['booking_id', 'technican_name', 'date', 'time', 'status'])
+            ->make(true);
     }
 }

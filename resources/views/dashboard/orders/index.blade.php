@@ -43,7 +43,7 @@
         <div class="row layout-top-spacing">
 
             <div class="col-xl-12 col-lg-12 col-sm-12  layout-spacing">
-                <div class="widget-content widget-content-area br-6">
+                <div class="widget-content widget-content-area br-6" style="width: 95%">
                     <div class="col-md-12  mb-3">
 
 
@@ -103,6 +103,7 @@
 
     </div>
     {{--    @include('dashboard.orders.edit') --}}
+    @include('dashboard.orders.partial.show_bookings')
 @endsection
 
 @push('script')
@@ -142,6 +143,7 @@
                     ]
                 },
                 processing: true,
+                responsive:true,
                 serverSide: false,
                 ajax: '{{ route('dashboard.orders.index') }}',
                 columns: [{
@@ -207,7 +209,7 @@
             });
         });
 
-        {{-- $(document).on('click', '#edit-order', function () { --}}
+/*         {{-- $(document).on('click', '#edit-order', function () { --}}
         {{--    let id = $(this).data('id'); --}}
         {{--    let user_id = $(this).data('user_id'); --}}
         {{--    let category_id = $(this).data('category_id'); --}}
@@ -233,7 +235,7 @@
         {{--    $('#edit_order_form').attr('action', action); --}}
 
 
-        {{-- }) --}}
+        {{-- }) --}} */
 
         $("body").on('change', '#customSwitchtech', function() {
             let active = $(this).is(':checked');
