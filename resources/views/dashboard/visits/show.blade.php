@@ -138,6 +138,16 @@
                                         <td>{!! $visits->note !!}</td>
                                     </tr>
 
+                                    <tr>
+                                        <th>اسم العميل</th>
+                                        <td>{{ $user->first_name }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <th>رقم العميل</th>
+                                        <td>{{ $user->phone }}</td>
+                                    </tr>
+
                                 </thead>
 
                             </table><!-- end of table -->

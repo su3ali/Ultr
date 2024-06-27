@@ -245,12 +245,13 @@ class VisitsController extends Controller
     public function show($id)
     {
         $visits = Visit::where('id', $id)->first();
+        $user = $visits->booking->customer;
         $service_ids = OrderService::where('order_id', $visits->booking->order_id)->where('category_id', $visits->booking->category_id)->get()->pluck('service_id');
         $services = Service::whereIn('id', $service_ids)->get()->pluck('title');
 
         $visit_status = VisitsStatus::where('active', 1)->get();
 
-        return view('dashboard.visits.show', compact('visits', 'services', 'visit_status'));
+        return view('dashboard.visits.show', compact('visits', 'services', 'visit_status', 'user'));
     }
 
     protected function destroy($id)
