@@ -62,7 +62,7 @@ class OrderController extends Controller
                 })
                 ->addColumn('service', function ($row) {
                     /* $qu = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray(); */
-                   /*  $qu = $row->orderservice->pluck('service_id'); */
+                    /*  $qu = $row->orderservice->pluck('service_id'); */
                     /* $services_ids = array_unique($qu); */
                     /*      $services = Service::whereIn('id', $services_ids)->get(); */
                     $services = $row->services->unique();
@@ -144,7 +144,7 @@ class OrderController extends Controller
     {
 
         if (request()->ajax()) {
-            $orders = Order::query();
+            $orders = Order::query()->with(['user', 'transaction', 'status', 'bookings', 'services.category']);
             $now = Carbon::now('Asia/Riyadh')->toDateString();
             $orders->whereDate('created_at', '=', $now);
 
@@ -164,9 +164,10 @@ class OrderController extends Controller
                     return $row->user?->first_name . ' ' . $row->user?->last_name;
                 })
                 ->addColumn('service', function ($row) {
-                    $qu = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
+/*                     $qu = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
                     $services_ids = array_unique($qu);
-                    $services = Service::whereIn('id', $services_ids)->get();
+                    $services = Service::whereIn('id', $services_ids)->get(); */
+                    $services = $row->services->unique();
                     $html = '';
                     foreach ($services as $service) {
                         $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
@@ -175,8 +176,8 @@ class OrderController extends Controller
                     return $html;
                 })
                 ->addColumn('quantity', function ($row) {
-                    $qu = OrderService::where('order_id', $row->id)->get()->pluck('quantity')->toArray();
-
+                    /* $qu = OrderService::where('order_id', $row->id)->get()->pluck('quantity')->toArray(); */
+                    $qu =  $row->services->pluck('pivot.quantity')->toArray();
                     return array_sum($qu);
                 })
                 ->addColumn('payment_method', function ($row) {
@@ -206,6 +207,11 @@ class OrderController extends Controller
                         </a>';
                     }
                     $html .= '
+                    <button type="button" id="show-bookings" class="btn btn-sm btn-outline-primary" data-id="' . $row->id . '"
+                        data-toggle="modal" data-target="#changeGroupModel">
+                        <i class="far fa-eye fa-2x"></i>
+                    </button>
+
                     <a href="' . route('dashboard.order.orderDetail', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
                             <i class="far fa-eye fa-2x"></i>
                         </a>
@@ -809,10 +815,10 @@ class OrderController extends Controller
                 return $booking->visit->group->name_ar ?? null;
             })
             ->addColumn('date', function ($booking) {
-                return $booking->date; 
+                return $booking->date;
             })
             ->addColumn('time', function ($booking) {
-                return Carbon::parse($booking->time)->format('g:ia'); 
+                return Carbon::parse($booking->time)->format('g:ia');
             })
             ->addColumn('status', function ($booking) {
                 return $booking->booking_status->name_ar;

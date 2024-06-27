@@ -93,6 +93,8 @@
 
     </div>
     {{--    @include('dashboard.orders.edit') --}}
+    @include('dashboard.orders.partial.show_bookings')
+
 @endsection
 
 @push('script')
