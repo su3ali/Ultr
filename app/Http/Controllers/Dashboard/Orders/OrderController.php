@@ -798,7 +798,7 @@ class OrderController extends Controller
 
     public function getBookings($orderId)
     {
-        $order = Order::with('bookings')->findOrFail($orderId);
+        $order = Order::with('bookings.visit')->findOrFail($orderId);
         $bookings = $order->bookings;
 
         return DataTables::of($bookings)
@@ -806,7 +806,7 @@ class OrderController extends Controller
                 return $booking->id;
             })
             ->addColumn('technican_name', function ($booking) {
-                return $booking->group->name_ar ?? null;
+                return $booking->visit->group->name_ar ?? null;
             })
             ->addColumn('date', function ($booking) {
                 return $booking->date; 
