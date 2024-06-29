@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Checkout;
 
 use App\Bll\ControlCart;
+use App\Bll\CouponCheck;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Checkout\CartResource;
 use App\Models\Booking;
@@ -551,7 +552,8 @@ class CartController extends Controller
         $this->body['coupon'] = null;
         $coupon = $carts->first()?->coupon;
         if ($coupon) {
-            $discount_value = $coupon->type == 'percentage' ? ($coupon->value / 100) * $total : $coupon->value;
+            $match_response = CouponCheck::check_coupon_services_match($coupon, $total, $carts);
+            $discount_value = $match_response['discount'];
             $this->body['coupon'] = [
                 'code' => $coupon->code,
                 'total_before_discount' => $total,
