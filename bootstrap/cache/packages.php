@@ -24,13 +24,6 @@
       0 => 'ConsoleTVs\\Charts\\ChartsServiceProvider',
     ),
   ),
-  'fruitcake/laravel-cors' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Fruitcake\\Cors\\CorsServiceProvider',
-    ),
-  ),
   'intervention/image' => 
   array (
     'providers' => 
@@ -75,15 +68,15 @@
       'Html' => 'Collective\\Html\\HtmlFacade',
     ),
   ),
-  'maatwebsite/excel' => 
+  'livewire/livewire' => 
   array (
     'providers' => 
     array (
-      0 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
+      0 => 'Livewire\\LivewireServiceProvider',
     ),
     'aliases' => 
     array (
-      'Excel' => 'Maatwebsite\\Excel\\Facades\\Excel',
+      'Livewire' => 'Livewire\\Livewire',
     ),
   ),
   'nesbot/carbon' => 
@@ -155,6 +148,13 @@
     'providers' => 
     array (
       0 => 'Yajra\\DataTables\\EditorServiceProvider',
+    ),
+  ),
+  'yajra/laravel-datatables-export' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Yajra\\DataTables\\ExportServiceProvider',
     ),
   ),
   'yajra/laravel-datatables-fractal' => 
