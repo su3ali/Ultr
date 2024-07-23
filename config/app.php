@@ -175,6 +175,8 @@ return [
         /*
          * Package Service Providers...
          */
+        Spatie\Html\HtmlServiceProvider::class,
+        Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
 
         /*
          * Application Service Providers...

@@ -806,6 +806,8 @@ rejected_bills
     'r.s' => 'ريال سعودي',
     'used_visits' => 'الزيارات المستخدمة',
     'visits_number' => 'عدد الزيارات',
-
+    'payment_method_visa' => 'فيزا',
+    'payment_method_cash' => 'كاش',
+    'payment_method' => 'طريقة الدفع',
 
 ];

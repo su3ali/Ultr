@@ -25,7 +25,7 @@ use Illuminate\Validation\ValidationException;
 class ContractController extends Controller
 {
 
-    
+
     public function index()
     {
         if (request()->ajax()) {
@@ -40,7 +40,7 @@ class ContractController extends Controller
 
                 ->addColumn('status', function ($row) {
                     $checked = '';
-                    if ($row->active == 1){
+                    if ($row->active == 1) {
                         $checked = 'checked';
                     }
                     return '<label class="switch s-outline s-outline-info  mb-4 mr-2">
@@ -50,7 +50,7 @@ class ContractController extends Controller
                 })
                 ->addColumn('control', function ($row) {
                     $html = '
-                    <a href="'.route('dashboard.contracts.edit', $row->id).'"  id="edit-booking" class="btn btn-primary btn-sm card-tools edit" data-id="' . $row->id . '"
+                    <a href="' . route('dashboard.contracts.edit', $row->id) . '"  id="edit-booking" class="btn btn-primary btn-sm card-tools edit" data-id="' . $row->id . '"
                           >
                             <i class="far fa-edit fa-2x"></i>
                        </a>
@@ -74,9 +74,9 @@ class ContractController extends Controller
 
     protected function create()
     {
-        $ContractPackages = ContractPackage::where('active',1)->get()->pluck('name','id');
+        $ContractPackages = ContractPackage::where('active', 1)->get()->pluck('name', 'id');
 
-        return view('dashboard.contracts.create',compact('ContractPackages'));
+        return view('dashboard.contracts.create', compact('ContractPackages'));
     }
 
     /**
@@ -84,7 +84,7 @@ class ContractController extends Controller
      */
     protected function store(Request $request): RedirectResponse
     {
-        $request->validate = ([
+        $request->validate([
             'name_ar' => 'required',
             'name_en' => 'required',
             'package_id' => 'required|exists:contract_packages,id',
@@ -92,22 +92,24 @@ class ContractController extends Controller
             'end_date' => 'required|Date',
 
         ]);
-        $data=$request->except('_token',);
+
+        $data = $request->except('_token', );
         Contract::updateOrCreate($data);
         session()->flash('success');
         return redirect()->route('dashboard.contracts.index');
     }
 
-    protected function edit($id){
+    protected function edit($id)
+    {
         $contract = Contract::query()->where('id', $id)->first();
-        $ContractPackages = ContractPackage::where('active',1)->get()->pluck('name','id');
+        $ContractPackages = ContractPackage::where('active', 1)->get()->pluck('name', 'id');
 
-        return view('dashboard.contracts.edit', compact('contract','ContractPackages'));
+        return view('dashboard.contracts.edit', compact('contract', 'ContractPackages'));
 
     }
     protected function update(Request $request, $id)
     {
-        $request->validate = ([
+        $request->validate([
             'name_ar' => 'required',
             'name_en' => 'required',
             'package_id' => 'required|exists:contract_packages,id',
@@ -116,7 +118,7 @@ class ContractController extends Controller
 
         ]);
         $Contract = Contract::find($id);
-        $data=$request->except('_token','avatar');
+        $data = $request->except('_token', 'avatar');
         $Contract->update($data);
         session()->flash('success');
         return redirect()->route('dashboard.contracts.index');
