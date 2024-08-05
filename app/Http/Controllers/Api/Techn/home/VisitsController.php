@@ -210,7 +210,7 @@ class VisitsController extends Controller
                 $order = Order::whereHas('bookings', function ($q) use ($bookingId) {
                     $q->where('id', $bookingId);
                 })->first();
-                $total = $order->total;
+                $total = $order->sub_total;
                 $order->update([
                     'status_id' => 5
                 ]);
