@@ -210,7 +210,7 @@ class VisitsController extends Controller
                 $order = Order::whereHas('bookings', function ($q) use ($bookingId) {
                     $q->where('id', $bookingId);
                 })->first();
-                $amount = $order->transaction->amount;
+                $total = $order->total;
                 $order->update([
                     'status_id' => 5
                 ]);
@@ -257,7 +257,7 @@ class VisitsController extends Controller
 
                 $walletSetting = CustomerWallet::query()->first();
 
-                $wallet = ($amount * $walletSetting->order_percentage) / 100;
+                $wallet = ($total * $walletSetting->order_percentage) / 100;
 
                 if ($wallet > $walletSetting->refund_amount) {
                     $point = $walletSetting->refund_amount;
@@ -265,7 +265,7 @@ class VisitsController extends Controller
                     $point = $wallet;
                 }
                 $user->update([
-                    'point' => ($user->point - $point < 0 ?? 0) ?? 0
+                    'point' => ($user->point - $point < 0 ?? 0)
                 ]);
                 $user->update([
                     'order_cancel' => 1
