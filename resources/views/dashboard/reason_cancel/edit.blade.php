@@ -51,8 +51,8 @@
                             <label for="edit_is_for_tech">النوع</label>
                             <select id="edit_is_for_tech" class="select2 type form-control" name="is_for_tech">
 
-                                <option value="0">{{ 'فني' }}</option>
-                                <option value="1">{{ 'عميل' }}</option>
+                                <option value="1">{{ 'فني' }}</option>
+                                <option value="0">{{ 'عميل' }}</option>
 
                             </select>
                             @error('edit_is_for_tech')
