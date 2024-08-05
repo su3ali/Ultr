@@ -9,6 +9,7 @@ use App\Http\Resources\Service\ServiceResource;
 use App\Http\Resources\Technician\home\VisitsResource;
 use App\Models\Booking;
 use App\Models\Category;
+use App\Models\CustomerWallet;
 use App\Models\Group;
 use App\Models\Order;
 use App\Models\Technician;
@@ -209,6 +210,7 @@ class VisitsController extends Controller
                 $order = Order::whereHas('bookings', function ($q) use ($bookingId) {
                     $q->where('id', $bookingId);
                 })->first();
+                $amount = $order->transaction->amount;
                 $order->update([
                     'status_id' => 5
                 ]);
@@ -251,6 +253,20 @@ class VisitsController extends Controller
 
             if ($request->status_id == 6) {
                 $user = User::where('id', $model->booking->user_id)->first();
+
+
+                $walletSetting = CustomerWallet::query()->first();
+
+                $wallet = ($amount * $walletSetting->order_percentage) / 100;
+
+                if ($wallet > $walletSetting->refund_amount) {
+                    $point = $walletSetting->refund_amount;
+                } else {
+                    $point = $wallet;
+                }
+                $user->update([
+                    'point' => ($user->point - $point < 0 ?? 0) ?? 0
+                ]);
                 $user->update([
                     'order_cancel' => 1
                 ]);
