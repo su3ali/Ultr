@@ -51,9 +51,8 @@
                             <label for="edit_is_for_tech">النوع</label>
                             <select id="edit_is_for_tech" class="select2 type form-control" name="is_for_tech">
 
-                                @foreach ($reasons as  $reason)
-                                    <option value="{{ $reason->id }}">{{ $reason->id==1?'فني':'عميل' }}</option>
-                                @endforeach
+                                <option value="0">{{ 'فني' }}</option>
+                                <option value="1">{{ 'عميل' }}</option>
 
                             </select>
                             @error('edit_is_for_tech')
