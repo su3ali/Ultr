@@ -265,7 +265,7 @@ class VisitsController extends Controller
                     $point = $wallet;
                 }
                 $user->update([
-                    'point' => ($user->point - $point < 0 ?? 0)
+                    'point' => ($user->point - $point < 0 ?? 0) ?? 0
                 ]);
                 $user->update([
                     'order_cancel' => 1
