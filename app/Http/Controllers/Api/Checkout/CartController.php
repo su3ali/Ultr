@@ -385,9 +385,9 @@ class CartController extends Controller
             // })->get();
             $bookings = Booking::where('category_id',  $category_id)->whereHas('visit', function ($qq) {
                 $qq->whereIn('visits_status_id', [1, 2, 3, 4]);
-            })->whereHas('address', function ($qq) use ($request) {
+            })/* ->whereHas('address', function ($qq) use ($request) {
                 $qq->where('region_id', $request->region_id);
-            })->get();
+            }) */->get();
             foreach ($bookings as $booking) {
                 array_push($bookingTimes, $booking->time);
                 array_push($bookingDates, $booking->date);
@@ -431,13 +431,13 @@ class CartController extends Controller
 
                     $countInBooking = Booking::whereHas('visit', function ($q) {
                         $q->whereNotIn('visits_status_id', [5, 6]);
-                    })->whereHas(
+                    })/* ->whereHas(
                         'address.region',
                         function ($q) use ($request) {
 
                             $q->where('id', $request->region_id);
                         }
-                    )->where([['category_id', '=', $category_id], ['date', '=',  $day], ['time', '=', $realTime]])
+                    ) */->where([['category_id', '=', $category_id], ['date', '=',  $day], ['time', '=', $realTime]])
                         ->count();
 
 
