@@ -17,7 +17,7 @@ class CustomerController extends Controller
     {
 
         if (request()->ajax()) {
-            $user = User::all();
+            $user = User::with('city')->get();
             return DataTables::of($user)
                 ->addColumn('name', function ($user) {
                     $name = $user->first_name . ' ' . $user->last_name;
