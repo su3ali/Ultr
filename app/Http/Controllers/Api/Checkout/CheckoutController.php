@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Checkout;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\Booking;
 use App\Models\BookingSetting;
 use App\Models\Cart;
@@ -211,7 +212,7 @@ class CheckoutController extends Controller
 
             $bookSetting = BookingSetting::where('service_id', $cart->service_id)->first();
             if ($bookSetting) {
-/*                 foreach (Service::with('BookingSetting')->whereIn('id', $carts->pluck('service_id')->toArray())->get() as $service) {
+                /*                 foreach (Service::with('BookingSetting')->whereIn('id', $carts->pluck('service_id')->toArray())->get() as $service) {
                     $serviceMinutes = ($service->BookingSetting->buffering_time + $service->BookingSetting->service_duration)
                         * $carts->where('service_id', $service->id)->first()->quantity;
                     $minutes += $serviceMinutes;
@@ -311,7 +312,10 @@ class CheckoutController extends Controller
                     );
                 }
 
-                $FcmTokenArray = $allTechn->pluck('fcm_token');
+                $techFcmArray = $allTechn->pluck('fcm_token');
+                $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
+                $FcmTokenArray = $techFcmArray->merge($adminFcmArray);
+
 
                 $notification = [
                     'device_token' => $FcmTokenArray,
