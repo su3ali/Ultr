@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard\Visits;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\Banner;
 use App\Models\BannerImage;
 use App\Models\Booking;
@@ -224,7 +225,10 @@ class VisitsController extends Controller
                 );
             }
 
-            $FcmTokenArray = $allTechn->pluck('fcm_token');
+            $techFcmArray = $allTechn->pluck('fcm_token');
+            $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
+            $FcmTokenArray = $techFcmArray->merge($adminFcmArray);
+
 
             $notification = [
                 'device_token' => $FcmTokenArray,

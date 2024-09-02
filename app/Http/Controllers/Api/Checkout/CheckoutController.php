@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Checkout;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\Booking;
 use App\Models\BookingSetting;
 use App\Models\Cart;
@@ -211,7 +212,7 @@ class CheckoutController extends Controller
 
             $bookSetting = BookingSetting::where('service_id', $cart->service_id)->first();
             if ($bookSetting) {
-/*                 foreach (Service::with('BookingSetting')->whereIn('id', $carts->pluck('service_id')->toArray())->get() as $service) {
+                /*                 foreach (Service::with('BookingSetting')->whereIn('id', $carts->pluck('service_id')->toArray())->get() as $service) {
                     $serviceMinutes = ($service->BookingSetting->buffering_time + $service->BookingSetting->service_duration)
                         * $carts->where('service_id', $service->id)->first()->quantity;
                     $minutes += $serviceMinutes;
@@ -262,9 +263,19 @@ class CheckoutController extends Controller
                     $alreadyTaken = Visit::where('start_time', $cart->time)->whereIn('booking_id', $booking_id)->whereIn('assign_to_id', $activeGroups)->get();
                     if ($alreadyTaken->isNotEmpty()) {
                         $ids = $alreadyTaken->pluck('assign_to_id')->toArray();
-                        $assign_to_id = $visit->whereNotIn('assign_to_id', $ids)->inRandomOrder()->first()->assign_to_id;
+                        // $assign_to_id = $visit->whereNotIn('assign_to_id', $ids)->inRandomOrder()->first()->assign_to_id;
+                        $assign_to_id = $group->whereNotIn('id', $ids)->inRandomOrder()?->first()?->id;
+                        if (!isset($assign_to_id)) {
+                            DB::rollback();
+                            return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+                        }
                     } else {
-                        $assign_to_id = $visit->inRandomOrder()->first()->assign_to_id;
+                        // $assign_to_id = $visit->inRandomOrder()->first()->assign_to_id;
+                        $assign_to_id = $group->inRandomOrder()?->first()?->id;
+                        if (!isset($assign_to_id)) {
+                            DB::rollback();
+                            return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+                        }
                     }
                 }
             }
@@ -311,7 +322,10 @@ class CheckoutController extends Controller
                     );
                 }
 
-                $FcmTokenArray = $allTechn->pluck('fcm_token');
+                $techFcmArray = $allTechn->pluck('fcm_token');
+                $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
+                $FcmTokenArray = $techFcmArray->merge($adminFcmArray);
+
 
                 $notification = [
                     'device_token' => $FcmTokenArray,

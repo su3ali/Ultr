@@ -11,6 +11,7 @@ use App\Notifications\SendPushNotification;
 use App\Traits\NotificationTrait;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use Illuminate\Support\Facades\Notification;
 
 
@@ -72,7 +73,10 @@ class NotificationController extends Controller
             if ($request->subject_id == 'all') {
                 $allTechn = Technician::whereNotNull('fcm_token')->get();
 
-                $FcmTokenArray = $allTechn->pluck('fcm_token');
+                $techFcmArray = $allTechn->pluck('fcm_token');
+                $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
+                $FcmTokenArray = $techFcmArray->merge($adminFcmArray);
+
 
 
                 foreach ($allTechn as $tech) {

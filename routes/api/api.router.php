@@ -56,3 +56,7 @@ Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
 Route::prefix('techn')->group(function () {
     require __DIR__ . '/techn/techn.router.php';
 });
+
+Route::prefix('admin')->group(function () {
+    require __DIR__ . '/admin/admin.router.php';
+});

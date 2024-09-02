@@ -7,6 +7,7 @@ use App\Http\Resources\Order\OrderResource;
 use App\Http\Resources\Order\StatusResource;
 use App\Http\Resources\Service\ServiceResource;
 use App\Http\Resources\Technician\home\VisitsResource;
+use App\Models\Admin;
 use App\Models\Booking;
 use App\Models\Category;
 use App\Models\CustomerWallet;
@@ -241,10 +242,14 @@ class VisitsController extends Controller
                     $q->with('category');
                 }, 'customer', 'address']);
             })->with('status')->where('id', $model->id)->first();
+
+            $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token')->toArray();
+            $FcmTokenArray = $adminFcmArray->merge([$user->fcm_token]);
+
             $visit = VisitsResource::make($order);
             $notify = [
                 'fromFunc' => 'changeStatus',
-                'device_token' => [$user->fcm_token],
+                'device_token' => $FcmTokenArray,
                 'data' => [
                     'order_details' => $visit,
                     'type' => 'change status',
