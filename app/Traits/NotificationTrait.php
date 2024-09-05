@@ -2,14 +2,20 @@
 
 namespace App\Traits;
 
-use Illuminate\Support\Facades\Config;
+use Kreait\Firebase\Exception\MessagingException;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\Messaging\AndroidConfig;
+use Kreait\Firebase\Messaging\ApnsConfig;
+use Kreait\Firebase\Messaging\CloudMessage;
 
 trait NotificationTrait
 {
 
     public function pushNotification($notification)
     {
-        $auth_key = Config::get('app.firebase_credentials');
+        $factory = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
+        $messaging = $factory->createMessaging();
+
 
         $device_token = $notification['device_token'];
 
@@ -22,93 +28,37 @@ trait NotificationTrait
 
         ];
 
-        //      $notification = [
-        //          'title' => $notification['title'] ,
-        //          'body' => $notification['message'],
-        //          'sound' => 'default',
-        //          "priority" => "high",
-        //          "mutable-content"=> 1,
-        //          'data' => $data
-        //      ];
-
-/*         $fields = [
-            'registration_ids' => $device_token,
-            //          'notification' => $notification,
-            "content_available" => true,
-            "ios" => [
-                "priority" => "HIGH"
-            ],
-            'data' => $data,
-            'sound' => 'default',
-            "priority" => "HIGH",
-            "mutable-content" => 1,
-        ]; */
-
-        $fields = [];
         if ($notification['type'] == 'customer') {
-            $fields = [
-                'registration_ids' => $device_token,
-                'notification' => [
+            $message = CloudMessage::new()
+                ->withNotification([
                     'title' => $notification['title'],
                     'body' => $notification['message'],
-                ],
-                "content_available" => true,
-                "android" => [
-                    "priority" => "HIGH"
-                ],
-                "ios" => [
-                    "priority" => "HIGH",
-                    // "apns" => [
-                    //     "payload" => [
-                    //         "aps" => [
-                    //             "contentAvailable" => true
-                    //         ]
-                    //     ]
-                    // ]
-                ],
-                'data' => $data,
-                'sound' => 'default',
-                "priority" => "HIGH",
-                "mutable-content" => true,
-            ];
+                ])
+                ->withAndroidConfig(AndroidConfig::fromArray([
+                    'priority' => 'high',
+                ]))
+                ->withApnsConfig(ApnsConfig::fromArray([
+                    'headers' => [
+                        'apns-priority' => '10',
+                    ],
+                ]))
+                ->withData($data);
+
         } else {
-            $fields = [
-                'registration_ids' => $device_token,
-                "content_available" => true,
-                "android" => [
-                    "priority" => "HIGH"
-                ],
-                "ios" => [
-                    "priority" => "HIGH",
-                ],
-                'data' => $data,
-                'sound' => 'default',
-                "priority" => "HIGH",
-                "mutable-content" => true,
-            ];
+            $message = CloudMessage::new()->withData($data);
+
+        }
+        try {
+            $messaging->sendMulticast($message, $device_token);
+        } catch (MessagingException $e) {
         }
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: key=' . $auth_key, 'Content-Type: application/json']);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
-        $result = curl_exec($ch);
-
-        if ($result === FALSE) {
-            die('FCM Send Error: ' . curl_error($ch));
-        }
-
-        curl_close($ch);
     }
 
     public function pushNotificationBackground($notification)
     {
-        $auth_key = Config::get('app.firebase_credentials');
+        $factory = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
+        $messaging = $factory->createMessaging();
 
         $device_token = $notification['device_token'];
 
@@ -116,38 +66,8 @@ trait NotificationTrait
             'data' => $notification['data'],
         ];
 
-/*         $fields = [
-            'registration_ids' => $device_token,
-            "content_available" => true,
-            "ios" => [
-                "priority" => "HIGH"
-            ],
-            'data' => $data,
-            "priority" => "HIGH",
-        ]; */
-
-        $fields = [];
         if ($notification['fromFunc'] == 'latlong') {
-            $fields = [
-                'registration_ids' => $device_token,
-                "content_available" => true,
-                "android" => [
-                    "priority" => "HIGH"
-                ],
-                "ios" => [
-                    "priority" => "HIGH",
-                    // "apns" => [
-                    //     "payload" => [
-                    //         "aps" => [
-                    //             "contentAvailable" => true
-                    //         ]
-                    //     ]
-                    // ]
-                ],
-                'data' => $data,
-                "priority" => "HIGH",
-                "mutable-content" => true,
-            ];
+            $message = CloudMessage::new()->withData($data);
         } else {
             $statusList = [
                 'طلبك باقي نرسلك افضل الأخصائيين عندنا',
@@ -175,41 +95,24 @@ trait NotificationTrait
                 $body = $statusList[0];
             }
 
-
-            $fields = [
-                'registration_ids' => $device_token,
-                "content_available" => true,
-                'notification' => [
-                    'title' => $title,
-                    'body' => $body,
-                ],
-                "android" => [
-                    "priority" => "HIGH"
-                ],
-                "ios" => [
-                    "priority" => "HIGH",
-                ],
-                'data' => $data,
-                "priority" => "HIGH",
-                "mutable-content" => true,
-            ];
+            $message = CloudMessage::new()
+                ->withNotification([
+                    'title' => $notification['title'],
+                    'body' => $notification['message'],
+                ])
+                ->withAndroidConfig(AndroidConfig::fromArray([
+                    'priority' => 'high',
+                ]))
+                ->withApnsConfig(ApnsConfig::fromArray([
+                    'headers' => [
+                        'apns-priority' => '10',
+                    ],
+                ]))
+                ->withData($data);
         }
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: key=' . $auth_key, 'Content-Type: application/json']);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
-        $result = curl_exec($ch);
-
-        if ($result === FALSE) {
-            die('FCM Send Error: ' . curl_error($ch));
+        try {
+            $messaging->sendMulticast($message, $device_token);
+        } catch (MessagingException $e) {
         }
-
-        curl_close($ch);
     }
 }
