@@ -1130,6 +1130,37 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="card component-card_2 col-md-12 px-0">
+                                                <div class="form-group h-50 mb-0 px-3 pt-2" style="background-color: #0072ff42;">
+                                                    <label
+                                                        class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                        <input
+                                                            type="checkbox"
+                                                            class="new-control-input check-all-banners"
+                                                        >
+                                                        <span class="new-control-indicator"></span><span
+                                                            class="new-chk-content text-primary"><b>البنرات</b></span>
+                                                    </label>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="n-chk col-md-3 form-row">
+                                                            <label
+                                                                class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    name="permissions[{{$permissions[65]->id}}]"
+                                                                    class="new-control-input perm-check perm-check-banners"
+                                                                    {{isset($model)? in_array($permissions[65]->id, $model->permissions->pluck('id')->toArray())? 'checked' : '': ''}}
+                                                                >
+                                                                <span
+                                                                    class="new-control-indicator"></span><span
+                                                                    class="new-chk-content"><b>{{$permissions[65]->$name}}</b></span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
 
 
 
@@ -1325,6 +1356,12 @@
                 });
                 $(".check-all-regions").click(function () {
                     let boxes = $('.perm-check-regions');
+                    boxes.prop('checked', this.checked);
+                    let matches = $("input.perm-check:checkbox:not(:checked)");
+                    checkViewAll(matches)
+                });
+                $(".check-all-banners").click(function () {
+                    let boxes = $('.perm-check-banners');
                     boxes.prop('checked', this.checked);
                     let matches = $("input.perm-check:checkbox:not(:checked)");
                     checkViewAll(matches)

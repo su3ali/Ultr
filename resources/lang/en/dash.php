@@ -525,5 +525,7 @@ return [
     'Services' =>'Services',
     'service name' => 'Service Name',
     'regions settings' => 'Regions settings',
+    'banners settings' => 'Banners settings',
+
 
 ];
