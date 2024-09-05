@@ -1105,7 +1105,7 @@
                                                         class="new-control new-checkbox new-checkbox-text checkbox-success">
                                                         <input
                                                             type="checkbox"
-                                                            class="new-control-input check-all-regoins"
+                                                            class="new-control-input check-all-regions"
                                                         >
                                                         <span class="new-control-indicator"></span><span
                                                             class="new-chk-content text-primary"><b>المناطق</b></span>
@@ -1119,7 +1119,7 @@
                                                                 <input
                                                                     type="checkbox"
                                                                     name="permissions[{{$permissions[64]->id}}]"
-                                                                    class="new-control-input perm-check perm-check-regoins"
+                                                                    class="new-control-input perm-check perm-check-regions"
                                                                     {{isset($model)? in_array($permissions[64]->id, $model->permissions->pluck('id')->toArray())? 'checked' : '': ''}}
                                                                 >
                                                                 <span
@@ -1323,8 +1323,8 @@
                     let matches = $("input.perm-check:checkbox:not(:checked)");
                     checkViewAll(matches)
                 });
-                $(".check-all-regoins").click(function () {
-                    let boxes = $('.perm-check-regoins');
+                $(".check-all-regions").click(function () {
+                    let boxes = $('.perm-check-regions');
                     boxes.prop('checked', this.checked);
                     let matches = $("input.perm-check:checkbox:not(:checked)");
                     checkViewAll(matches)
