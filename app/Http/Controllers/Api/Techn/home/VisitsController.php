@@ -243,8 +243,8 @@ class VisitsController extends Controller
                 }, 'customer', 'address']);
             })->with('status')->where('id', $model->id)->first();
 
-            $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token')->toArray();
-            $FcmTokenArray = $adminFcmArray->merge([$user->fcm_token]);
+            $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
+            $FcmTokenArray = $adminFcmArray->merge([$user->fcm_token])->toArray();
 
             $visit = VisitsResource::make($order);
             $notify = [
