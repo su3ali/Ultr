@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Order;
 use App\Notifications\SendPushNotification;
 use App\Traits\NotificationTrait;
+use Exception;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
@@ -54,19 +55,17 @@ class NotificationController extends Controller
         ]);
         if ($request->type == 'customer') {
             if ($request->subject_id == 'all') {
-                $FcmTokenArray = User::whereNotNull('fcm_token')->get()->pluck('fcm_token');
+                $FcmTokenArray = User::whereNotNull('fcm_token')->get()->pluck('fcm_token')->toArray();
             } else {
-                $user = User::where('id', $request->subject_id)->first('fcm_token');
-                $FcmToken = $user->fcm_token;
+                $FcmTokenArray = User::where('id', $request->subject_id)->pluck('fcm_token')->toArray();
             }
 
             $type = 'customer';
         } else if ($request->type == 'customersWithNoOrders') {
             if ($request->subject_id == 'all') {
-                $FcmTokenArray = User::whereNotNull('fcm_token')->doesntHave('orders')->get()->pluck('fcm_token');
+                $FcmTokenArray = User::whereNotNull('fcm_token')->doesntHave('orders')->get()->pluck('fcm_token')->toArray();
             } else {
-                $FcmToken = User::where('id', $request->subject_id)->first('fcm_token');
-                // $FcmToken = $user->fcm_token;
+                $FcmTokenArray = User::where('id', $request->subject_id)->pluck('fcm_token')->toArray();
             }
             $type = 'customer';
         } else {
@@ -77,8 +76,6 @@ class NotificationController extends Controller
                 $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
                 $FcmTokenArray = $techFcmArray->merge($adminFcmArray);
 
-
-
                 foreach ($allTechn as $tech) {
                     Notification::send(
                         $tech,
@@ -87,7 +84,7 @@ class NotificationController extends Controller
                 }
             } else {
                 $technician = Technician::where('id', $request->subject_id)->first();
-                $FcmToken = $technician->fcm_token;
+                $FcmTokenArray = Technician::where('id', $request->subject_id)->pluck('fcm_token')->toArray();
 
                 Notification::send(
                     $technician,
@@ -99,24 +96,35 @@ class NotificationController extends Controller
         }
 
 
-        if (isset($FcmToken) && $FcmToken == null) {
-
-            return redirect()->back()->withErrors(['fcm_token' => 'لا يمكن ارسال الاشعارت لعدم توفر رمز الجهاز']);
-        } elseif (isset($FcmTokenArray) && count($FcmTokenArray) == 0) {
+        if (isset($FcmTokenArray) && count($FcmTokenArray) == 0) {
             return redirect()->back()->withErrors(['fcm_token' => 'لا يمكن ارسال الاشعارت لعدم توفر رمز الجهاز']);
         }
 
         $message = str_replace('&nbsp;', ' ', strip_tags($request->message));
 
-        $notification = [
-            'device_token' => isset($FcmToken) ? [$FcmToken] : $FcmTokenArray,
-            'title' => $request->title,
-            'message' =>  $message,
-            'type' => $type ?? '',
-            'code' => 2
-        ];
+        $count = count($FcmTokenArray);
+        if ($count > 500) {
+            $sub_num = round($count / 300);
+            $FcmTokenArrays = array_chunk($FcmTokenArray, ceil(count($FcmTokenArray) / $sub_num));
+        } else {
+            $FcmTokenArrays = [$FcmTokenArray];
+        }
 
-        $this->pushNotification($notification);
+        foreach ($FcmTokenArrays as $FcmTokenArray) {
+            $notification = [
+                'device_token' => $FcmTokenArray,
+                'title' => $request->title,
+                'message' => $message,
+                'type' => $type ?? '',
+                'code' => 2
+            ];
+
+            try {
+                $this->pushNotification($notification);
+            } catch (Exception $e) {
+            }
+        }
+
         session()->flash('success');
         return redirect()->back();
     }
