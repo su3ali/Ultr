@@ -807,6 +807,8 @@ rejected_bills
     'used_visits' => 'الزيارات المستخدمة',
     'visits_number' => 'عدد الزيارات',
     'regions settings' => 'اعدادت المناطق',
+    'banners settings' => 'اعدادت البنرات',
+
 
 
 ];
