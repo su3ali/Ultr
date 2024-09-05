@@ -806,6 +806,7 @@ rejected_bills
     'r.s' => 'ريال سعودي',
     'used_visits' => 'الزيارات المستخدمة',
     'visits_number' => 'عدد الزيارات',
+    'regions settings' => 'اعدادت المناطق',
 
 
 ];

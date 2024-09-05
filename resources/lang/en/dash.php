@@ -524,5 +524,6 @@ return [
     'Service Management' =>'Service Management',
     'Services' =>'Services',
     'service name' => 'Service Name',
+    'regions settings' => 'Regions settings',
 
 ];
