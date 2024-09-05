@@ -583,10 +583,6 @@
                         <li>
                             <a href="{{ route('dashboard.city.index') }}"> {{ __('dash.Cities') }} </a>
                         </li>
-
-                        <li>
-                            <a href="{{ route('dashboard.region.index') }}"> {{ __('dash.Regions') }} </a>
-                        </li>
                         <li>
                             <a href="{{ route('dashboard.core.measurements.index') }}"> وحدات القياس </a>
                         </li>

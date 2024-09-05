@@ -12,9 +12,9 @@ Route::group(['prefix' => 'settings'], function () {
     Route::get('city/change_status', 'Settings\CityController@change_status')->name('city.change_status');
     Route::resource('city', 'Settings\CityController');
 
-    Route::get('region/viewRegion/{id}', 'Settings\RegionController@viewRegion')->name('region.viewRegion');
-    Route::get('region/change_status', 'Settings\RegionController@change_status')->name('region.change_status');
-    Route::resource('region', 'Settings\RegionController');
+    Route::get('region/viewRegion/{id}', 'Settings\RegionController@viewRegion')->name('region.viewRegion')->middleware('permission:create_admins');
+    Route::get('region/change_status', 'Settings\RegionController@change_status')->name('region.change_status')->middleware('permission:create_admins');
+    Route::resource('region', 'Settings\RegionController')->middleware('permission:create_admins');
 
     Route::get('faqs/change_status', 'Settings\FaqsController@change_status')->name('faqs.change_status');
     Route::resource('faqs', 'Settings\FaqsController');
