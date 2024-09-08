@@ -62,9 +62,7 @@ trait NotificationTrait
 
         $device_token = $notification['device_token'];
 
-        $data = [
-            'data' => $notification['data'],
-        ];
+        $data = $notification['data'];
 
         if ($notification['fromFunc'] == 'latlong') {
             $message = CloudMessage::new()->withData($data);
