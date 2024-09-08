@@ -34,7 +34,14 @@ trait NotificationTrait
                     'title' => $notification['title'],
                     'body' => $notification['message'],
                 ])
-                ->withHighestPossiblePriority()
+                ->withAndroidConfig(AndroidConfig::fromArray([
+                    'priority' => 'high',
+                ]))
+                ->withApnsConfig(ApnsConfig::fromArray([
+                    'headers' => [
+                        'apns-priority' => '10',
+                    ],
+                ]))
                 ->withData($data);
 
         } else {
@@ -93,7 +100,14 @@ trait NotificationTrait
                     'title' => $title,
                     'body' => $body,
                 ])
-                ->withHighestPossiblePriority();
+                ->withAndroidConfig(AndroidConfig::fromArray([
+                    'priority' => 'high',
+                ]))
+                ->withApnsConfig(ApnsConfig::fromArray([
+                    'headers' => [
+                        'apns-priority' => '10',
+                    ],
+                ]));
         }
         try {
             $messaging->sendMulticast($message, $device_token);
