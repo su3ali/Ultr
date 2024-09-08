@@ -97,8 +97,8 @@ trait NotificationTrait
 
             $message = CloudMessage::new()
                 ->withNotification([
-                    'title' => $notification['title'],
-                    'body' => $notification['message'],
+                    'title' => $title,
+                    'body' => $body,
                 ])
                 ->withAndroidConfig(AndroidConfig::fromArray([
                     'priority' => 'high',
