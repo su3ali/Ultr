@@ -62,7 +62,9 @@ trait NotificationTrait
 
         $device_token = $notification['device_token'];
 
-        $data = $notification['data'];
+        $data = [
+            'data' => $notification['data'],
+        ];
 
         if ($notification['fromFunc'] == 'latlong') {
             $message = CloudMessage::new()->withData($data);
@@ -105,8 +107,7 @@ trait NotificationTrait
                     'headers' => [
                         'apns-priority' => '10',
                     ],
-                ]))
-                ->withData($data);
+                ]));
         }
         try {
             $messaging->sendMulticast($message, $device_token);
