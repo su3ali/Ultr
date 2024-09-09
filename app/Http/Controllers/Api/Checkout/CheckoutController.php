@@ -326,7 +326,7 @@ class CheckoutController extends Controller
 
                 $techFcmArray = $allTechn->pluck('fcm_token');
                 $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
-                $FcmTokenArray = $techFcmArray->merge($adminFcmArray);
+                $FcmTokenArray = $techFcmArray->merge($adminFcmArray)->toArray();
 
 
                 $notification = [
