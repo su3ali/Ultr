@@ -29,19 +29,37 @@ trait NotificationTrait
             'code' => $notification['code'],
 
         ];
-        $message = CloudMessage::new()
-            ->withNotification([
-                'title' => $notification['title'],
-                'body' => $notification['message'],
-            ])
-            ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
-            ->withApnsConfig(ApnsConfig::new()->withImmediatePriority())
-            ->withData($data);
+        
+        if (count($device_token) > 1) {
+            $message = CloudMessage::new()
+                ->withNotification([
+                    'title' => $notification['title'],
+                    'body' => $notification['message'],
+                ])
+                ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
+                ->withApnsConfig(ApnsConfig::new()->withImmediatePriority())
+                ->withData($data);
 
-        try {
-            $messaging->sendMulticast($message, $device_token);
-        } catch (MessagingException $e) {
-            Log::info($e);
+            try {
+                $messaging->sendMulticast($message, $device_token);
+            } catch (MessagingException $e) {
+                Log::info($e);
+            }
+        } else {
+            $message = CloudMessage::withTarget('token', $device_token[0])
+                ->withNotification([
+                    'title' => $notification['title'],
+                    'body' => $notification['message'],
+                ])
+                ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
+                ->withApnsConfig(ApnsConfig::new()->withImmediatePriority())
+                ->withData($data);
+
+            try {
+                $messaging->send($message);
+            } catch (MessagingException $e) {
+                Log::info($e);
+            }
         }
 
     }
@@ -58,10 +76,17 @@ trait NotificationTrait
         ];
 
         if ($notification['fromFunc'] == 'latlong') {
-            $message = CloudMessage::new()
+
+            $message = CloudMessage::withTarget('token', $device_token[0])
                 ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
                 ->withApnsConfig(ApnsConfig::new()->withImmediatePriority())
                 ->withData($data);
+
+            try {
+                $messaging->send($message);
+            } catch (MessagingException $e) {
+                Log::info($e);
+            }
         } else {
             $statusList = [
                 'طلبك باقي نرسلك افضل الأخصائيين عندنا',
@@ -97,12 +122,13 @@ trait NotificationTrait
                 ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
                 ->withApnsConfig(ApnsConfig::new()->withImmediatePriority())
                 ->withData($data);
+
+                try {
+                    $messaging->sendMulticast($message, $device_token);
+                } catch (MessagingException $e) {
+                    Log::info($e);
+                }
         }
 
-        try {
-            $messaging->sendMulticast($message, $device_token);
-        } catch (MessagingException $e) {
-            Log::info($e);
-        }
     }
 }
