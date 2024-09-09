@@ -316,7 +316,7 @@ class VisitsController extends Controller
                     );
                 }
 
-                $FcmTokenArray = $allTechn->pluck('fcm_token');
+                $FcmTokenArray = $allTechn->pluck('fcm_token')->toArray();
 
                 $notification = [
                     'device_token' => $FcmTokenArray,
