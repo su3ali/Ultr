@@ -79,7 +79,7 @@ trait NotificationTrait
         ];
 
         if ($notification['fromFunc'] == 'latlong') {
-            $message = CloudMessage::new()->withData($data);
+            $message = CloudMessage::new()->withData($notification['data']);
         } else {
             $statusList = [
                 'طلبك باقي نرسلك افضل الأخصائيين عندنا',
