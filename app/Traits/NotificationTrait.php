@@ -45,8 +45,20 @@ trait NotificationTrait
                 ->withData($data);
 
         } else {
-            $message = CloudMessage::new()->withData($data);
-
+            $message = CloudMessage::new()
+            ->withNotification([
+                'title' => $notification['title'],
+                'body' => $notification['message'],
+            ])
+            ->withAndroidConfig(AndroidConfig::fromArray([
+                'priority' => 'high',
+            ]))
+            ->withApnsConfig(ApnsConfig::fromArray([
+                'headers' => [
+                    'apns-priority' => '10',
+                ],
+            ]))
+            ->withData($data);
         }
         try {
             $messaging->sendMulticast($message, $device_token);
