@@ -7,6 +7,8 @@ use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\AndroidConfig;
 use Kreait\Firebase\Messaging\ApnsConfig;
 use Kreait\Firebase\Messaging\CloudMessage;
+use Illuminate\Support\Facades\Log;
+
 
 trait NotificationTrait
 {
@@ -27,42 +29,19 @@ trait NotificationTrait
             'code' => $notification['code'],
 
         ];
-
-        if ($notification['type'] == 'customer') {
-            $message = CloudMessage::new()
-                ->withNotification([
-                    'title' => $notification['title'],
-                    'body' => $notification['message'],
-                ])
-                ->withAndroidConfig(AndroidConfig::fromArray([
-                    'priority' => 'high',
-                ]))
-                ->withApnsConfig(ApnsConfig::fromArray([
-                    'headers' => [
-                        'apns-priority' => '10',
-                    ],
-                ]))
-                ->withData($data);
-
-        } else {
-            $message = CloudMessage::new()
+        $message = CloudMessage::new()
             ->withNotification([
                 'title' => $notification['title'],
                 'body' => $notification['message'],
             ])
-            ->withAndroidConfig(AndroidConfig::fromArray([
-                'priority' => 'high',
-            ]))
-            ->withApnsConfig(ApnsConfig::fromArray([
-                'headers' => [
-                    'apns-priority' => '10',
-                ],
-            ]))
+            ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
+            ->withApnsConfig(ApnsConfig::new()->withImmediatePriority())
             ->withData($data);
-        }
+
         try {
             $messaging->sendMulticast($message, $device_token);
         } catch (MessagingException $e) {
+            Log::info($e);
         }
 
     }
@@ -79,7 +58,10 @@ trait NotificationTrait
         ];
 
         if ($notification['fromFunc'] == 'latlong') {
-            $message = CloudMessage::new()->withData($notification['data']);
+            $message = CloudMessage::new()
+                ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
+                ->withApnsConfig(ApnsConfig::new()->withImmediatePriority())
+                ->withData($data);
         } else {
             $statusList = [
                 'طلبك باقي نرسلك افضل الأخصائيين عندنا',
@@ -112,18 +94,15 @@ trait NotificationTrait
                     'title' => $title,
                     'body' => $body,
                 ])
-                ->withAndroidConfig(AndroidConfig::fromArray([
-                    'priority' => 'high',
-                ]))
-                ->withApnsConfig(ApnsConfig::fromArray([
-                    'headers' => [
-                        'apns-priority' => '10',
-                    ],
-                ]));
+                ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
+                ->withApnsConfig(ApnsConfig::new()->withImmediatePriority())
+                ->withData($data);
         }
+
         try {
             $messaging->sendMulticast($message, $device_token);
         } catch (MessagingException $e) {
+            Log::info($e);
         }
     }
 }
