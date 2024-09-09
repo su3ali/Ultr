@@ -54,7 +54,7 @@ trait NotificationTrait
         $device_token = $notification['device_token'];
 
         $data = [
-            'data' => $notification['data'],
+            'data' => json_encode($notification['data']),
         ];
 
         if ($notification['fromFunc'] == 'latlong') {
