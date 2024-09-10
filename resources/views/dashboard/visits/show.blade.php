@@ -109,7 +109,7 @@
                                     @if ($visits->start_date)
                                         <tr>
                                             <th>وقت البدء الفعلي</th>
-                                            <td>{{  Carbon\Carbon::parse($visits->start_date)->format('g:ia') }}</td>
+                                            <td>{{ Carbon\Carbon::parse($visits->start_date)->format('g:ia') }}</td>
                                         </tr>
                                     @endif
                                     @if ($visits->end_date)
@@ -130,7 +130,8 @@
                                             <th>صوره اكتمال الطلب</th>
                                             <td>
                                                 <a href="{{ asset($visits->image) }}" target="_blank">
-                                                    <img class="img-fluid" style="width: 40px;" src="{{ asset($visits->image) }}" target="_blank">
+                                                    <img class="img-fluid" style="width: 40px;"
+                                                        src="{{ asset($visits->image) }}" target="_blank">
                                                 </a>
                                             </td>
                                         </tr>
@@ -168,6 +169,7 @@
                 <div class="widget-content widget-content-area br-6">
                     <div class="card">
                         <div class="card-body p-0">
+                            <button id="copy-location" class="btn btn-primary">Copy Location URL</button>
                             <div id="floating-panel">
                                 <b>Mode of Travel: </b>
                                 <select id="mode">
@@ -180,6 +182,7 @@
                             <div id="map">
 
                             </div>
+
 
 
                         </div>
@@ -292,6 +295,25 @@
 
                 ]
             });
+            document.getElementById('copy-location').addEventListener('click', function() {
+                const latLng = endMarker.getPosition(); // Get the end location's LatLng from the map
+                const googleMapsUrl = `https://www.google.com/maps?q=${latLng.lat()},${latLng.lng()}`;
+
+                // Create a temporary input to copy the URL
+                const tempInput = document.createElement('input');
+                tempInput.value = googleMapsUrl;
+                document.body.appendChild(tempInput);
+
+                tempInput.select();
+                tempInput.setSelectionRange(0, 99999); // For mobile devices
+                document.execCommand('copy'); // Copy the URL to clipboard
+
+                document.body.removeChild(tempInput); // Remove the temporary input element
+
+                // Optional: Show a confirmation message
+                alert('Location URL copied to clipboard: ' + googleMapsUrl);
+            });
+
         });
     </script>
 
