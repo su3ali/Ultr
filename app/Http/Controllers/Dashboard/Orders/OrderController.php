@@ -39,7 +39,7 @@ class OrderController extends Controller
 
 
         if (request()->ajax()) {
-            $orders = Order::query()->with(['user', 'transaction', 'status', 'bookings', 'services.category']);
+            $orders = Order::query()->with(['user', 'transaction', 'status', 'bookings.visit.status', 'services.category']);
 
             if (request()->page) {
                 $now = Carbon::now('Asia/Riyadh')->toDateString();
@@ -89,7 +89,7 @@ class OrderController extends Controller
                 })
                 ->addColumn('status', function ($row) {
 
-                    return $row->status?->name;
+                    return $row->bookings?->first()?->visit?->status->name_ar;
                 })
                 ->addColumn('created_at', function ($row) {
                     $date = Carbon::parse($row->created_at)->timezone('Asia/Riyadh');
@@ -186,7 +186,7 @@ class OrderController extends Controller
                         return "فيزا";
                 })
                 ->addColumn('status', function ($row) {
-                    return $row->bookings?->first()?->visit->status->name_ar;
+                    return $row->bookings?->first()?->visit?->status->name_ar;
                 })
                 ->addColumn('created_at', function ($row) {
                     $date = Carbon::parse($row->created_at)->timezone('Asia/Riyadh');
