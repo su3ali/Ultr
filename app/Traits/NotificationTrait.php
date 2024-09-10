@@ -78,8 +78,6 @@ trait NotificationTrait
         if ($notification['fromFunc'] == 'latlong') {
 
             $message = CloudMessage::withTarget('token', $device_token[0])
-                ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
-                ->withApnsConfig(ApnsConfig::new()->withImmediatePriority())
                 ->withData($data);
 
             try {
@@ -114,7 +112,8 @@ trait NotificationTrait
                 $body = $statusList[0];
             }
 
-            $message = CloudMessage::new()
+            foreach ($device_token as $token){
+                $message = CloudMessage::withTarget('token', $token)
                 ->withNotification([
                     'title' => $title,
                     'body' => $body,
@@ -122,12 +121,12 @@ trait NotificationTrait
                 ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
                 ->withApnsConfig(ApnsConfig::new()->withImmediatePriority())
                 ->withData($data);
-
                 try {
-                    $messaging->sendMulticast($message, $device_token);
+                    $messaging->send($message);
                 } catch (MessagingException $e) {
                     Log::info($e);
                 }
+            }
         }
 
     }
