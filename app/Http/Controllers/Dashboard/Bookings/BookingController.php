@@ -88,7 +88,7 @@ class BookingController extends Controller
                     return $row->visit?->group?->name;
                 })
                 ->addColumn('status', function ($row) {
-                    return $row->booking_status?->name;
+                    return $row->visit?->status?->name_ar;
                 })
                 ->addColumn('control', function ($row) {
                     $data = $row->service_id;
