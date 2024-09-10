@@ -144,7 +144,7 @@ class OrderController extends Controller
     {
 
         if (request()->ajax()) {
-            $orders = Order::query()->with(['user', 'transaction', 'status', 'bookings', 'services.category']);
+            $orders = Order::query()->with(['user', 'transaction', 'status', 'bookings.visit.status', 'services.category']);
             $now = Carbon::now('Asia/Riyadh')->toDateString();
             $orders->whereDate('created_at', '=', $now);
 
@@ -164,9 +164,6 @@ class OrderController extends Controller
                     return $row->user?->first_name . ' ' . $row->user?->last_name;
                 })
                 ->addColumn('service', function ($row) {
-/*                     $qu = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
-                    $services_ids = array_unique($qu);
-                    $services = Service::whereIn('id', $services_ids)->get(); */
                     $services = $row->services->unique();
                     $html = '';
                     foreach ($services as $service) {
@@ -176,7 +173,6 @@ class OrderController extends Controller
                     return $html;
                 })
                 ->addColumn('quantity', function ($row) {
-                    /* $qu = OrderService::where('order_id', $row->id)->get()->pluck('quantity')->toArray(); */
                     $qu =  $row->services->pluck('pivot.quantity')->toArray();
                     return array_sum($qu);
                 })
@@ -190,8 +186,7 @@ class OrderController extends Controller
                         return "فيزا";
                 })
                 ->addColumn('status', function ($row) {
-
-                    return $row->status?->name;
+                    return $row->bookings?->first()?->visit->status->name_ar;
                 })
                 ->addColumn('created_at', function ($row) {
                     $date = Carbon::parse($row->created_at)->timezone('Asia/Riyadh');
