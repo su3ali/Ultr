@@ -35,7 +35,7 @@ class BookingController extends Controller
         if (request()->ajax()) {
             $date = \request()->query('date');
             $date2 = \request()->query('date2');
-            $bookings = Booking::with('visit.group')->where('is_active', 1)->where('type', 'service')->with(['order', 'customer', 'service', 'group', 'booking_status']);
+            $bookings = Booking::with(['visit.group', 'visit.status', 'order.services.category', 'package', 'service.category.groups', 'customer', 'order.transaction'])->where('is_active', 1)->where('type', 'service')->with(['order', 'customer', 'service', 'group', 'booking_status']);
 
             if (request()->page) {
                 $now = Carbon::now('Asia/Riyadh')->toDateString();
@@ -60,7 +60,7 @@ class BookingController extends Controller
                 $formattedDate2 = $carbonDate2->format('Y-m-d');
                 $order = $bookings->where('date', '<=', $formattedDate2);
             }
-
+            $visits = Visit::query()->pluck('booking_id')->toArray();
             $bookings->get();
             return DataTables::of($bookings)
                 ->addColumn('customer', function ($row) {
@@ -90,12 +90,12 @@ class BookingController extends Controller
                 ->addColumn('status', function ($row) {
                     return $row->visit?->status?->name_ar;
                 })
-                ->addColumn('control', function ($row) {
+                ->addColumn('control', function ($row) use ($visits) {
                     $data = $row->service_id;
                     if (\request()->query('type') == 'package') {
                         $data = $row->package_id;
                     }
-                    if (!in_array($row->id, Visit::query()->pluck('booking_id')->toArray())) {
+                    if (!in_array($row->id, $visits)) {
                         $html = '
 
                         <button type="button" id="add-work-exp" class="btn btn-sm btn-primary card-tools edit" data-address_id = "' . $row->user_address_id . '"  data-id="' . $row->id . '" data-category_id="' . $row->category_id . '"  data-service_id="' . $data . '" data-type="' . \request()->query('type') . '"
