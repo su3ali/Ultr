@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Jobs\SendRateReminder;
 use App\Jobs\SendVisitReminder;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -18,6 +19,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->job(New SendVisitReminder)->everyFiveMinutes();
+        $schedule->job(New SendRateReminder)->everyFiveMinutes();
     }
 
     /**
