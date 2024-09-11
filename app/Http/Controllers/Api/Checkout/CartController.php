@@ -533,7 +533,7 @@ class CartController extends Controller
                         $inVisit2 = collect();
                         $inVisit3 = collect();
 
-                        $endingTime = $time->copy()->addMinutes(intval((($bookSetting->service_duration) * $amount)));
+                        $endingTime = $time;
                         $lastWorkTime = Carbon::parse($bookSetting->service_end_time);
 
                         $allowedDuration = (Carbon::parse($bookSetting->service_start_time)->diffInMinutes(Carbon::parse($bookSetting->service_end_time)));
@@ -569,7 +569,7 @@ class CartController extends Controller
                         } else if (in_array($day, $bookingDates) && in_array($converTimestamp, $bookingTimes) && ($countInBooking == $countGroup)) {
                         } /* else if (in_array($day, $bookingDates) && ($countInBooking + $inVisit->count()) == $countGroup) {
                         } */ else if (($inVisit2->IsNotEmpty() || $inVisit3->IsNotEmpty()) && ($countInBooking + $inVisit->count() + $inVisit2->count() + $inVisit3->count()) == $countGroup) {
-                        } else if ($endingTime->gt($lastWorkTime) && ($bookSetting->service_duration <= $allowedDuration)) {
+                        } else if ($endingTime->gte($lastWorkTime) && ($bookSetting->service_duration <= $allowedDuration)) {
                         } else {
 
                             return $time->format('g:i A');
