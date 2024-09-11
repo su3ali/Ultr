@@ -569,7 +569,7 @@ class CartController extends Controller
                         } else if (in_array($day, $bookingDates) && in_array($converTimestamp, $bookingTimes) && ($countInBooking == $countGroup)) {
                         } /* else if (in_array($day, $bookingDates) && ($countInBooking + $inVisit->count()) == $countGroup) {
                         } */ else if (($inVisit2->IsNotEmpty() || $inVisit3->IsNotEmpty()) && ($countInBooking + $inVisit->count() + $inVisit2->count() + $inVisit3->count()) == $countGroup) {
-                        } else if ($endingTime->gte($lastWorkTime) && ($bookSetting->service_duration <= $allowedDuration)) {
+                        } else if ($endingTime->gte($lastWorkTime)) {
                         } else {
 
                             return $time->format('g:i A');
