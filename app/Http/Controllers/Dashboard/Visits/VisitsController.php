@@ -184,7 +184,6 @@ class VisitsController extends Controller
 
             $now = Carbon::now('Asia/Riyadh')->toDateString();
 
-            // $visit->whereDate('start_date', '=', $now);
             $visit->whereDate('end_date', '=', $now);
 
 
@@ -247,7 +246,7 @@ class VisitsController extends Controller
         }
         $statuses = VisitsStatus::all()->pluck('name', 'id');
 
-        return view('dashboard.visits.visits_today', compact('statuses'));
+        return view('dashboard.visits.finished_visits_today', compact('statuses'));
     }
 
 
