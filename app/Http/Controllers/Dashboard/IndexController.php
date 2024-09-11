@@ -122,7 +122,8 @@ class IndexController extends Controller
         $sells_chart_2->dataset(__('dash.orders'), 'line', $all_sell_values2);
         $canceled_orders = Order::where('status_id', 5)->where('is_active', 1)->count();
         $canceled_orders_today = Order::where('status_id', 5)->where('is_active', 1)->whereDate('updated_at', $today)->count();
-        return view('dashboard.home', compact('canceled_orders', 'canceled_orders_today', 'tech_visits_today', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers', 'client_orders', 'technicians', 'tech_visits'));
+        $finished_visits_today =  Visit::whereDate('end_date', '=', $now)->count();
+        return view('dashboard.home', compact('canceled_orders', 'canceled_orders_today', 'tech_visits_today', 'finished_visits_today', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers', 'client_orders', 'technicians', 'tech_visits'));
     }
     private function __chartOptions($title)
     {

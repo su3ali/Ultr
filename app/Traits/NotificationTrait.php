@@ -119,8 +119,7 @@ trait NotificationTrait
                     'body' => $body,
                 ])
                 ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
-                ->withApnsConfig(ApnsConfig::new()->withImmediatePriority())
-                ->withData($data);
+                ->withApnsConfig(ApnsConfig::new()->withImmediatePriority());
                 try {
                     $messaging->send($message);
                 } catch (MessagingException $e) {

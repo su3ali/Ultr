@@ -261,7 +261,7 @@
                                             </svg>
                                         </div>
                                         <div class="">
-                                            <p class="w-value">{{ $tech_visits_today }}</p>
+                                            <p class="w-value">{{ $finished_visits_today }}</p>
                                             <h5 class="">{{ __('dash.finished_orders_today') }}</h5>
                                         </div>
                                     </div>
