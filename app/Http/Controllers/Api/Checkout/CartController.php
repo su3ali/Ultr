@@ -637,7 +637,7 @@ class CartController extends Controller
                     $qu->whereIn('category_id', $category_ids);
                 })->where('date', $key)->pluck('id')->toArray();
                 if ($time) {
-                    $endingTime = Carbon::parse($time)->timezone('Asia/Riyadh')->copy()->addMinutes($services_duration);
+                    $endingTime = Carbon::parse($time)->timezone('Asia/Riyadh');
 
 
                     $timeInstance = Carbon::parse($time)->timezone('Asia/Riyadh');
@@ -656,7 +656,7 @@ class CartController extends Controller
                         }
                     }
 
-                    if ($endingTime->gt($lastWorkTime) && (!$hasLongService)) {
+                    if ($endingTime->gte($lastWorkTime) && (!$hasLongService)) {
                         unset($commonTimes[$day][$key]);
                     }
                 }
