@@ -5,6 +5,7 @@ Route::get('visits/change_status', 'Visits\VisitsController@change_status')->nam
 Route::post('visits/getLocation', 'Visits\VisitsController@getLocation')->name('visits.getLocation');
 Route::post('visits/updateStatus', 'Visits\VisitsController@updateStatus')->name('visits.updateStatus');
 Route::get('visitsToday', 'Visits\VisitsController@visitsToday')->name('visits.visitsToday');
+Route::get('finishedVisitsToday', 'Visits\VisitsController@finishedVisitsToday')->name('visits.finishedVisitsToday');
 
 Route::get('reason_cancel/change_status', 'Visits\ReasonCancelController@change_status')->name('reason_cancel.change_status');
 Route::resource('reason_cancel', 'Visits\ReasonCancelController');
