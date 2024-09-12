@@ -39,6 +39,6 @@ class Order extends Model
     }
 
     public function userCar(){
-        return $this->hasOne(CarClient::class, 'id', 'car_user_id');
+        return $this->hasOne(CarClient::class, 'id', 'car_user_id')->withTrashed();
     }
 }

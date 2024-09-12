@@ -40,7 +40,7 @@ class Booking extends Model
     }
 
     public function address(){
-        return $this->hasOne(UserAddresses::class,'id', 'user_address_id');
+        return $this->hasOne(UserAddresses::class,'id', 'user_address_id')->withTrashed();
     }
     public function visit(){
         return $this->hasOne(Visit::class);
