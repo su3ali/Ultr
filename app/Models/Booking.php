@@ -24,7 +24,7 @@ class Booking extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
     public function service(){
-        return $this->hasOne(Service::class, 'id','service_id');
+        return $this->hasOne(Service::class, 'id','service_id')->withTrashed();
     }
     public function package(){
         return $this->hasOne(ContractPackage::class, 'id','package_id');
