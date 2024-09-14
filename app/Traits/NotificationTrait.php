@@ -7,6 +7,8 @@ use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\AndroidConfig;
 use Kreait\Firebase\Messaging\ApnsConfig;
 use Kreait\Firebase\Messaging\CloudMessage;
+use Illuminate\Support\Facades\Log;
+
 
 trait NotificationTrait
 {
@@ -27,30 +29,37 @@ trait NotificationTrait
             'code' => $notification['code'],
 
         ];
-
-        if ($notification['type'] == 'customer') {
+        
+        if (count($device_token) > 1) {
             $message = CloudMessage::new()
                 ->withNotification([
                     'title' => $notification['title'],
                     'body' => $notification['message'],
                 ])
-                ->withAndroidConfig(AndroidConfig::fromArray([
-                    'priority' => 'high',
-                ]))
-                ->withApnsConfig(ApnsConfig::fromArray([
-                    'headers' => [
-                        'apns-priority' => '10',
-                    ],
-                ]))
+                ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
+                ->withApnsConfig(ApnsConfig::new()->withImmediatePriority())
                 ->withData($data);
 
+            try {
+                $messaging->sendMulticast($message, $device_token);
+            } catch (MessagingException $e) {
+                Log::info($e);
+            }
         } else {
-            $message = CloudMessage::new()->withData($data);
+            $message = CloudMessage::withTarget('token', $device_token[0])
+                ->withNotification([
+                    'title' => $notification['title'],
+                    'body' => $notification['message'],
+                ])
+                ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
+                ->withApnsConfig(ApnsConfig::new()->withImmediatePriority())
+                ->withData($data);
 
-        }
-        try {
-            $messaging->sendMulticast($message, $device_token);
-        } catch (MessagingException $e) {
+            try {
+                $messaging->send($message);
+            } catch (MessagingException $e) {
+                Log::info($e);
+            }
         }
 
     }
@@ -63,11 +72,19 @@ trait NotificationTrait
         $device_token = $notification['device_token'];
 
         $data = [
-            'data' => $notification['data'],
+            'data' => json_encode($notification['data']),
         ];
 
         if ($notification['fromFunc'] == 'latlong') {
-            $message = CloudMessage::new()->withData($data);
+
+            $message = CloudMessage::withTarget('token', $device_token[0])
+                ->withData($data);
+
+            try {
+                $messaging->send($message);
+            } catch (MessagingException $e) {
+                Log::info($e);
+            }
         } else {
             $statusList = [
                 'طلبك باقي نرسلك افضل الأخصائيين عندنا',
@@ -95,24 +112,21 @@ trait NotificationTrait
                 $body = $statusList[0];
             }
 
-            $message = CloudMessage::new()
+            foreach ($device_token as $token){
+                $message = CloudMessage::withTarget('token', $token)
                 ->withNotification([
-                    'title' => $notification['title'],
-                    'body' => $notification['message'],
+                    'title' => $title,
+                    'body' => $body,
                 ])
-                ->withAndroidConfig(AndroidConfig::fromArray([
-                    'priority' => 'high',
-                ]))
-                ->withApnsConfig(ApnsConfig::fromArray([
-                    'headers' => [
-                        'apns-priority' => '10',
-                    ],
-                ]))
-                ->withData($data);
+                ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
+                ->withApnsConfig(ApnsConfig::new()->withImmediatePriority());
+                try {
+                    $messaging->send($message);
+                } catch (MessagingException $e) {
+                    Log::info($e);
+                }
+            }
         }
-        try {
-            $messaging->sendMulticast($message, $device_token);
-        } catch (MessagingException $e) {
-        }
+
     }
 }

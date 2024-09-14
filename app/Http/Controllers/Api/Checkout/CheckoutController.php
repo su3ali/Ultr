@@ -260,7 +260,9 @@ class CheckoutController extends Controller
                 if (($visit->get()->count()) < ($group->get()->count())) {
                     $assign_to_id = $group->whereNotIn('id', $visit->pluck('assign_to_id')->toArray())->inRandomOrder()->first()->id;
                 } else {
-                    $alreadyTaken = Visit::where('start_time', $cart->time)->whereIn('booking_id', $booking_id)->whereIn('assign_to_id', $activeGroups)->get();
+                    $alreadyTaken = Visit::where('start_time', $cart->time)
+                    ->whereNotIn('visits_status_id', [5, 6])
+                    ->whereIn('booking_id', $booking_id)->whereIn('assign_to_id', $activeGroups)->get();
                     if ($alreadyTaken->isNotEmpty()) {
                         $ids = $alreadyTaken->pluck('assign_to_id')->toArray();
                         // $assign_to_id = $visit->whereNotIn('assign_to_id', $ids)->inRandomOrder()->first()->assign_to_id;
@@ -324,7 +326,7 @@ class CheckoutController extends Controller
 
                 $techFcmArray = $allTechn->pluck('fcm_token');
                 $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
-                $FcmTokenArray = $techFcmArray->merge($adminFcmArray);
+                $FcmTokenArray = $techFcmArray->merge($adminFcmArray)->toArray();
 
 
                 $notification = [

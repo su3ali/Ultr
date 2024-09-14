@@ -245,6 +245,31 @@
                             </div>
                         </a>
                     </div>
+                    <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
+                        <a href="{{ route('dashboard.visits.finishedVisitsToday') }}" class="widget-link">
+                            <div class="widget widget-one_hybrid widget-engagement">
+                                <div class="widget-heading">
+                                    <div class="w-title">
+                                        <div class="w-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                class="feather feather-book">
+                                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z">
+                                                </path>
+                                            </svg>
+                                        </div>
+                                        <div class="">
+                                            <p class="w-value">{{ $finished_visits_today }}</p>
+                                            <h5 class="">{{ __('dash.finished_orders_today') }}</h5>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
 

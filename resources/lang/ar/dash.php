@@ -808,7 +808,7 @@ rejected_bills
     'visits_number' => 'عدد الزيارات',
     'regions settings' => 'اعدادت المناطق',
     'banners settings' => 'اعدادت البنرات',
-
+    'finished_orders_today' => 'الطلبات المكتملة اليوم'
 
 
 ];

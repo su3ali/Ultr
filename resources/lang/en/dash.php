@@ -526,6 +526,7 @@ return [
     'service name' => 'Service Name',
     'regions settings' => 'Regions settings',
     'banners settings' => 'Banners settings',
+    'finished_orders_today' => 'Finished orders today'
 
 
 ];
