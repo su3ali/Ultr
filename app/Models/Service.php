@@ -40,7 +40,7 @@ class Service extends Model
 
     public function serviceImages()
     {
-        return $this->hasMany(ServiceImages::class,'service_id','id')->withTrashed();
+        return $this->hasMany(ServiceImages::class,'service_id','id');
     }
 
     public function BookingSetting()
