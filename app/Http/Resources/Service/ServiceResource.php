@@ -15,7 +15,7 @@ class ServiceResource extends JsonResource
      */
     public function toArray($request)
     {
-        $service = Service::query()->find($this['id']);
+        $service = Service::query()->withTrashed()->find($this['id']);
         $images = [];
         foreach ($service->serviceImages as $serviceImage) {
             if ($serviceImage->image) {

@@ -31,7 +31,7 @@ class Order extends Model
         return $this->hasMany(Booking::class, 'order_id');
     }
     public function services(){
-        return $this->belongsToMany(Service::class, 'order_services')->withPivot(['price', 'quantity']);
+        return $this->belongsToMany(Service::class, 'order_services')->withPivot(['price', 'quantity'])->withTrashed();
     }
 
     public function transaction(){
