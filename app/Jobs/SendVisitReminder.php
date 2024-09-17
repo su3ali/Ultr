@@ -31,7 +31,9 @@ class SendVisitReminder implements ShouldQueue
      */
     public function handle()
     {
-        $bookings = Booking::with('customer')->whereDate('date', '=', date('Y-m-d'))
+        $bookings = Booking::with('customer')->whereHas('visit', function ($qu) {
+            $qu->whereNotIn('visits_status_id', [5, 6]);
+        })->whereDate('date', '=', date('Y-m-d'))
             ->whereBetween('time', [now()->addMinutes(55)->format('H:i:s'), now()->addMinutes(60)->format('H:i:s')])
             ->get();
         $usersFcmTokens = $bookings->pluck('customer.fcm_token')->toArray();

@@ -32,7 +32,7 @@ class SendRateReminder implements ShouldQueue
      */
     public function handle()
     {
-        $visits = Visit::with(('booking.customer'))->whereBetween('end_date', [now()->subMinutes(25)->format('Y-m-d H:i:s'), now()->subMinutes(20)->format('Y-m-d H:i:s')])->get();
+        $visits = Visit::with('booking.customer')->where('visits_status_id', '!=', 6)->whereBetween('end_date', [now()->subMinutes(25)->format('Y-m-d H:i:s'), now()->subMinutes(20)->format('Y-m-d H:i:s')])->get();
         $usersFcmTokens = $visits->pluck('booking.customer.fcm_token')->toArray();
 
         if (count($usersFcmTokens) > 0) {
