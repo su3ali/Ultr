@@ -53,6 +53,7 @@ class NotificationController extends Controller
             'message' => 'required',
             'type' => 'required'
         ]);
+        
         if ($request->type == 'customer') {
             $message = str_replace('&nbsp;', ' ', strip_tags($request->message));
             $type = 'customer';
@@ -64,67 +65,69 @@ class NotificationController extends Controller
             ];
             $this->sendAllNotification($notification);
 
-        } else if ($request->type == 'customersWithNoOrders') {
-            if ($request->subject_id == 'all') {
-                $FcmTokenArray = User::whereNotNull('fcm_token')->doesntHave('orders')->get()->pluck('fcm_token')->toArray();
-            } else {
-                $FcmTokenArray = User::where('id', $request->subject_id)->pluck('fcm_token')->toArray();
-            }
-            $type = 'customer';
         } else {
-            if ($request->subject_id == 'all') {
-                $allTechn = Technician::whereNotNull('fcm_token')->get();
+            if ($request->type == 'customersWithNoOrders') {
+                if ($request->subject_id == 'all') {
+                    $FcmTokenArray = User::whereNotNull('fcm_token')->doesntHave('orders')->get()->pluck('fcm_token')->toArray();
+                } else {
+                    $FcmTokenArray = User::where('id', $request->subject_id)->pluck('fcm_token')->toArray();
+                }
+                $type = 'customer';
+            } else {
+                if ($request->subject_id == 'all') {
+                    $allTechn = Technician::whereNotNull('fcm_token')->get();
 
-                $techFcmArray = $allTechn->pluck('fcm_token');
-                $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
-                $FcmTokenArray = $techFcmArray->merge($adminFcmArray)->toArray();
+                    $techFcmArray = $allTechn->pluck('fcm_token');
+                    $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
+                    $FcmTokenArray = $techFcmArray->merge($adminFcmArray)->toArray();
 
-                foreach ($allTechn as $tech) {
+                    foreach ($allTechn as $tech) {
+                        Notification::send(
+                            $tech,
+                            new SendPushNotification($request->title, $request->message)
+                        );
+                    }
+                } else {
+                    $technician = Technician::where('id', $request->subject_id)->first();
+                    $FcmTokenArray = Technician::where('id', $request->subject_id)->pluck('fcm_token')->toArray();
+
                     Notification::send(
-                        $tech,
+                        $technician,
                         new SendPushNotification($request->title, $request->message)
                     );
                 }
-            } else {
-                $technician = Technician::where('id', $request->subject_id)->first();
-                $FcmTokenArray = Technician::where('id', $request->subject_id)->pluck('fcm_token')->toArray();
 
-                Notification::send(
-                    $technician,
-                    new SendPushNotification($request->title, $request->message)
-                );
+                $type = 'technician';
             }
 
-            $type = 'technician';
-        }
 
+            if (isset($FcmTokenArray) && count($FcmTokenArray) == 0) {
+                return redirect()->back()->withErrors(['fcm_token' => 'لا يمكن ارسال الاشعارت لعدم توفر رمز الجهاز']);
+            }
 
-        if (isset($FcmTokenArray) && count($FcmTokenArray) == 0) {
-            return redirect()->back()->withErrors(['fcm_token' => 'لا يمكن ارسال الاشعارت لعدم توفر رمز الجهاز']);
-        }
+            $message = str_replace('&nbsp;', ' ', strip_tags($request->message));
 
-        $message = str_replace('&nbsp;', ' ', strip_tags($request->message));
+            $count = count($FcmTokenArray);
+            if ($count > 500) {
+                $sub_num = round($count / 300);
+                $FcmTokenArrays = array_chunk($FcmTokenArray, ceil(count($FcmTokenArray) / $sub_num));
+            } else {
+                $FcmTokenArrays = [$FcmTokenArray];
+            }
 
-        $count = count($FcmTokenArray);
-        if ($count > 500) {
-            $sub_num = round($count / 300);
-            $FcmTokenArrays = array_chunk($FcmTokenArray, ceil(count($FcmTokenArray) / $sub_num));
-        } else {
-            $FcmTokenArrays = [$FcmTokenArray];
-        }
+            foreach ($FcmTokenArrays as $FcmTokenArray) {
+                $notification = [
+                    'device_token' => $FcmTokenArray,
+                    'title' => $request->title,
+                    'message' => $message,
+                    'type' => $type ?? '',
+                    'code' => 2
+                ];
 
-        foreach ($FcmTokenArrays as $FcmTokenArray) {
-            $notification = [
-                'device_token' => $FcmTokenArray,
-                'title' => $request->title,
-                'message' => $message,
-                'type' => $type ?? '',
-                'code' => 2
-            ];
-
-            try {
-                $this->pushNotification($notification);
-            } catch (Exception $e) {
+                try {
+                    $this->pushNotification($notification);
+                } catch (Exception $e) {
+                }
             }
         }
 
