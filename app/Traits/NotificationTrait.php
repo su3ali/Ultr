@@ -73,7 +73,7 @@ trait NotificationTrait
         $data = [
             'id' => random_int(1, 9999),
             'title' => $notification['title'],
-            'body' => $notification['message'],
+            'body' => $notification['body'],
             'type' => $notification['type'],
             'code' => $notification['code'],
 
@@ -85,7 +85,7 @@ trait NotificationTrait
             'data' => $data,
         ])->withAndroidConfig(AndroidConfig::new()->withHighPriority())
             ->withApnsConfig(ApnsConfig::new()->withImmediatePriority());
-            
+
 /*         $message = CloudMessage::withTarget('topic', 'ultra_customers')
             ->withNotification($notification) // optional
             ->withData($data)

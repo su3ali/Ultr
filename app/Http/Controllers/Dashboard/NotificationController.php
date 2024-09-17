@@ -60,7 +60,7 @@ class NotificationController extends Controller
                 $type = 'customer';
                 $notification = [
                     'title' => $request->title,
-                    'message' => $message,
+                    'body' => $message,
                     'type' => $type ?? '',
                     'code' => 2
                 ];
