@@ -29,7 +29,7 @@ class IndexController extends Controller
         $client_orders_today = Order::whereDate('created_at', '=', $now)->where('status_id', '!=', 5)->where('is_active', 1)->count();
         $tech_visits_today = Visit::whereHas('booking', function ($qu) use ($now) {
             $qu->whereDate('date', '=', $now);
-        })->where('visits_status_id', '!=', 6)->where('is_active', 1)->count();
+        })->whereNotIn('visits_status_id', [5, 6])->where('is_active', 1)->count();
 
         $today = Carbon::now('Asia/Riyadh');
         $sevenDaysAgo = Carbon::now('Asia/Riyadh')->subDays(8);
