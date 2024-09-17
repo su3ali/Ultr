@@ -64,6 +64,34 @@ trait NotificationTrait
 
     }
 
+    public function sendAllNotification($notification)
+    {
+
+        $factory = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
+        $messaging = $factory->createMessaging();
+
+        $data = [
+            'id' => random_int(1, 9999),
+            'title' => $notification['title'],
+            'body' => $notification['message'],
+            'type' => $notification['type'],
+            'code' => $notification['code'],
+
+        ];
+
+        $message = CloudMessage::withTarget('topic', 'ultra_customers')
+        ->withNotification($notification) // optional
+        ->withData($data)
+        ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
+        ->withApnsConfig(ApnsConfig::new()->withImmediatePriority());
+
+        try {
+            $messaging->send($message);
+        } catch (MessagingException $e) {
+            Log::info($e);
+        }
+    }
+
     public function pushNotificationBackground($notification)
     {
         $factory = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));

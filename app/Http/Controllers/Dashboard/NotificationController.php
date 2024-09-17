@@ -54,13 +54,16 @@ class NotificationController extends Controller
             'type' => 'required'
         ]);
         if ($request->type == 'customer') {
-            if ($request->subject_id == 'all') {
-                $FcmTokenArray = User::whereNotNull('fcm_token')->get()->pluck('fcm_token')->toArray();
-            } else {
-                $FcmTokenArray = User::where('id', $request->subject_id)->pluck('fcm_token')->toArray();
-            }
-
+            $message = str_replace('&nbsp;', ' ', strip_tags($request->message));
             $type = 'customer';
+            $notification = [
+                'title' => $request->title,
+                'message' => $message,
+                'type' => $type ?? '',
+                'code' => 2
+            ];
+            $this->sendAllNotification($notification);
+
         } else if ($request->type == 'customersWithNoOrders') {
             if ($request->subject_id == 'all') {
                 $FcmTokenArray = User::whereNotNull('fcm_token')->doesntHave('orders')->get()->pluck('fcm_token')->toArray();
