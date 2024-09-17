@@ -18,7 +18,6 @@ trait NotificationTrait
         $factory = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
         $messaging = $factory->createMessaging();
 
-
         $device_token = $notification['device_token'];
 
         $data = [
@@ -27,7 +26,6 @@ trait NotificationTrait
             'body' => $notification['message'],
             'type' => $notification['type'],
             'code' => $notification['code'],
-
         ];
 
         if (count($device_token) > 1) {
@@ -73,7 +71,7 @@ trait NotificationTrait
         $data = [
             'id' => random_int(1, 9999),
             'title' => $notification['title'],
-            'body' => $notification['body'],
+            'body' => $notification['message'],
             'type' => $notification['type'],
             'code' => $notification['code'],
 
@@ -81,16 +79,13 @@ trait NotificationTrait
 
         $message = CloudMessage::fromArray([
             'topic' => 'ultra_customers',
-            'notification' => $notification,
+            'notification' => [
+                'title' => $notification['title'],
+                'body' => $notification['message'],
+            ],
             'data' => $data,
         ])->withAndroidConfig(AndroidConfig::new()->withHighPriority())
             ->withApnsConfig(ApnsConfig::new()->withImmediatePriority());
-
-/*         $message = CloudMessage::withTarget('topic', 'ultra_customers')
-            ->withNotification($notification) // optional
-            ->withData($data)
-            ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
-            ->withApnsConfig(ApnsConfig::new()->withImmediatePriority()); */
 
         try {
             $messaging->send($message);

@@ -119,7 +119,7 @@ class VisitsController extends Controller
                 $visit->where('visits_status_id', request()->status);
             }
 
-            $visit->where('is_active', 1)->get();
+            $visit->where('is_active', 1)->whereNotIn('visits_status_id', [5, 6])->get();
 
 
 

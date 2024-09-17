@@ -45,7 +45,6 @@ class NotificationController extends Controller
 
     public function sendNotification(Request $request)
     {
-
         $request->validate([
             'subject_id' => 'nullable',
             'technician_id' => 'nullable',
@@ -60,7 +59,7 @@ class NotificationController extends Controller
                 $type = 'customer';
                 $notification = [
                     'title' => $request->title,
-                    'body' => $message,
+                    'message' => $message,
                     'type' => $type ?? '',
                     'code' => 2
                 ];
@@ -70,7 +69,6 @@ class NotificationController extends Controller
             } else {
                 $FcmTokenArray = User::where('id', $request->subject_id)->pluck('fcm_token')->toArray();
             }
-
         } else if ($request->type == 'customersWithNoOrders') {
             if ($request->subject_id == 'all') {
                 $FcmTokenArray = User::whereNotNull('fcm_token')->doesntHave('orders')->get()->pluck('fcm_token')->toArray();
@@ -104,35 +102,22 @@ class NotificationController extends Controller
 
             $type = 'technician';
         }
-
-
         if (isset($FcmTokenArray) && count($FcmTokenArray) == 0) {
             return redirect()->back()->withErrors(['fcm_token' => 'لا يمكن ارسال الاشعارت لعدم توفر رمز الجهاز']);
         }
 
         $message = str_replace('&nbsp;', ' ', strip_tags($request->message));
 
-        $count = count($FcmTokenArray);
-        if ($count > 500) {
-            $sub_num = round($count / 300);
-            $FcmTokenArrays = array_chunk($FcmTokenArray, ceil(count($FcmTokenArray) / $sub_num));
-        } else {
-            $FcmTokenArrays = [$FcmTokenArray];
-        }
-
-        foreach ($FcmTokenArrays as $FcmTokenArray) {
-            $notification = [
-                'device_token' => $FcmTokenArray,
-                'title' => $request->title,
-                'message' => $message,
-                'type' => $type ?? '',
-                'code' => 2
-            ];
-
-            try {
-                $this->pushNotification($notification);
-            } catch (Exception $e) {
-            }
+        $notification = [
+            'device_token' => $FcmTokenArray,
+            'title' => $request->title,
+            'message' => $message,
+            'type' => $type ?? '',
+            'code' => 2
+        ];
+        try {
+            $this->pushNotification($notification);
+        } catch (Exception $e) {
         }
 
         session()->flash('success');
