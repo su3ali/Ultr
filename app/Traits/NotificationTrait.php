@@ -29,7 +29,7 @@ trait NotificationTrait
             'code' => $notification['code'],
 
         ];
-        
+
         if (count($device_token) > 1) {
             $message = CloudMessage::new()
                 ->withNotification([
@@ -79,11 +79,18 @@ trait NotificationTrait
 
         ];
 
-        $message = CloudMessage::withTarget('topic', 'ultra_customers')
-        ->withNotification($notification) // optional
-        ->withData($data)
-        ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
-        ->withApnsConfig(ApnsConfig::new()->withImmediatePriority());
+        $message = CloudMessage::fromArray([
+            'topic' => 'ultra_customers',
+            'notification' => $notification,
+            'data' => $data,
+        ])->withAndroidConfig(AndroidConfig::new()->withHighPriority())
+            ->withApnsConfig(ApnsConfig::new()->withImmediatePriority());
+            
+/*         $message = CloudMessage::withTarget('topic', 'ultra_customers')
+            ->withNotification($notification) // optional
+            ->withData($data)
+            ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
+            ->withApnsConfig(ApnsConfig::new()->withImmediatePriority()); */
 
         try {
             $messaging->send($message);
@@ -140,14 +147,14 @@ trait NotificationTrait
                 $body = $statusList[0];
             }
 
-            foreach ($device_token as $token){
+            foreach ($device_token as $token) {
                 $message = CloudMessage::withTarget('token', $token)
-                ->withNotification([
-                    'title' => $title,
-                    'body' => $body,
-                ])
-                ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
-                ->withApnsConfig(ApnsConfig::new()->withImmediatePriority());
+                    ->withNotification([
+                        'title' => $title,
+                        'body' => $body,
+                    ])
+                    ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
+                    ->withApnsConfig(ApnsConfig::new()->withImmediatePriority());
                 try {
                     $messaging->send($message);
                 } catch (MessagingException $e) {
