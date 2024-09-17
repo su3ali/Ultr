@@ -18,7 +18,6 @@ trait NotificationTrait
         $factory = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
         $messaging = $factory->createMessaging();
 
-
         $device_token = $notification['device_token'];
 
         $data = [
@@ -27,9 +26,8 @@ trait NotificationTrait
             'body' => $notification['message'],
             'type' => $notification['type'],
             'code' => $notification['code'],
-
         ];
-        
+
         if (count($device_token) > 1) {
             $message = CloudMessage::new()
                 ->withNotification([
@@ -62,6 +60,38 @@ trait NotificationTrait
             }
         }
 
+    }
+
+    public function sendAllNotification($notification)
+    {
+
+        $factory = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
+        $messaging = $factory->createMessaging();
+
+        $data = [
+            'id' => random_int(1, 9999),
+            'title' => $notification['title'],
+            'body' => $notification['message'],
+            'type' => $notification['type'],
+            'code' => $notification['code'],
+
+        ];
+
+        $message = CloudMessage::fromArray([
+            'topic' => 'ultra_customers',
+            'notification' => [
+                'title' => $notification['title'],
+                'body' => $notification['message'],
+            ],
+            'data' => $data,
+        ])->withAndroidConfig(AndroidConfig::new()->withHighPriority())
+            ->withApnsConfig(ApnsConfig::new()->withImmediatePriority());
+
+        try {
+            $messaging->send($message);
+        } catch (MessagingException $e) {
+            Log::info($e);
+        }
     }
 
     public function pushNotificationBackground($notification)
@@ -112,14 +142,14 @@ trait NotificationTrait
                 $body = $statusList[0];
             }
 
-            foreach ($device_token as $token){
+            foreach ($device_token as $token) {
                 $message = CloudMessage::withTarget('token', $token)
-                ->withNotification([
-                    'title' => $title,
-                    'body' => $body,
-                ])
-                ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
-                ->withApnsConfig(ApnsConfig::new()->withImmediatePriority());
+                    ->withNotification([
+                        'title' => $title,
+                        'body' => $body,
+                    ])
+                    ->withAndroidConfig(AndroidConfig::new()->withHighPriority())
+                    ->withApnsConfig(ApnsConfig::new()->withImmediatePriority());
                 try {
                     $messaging->send($message);
                 } catch (MessagingException $e) {

@@ -11,7 +11,7 @@ class Cart extends Model
     protected $guarded = [];
     public function service()
     {
-        return $this->hasOne(Service::class, 'id', 'service_id');
+        return $this->hasOne(Service::class, 'id', 'service_id')->withTrashed();
     }
     public function package()
     {
