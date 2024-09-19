@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,5 +24,10 @@ class Visit extends Model
     }
     public function cancelReason(){
         return $this->belongsTo(ReasonCancel::class, 'reason_cancel_id');
+    }
+
+    public function scopeActiveVisits(Builder $query)
+    {
+        return $query->whereNotIn('visits_status_id', [5, 6]);
     }
 }
