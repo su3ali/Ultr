@@ -210,7 +210,8 @@ class CheckoutController extends Controller
         if ($times) {
             foreach ($times as $time) {
                 if ($time['day'] == $cart->date) {
-                    if (!in_array(Carbon::parse($cart->time), $time['times'])) {
+                    if (!in_array(Carbon::parse($cart->time)->format('g:i A'), $time['times'])) {
+                        DB::rollback();
                         return self::apiResponse(400, __('api.This Time is not available'), $this->body);
                     }
                 }
