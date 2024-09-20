@@ -9,7 +9,6 @@ use App\Models\Group;
 use App\Models\Service;
 use App\Models\Setting;
 use App\Models\Visit;
-use App\Support\Api\ApiResponse;
 use Carbon\Carbon;
 use Carbon\CarbonInterval;
 
@@ -399,11 +398,8 @@ class Appointment
         $startDate = array_search($booking->service_start_date, $days);
         $endDate = array_search($booking->service_end_date, $days);
 
-        if (in_array($chooseDate, range($startDate, $endDate))) {
-            $time = true;
-        } else {
-            $time = false;
-        }
+        $time = in_array($chooseDate, range($startDate, $endDate));
+
         return $time;
     }
 
