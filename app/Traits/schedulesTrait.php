@@ -6,7 +6,7 @@ use Carbon\Carbon;
 
 trait schedulesTrait{
 
-    public array $days = [0 => 'Saturday', 1 => 'Sunday', 2 => 'Monday', 3 => 'Tuesday', 4 => 'Wednesday', 5 => 'Thursday', 6 => 'Friday'];
+    public $days = [0 => 'Saturday', 1 => 'Sunday', 2 => 'Monday', 3 => 'Tuesday', 4 => 'Wednesday', 5 => 'Thursday', 6 => 'Friday'];
 
 
     function getTime($day, $booking): string

@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Jobs\ClearUsersCarts;
 use App\Jobs\SendRateReminder;
 use App\Jobs\SendVisitReminder;
 use Illuminate\Console\Scheduling\Schedule;
@@ -17,9 +18,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
         $schedule->job(New SendVisitReminder)->everyFiveMinutes();
         $schedule->job(New SendRateReminder)->everyFiveMinutes();
+        $schedule->job(New ClearUsersCarts)->everyThirtyMinutes();
     }
 
     /**
