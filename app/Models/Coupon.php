@@ -48,4 +48,9 @@ class Coupon extends Model
     {
         return $this->hasMany(CouponUser::class, 'coupon_id');
     }
+
+    public function scopeInvalid($query)
+    {
+        return $query->where('active', 0)->orWhere('start', '>', now())->orWhere('end', '<=', now());
+    }
 }
