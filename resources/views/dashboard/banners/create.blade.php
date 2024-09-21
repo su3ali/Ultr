@@ -35,7 +35,19 @@
                                 @enderror
                             </div>
 
-                            <div class="col-md-4 custom-file-container form-group"
+                            <div class="form-group col-md-6">
+                                
+                                <label for="coupon">الكوبون</label>
+                                <select id="coupon" class="select2 form-control pt-1" name="coupon_id">
+                                    <option selected disabled>{{ __('dash.choose') }}</option>
+                                    @foreach ($coupons as $coupon)
+                                        <option value="{{ $coupon->id }}"> {{ $coupon->title_en }} </option>
+                                    @endforeach
+                                </select>
+    
+                            </div>
+                            
+                            <div class="col-md-8 custom-file-container form-group"
                                  data-upload-id="mySecondImage">
                                 <label>{{__('dash.upload')}}<a href="javascript:void(0)"
                                                                class="custom-file-container__image-clear"

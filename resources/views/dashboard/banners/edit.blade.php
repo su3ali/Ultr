@@ -42,25 +42,35 @@
                                 <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
-                        </div>
-
-                        <div class="col-md-4 custom-file-container form-group"
-                             data-upload-id="myFirstImage">
-                            <label>{{__('dash.upload')}}<a href="javascript:void(0)"
-                                                           class="custom-file-container__image-clear"
-                                                           title="Clear Image">x</a></label>
-                            <div style="display: flex" class="editImage">
-                                <label class="custom-file-container__custom-file">
-                                    <input type="file"
-                                           class="custom-file-container__custom-file__custom-file-input"
-                                           name="image"
-                                    >
-                                    {{--<input type="hidden" name="MAX_FILE_SIZE" value="10485760"/>--}}
-                                    <span
-                                        class="custom-file-container__custom-file__custom-file-control"></span>
-                                </label>
-
-                                <div class=" col-md-2 custom-file-container__image-preview"></div>
+                            <div class="form-group col-md-6">
+                                    
+                                <label for="coupon_id">الكوبون</label>
+                                <select id="coupon_id" class="select2 form-control pt-1" name="coupon_id">
+                                    <option selected disabled>{{ __('dash.choose') }}</option>
+                                    @foreach ($coupons as $coupon)
+                                        <option value="{{ $coupon->id }}"> {{ $coupon->title_en }} </option>
+                                    @endforeach
+                                </select>
+    
+                            </div>
+                            <div class="col-md-8 custom-file-container form-group"
+                                 data-upload-id="myFirstImage">
+                                <label>{{__('dash.upload')}}<a href="javascript:void(0)"
+                                                               class="custom-file-container__image-clear"
+                                                               title="Clear Image">x</a></label>
+                                <div style="display: flex" class="editImage">
+                                    <label class="custom-file-container__custom-file">
+                                        <input type="file"
+                                               class="custom-file-container__custom-file__custom-file-input"
+                                               name="image"
+                                        >
+                                        {{--<input type="hidden" name="MAX_FILE_SIZE" value="10485760"/>--}}
+                                        <span
+                                            class="custom-file-container__custom-file__custom-file-control"></span>
+                                    </label>
+    
+                                    <div class=" col-md-2 custom-file-container__image-preview"></div>
+                                </div>
                             </div>
                         </div>
 

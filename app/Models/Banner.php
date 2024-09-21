@@ -36,5 +36,8 @@ class Banner extends Model
         return $this->hasMany(BannerImage::class,'banner_id','id');
     }
 
-
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class);
+    }
 }

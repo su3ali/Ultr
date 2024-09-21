@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Dashboard\Banners;
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use App\Models\BannerImage;
+use App\Models\Coupon;
 use App\Traits\imageTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Yajra\DataTables\DataTables;
 
 class BannersController extends Controller
@@ -16,6 +18,7 @@ class BannersController extends Controller
     use imageTrait;
     protected function index()
     {
+        $coupons = Coupon::where('active', 1)->where('start', '<=', now())->where('end', '>', now())->select('code', 'id', 'title_en')->get();
         if (request()->ajax()) {
             $banners = Banner::all();
             return DataTables::of($banners)
@@ -35,11 +38,8 @@ class BannersController extends Controller
                 ->addColumn('control', function ($row) {
 
                     $html = '
-
-
-
                                 <button type="button" id="add-work-exp" class="btn btn-sm btn-primary card-tools edit" data-id="' . $row->id . '"  data-title_ar="' . $row->title_ar . '"
-                                 data-title_en="' . $row->title_en . '" data-image="'.$row->slug.'" data-toggle="modal" data-target="#editBannerModel">
+                                        data-title_en="' . $row->title_en . '" data-coupon_id="' . $row->coupon_id . '" data-image="' . $row->slug . '" data-toggle="modal" data-target="#editBannerModel">
                             <i class="far fa-edit fa-2x"></i>
                        </button>
 
@@ -57,13 +57,15 @@ class BannersController extends Controller
                 ])
                 ->make(true);
         }
-        return view('dashboard.banners.index');
+        return view('dashboard.banners.index', compact('coupons'));
     }
     protected function store(Request $request){
+        $coupons = Coupon::invalid()->pluck('id')->toArray();
         $rules = [
             'title_ar' => 'required|String|min:3|max:100',
             'title_en' => 'required|String|min:3|max:100',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
+            'coupon_id' => ['nullable','exists:coupons,id', Rule::notIn($coupons)]
         ];
         $validated = Validator::make($request->all(), $rules);
         if ($validated->fails()) {
@@ -85,10 +87,12 @@ class BannersController extends Controller
     }
     protected function update(Request $request, $id){
         $banner = Banner::query()->where('id', $id)->first();
+        $coupons = Coupon::invalid()->pluck('id')->toArray();
         $rules = [
             'title_ar' => 'required|String|min:3|max:100',
             'title_en' => 'required|String|min:3|max:100',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
+            'coupon_id' => ['nullable','exists:coupons,id', Rule::notIn($coupons)]
         ];
         $validated = Validator::make($request->all(), $rules);
         if ($validated->fails()) {

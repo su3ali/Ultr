@@ -133,10 +133,11 @@
             let title_ar = $(this).attr('data-title_ar');
             let title_en = $(this).attr('data-title_en');
             var img = $(this).attr('data-image');
+            var coupon_id = $(this).attr('data-coupon_id')
 
             $('#title_ar').val(title_ar)
             $('#title_en').val(title_en)
-
+            $('#coupon_id').val(coupon_id).trigger('change')
             if (img != ''){
                 $('.editImage .custom-file-container__image-preview').css('background-image', 'url("'+img+'")');
             }
