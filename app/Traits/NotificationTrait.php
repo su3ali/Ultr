@@ -42,11 +42,11 @@ trait NotificationTrait
         try {
             $report = $messaging->sendMulticast($message, $device_token);
             Log::info('Successful sends: ' . $report->successes()->count() . ' Failed sends: ' . $report->failures()->count());
-            if ($report->hasFailures()) {
+/*             if ($report->hasFailures()) {
                 foreach ($report->failures()->getItems() as $failure) {
                     Log::info($failure->error()->getMessage());
                 }
-            }
+            } */
         } catch (MessagingException $e) {
             Log::info($e);
         } catch (MessagingErrors\NotFound $e) {
