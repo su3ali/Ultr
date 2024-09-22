@@ -243,115 +243,103 @@ class CheckoutController extends Controller
                 $qu->where('category_id', $category_id);
             })->where('date', $cart->date)->pluck('id')->toArray();
             $activeGroups = Group::where('active', 1)->pluck('id')->toArray();
-            $visit = DB::table('visits')
-                ->select('*', DB::raw('COUNT(assign_to_id) as group_id'))
-                //  ->where('start_time', '!=', $cart->time)
-                ->whereIn('booking_id', $booking_id)
-                ->whereIn('assign_to_id', $activeGroups)
-                ->groupBy('assign_to_id')
-                ->orderBy('group_id', 'ASC');
+            // $visit = DB::table('visits')
+            //     ->select('*', DB::raw('COUNT(assign_to_id) as group_id'))
+            //     //  ->where('start_time', '!=', $cart->time)
+            //     ->whereIn('booking_id', $booking_id)
+            //     ->whereIn('assign_to_id', $activeGroups)
+            //     ->groupBy('assign_to_id')
+            //     ->orderBy('group_id', 'ASC');
             $assign_to_id = 0;
+
             $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
-            if ($visit->get()->isEmpty()) {
+            $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
+                $qu->where('region_id', $address->region_id);
+            })->whereIn('id', $groupIds);
 
-                $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
-                    $qu->where('region_id', $address->region_id);
-                })->whereIn('id', $groupIds)->inRandomOrder()->first();
-                if ($group == null) {
-                    return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+            if ($group->get()->isEmpty()) {
+                return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+            }
+
+            $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time))->format('H:i:s'))
+                ->where('end_time', '>', $cart->time)
+                ->activeVisits()->whereIn('booking_id', $booking_id)
+                ->whereIn('assign_to_id', $activeGroups)->pluck('assign_to_id');
+
+            if ($takenGroupsIds->isNotEmpty()) {
+                $assign_to_id = $group->whereNotIn('id', $takenGroupsIds)->inRandomOrder()?->first()?->id;
+                if (!isset($assign_to_id)) {
+                    DB::rollback();
+                    return self::apiResponse(400, __('api.This Time is not available'), $this->body);
                 }
-                $assign_to_id = $group->id;
             } else {
-
-                $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
-                    $qu->where('region_id', $address->region_id);
-                })->whereIn('id', $groupIds);
-                if ($group->count() == 0) {
-                    return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
-                }
-                if (($visit->get()->count()) < ($group->get()->count())) {
-                    $assign_to_id = $group->whereNotIn('id', $visit->pluck('assign_to_id')->toArray())->inRandomOrder()->first()->id;
-                } else {
-                    $alreadyTaken = Visit::where('start_time', $cart->time)
-                        ->whereNotIn('visits_status_id', [5, 6])
-                        ->whereIn('booking_id', $booking_id)->whereIn('assign_to_id', $activeGroups)->get();
-                    if ($alreadyTaken->isNotEmpty()) {
-                        $ids = $alreadyTaken->pluck('assign_to_id')->toArray();
-                        // $assign_to_id = $visit->whereNotIn('assign_to_id', $ids)->inRandomOrder()->first()->assign_to_id;
-                        $assign_to_id = $group->whereNotIn('id', $ids)->inRandomOrder()?->first()?->id;
-                        if (!isset($assign_to_id)) {
-                            DB::rollback();
-                            return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-                        }
-                    } else {
-                        // $assign_to_id = $visit->inRandomOrder()->first()->assign_to_id;
-                        $assign_to_id = $group->inRandomOrder()?->first()?->id;
-                        if (!isset($assign_to_id)) {
-                            DB::rollback();
-                            return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-                        }
-                    }
+                $assign_to_id = $group->inRandomOrder()?->first()?->id;
+                if (!isset($assign_to_id)) {
+                    DB::rollback();
+                    return self::apiResponse(400, __('api.This Time is not available'), $this->body);
                 }
             }
-            $bookingInsert = Booking::query()->create([
-                'booking_no' => $booking_no,
-                'user_id' => auth('sanctum')->user()->id,
-                'category_id' => $category_id,
-                'order_id' => $order->id,
-                'service_id' => $cart->service_id,
-                'user_address_id' => $order->user_address_id,
-                'booking_status_id' => 1,
-                'notes' => $cart->notes,
-                'quantity' => $cart->quantity,
-                'date' => $cart->date,
-                'type' => 'service',
-                'time' => Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString(),
-                'end_time' => $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null,
-            ]);
 
-            $start_time = Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString();
-            $end_time = $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null;
-            $validated['start_time'] = $start_time;
-            $validated['end_time'] = $end_time;
-            $validated['duration'] = $minutes;
-            $validated['visite_id'] = rand(1111, 9999) . '_' . date('Ymd');
-            $validated['assign_to_id'] = $assign_to_id;
-            $validated['booking_id'] = $bookingInsert->id;
-            $validated['visits_status_id'] = 1;
-            $visitInsert = Visit::query()->create($validated);
-
-
-
-            $allTechn = Technician::where('group_id', $assign_to_id)->whereNotNull('fcm_token')->get();
-
-            if (count($allTechn) > 0) {
-
-                $title = 'موعد زيارة جديد';
-                $message = 'لديك موعد زياره جديد';
-
-                foreach ($allTechn as $tech) {
-                    Notification::send(
-                        $tech,
-                        new SendPushNotification($title, $message)
-                    );
-                }
-
-                $techFcmArray = $allTechn->pluck('fcm_token');
-                $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
-                $FcmTokenArray = $techFcmArray->merge($adminFcmArray)->toArray();
-
-
-                $notification = [
-                    'device_token' => $FcmTokenArray,
-                    'title' => $title,
-                    'message' => $message,
-                    'type' => 'technician',
-                    'code' => 1,
-                ];
-
-                $this->pushNotification($notification);
-            }
         }
+        $bookingInsert = Booking::query()->create([
+            'booking_no' => $booking_no,
+            'user_id' => auth('sanctum')->user()->id,
+            'category_id' => $category_id,
+            'order_id' => $order->id,
+            'service_id' => $cart->service_id,
+            'user_address_id' => $order->user_address_id,
+            'booking_status_id' => 1,
+            'notes' => $cart->notes,
+            'quantity' => $cart->quantity,
+            'date' => $cart->date,
+            'type' => 'service',
+            'time' => Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString(),
+            'end_time' => $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null,
+        ]);
+
+        $start_time = Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString();
+        $end_time = $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null;
+        $validated['start_time'] = $start_time;
+        $validated['end_time'] = $end_time;
+        $validated['duration'] = $minutes;
+        $validated['visite_id'] = rand(1111, 9999) . '_' . date('Ymd');
+        $validated['assign_to_id'] = $assign_to_id;
+        $validated['booking_id'] = $bookingInsert->id;
+        $validated['visits_status_id'] = 1;
+        $visitInsert = Visit::query()->create($validated);
+
+
+
+        $allTechn = Technician::where('group_id', $assign_to_id)->whereNotNull('fcm_token')->get();
+
+        if (count($allTechn) > 0) {
+
+            $title = 'موعد زيارة جديد';
+            $message = 'لديك موعد زياره جديد';
+
+            foreach ($allTechn as $tech) {
+                Notification::send(
+                    $tech,
+                    new SendPushNotification($title, $message)
+                );
+            }
+
+            $techFcmArray = $allTechn->pluck('fcm_token');
+            $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
+            $FcmTokenArray = $techFcmArray->merge($adminFcmArray)->toArray();
+
+
+            $notification = [
+                'device_token' => $FcmTokenArray,
+                'title' => $title,
+                'message' => $message,
+                'type' => 'technician',
+                'code' => 1,
+            ];
+
+            $this->pushNotification($notification);
+        }
+
         $payment_method = $request->payment_method;
         if ($payment_method == 'wallet') {
             $transaction = Transaction::create([

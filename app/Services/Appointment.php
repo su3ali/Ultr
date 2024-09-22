@@ -122,7 +122,7 @@ class Appointment
 
                             $duration = min($bookSetting->service_duration, $allowedDuration);
                             
-                            $takenGroupsIds = Visit::where('start_time', '<', $time->copy()->addMinutes(($duration + $bookSetting->buffering_time))->format('H:i:s'))
+                            $takenGroupsIds = Visit::where('start_time', '<', $time->copy()->addMinutes(($duration + $bookSetting->buffering_time) * $amount)->format('H:i:s'))
                                 ->where('end_time', '>', $formattedTime)
                                 ->activeVisits()->whereIn('booking_id', $booking_id)
                                 ->whereIn('assign_to_id', $activeGroups)->pluck('assign_to_id')->toArray();
@@ -136,7 +136,7 @@ class Appointment
                             }
 
                             //visits with their buffering time that end after and required time
-                            $alreadyTakenVisits = Visit::where('start_time', '<', $time->copy()->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time))->format('H:i:s'))
+                            $alreadyTakenVisits = Visit::where('start_time', '<', $time->copy()->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time) * $amount)->format('H:i:s'))
                                 ->where('end_time', '<=', $formattedTime)  // Initial end_time filter
                                 ->activeVisits()
                                 ->whereIn('booking_id', $booking_id)
@@ -175,7 +175,7 @@ class Appointment
                                 } else {
                                     $duration = $bookSetting->service_duration;
                                 }
-                                $takenGroupsIds = Visit::where('start_time', '<', $time->copy()->addMinutes(($duration + $bookSetting->buffering_time))->format('H:i:s'))
+                                $takenGroupsIds = Visit::where('start_time', '<', $time->copy()->addMinutes($duration + $bookSetting->buffering_time * $amount)->format('H:i:s'))
                                     ->where('end_time', '>', $formattedTime)
                                     ->activeVisits()->whereIn('booking_id', $booking_id)
                                     ->whereIn('assign_to_id', $activeGroups)->pluck('assign_to_id')->toArray();
@@ -246,7 +246,7 @@ class Appointment
                         })->where([['category_id', '=', $category_id], ['date', '=', $day], ['time', '=', $realTime]])
                             ->count();
 
-                        $inVisit = Visit::where([['start_time', '<', Carbon::parse($realTime)->timezone('Asia/Riyadh')], ['end_time', '>', ($realTime)]])->get();
+                        $inVisit = Visit::where([['start_time', '<', Carbon::parse($realTime)->timezone('Asia/Riyadh')], ['end_time', '>', $realTime]])->get();
                         $inVisit2 = collect();
                         $inVisit3 = collect();
 
