@@ -261,7 +261,7 @@ class CheckoutController extends Controller
                 return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
             }
 
-            $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time))->format('H:i:s'))
+            $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time) * $cart->quantity)->format('H:i:s'))
                 ->where('end_time', '>', $cart->time)
                 ->activeVisits()->whereIn('booking_id', $booking_id)
                 ->whereIn('assign_to_id', $activeGroups)->pluck('assign_to_id');
