@@ -322,11 +322,7 @@ class Appointment
                 $day = $serviceTime['day'];
                 $times = $serviceTime['times'];
 
-                if (!isset($commonTimes[$day])) {
-                    $commonTimes[$day] = $times;
-                } else {
-                    $commonTimes[$day] = array_intersect($commonTimes[$day], $times);
-                }
+                $commonTimes[$day] = isset($commonTimes[$day]) ? array_intersect($commonTimes[$day], $times) : $times; 
             }
         }
 
