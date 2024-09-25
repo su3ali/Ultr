@@ -204,16 +204,20 @@ class CheckoutController extends Controller
             $service = Service::query()->find($cart->service_id);
             $service?->save();
         }
-
-        $time = new Appointment($address->region_id, $services, null, 0);
+        $remaining_days = Carbon::now()->diffInDays(Carbon::parse($cart->date)) + 1;
+        $page_number = floor($remaining_days / 14);
+        $time = new Appointment($address->region_id, $services, null, $page_number);
         $times = $time->getAvailableTimesFromDate();
         if ($times) {
+            $days = array_column($times, 'day');
+            if (!in_array($cart->date, $days)) {
+                DB::rollback();
+                return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+            }
             foreach ($times as $time) {
-                if ($time['day'] == $cart->date) {
-                    if (!in_array(Carbon::parse($cart->time)->format('g:i A'), $time['times'])) {
-                        DB::rollback();
-                        return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-                    }
+                if (!in_array(Carbon::parse($cart->time)->format('g:i A'), $time['times']) && $cart->date == $time['day']) {
+                    DB::rollback();
+                    return self::apiResponse(400, __('api.This Time is not available'), $this->body);
                 }
             }
         }
@@ -243,13 +247,6 @@ class CheckoutController extends Controller
                 $qu->where('category_id', $category_id);
             })->where('date', $cart->date)->pluck('id')->toArray();
             $activeGroups = Group::where('active', 1)->pluck('id')->toArray();
-            // $visit = DB::table('visits')
-            //     ->select('*', DB::raw('COUNT(assign_to_id) as group_id'))
-            //     //  ->where('start_time', '!=', $cart->time)
-            //     ->whereIn('booking_id', $booking_id)
-            //     ->whereIn('assign_to_id', $activeGroups)
-            //     ->groupBy('assign_to_id')
-            //     ->orderBy('group_id', 'ASC');
             $assign_to_id = 0;
 
             $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
@@ -265,7 +262,6 @@ class CheckoutController extends Controller
                 ->where('end_time', '>', $cart->time)
                 ->activeVisits()->whereIn('booking_id', $booking_id)
                 ->whereIn('assign_to_id', $activeGroups)->pluck('assign_to_id');
-
             if ($takenGroupsIds->isNotEmpty()) {
                 $assign_to_id = $group->whereNotIn('id', $takenGroupsIds)->inRandomOrder()?->first()?->id;
                 if (!isset($assign_to_id)) {
