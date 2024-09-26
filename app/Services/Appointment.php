@@ -96,7 +96,7 @@ class Appointment
                     $dayName = Carbon::parse($day)->timezone('Asia/Riyadh')->locale('en')->dayName;
                     $get_time = $this->getTime($dayName, $bookSetting);
                     if ($get_time == true) {
-                        $times[$service_id]['days'][$day] = CarbonInterval::minutes($bookSetting->service_duration)
+                        $times[$service_id]['days'][$day] = CarbonInterval::minutes($bookSetting->service_duration + $bookSetting->buffering_time)
                             ->toPeriod(
                                 Carbon::now('Asia/Riyadh')->setTimeFrom($bookSetting->service_start_time ?? Carbon::now('Asia/Riyadh')->startOfDay()),
                                 Carbon::now('Asia/Riyadh')->setTimeFrom($bookSetting->service_end_time ?? Carbon::now('Asia/Riyadh')->endOfDay())

@@ -35,7 +35,7 @@ class ReportsController extends Controller
             $service = $request->service;
             $payment_method = $request->payment_method;
             $order = Order::where(function ($query) {
-                $query->where('status_id', '!=', 5)->orWhereHas('transaction', function ($q) {
+                $query->where('status_id', '=', 4)->orWhereHas('transaction', function ($q) {
                     $q->where('payment_method', '!=', 'cache');
                 });
             });
