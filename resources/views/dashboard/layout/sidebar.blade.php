@@ -186,6 +186,42 @@
                 </li>
             @endcan
 
+            {{-- Beginning of appointments --}}
+
+            <li class="menu">
+                <a href="#appointments" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    <div class="">
+                        <div class="icon-container">
+                            <i data-feather="book"></i><span class="icon-name"> إعدادات المواعيد </span>
+                        </div>
+                    </div>
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" class="feather feather-chevron-right">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </a>
+                <ul class="collapse submenu list-unstyled" id="appointments" data-parent="#accordionExample">
+
+                    {{-- @can('update_bookings') --}}
+                    <li>
+                        <a href="{{ route('dashboard.days_statuses.index') }}"> أيام العمل </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('dashboard.shifts.index') }}"> الشفتات </a>
+                    </li>
+                    {{-- @endcan --}}
+                </ul>
+            </li>
+
+            {{-- End of appointments --}}
+
+
+
+
+
             <li class="menu">
                 <a href="#app" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">

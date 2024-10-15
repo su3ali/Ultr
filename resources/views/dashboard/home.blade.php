@@ -333,7 +333,7 @@
 
             </div>
 
-            <div class="col-xl-6 col-lg-12 col-sm-12  layout-spacing">
+            {{-- <div class="col-xl-6 col-lg-12 col-sm-12  layout-spacing">
                 <div class="widget-content widget-content-area br-6">
                     <div class="col-md-12 text-left mb-3">
 
@@ -341,7 +341,7 @@
 
 
                     </div>
-                    <table id="html5-extension" class="table table-hover non-hover">
+                    <table id="html5-extension-order" class="table table-hover non-hover">
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -349,15 +349,15 @@
                                 <th>الفريق</th>
                                 <th>موعد الحجز</th>
                                 <th>وقت البدء</th>
-                                {{-- <th>وقت الانتهاء</th> --}}
                                 <th>الحاله</th>
                             </tr>
                         </thead>
                     </table>
 
 
+
                 </div>
-            </div>
+            </div> --}}
 
         </div>
         <!-- sales chart start -->
@@ -589,14 +589,23 @@
                     ]
                 },
                 processing: true,
-                serverSide: false,
+                serverSide: true,
                 responsive: true,
                 ajax: {
                     url: '{{ route('dashboard.orders.index') }}',
                     data: function(d) {
                         d.page = "home";
+                        console.log(d);
+
+                    },
+                    error: function(xhr, error, code) {
+                        console.error('AJAX Error:', error);
+                        console.log('Response Text:', xhr.responseText);
+                        console.log('Status Code:', xhr.status);
+
                     }
                 },
+
                 columns: [{
                         render: function(data, type, row, meta) {
                             return meta.row + 1;
@@ -605,7 +614,6 @@
                     {
                         data: 'id',
                         name: 'id',
-
                     },
                     {
                         data: 'user',
@@ -629,9 +637,10 @@
                     },
                 ]
             });
+
             $('#html5-extension-order tbody').on('click', 'tr', function() {
                 var data = table.row(this).data();
-                // alert(data.id);
+                alert(data.id); // Debugging line to show order ID
                 window.location.href = '/admin/order/orderDetail?id=' + data.id;
             });
         });
