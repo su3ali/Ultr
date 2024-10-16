@@ -41,7 +41,7 @@ class Group extends Model
 
     public function scopeGroupInRegionCategory(Builder $query, $region_id, $category_id)
     {
-        
+
         $query->where('active', 1)->whereHas('regions', function ($qu) use ($region_id) {
             $qu->where('region_id', $region_id);
         })->whereHas('categories', function ($qu) use ($category_id) {
@@ -57,5 +57,11 @@ class Group extends Model
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'category_groups');
+    }
+
+    // Defining the many-to-many relationship between Group and Region
+    public function region()
+    {
+        return $this->belongsToMany(Region::class, 'group_regions', 'group_id', 'region_id');
     }
 }

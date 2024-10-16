@@ -127,15 +127,15 @@ class Appointment
 
     protected function getShiftsForDay($day)
     {
+
         // Fetch the active shifts for the day
         $dayModel = Day::where('name', $day)->where('is_active', true)->first();
         if (!$dayModel) {
             return collect(); // Return an empty collection if no active day is found
         }
 
-        return Shift::where('day_id', $dayModel->id)
-            ->where('is_active', true)
-            ->get();
+        return Shift::forGroupInRegion($this->region_id)->where('day_id', $dayModel->id)
+            ->where('is_active', true)->get();
     }
 
     protected function adjustTimesForVisits(&$times, $service_id, $day, $amount, $bookSetting)
