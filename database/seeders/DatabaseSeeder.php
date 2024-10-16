@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             LanguageSeeder::class,
             DaySeeder::class,
             ShiftsSeeder::class,
+            SuperAdminRegionsSeeder::class,
 
         ]);
     }
