@@ -146,7 +146,7 @@ class Appointment
             $query->where('category_id', $category_id);
         })->where('date', $day)->pluck('id')->toArray();
 
-        $activeGroups = Group::where('active', 1)->pluck('id')->toArray();
+        $activeGroups = Group::GroupInRegionCategory($this->region_id, [$category_id])->where('active', 1)->pluck('id')->toArray();
         $timeSlots = $times[$service_id]['days'][$day];
 
         // $timeSlots = iterator_to_array($times[$service_id]['days'][$day]);
