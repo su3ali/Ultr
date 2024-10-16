@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\Checkout\CartController;
-use App\Http\Controllers\Api\Checkout\v2\CheckoutController;
-use App\Http\Controllers\Api\v2\Checkout\CartController as CartControllerV2;
+use App\Http\Controllers\Api\Checkout\CheckoutController;
+use App\Http\Controllers\Api\Checkout\v2\CartController as CartControllerV2;
 
 Route::prefix('carts')->group(function () {
     Route::post('add_to_cart', [CartController::class, 'add_to_cart']);
