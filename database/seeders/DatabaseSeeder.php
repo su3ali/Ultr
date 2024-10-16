@@ -13,12 +13,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+        $this->call(ShiftSeeder::class);
+
         $this->call([
             //                SqlFileSeeder::class,
             DashboardRolesSeeder::class,
             SettingSeeder::class,
             LanguageSeeder::class,
-
+            DaySeeder::class,
+            ShiftsSeeder::class,
 
         ]);
     }

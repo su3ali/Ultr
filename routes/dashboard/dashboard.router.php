@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Dashboard\Setting\SettingController;
 use App\Support\Actions\ChangeLocalizationAction;
 use Illuminate\Support\Facades\Route;
 
@@ -24,7 +23,7 @@ Route::get('lang/{locale}', [ChangeLocalizationAction::class, '__invoke'])->name
 include __DIR__ . '/auth.routes.php';
 
 Route::group(['middleware' => ['auth:dashboard']], static function () {
-    Route::get('/','IndexController@index' )->name('home');
+    Route::get('/', 'IndexController@index')->name('home');
     require __DIR__ . '/core.routes.php';
     require __DIR__ . '/order.routes.php';
     require __DIR__ . '/booking.routes.php';
@@ -36,6 +35,5 @@ Route::group(['middleware' => ['auth:dashboard']], static function () {
     require __DIR__ . '/notification.routes.php';
     require __DIR__ . '/reports.routes.php';
     require __DIR__ . '/cars.routes.php';
+    require __DIR__ . '/appointment.routes.php';
 });
-
-

@@ -41,6 +41,7 @@ class Group extends Model
 
     public function scopeGroupInRegionCategory(Builder $query, $region_id, $category_id)
     {
+        
         $query->where('active', 1)->whereHas('regions', function ($qu) use ($region_id) {
             $qu->where('region_id', $region_id);
         })->whereHas('categories', function ($qu) use ($category_id) {
