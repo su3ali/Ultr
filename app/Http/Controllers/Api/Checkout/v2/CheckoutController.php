@@ -1,13 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\Api\Checkout;
+namespace App\Http\Controllers\Api\Checkout\v2;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Booking;
 use App\Models\BookingSetting;
 use App\Models\Cart;
-use App\Models\Contract;
+use App\Models\CategoryGroup;
+use App\Models\ContractPackage;
+use App\Models\ContractPackagesUser;
 use App\Models\CustomerWallet;
 use App\Models\Group;
 use App\Models\Order;
@@ -16,9 +18,6 @@ use App\Models\Service;
 use App\Models\Technician;
 use App\Models\Transaction;
 use App\Models\UserAddresses;
-use App\Models\CategoryGroup;
-use App\Models\ContractPackage;
-use App\Models\ContractPackagesUser;
 use App\Models\Visit;
 use App\Notifications\SendPushNotification;
 use App\Services\Appointment;
@@ -29,7 +28,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
-
 
 class CheckoutController extends Controller
 {
@@ -53,12 +51,12 @@ class CheckoutController extends Controller
             $countInBooking = Booking::whereHas('visit', function ($q) {
                 $q->whereNotIn('visits_status_id', [5, 6]);
             })->whereHas(
-                    'address.region',
-                    function ($q) use ($regionId) {
+                'address.region',
+                function ($q) use ($regionId) {
 
-                        $q->where('id', $regionId);
-                    }
-                )->where([['category_id', '=', $cart->category_id], ['date', '=', $cart->date], ['time', '=', $cart->time]])
+                    $q->where('id', $regionId);
+                }
+            )->where([['category_id', '=', $cart->category_id], ['date', '=', $cart->date], ['time', '=', $cart->time]])
                 ->count();
 
             if (($countInBooking == $countGroup)) {
@@ -90,7 +88,6 @@ class CheckoutController extends Controller
         if (!$carts->first()) {
             return self::apiResponse(400, t_('Cart is empty'), []);
         }
-
 
         if ($carts->first()->type == 'package') {
             $total = $carts->first()->price;
@@ -213,7 +210,7 @@ class CheckoutController extends Controller
             if ($bookSetting) {
                 foreach (Service::with('BookingSetting')->whereIn('id', $carts->pluck('service_id')->toArray())->get() as $service) {
                     $serviceMinutes = $service->BookingSetting->service_duration
-                        * $carts->where('service_id', $service->id)->first()->quantity;
+                     * $carts->where('service_id', $service->id)->first()->quantity;
                     $minutes += $serviceMinutes;
                 }
             }
@@ -282,8 +279,6 @@ class CheckoutController extends Controller
         $validated['visits_status_id'] = 1;
         $visitInsert = Visit::query()->create($validated);
 
-
-
         $allTechn = Technician::where('group_id', $assign_to_id)->whereNotNull('fcm_token')->get();
 
         if (count($allTechn) > 0) {
@@ -301,7 +296,6 @@ class CheckoutController extends Controller
             $techFcmArray = $allTechn->pluck('fcm_token');
             $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
             $FcmTokenArray = $techFcmArray->merge($adminFcmArray)->toArray();
-
 
             $notification = [
                 'device_token' => $FcmTokenArray,
@@ -350,7 +344,7 @@ class CheckoutController extends Controller
         }
 
         $user->update([
-            'point' => $user->point - $request->wallet_discounts ?? 0
+            'point' => $user->point - $request->wallet_discounts ?? 0,
         ]);
 
         $this->wallet($user, $total);
@@ -379,7 +373,6 @@ class CheckoutController extends Controller
         //     'status_id' => 1,
         //     'notes' => $request->notes,
         // ]);
-
 
         if ($request->payment_method == 'wallet') {
             $transaction = Transaction::create([
@@ -412,7 +405,7 @@ class CheckoutController extends Controller
             //  Order::where('id', $order->id)->update(array('partial_amount' => 0));
         }
         $user->update([
-            'point' => $user->point - $request->wallet_discounts ?? 0
+            'point' => $user->point - $request->wallet_discounts ?? 0,
         ]);
 
         $this->wallet($user, $total);
@@ -435,7 +428,7 @@ class CheckoutController extends Controller
             $point = $wallet;
         }
         $user->update([
-            'point' => $user->point + $point ?? 0
+            'point' => $user->point + $point ?? 0,
         ]);
     }
 
@@ -469,7 +462,6 @@ class CheckoutController extends Controller
                 //     'amount' => $request->amount,
             ]);
         }
-
 
         $order = Order::where('id', $request->order_id)->first();
 

@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Dashboard\Visits;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
-use App\Models\Banner;
-use App\Models\BannerImage;
 use App\Models\Booking;
 use App\Models\BookingSetting;
 use App\Models\ContractPackage;
@@ -15,7 +13,6 @@ use App\Models\Technician;
 use App\Models\Visit;
 use App\Models\VisitsStatus;
 use App\Notifications\SendPushNotification;
-use App\Traits\imageTrait;
 use App\Traits\NotificationTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -29,8 +26,12 @@ class VisitsController extends Controller
 
     protected function index()
     {
+        $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
+
         if (request()->ajax()) {
-            $visit = Visit::query();
+            $visit = Visit::query()->whereHas('booking.address', function ($query) use ($regionIds) {
+                $query->whereIn('region_id', $regionIds);
+            });
 
             if (request()->page) {
                 $now = Carbon::now('Asia/Riyadh')->toDateString();
@@ -44,8 +45,6 @@ class VisitsController extends Controller
             }
 
             $visit->where('is_active', 1)->get();
-
-
 
             return DataTables::of($visit)
                 ->addColumn('booking_id', function ($row) {
@@ -105,7 +104,6 @@ class VisitsController extends Controller
         if (request()->ajax()) {
             $visit = Visit::query();
 
-
             $now = Carbon::now('Asia/Riyadh')->toDateString();
 
             // $visit->whereDate('start_date', '=', $now);
@@ -113,15 +111,12 @@ class VisitsController extends Controller
                 $qu->whereDate('date', '=', $now);
             });
 
-
             if (request()->status) {
 
                 $visit->where('visits_status_id', request()->status);
             }
 
             $visit->where('is_active', 1)->whereNotIn('visits_status_id', [5, 6])->get();
-
-
 
             return DataTables::of($visit)
                 ->addColumn('booking_id', function ($row) {
@@ -181,11 +176,9 @@ class VisitsController extends Controller
         if (request()->ajax()) {
             $visit = Visit::query();
 
-
             $now = Carbon::now('Asia/Riyadh')->toDateString();
 
             $visit->whereDate('end_date', '=', $now);
-
 
             if (request()->status) {
 
@@ -193,8 +186,6 @@ class VisitsController extends Controller
             }
 
             $visit->where('is_active', 1)->get();
-
-
 
             return DataTables::of($visit)
                 ->addColumn('booking_id', function ($row) {
@@ -249,7 +240,6 @@ class VisitsController extends Controller
         return view('dashboard.visits.finished_visits_today', compact('statuses'));
     }
 
-
     protected function store(Request $request)
     {
         $rules = [
@@ -302,7 +292,6 @@ class VisitsController extends Controller
             $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
             $FcmTokenArray = $techFcmArray->merge($adminFcmArray)->toArray();
 
-
             $notification = [
                 'device_token' => $FcmTokenArray,
                 'title' => $title,
@@ -313,7 +302,6 @@ class VisitsController extends Controller
 
             $this->pushNotification($notification);
         }
-
 
         session()->flash('success');
         return redirect()->back();
@@ -335,23 +323,23 @@ class VisitsController extends Controller
     {
         $visit = Visit::find($id);
         $visit->update([
-            'is_active' => 0
+            'is_active' => 0,
         ]);
 
         $booking = Booking::where('id', $visit->booking_id)->first();
         $booking->update([
-            'is_active' => 0
+            'is_active' => 0,
         ]);
         $visits = Visit::where('booking_id', $booking->id)->get();
         foreach ($visits as $visit) {
             $visit->update([
-                'is_active' => 0
+                'is_active' => 0,
             ]);
         }
 
         return [
             'success' => true,
-            'msg' => __("dash.deleted_success")
+            'msg' => __("dash.deleted_success"),
         ];
     }
 
@@ -371,7 +359,7 @@ class VisitsController extends Controller
 
         if ($visit->visits_status_id == 1) {
             $visit->update([
-                'assign_to_id' => $request->assign_to_id
+                'assign_to_id' => $request->assign_to_id,
             ]);
             /* $this->store($request); */
         } else if ($visit->visits_status_id == 6) {
@@ -410,8 +398,6 @@ class VisitsController extends Controller
         return redirect()->back();
     }
 
-
-
     public function getLocation(Request $request)
     {
         $visits = Visit::where('id', $request->id)->first();
@@ -428,7 +414,6 @@ class VisitsController extends Controller
 
         return response()->json($locations);
     }
-
 
     public function updateStatus(Request $request)
     {

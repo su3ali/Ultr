@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\Checkout\CartController;
-use App\Http\Controllers\Api\Checkout\CheckoutController;
-use App\Http\Controllers\Api\Coupons\CouponsController;
+use App\Http\Controllers\Api\Checkout\v2\CheckoutController;
+use App\Http\Controllers\Api\v2\Checkout\CartController as CartControllerV2;
 
 Route::prefix('carts')->group(function () {
     Route::post('add_to_cart', [CartController::class, 'add_to_cart']);
@@ -13,6 +13,12 @@ Route::prefix('carts')->group(function () {
     Route::post('control_cart_item', [CartController::class, 'controlItem']);
 });
 
+// Start Version 2 routes
+Route::prefix('v2/carts')->group(function () {
+    Route::get('/get_avail_times_from_date', [CartControllerV2::class, 'getAvailableTimesFromDate']);
+});
+
+// End Version 2 routes
 
 Route::get('address', [CheckoutController::class, 'index']);
 Route::post('add-address', [CheckoutController::class, 'addAddress']);
