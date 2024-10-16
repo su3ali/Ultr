@@ -15,7 +15,7 @@ class AddShiftNoAndServiceIdToShiftsTable extends Migration
     {
         Schema::table('shifts', function (Blueprint $table) {
 
-            $table->integer('shift_no')->after('id');// Add shift_no column
+            $table->string('shift_no')->after('id');// Add shift_no column
             $table->unsignedBigInteger('service_id')->after('shift_no');
             $table->foreign('service_id')->references('id')->on('services')->onDelete('cascade');
         });

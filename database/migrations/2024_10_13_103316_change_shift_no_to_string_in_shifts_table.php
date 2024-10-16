@@ -14,7 +14,7 @@ class ChangeShiftNoToStringInShiftsTable extends Migration
     public function up()
     {
         Schema::table('string_in_shifts', function (Blueprint $table) {
-            $table->string('shift_no')->change(); // Change shift_no to string
+            $table->string(column: 'shift_no')->change(); // Change shift_no to string
 
         });
     }

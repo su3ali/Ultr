@@ -59,19 +59,31 @@ class AdminController extends Controller
         $regions = Arr::pull($validated, 'regions');
         $regionsCollection = collect($regions);
 
+        // Update the model with other validated data
         $model->update($validated);
-        foreach ($regionsCollection as $region) {
-            $exists = AdminRegion::where('region_id', $region)
-                ->where('admin_id', $model->id)
-                ->exists();
 
-            if (!$exists) {
-                $adminRegion = AdminRegion::create([
-                    'region_id' => $region,
-                    'admin_id' => $model->id,
-                ]);
-            }
+        // Get existing region IDs for the admin
+        $existingRegions = AdminRegion::where('admin_id', $model->id)
+            ->pluck('region_id')
+            ->toArray();
+
+        // Find regions to be added and regions to be removed
+        $regionsToAdd = $regionsCollection->diff($existingRegions); // New regions
+        $regionsToRemove = collect($existingRegions)->diff($regionsCollection); // Old regions to be removed
+
+        // Add new regions
+        foreach ($regionsToAdd as $region) {
+            AdminRegion::create([
+                'region_id' => $region,
+                'admin_id' => $model->id,
+            ]);
         }
+
+        // Remove old regions that are no longer in the updated list
+        AdminRegion::where('admin_id', $model->id)
+            ->whereIn('region_id', $regionsToRemove)
+            ->delete();
+
         $model->syncRoles($roles);
     }
 

@@ -13,17 +13,24 @@ class Region extends Model
     protected $casts = [
         'polygon_coordinates' => 'array',
     ];
-    
-    public function getTitleAttribute(){
-        if (app()->getLocale()=='ar'){
+
+    public function getTitleAttribute()
+    {
+        if (app()->getLocale() == 'ar') {
             return $this->title_ar;
-        }else{
+        } else {
             return $this->title_en;
         }
     }
 
-    public function city(){
+    public function city()
+    {
         return $this->hasOne(City::class, 'id', 'city_id');
+    }
+
+    public function groups()
+    {
+        return $this->belongsToMany(Group::class, 'group_regions', 'region_id', 'group_id');
     }
 
 }
