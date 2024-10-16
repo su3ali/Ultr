@@ -15,6 +15,9 @@ class CreateShiftsTable extends Migration
     {
         Schema::create('shifts', function (Blueprint $table) {
             $table->id(); // Auto-incrementing ID
+            $table->string('shift_no');// Add shift_no column
+            $table->unsignedBigInteger('service_id');
+            $table->foreign('service_id')->references('id')->on('services')->onDelete('cascade');
             $table->unsignedBigInteger('group_id'); // Foreign key for the group
             $table->unsignedBigInteger('day_id'); // Foreign key for the day
             $table->time('start_time'); // Shift start time
