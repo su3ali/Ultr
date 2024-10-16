@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Shift extends Model
@@ -31,4 +32,13 @@ class Shift extends Model
     {
         return $this->belongsTo(Service::class);
     }
+
+    // Add a scope to filter shifts by group_id and region_id
+    public function scopeForGroupInRegion(Builder $query, $region_id)
+    {
+        $query->whereHas('group.region', function ($q) use ($region_id) {
+            $q->where('region_id', $region_id);
+        });
+    }
+
 }
