@@ -26,6 +26,7 @@ class VisitsController extends Controller
 
     protected function index()
     {
+
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
         if (request()->ajax()) {
@@ -101,8 +102,12 @@ class VisitsController extends Controller
 
     protected function visitsToday()
     {
+        $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
+
         if (request()->ajax()) {
-            $visit = Visit::query();
+            $visit = Visit::query()->whereHas('booking.address', function ($query) use ($regionIds) {
+                $query->whereIn('region_id', $regionIds);
+            });
 
             $now = Carbon::now('Asia/Riyadh')->toDateString();
 

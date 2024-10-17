@@ -188,7 +188,7 @@
 
             {{-- Beginning of appointments --}}
 
-            <li class="menu">
+            {{-- <li class="menu">
                 <a href="#appointments" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
                         <div class="icon-container">
@@ -203,18 +203,18 @@
                         </svg>
                     </div>
                 </a>
-                <ul class="collapse submenu list-unstyled" id="appointments" data-parent="#accordionExample">
+                <ul class="collapse submenu list-unstyled" id="appointments" data-parent="#accordionExample"> --}}
 
-                    {{-- @can('update_bookings') --}}
-                    <li>
+            {{-- @can('update_bookings') --}}
+            {{-- <li>
                         <a href="{{ route('dashboard.days_statuses.index') }}"> أيام العمل </a>
                     </li>
                     <li>
                         <a href="{{ route('dashboard.shifts.index') }}"> الشفتات </a>
-                    </li>
-                    {{-- @endcan --}}
-                </ul>
-            </li>
+                    </li> --}}
+            {{-- @endcan --}}
+            {{-- </ul>
+            </li> --}}
 
             {{-- End of appointments --}}
 
