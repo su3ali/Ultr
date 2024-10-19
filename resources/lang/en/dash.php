@@ -507,6 +507,7 @@ return [
     'search' => 'Search',
     'no matching records found' => 'No Matching Records Found',
     'no data available in table' => 'No Data Available In Table',
+    'no_data_available_in_table' => 'No Data Available In Table',
     'filtered' => 'Filtered',
     'from' => 'From',
     'processing' => 'Processing',
