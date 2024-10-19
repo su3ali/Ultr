@@ -8,7 +8,6 @@ use App\Http\Resources\Contract\ContractResource;
 use App\Http\Resources\Core\CityResource;
 use App\Http\Resources\Core\ContactResource;
 use App\Http\Resources\Core\RegionResource;
-use App\Http\Resources\MainCategory\MainCategoryResource;
 use App\Http\Resources\Product\ProductResource;
 use App\Http\Resources\Service\ServiceCategoryResource;
 use App\Http\Resources\Service\ServiceResource;
@@ -17,9 +16,7 @@ use App\Models\Banner;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Contacting;
-use App\Models\Contract;
 use App\Models\ContractPackage;
-use App\Models\Order;
 use App\Models\OrderContract;
 use App\Models\Region;
 use App\Models\Service;
@@ -28,7 +25,6 @@ use App\Support\Api\ApiResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
@@ -41,16 +37,17 @@ class HomeController extends Controller
 
     protected function index()
     {
-        if (!auth()->check()){
+
+        if (!auth()->check()) {
             $addresses = [];
-        }else{
+        } else {
             $addresses = UserAddresses::query()->where('user_id', auth()->user('sanctum')->id)->get();
         }
         $this->body['addresses'] = UserAddressResource::collection($addresses);
-        
+
         $images = [];
-        $banner1 = Banner::query()->with('coupon:id,code')->where('active',1)->select('title_en', 'image', 'coupon_id')->get();
-        $banners = Banner::query()->where('active',1)->get();
+        $banner1 = Banner::query()->with('coupon:id,code')->where('active', 1)->select('title_en', 'image', 'coupon_id')->get();
+        $banners = Banner::query()->where('active', 1)->get();
         if ($banners->count() > 0) {
             foreach ($banners as $banner) {
                 $url = $banner->image ? asset($banner->image) : '';
@@ -62,21 +59,20 @@ class HomeController extends Controller
         $this->body['banner'] = $banner1;
         $this->body['banners'] = $images;
 
-        $mostSellingServices = Service::query()->where('best_seller',1)
-            ->where('active',1)->take(9)
+        $mostSellingServices = Service::query()->where('best_seller', 1)
+            ->where('active', 1)->take(9)
             ->get()->shuffle();
         $this->body['services_most_wanted'] = ServiceResource::collection($mostSellingServices);
         $this->body['services'] = ServiceResource::collection(Service::query()->where('active', 1)->take(9)->get()->shuffle());
-        if(request()->query('is_new')){
+        if (request()->query('is_new')) {
             $this->body['contracts'] = ContractResource::collection(ContractPackage::query()->where('active', 1)->take(9)->get()->shuffle());
-        }else{
-            $this->body['contracts']= [];
+        } else {
+            $this->body['contracts'] = [];
         }
         $this->body['contact'] = ContactResource::collection(Contacting::query()->take(9)->get()->shuffle());
         $this->body['total_items_in_cart'] = auth()->check() ? auth()->user()->carts->count() : 0;
         $servicesCategories = Category::query()->where('active', 1)->get();
         $this->body['services_categories'] = ServiceCategoryResource::collection($servicesCategories);
-
 
         return self::apiResponse(200, null, $this->body);
     }
@@ -97,8 +93,8 @@ class HomeController extends Controller
     protected function search(Request $request): JsonResponse
     {
         if ($request->title) {
-            $services = Service::query()->where('title_ar', 'like', '%'.$request->title.'%')
-                ->orWhere('title_en', 'like', '%'.$request->title.'%')->where('active', 1)->get();
+            $services = Service::query()->where('title_ar', 'like', '%' . $request->title . '%')
+                ->orWhere('title_en', 'like', '%' . $request->title . '%')->where('active', 1)->get();
             $this->body['services'] = ServiceResource::collection($services);
             return self::apiResponse(200, '', $this->body);
         } else {
@@ -157,14 +153,14 @@ class HomeController extends Controller
         $request->validate([
             'ratable_id' => 'required',
             'ratable_type' => 'required',
-            'rate' => 'required'
+            'rate' => 'required',
         ]);
         if ($request->ratable_type) {
             if ($request->ratable_type == 'Product') {
                 $rated_object = Product::query()->find($request->ratable_id);
             } else if ($request->ratable_type == 'Order') {
                 $rated_object = Store::query()->where('id', OrdersStores::query()
-                    ->where('order_id', $request->ratable_id)->first()->store_id)->first();
+                        ->where('order_id', $request->ratable_id)->first()->store_id)->first();
             }
             $rate = new Rating(['rate' => $request->rate]);
             if (isset($rated_object)) {
@@ -180,22 +176,21 @@ class HomeController extends Controller
 
     protected function getCity()
     {
-        $cities = City::where('active',1)->get();
+        $cities = City::where('active', 1)->get();
         $this->body['cities'] = CityResource::collection($cities);
         return self::apiResponse(200, t_('successfully'), $this->body);
     }
 
-
     protected function getRegions($id)
     {
-        $regions = Region::where('active',1)->where('city_id',$id)->get();
+        $regions = Region::where('active', 1)->where('city_id', $id)->get();
         $this->body['regions'] = RegionResource::collection($regions);
         return self::apiResponse(200, t_('successfully'), $this->body);
     }
 
     protected function getAllRegions()
     {
-        $regions = Region::where('active',1)->get();
+        $regions = Region::where('active', 1)->get();
         $this->body['regions'] = RegionResource::collection($regions);
         return self::apiResponse(200, __('api.successfully'), $this->body);
     }
@@ -220,8 +215,6 @@ class HomeController extends Controller
         return self::apiResponse(200, t_(''), $this->body);
     }
 
-
-
     protected function contract_contact(Request $request): JsonResponse
     {
         $request->validate([
@@ -229,7 +222,6 @@ class HomeController extends Controller
             'company_name' => 'required|String|min:3',
             'notes' => 'required|String',
         ]);
-
 
         OrderContract::create([
             'contract_id' => $request->contract_id,
@@ -239,12 +231,8 @@ class HomeController extends Controller
             'phone' => auth()->user()->phone,
         ]);
 
-
-
         return self::apiResponse(200, __('api.added successfully'), $this->body);
 
     }
-
-    
 
 }
