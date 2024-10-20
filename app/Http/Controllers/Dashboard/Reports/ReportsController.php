@@ -101,7 +101,7 @@ class ReportsController extends Controller
                     return $service_count;
                 })
                 ->addColumn('price', function ($row) {
-                    return number_format(($row->total/115  * 100),2);
+                    return number_format($row->total,2);
                 })
                 ->addColumn('payment_method', function ($row) use ($payment_method) {
                     $payment_methodd = $row->transaction?->payment_method;
@@ -131,7 +131,7 @@ class ReportsController extends Controller
         }
 
         $total = Order::where('is_active', 1)->where(function ($query) {
-            $query->Where('status_id', '<>', 6)->orWhereHas('transaction', function ($q) {
+            $query->Where('status_id', '=', 4)->orWhereHas('transaction', function ($q) {
                 $q->where('payment_method', '!=', 'cache');
             });
         })->sum('total');
@@ -178,7 +178,9 @@ class ReportsController extends Controller
         }
 
         // Calculate the total, tax, and tax-subtotal
-        $total = $orderQuery->where('is_active', 1)->sum('total');
+        $total = $orderQuery->where('is_active', 1)->Where('status_id', '=', 4)->orWhereHas('transaction', function ($q) {
+            $q->where('payment_method', '!=', 'cache');
+        })->sum('total');
         $total = ($total/115  * 100);
         $taxRate = 0.15; // 15% tax rate
         $tax = $total * $taxRate;
