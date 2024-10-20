@@ -31,12 +31,13 @@ class ServiceResource extends JsonResource
         return [
             'id' => $this['id'],
             'title' => $this['title'],
+            'description' => $this['description'],
             'price' => $service['price'],
             'images' => $images,
             'terms_and_conditions' => $service->ter_cond_ar,
             'icons' => IconResource::collection($this->icons),
             'able_to_add_quantity_in_cart' => isset($this['is_quantity']) ? $this['is_quantity'] : null,
-            'quantity' => $quantity ?? $this->pivot?->quantity
+            'quantity' => $quantity ?? $this->pivot?->quantity,
         ];
     }
 }

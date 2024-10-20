@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
-
+use App\Support\Traits\HasPassword;
+use App\Support\Traits\WithBoot;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use App\Support\Traits\HasPassword;
-use App\Support\Traits\WithBoot;
+
 class Admin extends Authenticatable
 {
-    use HasApiTokens,WithBoot,HasPassword, HasFactory,HasRoles, Notifiable;
+    use HasApiTokens, WithBoot, HasPassword, HasFactory, HasRoles, Notifiable;
     protected $guard = 'dashboard';
     protected $fillable = [
         'first_name',
@@ -21,7 +21,7 @@ class Admin extends Authenticatable
         'phone',
         'password',
         'active',
-        'fcm_token'
+        'fcm_token',
 
     ];
 
@@ -35,6 +35,9 @@ class Admin extends Authenticatable
         'phone_verified_at' => 'datetime',
     ];
 
-
+    public function regions()
+    {
+        return $this->hasMany(AdminRegion::class);
+    }
 
 }

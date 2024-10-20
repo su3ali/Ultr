@@ -10,35 +10,56 @@ class Order extends Model
     use HasFactory;
     protected $guarded = [];
 
-    public function user(){
-        return $this->hasOne(User::class, 'id', 'user_id');
+    // public function user()
+    // {
+    //     return $this->hasOne(User::class, 'id', 'user_id');
+    // }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
-    public function category(){
+
+    public function category()
+    {
         return $this->hasOne(Category::class, 'id', 'category_id');
     }
-    public function service(){
+    public function service()
+    {
         return $this->hasOne(Service::class, 'id', 'service_id');
     }
 
-    public function contract(){
+    public function contract()
+    {
         return $this->hasOne(Contract::class, 'id', 'service_id');
     }
 
-    public function status(){
+    public function status()
+    {
         return $this->hasOne(OrderStatus::class, 'id', 'status_id');
     }
-    public function bookings(){
+
+    public function userAddress()
+    {
+        return $this->hasOne(UserAddresses::class, 'id', 'user_address_id');
+    }
+    public function bookings()
+    {
         return $this->hasMany(Booking::class, 'order_id');
     }
-    public function services(){
+    public function services()
+    {
         return $this->belongsToMany(Service::class, 'order_services')->withPivot(['price', 'quantity'])->withTrashed();
     }
 
-    public function transaction(){
-        return $this->hasOne(Transaction::class,'order_id', 'id' )->latest();
+    public function transaction()
+    {
+        return $this->hasOne(Transaction::class, 'order_id', 'id')->latest();
     }
 
-    public function userCar(){
+    public function userCar()
+    {
         return $this->hasOne(CarClient::class, 'id', 'car_user_id')->withTrashed();
     }
+
+   
 }

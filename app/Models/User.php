@@ -52,4 +52,5 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserAddresses::class, 'user_id')->where('is_default', 1);
     }
+
 }

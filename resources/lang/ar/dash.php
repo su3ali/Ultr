@@ -74,7 +74,6 @@ return [
     'dash_users' => 'مستخدمو لوحة المعلومات',
 
     'created_at' => 'تاريخ التسجيل',
-    'actions' => 'أفعال',
     'name_ar' => 'الاسم العربي',
     'name_en' => 'اسم الانجليزية',
     'home_image' => 'الصورة الرئيسية',
@@ -170,7 +169,6 @@ return [
     'service' => 'خدمة',
     'latest_categories' => 'اخر الأقسام',
 
-
     // Offer
     'offers' => 'العروض',
     'add_new_offer' => 'اضافة عرض جديد',
@@ -236,7 +234,6 @@ return [
     'order_confirm_sum' => 'عمولة التطبيق من الطلبات المنتهية',
     'already_paid_successfully' => 'بالفعل تم دفع هذا الطلب مسبقا',
     'latest_categories' => 'اخر الأقسام',
-
 
     //Users
     'add_new_users' => 'إضافة عضو جديد',
@@ -372,7 +369,6 @@ return [
     'company' => 'شركة الشحن',
     'commerical_no' => 'رقم السجل التجاري',
 
-
     // Cities
     'add_new_city' => 'اضف مدينة جديدة',
     'edit_city' => 'تعديل المدينة',
@@ -504,7 +500,6 @@ return [
     'event_owner' => 'مالك الحدث',
     'event_data' => 'بيانات الحدث',
 
-
     'administration' => ' الادارة ',
     'administration_groups' => ' مجموعات الادارة ',
     'add_new_administration_groups' => ' اضف مجموعه ادارية جديدة ',
@@ -611,9 +606,9 @@ return [
     'account_number' => 'رقم الحساب',
     /*
      * wait_bills
-Confirmed_bills
-rejected_bills
-    */
+    Confirmed_bills
+    rejected_bills
+     */
     'wait_bills' => 'طلبات السحب المنتظرة',
     'Confirmed_bills' => 'طلبات السحب المؤكدة',
     'rejected_bills' => 'طلبات السحب المرفوضة',
@@ -671,7 +666,6 @@ rejected_bills
     'convert_points_points_history' => 'تم تحويل',
     'convert_points_points_history_2' => 'إلى مبلغ',
 
-
     'rates' => 'التقييمات',
     'client' => 'العميل',
     'comment' => 'التعليق',
@@ -712,7 +706,6 @@ rejected_bills
     'add_exclusive_services' => 'اضافة خدمات حصرية',
     'add_exclusive_products' => 'اضافة منتجات حصرية',
 
-
     'first name' => 'الإسم الأول',
     'last name' => 'الإسم الأخير',
     'Showing' => 'عرض',
@@ -721,6 +714,7 @@ rejected_bills
     'entries' => 'ادخالات',
     'no matching records found' => 'لم يتم العثور علي بيانات',
     'no data available in table' => 'لا توجد بيانات متوفرة في الجدول',
+    'no_data_available_in_table' => 'لا توجد بيانات متوفرة في الجدول',
     'filtered' => 'مرشح',
     'from' => 'من',
     'processing' => 'معالجة',
@@ -746,7 +740,6 @@ rejected_bills
     'description_ar' => 'الوصف بالعربي',
     'description_en' => 'الوصف بالانجليزي',
     'parent' => 'القسم الرئيسي',
-
 
     'technicians' => 'الفنيين',
     'technician' => 'الفني',
@@ -808,7 +801,36 @@ rejected_bills
     'visits_number' => 'عدد الزيارات',
     'regions settings' => 'اعدادت المناطق',
     'banners settings' => 'اعدادت البنرات',
-    'finished_orders_today' => 'الطلبات المكتملة اليوم'
+    'finished_orders_today' => 'الطلبات المكتملة اليوم',
+    'shifts' => 'المنوابات',
 
+    'edit' => 'تعديل',
+    'view' => 'عرض',
+    'active' => 'نشط',
+    'inactive' => 'غير نشط',
+    'add_new_shift' => 'إضافة مناوبة جديدة',
+    'day' => 'اليوم',
+    'group' => 'المجموعة',
+    'service' => 'الخدمة',
+    'shift_number' => 'رقم المناوبة',
+    'start_time' => 'وقت البداية',
+    'end_time' => 'وقت النهاية',
+    'actions' => 'الإجراءات',
+    'error_toggle_status' => 'حدث خطأ عند تغيير الحالة',
+    'select_day' => 'اختر اليوم',
+
+    'sunday' => 'الأحد',
+    'monday' => 'الاثنين',
+    'tuesday' => 'الثلاثاء',
+    'wednesday' => 'الأربعاء',
+    'thursday' => 'الخميس',
+    'friday' => 'الجمعة',
+    'saturday' => 'السبت',
+
+    'back' => 'رجوع',
+    'shift_details' => 'تفاصيل المناوبة',
+    'request_failed' => 'الرجاء مراجعة المدخلات',
+    'error' => 'تنبيه',
+    'regions' => 'المناطق',
 
 ];

@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingStatus;
 use App\Models\CategoryGroup;
-use App\Models\Contract;
 use App\Models\ContractPackage;
 use App\Models\Group;
 use App\Models\Order;
@@ -16,26 +15,37 @@ use App\Models\UserAddresses;
 use App\Models\Visit;
 use App\Models\VisitsStatus;
 use Carbon\Carbon;
-use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Http\RedirectResponse;
-
 use Illuminate\Http\Request;
-
 use Illuminate\Support\Facades\Validator;
-
 use Illuminate\Validation\ValidationException;
-
+use Yajra\DataTables\Facades\DataTables;
 
 class BookingController extends Controller
 {
 
     public function index()
     {
+        $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
+        // $tests = Booking::query()->whereHas('address', function ($query) use ($regionIds) {
+        //     $query->whereIn('region_id', $regionIds);
+        // });
+
+        // dd($tests->get());
+
+        // $bookings = Booking::query()->whereHas('address', function ($query) use ($regionIds) {
+        //     $query->whereIn('region_id', $regionIds);
+        // })->where('is_active', 1)->where('type', 'contract')->with(['order', 'customer', 'service', 'group', 'booking_status']);
+        // foreach ($bookings as $booking) {
+        //     dd($booking);
+        // }
         if (request()->ajax()) {
             $date = \request()->query('date');
             $date2 = \request()->query('date2');
-            $bookings = Booking::with(['visit.group', 'visit.status', 'order.services.category', 'package', 'service.category.groups', 'customer', 'order.transaction'])->where('is_active', 1)->where('type', 'service')->with(['order', 'customer', 'service', 'group', 'booking_status']);
+            $bookings = Booking::query()->whereHas('address', function ($query) use ($regionIds) {
+                $query->whereIn('region_id', $regionIds);
+            })->with(['visit.group', 'visit.status', 'order.services.category', 'package', 'service.category.groups', 'customer', 'order.transaction'])->where('is_active', 1)->where('type', 'service')->with(['order', 'customer', 'service', 'group', 'booking_status']);
 
             if (request()->page) {
                 $now = Carbon::now('Asia/Riyadh')->toDateString();
@@ -43,7 +53,10 @@ class BookingController extends Controller
             }
 
             if (\request()->query('type') == 'package') {
-                $bookings = Booking::query()->where('is_active', 1)->where('type', 'contract')->with(['order', 'customer', 'service', 'group', 'booking_status']);
+                // $bookings = Booking::query()->where('is_active', 1)->where('type', 'contract')->with(['order', 'customer', 'service', 'group', 'booking_status']);
+                $bookings = Booking::query()->whereHas('address', function ($query) use ($regionIds) {
+                    $query->whereIn('region_id', $regionIds);
+                })->where('is_active', 1)->where('type', 'contract')->with(['order', 'customer', 'service', 'group', 'booking_status']);
             }
             if (\request()->query('status')) {
                 $va = \request()->query('status');
@@ -122,7 +135,7 @@ class BookingController extends Controller
                     'service',
                     'group',
                     'status',
-                    'control'
+                    'control',
                 ])
                 ->make(true);
         }
@@ -209,23 +222,23 @@ class BookingController extends Controller
     {
         $booking = Booking::query()->find($id);
         $booking->update([
-            'is_active' => 0
+            'is_active' => 0,
         ]);
         $order = Order::where('id', $booking->order_id)->first();
         $order->update([
-            'is_active' => 0
+            'is_active' => 0,
         ]);
         $visits = Visit::where('booking_id', $id)->get();
         foreach ($visits as $visit) {
             $visit->update([
-                'is_active' => 0
+                'is_active' => 0,
             ]);
         }
 
         // $booking->delete();
         return [
             'success' => true,
-            'msg' => __("dash.deleted_success")
+            'msg' => __("dash.deleted_success"),
         ];
     }
 
@@ -240,7 +253,6 @@ class BookingController extends Controller
         $bookingStatus->save();
         return response('success');
     }
-
 
     protected function getGroupByService(Request $request)
     {
@@ -275,7 +287,6 @@ class BookingController extends Controller
     }
     // {
 
-
     //     $groupIds = CategoryGroup::where('category_id', $request->category_id)->pluck('group_id')->toArray();
     //     $address = UserAddresses::where('id', $request->address_id)->first();
     //     $booking = Booking::where('id', $request->booking_id)->first();
@@ -294,8 +305,6 @@ class BookingController extends Controller
     //         error_log($te->name);
     //     }
     //     return response($group);
-
-
 
     // //     if ($request->type == 'package') {
 
