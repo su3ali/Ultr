@@ -11,18 +11,22 @@ class Visit extends Model
     use HasFactory;
     protected $guarded = [];
 
-    public function group(){
+    public function group()
+    {
         return $this->belongsTo(Group::class, 'assign_to_id');
     }
 
-    public function booking(){
+    public function booking()
+    {
         return $this->belongsTo(Booking::class, 'booking_id');
     }
 
-    public function status(){
+    public function status()
+    {
         return $this->belongsTo(VisitsStatus::class, 'visits_status_id');
     }
-    public function cancelReason(){
+    public function cancelReason()
+    {
         return $this->belongsTo(ReasonCancel::class, 'reason_cancel_id');
     }
 
