@@ -714,6 +714,7 @@ return [
     'entries' => 'ادخالات',
     'no matching records found' => 'لم يتم العثور علي بيانات',
     'no data available in table' => 'لا توجد بيانات متوفرة في الجدول',
+    'no_data_available_in_table' => 'لا توجد بيانات متوفرة في الجدول',
     'filtered' => 'مرشح',
     'from' => 'من',
     'processing' => 'معالجة',
@@ -831,5 +832,7 @@ return [
     'request_failed' => 'الرجاء مراجعة المدخلات',
     'error' => 'تنبيه',
     'regions' => 'المناطق',
+    'error_overlapping' => 'توجد مناوبة بنفس المجموعة والخدمة بالفعل في النطاق الزمني المحدد',
+    'error_overlapping_group' => 'تم تعيين هذه المجموعة بالفعل لمناوبة في نفس الوقت في خدمة أخرى',
 
 ];
