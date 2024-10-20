@@ -714,6 +714,7 @@ return [
     'entries' => 'ادخالات',
     'no matching records found' => 'لم يتم العثور علي بيانات',
     'no data available in table' => 'لا توجد بيانات متوفرة في الجدول',
+    'no_data_available_in_table' => 'لا توجد بيانات متوفرة في الجدول',
     'filtered' => 'مرشح',
     'from' => 'من',
     'processing' => 'معالجة',

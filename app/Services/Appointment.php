@@ -321,10 +321,11 @@ class Appointment
                         ->whereIn('assign_to_id', $activeGroups)->pluck('assign_to_id')->toArray();
 
                     if (!empty($takenGroupsIds)) {
-                        $groups = Group::with('regions')->whereHas('regions', function ($qu) {
+                        $groups = Group::groupInRegionCategory($this->region_id, [$category_id])->with('regions')->whereHas('regions', function ($qu) {
                             $qu->where('region_id', $this->region_id);
                         })->whereNotIn('id', $takenGroupsIds)->whereIn('id', $groupIds)->where('active', 1)->pluck('id')->toArray();
                         if (empty($groups)) {
+
                             unset($commonTimes[$day][$key]);
                         }
                     }
