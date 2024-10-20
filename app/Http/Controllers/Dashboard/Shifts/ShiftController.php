@@ -147,7 +147,7 @@ class ShiftController extends Controller
 
         if ($overlappingShifts) {
             return redirect()->back()->withErrors([
-                'error' => 'A shift with the same group and service already exists in the selected time range.',
+                'error' => __('dash.error_overlapping'),
             ]);
         }
 
@@ -165,7 +165,7 @@ class ShiftController extends Controller
 
         if ($groupConflict) {
             return redirect()->back()->withErrors([
-                'error' => 'This group is already assigned to a shift at the same time in another service.',
+                'error' => __('dash.error_overlapping_group'),
             ]);
         }
 
@@ -209,10 +209,13 @@ class ShiftController extends Controller
      */
     public function edit($id)
     {
-        $shift = Shift::findOrFail($id); // Retrieve the shift by its ID
+        $shift = Shift::findOrFail($id);
+        $services = Service::all(); // Retrieve the shift by its ID
+
+        $groups = Group::all();
         $days = Day::all(); // Assuming you have a 'days' table
 
-        return view('dashboard.appointments.shifts.edit', compact('shift', 'days'));
+        return view('dashboard.appointments.shifts.edit', compact('shift', 'days', 'services', 'groups'));
     }
 
     /**
@@ -255,7 +258,11 @@ class ShiftController extends Controller
      */
     public function destroy($id)
     {
-        //
+        // Find and delete the shift
+        $shift = Shift::findOrFail($id);
+        $shift->delete();
+
+        return response()->json(['success' => true, 'message' => __('dash.shift_deleted_successfully')]);
     }
 
     public function toggleStatus(Request $request, $id)
