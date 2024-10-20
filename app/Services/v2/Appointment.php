@@ -30,8 +30,11 @@ class Appointment
     public function getAvailableTimesFromDate()
     {
         $servicesCollection = collect($this->services);
+        // dd($this->services);
         $ids = $servicesCollection->pluck('id');
         $service_ids = $ids->toArray();
+        // dd($service_ids);
+
         $category_id = Service::where('id', $this->services[0]['id'])->first()->category_id;
 
         // Fetch the group available in the region for the category
@@ -188,6 +191,35 @@ class Appointment
     {
         $days = Day::getActiveDays()->toArray();
 
+        //     $finalTimes = [];
+        //     foreach ($times as $service_id => $serviceData) {
+        //         foreach ($serviceData['days'] as $day => $timeSlots) {
+        //             // Format the time slots
+        //             $formattedTimeSlots = array_map(function ($time) {
+        //                 return Carbon::parse($time)->format('g:i A'); // e.g., "6:00 PM"
+        //             }, $timeSlots); // Apply formatting to each time slot
+        //             // Only add if there are formatted time slots
+        //             if (!empty($formattedTimeSlots)) {
+        //                 // Set the locale for Carbon based on app locale
+
+        //                 $locale = app()->getLocale();
+        //                 Carbon::setLocale($locale); // Set Carbon's locale
+
+        //                 $dayName = Carbon::parse($day)
+        //                     ->timezone('Asia/Riyadh')
+        //                     ->translatedFormat('l'); // Use translatedFormat for locale-aware day name
+
+        //                 $finalTimes[] = [
+        //                     'day' => $day,
+        //                     'dayName' => $dayName,
+        //                     'times' => $formattedTimeSlots, // Use formatted time slots here
+        //                 ];
+        //             }
+        //         }
+        //     }
+
+        //     return $finalTimes;
+        // }
         $finalTimes = [];
         foreach ($times as $service_id => $serviceData) {
             foreach ($serviceData['days'] as $day => $timeSlots) {
@@ -199,7 +231,6 @@ class Appointment
                 // Only add if there are formatted time slots
                 if (!empty($formattedTimeSlots)) {
                     // Set the locale for Carbon based on app locale
-
                     $locale = app()->getLocale();
                     Carbon::setLocale($locale); // Set Carbon's locale
 
@@ -207,14 +238,24 @@ class Appointment
                         ->timezone('Asia/Riyadh')
                         ->translatedFormat('l'); // Use translatedFormat for locale-aware day name
 
-                    $finalTimes[] = [
-                        'day' => $day,
-                        'dayName' => $dayName,
-                        'times' => $formattedTimeSlots, // Use formatted time slots here
-                    ];
+                    // Check if the day is already in the finalTimes array
+                    if (!isset($finalTimes[$day])) {
+                        // If not, initialize it
+                        $finalTimes[$day] = [
+                            'day' => $day,
+                            'dayName' => $dayName,
+                            'times' => $formattedTimeSlots, // Use formatted time slots here
+                        ];
+                    } else {
+                        // If it exists, merge the time slots
+                        $finalTimes[$day]['times'] = array_merge($finalTimes[$day]['times'], $formattedTimeSlots);
+                    }
                 }
             }
         }
+
+        // Resetting the array keys to be sequential
+        $finalTimes = array_values($finalTimes);
 
         return $finalTimes;
     }
