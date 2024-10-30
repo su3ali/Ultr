@@ -288,7 +288,6 @@ class CartController extends Controller
 
     public function getAvailableTimesFromDate(Request $request)
     {
-        
 
         $rules = [
             'services' => 'required|array',
@@ -303,7 +302,6 @@ class CartController extends Controller
         $times = new Appointment($request->region_id, $request->services, $request->package_id, $request->page_number);
 
         $collectionOfTimesOfServices = $times->getAvailableTimesFromDate();
-
         if ($collectionOfTimesOfServices) {
             $this->body['times']['available_days'] = $collectionOfTimesOfServices;
             return self::apiResponse(200, null, $this->body);

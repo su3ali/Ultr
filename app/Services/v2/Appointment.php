@@ -29,9 +29,8 @@ class Appointment
 
     public function getAvailableTimesFromDate()
     {
-        
+
         $servicesCollection = collect($this->services);
-        // dd($this->services);
         $ids = $servicesCollection->pluck('id');
         $service_ids = $ids->toArray();
         // dd($service_ids);
@@ -43,6 +42,7 @@ class Appointment
         if ($group->isEmpty()) {
             return ['error' => 'No group available for the selected category and region.'];
         }
+        // dd($group);
 
         // Determine the time duration for the appointment
         $timeDuration = 60; // Default duration
@@ -70,8 +70,8 @@ class Appointment
             }
 
             // Fetch active days for the service
-            $dayStart = Day::where('name', $bookSetting->service_start_date)->first();
-            $dayEnd = Day::where('name', $bookSetting->service_end_date)->first();
+            $dayStart = Day::where('is_active', 1)->where('name', $bookSetting->service_start_date)->first();
+            $dayEnd = Day::where('is_active', 1)->where('name', $bookSetting->service_end_date)->first();
 
             if (!$dayStart || !$dayEnd) {
                 return ['error' => 'Service start or end days not found.'];
@@ -106,6 +106,7 @@ class Appointment
                 $dayName = Carbon::parse($day)->timezone('Asia/Riyadh')->locale('en')->dayName;
                 // Fetch the shifts for the specific day
                 $shifts = $this->getShiftsForDay($dayName);
+
                 if ($shifts->isEmpty()) {
                     continue; // Skip this day if no active shifts are found
                 }
@@ -125,7 +126,6 @@ class Appointment
                 }
             }
         }
-
         return $this->finalizeTimes($times);
     }
 
@@ -138,8 +138,11 @@ class Appointment
             return collect(); // Return an empty collection if no active day is found
         }
 
-        return Shift::forGroupInRegion($this->region_id)->where('day_id', $dayModel->id)
-            ->where('is_active', true)->get();
+        return Shift::
+            whereJsonContains('day_id', $dayModel->id)
+            ->where('is_active', true)
+            ->get();
+
     }
 
     protected function adjustTimesForVisits(&$times, $service_id, $day, $amount, $bookSetting)
@@ -190,40 +193,16 @@ class Appointment
 
     protected function finalizeTimes($times)
     {
-        $days = Day::getActiveDays()->toArray();
-
-        //     $finalTimes = [];
-        //     foreach ($times as $service_id => $serviceData) {
-        //         foreach ($serviceData['days'] as $day => $timeSlots) {
-        //             // Format the time slots
-        //             $formattedTimeSlots = array_map(function ($time) {
-        //                 return Carbon::parse($time)->format('g:i A'); // e.g., "6:00 PM"
-        //             }, $timeSlots); // Apply formatting to each time slot
-        //             // Only add if there are formatted time slots
-        //             if (!empty($formattedTimeSlots)) {
-        //                 // Set the locale for Carbon based on app locale
-
-        //                 $locale = app()->getLocale();
-        //                 Carbon::setLocale($locale); // Set Carbon's locale
-
-        //                 $dayName = Carbon::parse($day)
-        //                     ->timezone('Asia/Riyadh')
-        //                     ->translatedFormat('l'); // Use translatedFormat for locale-aware day name
-
-        //                 $finalTimes[] = [
-        //                     'day' => $day,
-        //                     'dayName' => $dayName,
-        //                     'times' => $formattedTimeSlots, // Use formatted time slots here
-        //                 ];
-        //             }
-        //         }
-        //     }
-
-        //     return $finalTimes;
-        // }
         $finalTimes = [];
+        $currentDay = Carbon::now('Asia/Riyadh')->format('Y-m-d'); // Get the current day in the correct format
+
         foreach ($times as $service_id => $serviceData) {
             foreach ($serviceData['days'] as $day => $timeSlots) {
+                // Skip if the day is today
+                if ($day === $currentDay) {
+                    continue; // Skip this iteration if the day is today
+                }
+
                 // Format the time slots
                 $formattedTimeSlots = array_map(function ($time) {
                     return Carbon::parse($time)->format('g:i A'); // e.g., "6:00 PM"
