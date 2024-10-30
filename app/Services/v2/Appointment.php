@@ -29,6 +29,7 @@ class Appointment
 
     public function getAvailableTimesFromDate()
     {
+        
         $servicesCollection = collect($this->services);
         // dd($this->services);
         $ids = $servicesCollection->pluck('id');

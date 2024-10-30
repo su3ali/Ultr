@@ -288,6 +288,7 @@ class CartController extends Controller
 
     public function getAvailableTimesFromDate(Request $request)
     {
+        
 
         $rules = [
             'services' => 'required|array',
