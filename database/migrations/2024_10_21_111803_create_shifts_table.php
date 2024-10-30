@@ -19,7 +19,6 @@ class CreateShiftsTable extends Migration
             $table->timestamps(); // Created at and Updated at timestamps
         });
     }
-
     public function down()
     {
         Schema::dropIfExists('shifts');

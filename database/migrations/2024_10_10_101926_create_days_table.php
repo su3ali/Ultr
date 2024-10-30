@@ -23,7 +23,6 @@ class CreateDaysTable extends Migration
             $table->timestamps();
         });
     }
-
     /**
      * Reverse the migrations.
      *
