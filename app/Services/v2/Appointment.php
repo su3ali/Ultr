@@ -191,53 +191,103 @@ class Appointment
         $times[$service_id]['days'][$day] = array_values(array_filter($times[$service_id]['days'][$day]));
     }
 
+    // protected function finalizeTimes($times)
+    // {
+    //     $finalTimes = [];
+    //     $currentDay = Carbon::now('Asia/Riyadh')->format('Y-m-d'); // Get the current day in the correct format
+
+    //     foreach ($times as $service_id => $serviceData) {
+    //         foreach ($serviceData['days'] as $day => $timeSlots) {
+    //             // Skip if the day is today
+    //             if ($day === $currentDay) {
+    //                 continue; // Skip this iteration if the day is today
+    //             }
+
+    //             // Format the time slots
+    //             $formattedTimeSlots = array_map(function ($time) {
+    //                 return Carbon::parse($time)->format('g:i A'); // e.g., "6:00 PM"
+    //             }, $timeSlots); // Apply formatting to each time slot
+
+    //             // Only add if there are formatted time slots
+    //             if (!empty($formattedTimeSlots)) {
+    //                 // Set the locale for Carbon based on app locale
+    //                 $locale = app()->getLocale();
+    //                 Carbon::setLocale($locale); // Set Carbon's locale
+
+    //                 $dayName = Carbon::parse($day)
+    //                     ->timezone('Asia/Riyadh')
+    //                     ->translatedFormat('l'); // Use translatedFormat for locale-aware day name
+
+    //                 // Check if the day is already in the finalTimes array
+    //                 if (!isset($finalTimes[$day])) {
+    //                     // If not, initialize it
+    //                     $finalTimes[$day] = [
+    //                         'day' => $day,
+    //                         'dayName' => $dayName,
+    //                         'times' => $formattedTimeSlots, // Use formatted time slots here
+    //                     ];
+    //                 } else {
+    //                     // If it exists, merge the time slots
+    //                     $finalTimes[$day]['times'] = array_merge($finalTimes[$day]['times'], $formattedTimeSlots);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     // Resetting the array keys to be sequential
+    //     $finalTimes = array_values($finalTimes);
+
+    //     return $finalTimes;
+    // }
     protected function finalizeTimes($times)
     {
         $finalTimes = [];
-        $currentDay = Carbon::now('Asia/Riyadh')->format('Y-m-d'); // Get the current day in the correct format
+        $currentDateTime = Carbon::now('Asia/Riyadh'); // Current date and time in Riyadh timezone
+        $currentDay = $currentDateTime->format('Y-m-d'); // Today's date in Y-m-d format
 
         foreach ($times as $service_id => $serviceData) {
             foreach ($serviceData['days'] as $day => $timeSlots) {
-                // Skip if the day is today
+                // Initialize array to store formatted time slots
+                $formattedTimeSlots = [];
+
                 if ($day === $currentDay) {
-                    continue; // Skip this iteration if the day is today
+                    // Process time slots for today, including only those at least 45 minutes from now
+                    foreach ($timeSlots as $time) {
+                        // Use the time as it is since it includes both date and time
+                        $dateTime = Carbon::parse($time, 'Asia/Riyadh');
+                        if ($dateTime->greaterThan($currentDateTime->addMinutes(45))) {
+                            $formattedTimeSlots[] = $dateTime->format('g:i A'); // Format as "6:00 PM"
+                        }
+                    }
+                } else {
+                    // For future days, use time directly since it contains both date and time
+                    $formattedTimeSlots = array_map(function ($time) {
+                        return Carbon::parse($time, 'Asia/Riyadh')->format('g:i A');
+                    }, $timeSlots);
                 }
 
-                // Format the time slots
-                $formattedTimeSlots = array_map(function ($time) {
-                    return Carbon::parse($time)->format('g:i A'); // e.g., "6:00 PM"
-                }, $timeSlots); // Apply formatting to each time slot
-
-                // Only add if there are formatted time slots
+                // Only add if there are valid formatted time slots
                 if (!empty($formattedTimeSlots)) {
-                    // Set the locale for Carbon based on app locale
+                    // Set locale for Carbon based on the app locale
                     $locale = app()->getLocale();
-                    Carbon::setLocale($locale); // Set Carbon's locale
+                    Carbon::setLocale($locale);
 
                     $dayName = Carbon::parse($day)
                         ->timezone('Asia/Riyadh')
-                        ->translatedFormat('l'); // Use translatedFormat for locale-aware day name
+                        ->translatedFormat('l'); // Get localized day name
 
-                    // Check if the day is already in the finalTimes array
-                    if (!isset($finalTimes[$day])) {
-                        // If not, initialize it
-                        $finalTimes[$day] = [
-                            'day' => $day,
-                            'dayName' => $dayName,
-                            'times' => $formattedTimeSlots, // Use formatted time slots here
-                        ];
-                    } else {
-                        // If it exists, merge the time slots
-                        $finalTimes[$day]['times'] = array_merge($finalTimes[$day]['times'], $formattedTimeSlots);
-                    }
+                    // Store day and formatted time slots in finalTimes array
+                    $finalTimes[$day] = [
+                        'day' => $day,
+                        'dayName' => $dayName,
+                        'times' => $formattedTimeSlots,
+                    ];
                 }
             }
         }
 
-        // Resetting the array keys to be sequential
-        $finalTimes = array_values($finalTimes);
-
-        return $finalTimes;
+        // Reset array keys to be sequential
+        return array_values($finalTimes);
     }
 
 }
