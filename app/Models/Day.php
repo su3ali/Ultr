@@ -10,14 +10,6 @@ class Day extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'name_ar', 'is_active', 'start_time', 'end_time'];
-    public function getTitleAttribute()
-    {
-        if (app()->getLocale() == 'ar') {
-            return $this->name_ar;
-        } else {
-            return $this->name;
-        }
-    }
 
     public static function getActiveDays()
     {
@@ -27,4 +19,10 @@ class Day extends Model
     {
         return $this->hasMany(Shift::class);
     }
+    // In the Day model
+    public function getTitleAttribute()
+    {
+        return app()->getLocale() === 'ar' ? $this->name_ar : $this->name;
+    }
+
 }
