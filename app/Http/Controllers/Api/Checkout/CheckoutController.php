@@ -69,6 +69,7 @@ class CheckoutController extends Controller
 
     protected function checkout(Request $request)
     {
+
         $rules = [
             'user_address_id' => 'required',
             'car_user_id' => 'required|exists:car_clients,id',
@@ -95,6 +96,11 @@ class CheckoutController extends Controller
             if ($request->payment_method == 'wallet' && $total > $user->point) {
                 return self::apiResponse(400, __('api.Your wallet balance is not enough to complete this process'), []);
             }
+            $total = $this->calc_total($carts);
+            CouponUser::query()->create([
+                'user_id' => auth()->user()->id,
+                'coupon_id' => $carts->coupon_id,
+            ]);
             return $this->saveContract($user, $request, $total, $carts);
         } else {
             // if ($request->payment_method == 'wallet' && $request->amount > $user->point) {
@@ -134,7 +140,12 @@ class CheckoutController extends Controller
                     }
                 }
             }
+
             $total = $this->calc_total($carts);
+            CouponUser::query()->create([
+                'user_id' => auth()->user()->id,
+                'coupon_id' => $carts->coupon_id,
+            ]);
             return $this->saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method);
         }
     }
