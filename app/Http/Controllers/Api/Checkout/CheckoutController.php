@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Checkout\v2;
+namespace App\Http\Controllers\Api\Checkout;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
@@ -31,7 +31,7 @@ use Illuminate\Support\Facades\Notification;
 
 class CheckoutController extends Controller
 {
-    
+
     use ApiResponse, imageTrait, NotificationTrait;
 
     public function __construct()
