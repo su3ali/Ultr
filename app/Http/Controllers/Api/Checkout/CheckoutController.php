@@ -2,32 +2,33 @@
 
 namespace App\Http\Controllers\Api\Checkout;
 
-use App\Http\Controllers\Controller;
-use App\Models\Admin;
-use App\Models\Booking;
-use App\Models\BookingSetting;
 use App\Models\Cart;
-use App\Models\CategoryGroup;
-use App\Models\ContractPackage;
-use App\Models\ContractPackagesUser;
-use App\Models\CouponUser;
-use App\Models\CustomerWallet;
+use App\Models\Admin;
 use App\Models\Group;
 use App\Models\Order;
-use App\Models\OrderService;
-use App\Models\Service;
-use App\Models\Technician;
-use App\Models\Transaction;
-use App\Models\UserAddresses;
 use App\Models\Visit;
-use App\Notifications\SendPushNotification;
-use App\Services\Appointment;
-use App\Support\Api\ApiResponse;
+use App\Models\Coupon;
+use App\Models\Booking;
+use App\Models\Service;
+use App\Models\CouponUser;
+use App\Models\Technician;
 use App\Traits\imageTrait;
-use App\Traits\NotificationTrait;
+use App\Models\Transaction;
+use App\Models\OrderService;
 use Illuminate\Http\Request;
+use App\Models\CategoryGroup;
+use App\Models\UserAddresses;
+use App\Services\Appointment;
+use App\Models\BookingSetting;
+use App\Models\CustomerWallet;
 use Illuminate\Support\Carbon;
+use App\Models\ContractPackage;
+use App\Support\Api\ApiResponse;
+use App\Traits\NotificationTrait;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Models\ContractPackagesUser;
+use App\Notifications\SendPushNotification;
 use Illuminate\Support\Facades\Notification;
 
 class CheckoutController extends Controller
@@ -98,10 +99,14 @@ class CheckoutController extends Controller
                 return self::apiResponse(400, __('api.Your wallet balance is not enough to complete this process'), []);
             }
             $total = $this->calc_total($carts);
-            CouponUser::query()->create([
-                'user_id' => auth()->user()->id,
-                'coupon_id' => $carts->coupon_id,
-            ]);
+            $coupon = Coupon::query()->where('id', $carts->coupon_id)->first();
+            if (!empty($coupon)) {
+                CouponUser::query()->create([
+                    'user_id' => auth()->id(),
+                    'coupon_id' => $coupon->id,
+                ]);
+            }
+
             return $this->saveContract($user, $request, $total, $carts);
         } else {
             // if ($request->payment_method == 'wallet' && $request->amount > $user->point) {
@@ -143,10 +148,14 @@ class CheckoutController extends Controller
             }
 
             $total = $this->calc_total($carts);
-            CouponUser::query()->create([
-                'user_id' => auth()->user()->id,
-                'coupon_id' => $carts->coupon_id,
-            ]);
+            $coupon = Coupon::query()->where('id', $carts->coupon_id)->first();
+            if (!empty($coupon)) {
+                CouponUser::query()->create([
+                    'user_id' => auth()->id(),
+                    'coupon_id' => $coupon->id,
+                ]);
+            }
+
             return $this->saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method);
         }
     }
