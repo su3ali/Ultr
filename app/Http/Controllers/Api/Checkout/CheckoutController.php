@@ -10,6 +10,7 @@ use App\Models\Cart;
 use App\Models\CategoryGroup;
 use App\Models\ContractPackage;
 use App\Models\ContractPackagesUser;
+use App\Models\CouponUser;
 use App\Models\CustomerWallet;
 use App\Models\Group;
 use App\Models\Order;
