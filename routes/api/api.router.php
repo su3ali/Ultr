@@ -1,14 +1,10 @@
 <?php
-
 use App\Http\Controllers\Api\Auth\AuthController;
-use App\Http\Controllers\Api\Checkout\CheckoutController;
 use App\Http\Controllers\Api\Core\HomeController;
 use App\Http\Controllers\Api\Core\ServiceController;
 use App\Http\Controllers\Api\Coupons\CouponsController;
 use App\Http\Controllers\Api\Settings\SettingsController;
 use App\Http\Controllers\VersionController;
-use App\Models\ContractPackagesUser;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,16 +16,13 @@ use Illuminate\Support\Facades\Route;
 | routes are loaded by the RouteServiceProvider within a group which
 | is assigned the "api" middleware group. Enjoy building your API!
 |
-*/
-
-
+ */
 
 Route::post('check_update', [VersionController::class, 'checkUpdate'])->name('check_update');
 
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::post('/verify', [AuthController::class, 'verify']);
-
 
 //Route::post('/payment-callback/{type?}',[CheckoutController::class,'callbackPayment']);
 

@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\BookingSetting;
 use App\Models\Day;
 use App\Models\Group;
+use App\Models\GroupRegion;
 use App\Models\Service;
 use App\Models\Shift;
 use App\Models\Visit;
@@ -33,7 +34,6 @@ class Appointment
         $servicesCollection = collect($this->services);
         $ids = $servicesCollection->pluck('id');
         $service_ids = $ids->toArray();
-        // dd($service_ids);
 
         $category_id = Service::where('id', $this->services[0]['id'])->first()->category_id;
 
@@ -42,7 +42,6 @@ class Appointment
         if ($group->isEmpty()) {
             return ['error' => 'No group available for the selected category and region.'];
         }
-        // dd($group);
 
         // Determine the time duration for the appointment
         $timeDuration = 60; // Default duration
@@ -131,15 +130,39 @@ class Appointment
 
     protected function getShiftsForDay($day)
     {
+        $servicesCollection = collect($this->services);
+        $ids = $servicesCollection->pluck('id');
+        $service_ids = $ids->toArray();
 
-        // Fetch the active shifts for the day
         $dayModel = Day::where('name', $day)->where('is_active', true)->first();
         if (!$dayModel) {
-            return collect(); // Return an empty collection if no active day is found
+            return collect();
         }
 
-        return Shift::
-            whereJsonContains('day_id', $dayModel->id)
+        $region_id = $this->region_id;
+
+        $groupIds = GroupRegion::where('region_id', $region_id)->pluck('group_id')->toArray();
+
+        $dayId = (string) $dayModel->id;
+
+        return Shift::where(function ($query) use ($groupIds) {
+            foreach ($groupIds as $groupId) {
+
+                $query->orWhereJsonContains('group_id', $groupId)
+                    ->orWhereJsonContains('group_id', (string) $groupId);
+            }
+        })
+            ->where(function ($query) use ($dayId) {
+                $query->orWhereJsonContains('day_id', (string) $dayId)
+                    ->orWhereJsonContains('day_id', (int) $dayId);
+            })
+            ->where(function ($query) use ($service_ids) {
+                foreach ($service_ids as $serviceId) {
+
+                    $query->orWhereJsonContains('service_id', (int) $serviceId)
+                        ->orWhereJsonContains('service_id', (string) $serviceId);
+                }
+            })
             ->where('is_active', true)
             ->get();
 
@@ -156,7 +179,6 @@ class Appointment
         $activeGroups = Group::GroupInRegionCategory($this->region_id, [$category_id])->where('active', 1)->pluck('id')->toArray();
         $timeSlots = $times[$service_id]['days'][$day];
 
-        // $timeSlots = iterator_to_array($times[$service_id]['days'][$day]);
         $times[$service_id]['days'][$day] = $timeSlots;
 
         foreach ($timeSlots as $key => $timeSlot) {
