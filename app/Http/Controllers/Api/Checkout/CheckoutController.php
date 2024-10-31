@@ -10,6 +10,7 @@ use App\Models\Cart;
 use App\Models\CategoryGroup;
 use App\Models\ContractPackage;
 use App\Models\ContractPackagesUser;
+use App\Models\CouponUser;
 use App\Models\CustomerWallet;
 use App\Models\Group;
 use App\Models\Order;
@@ -87,7 +88,15 @@ class CheckoutController extends Controller
         $parent_payment_method = null;
 
         if (!$carts->first()) {
-            return self::apiResponse(400, t_('Cart is empty'), []);
+            return self::apiResponse(400, 'Cart is empty', []);
+        }
+
+        $coupon_id = $carts->first()->coupon_id ?? null;
+        if (!empty($coupon_id)) {
+            CouponUser::query()->create([
+                'user_id' => $user->id,
+                'coupon_id' => $coupon_id,
+            ]);
         }
 
         if ($carts->first()->type == 'package') {
@@ -133,6 +142,7 @@ class CheckoutController extends Controller
                         $contractPackagesUser->increment('used', ($contractPackage->visit_number - $contractPackagesUser->used));
                     }
                 }
+
             }
             $total = $this->calc_total($carts);
             return $this->saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method);
