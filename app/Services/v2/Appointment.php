@@ -212,7 +212,7 @@ class Appointment
         // Remove null values from the time slots
         $times[$service_id]['days'][$day] = array_values(array_filter($times[$service_id]['days'][$day]));
     }
-
+    // old senario
     // protected function finalizeTimes($times)
     // {
     //     $finalTimes = [];
@@ -261,15 +261,92 @@ class Appointment
 
     //     return $finalTimes;
     // }
+
+    // Start only days have times to get
+    // protected function finalizeTimes($times)
+    // {
+    //     $finalTimes = [];
+    //     $currentDateTime = Carbon::now('Asia/Riyadh'); // Current date and time in Riyadh timezone
+    //     $currentDay = $currentDateTime->format('Y-m-d'); // Today's date in Y-m-d format
+
+    //     foreach ($times as $service_id => $serviceData) {
+    //         foreach ($serviceData['days'] as $day => $timeSlots) {
+    //             // Initialize array to store formatted time slots
+    //             $formattedTimeSlots = [];
+
+    //             if ($day === $currentDay) {
+    //                 // Process time slots for today, including only those at least 45 minutes from now
+    //                 foreach ($timeSlots as $time) {
+    //                     // Use the time as it is since it includes both date and time
+    //                     $dateTime = Carbon::parse($time, 'Asia/Riyadh');
+    //                     if ($dateTime->greaterThan($currentDateTime->addMinutes(45))) {
+    //                         $formattedTimeSlots[] = $dateTime->format('g:i A'); // Format as "6:00 PM"
+    //                     }
+    //                 }
+    //             } else {
+    //                 // For future days, use time directly since it contains both date and time
+    //                 $formattedTimeSlots = array_map(function ($time) {
+    //                     return Carbon::parse($time, 'Asia/Riyadh')->format('g:i A');
+    //                 }, $timeSlots);
+    //             }
+
+    //             // Only add if there are valid formatted time slots
+    //             if (!empty($formattedTimeSlots)) {
+    //                 // Set locale for Carbon based on the app locale
+    //                 $locale = app()->getLocale();
+    //                 Carbon::setLocale($locale);
+
+    //                 $dayName = Carbon::parse($day)
+    //                     ->timezone('Asia/Riyadh')
+    //                     ->translatedFormat('l'); // Get localized day name
+
+    //                 // Store day and formatted time slots in finalTimes array
+    //                 $finalTimes[$day] = [
+    //                     'day' => $day,
+    //                     'dayName' => $dayName,
+    //                     'times' => $formattedTimeSlots,
+    //                 ];
+    //             }
+    //         }
+    //     }
+
+    //     // Reset array keys to be sequential
+    //     return array_values($finalTimes);
+    // }
+    // End Only Days have times
+
     protected function finalizeTimes($times)
     {
         $finalTimes = [];
         $currentDateTime = Carbon::now('Asia/Riyadh'); // Current date and time in Riyadh timezone
         $currentDay = $currentDateTime->format('Y-m-d'); // Today's date in Y-m-d format
 
+        // Initialize finalTimes for all expected days
+        for ($i = 0; $i < 7; $i++) {
+            $day = $currentDateTime->copy()->addDays($i)->format('Y-m-d');
+            $dayName = $currentDateTime->copy()->addDays($i)->translatedFormat('l'); // Get localized day name
+
+            $finalTimes[$day] = [
+                'day' => $day,
+                'dayName' => $dayName,
+                'times' => null,
+            ];
+        }
+
         foreach ($times as $service_id => $serviceData) {
             foreach ($serviceData['days'] as $day => $timeSlots) {
-                // Initialize array to store formatted time slots
+                // Ensure the day exists in finalTimes
+                if (!array_key_exists($day, $finalTimes)) {
+                    // If the day is not in finalTimes, we need to initialize it
+                    $dayName = Carbon::parse($day)->translatedFormat('l'); // Get localized day name
+                    $finalTimes[$day] = [
+                        'day' => $day,
+                        'dayName' => $dayName,
+                        'times' => null,
+                    ];
+                }
+
+                // Initialize array to store formatted time slots for this specific day
                 $formattedTimeSlots = [];
 
                 if ($day === $currentDay) {
@@ -277,7 +354,7 @@ class Appointment
                     foreach ($timeSlots as $time) {
                         // Use the time as it is since it includes both date and time
                         $dateTime = Carbon::parse($time, 'Asia/Riyadh');
-                        if ($dateTime->greaterThan($currentDateTime->addMinutes(45))) {
+                        if ($dateTime->greaterThan($currentDateTime->copy()->addMinutes(45))) {
                             $formattedTimeSlots[] = $dateTime->format('g:i A'); // Format as "6:00 PM"
                         }
                     }
@@ -290,21 +367,20 @@ class Appointment
 
                 // Only add if there are valid formatted time slots
                 if (!empty($formattedTimeSlots)) {
-                    // Set locale for Carbon based on the app locale
-                    $locale = app()->getLocale();
-                    Carbon::setLocale($locale);
-
-                    $dayName = Carbon::parse($day)
-                        ->timezone('Asia/Riyadh')
-                        ->translatedFormat('l'); // Get localized day name
-
-                    // Store day and formatted time slots in finalTimes array
-                    $finalTimes[$day] = [
-                        'day' => $day,
-                        'dayName' => $dayName,
-                        'times' => $formattedTimeSlots,
-                    ];
+                    // Merge the formatted time slots into the existing array for this day
+                    if ($finalTimes[$day]['times'] === null) {
+                        $finalTimes[$day]['times'] = []; // Initialize as an empty array if previously null
+                    }
+                    // Merge and remove duplicates
+                    $finalTimes[$day]['times'] = array_unique(array_merge($finalTimes[$day]['times'], $formattedTimeSlots));
                 }
+            }
+        }
+
+        // Finalize times: set to null if still empty
+        foreach ($finalTimes as &$dayData) {
+            if (empty($dayData['times'])) {
+                $dayData['times'] = null; // Set times to null if no slots were added
             }
         }
 
