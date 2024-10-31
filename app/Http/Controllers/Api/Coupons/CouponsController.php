@@ -54,10 +54,10 @@ class CouponsController extends Controller
             $discount = $match_response['discount'];
             $res = $check->check_avail($coupon, $coupon_user, $total);
             if (key_exists('success', $res)) {
-                CouponUser::query()->create([
-                    'user_id' => auth()->user()->id,
-                    'coupon_id' => $coupon->id,
-                ]);
+                // CouponUser::query()->create([
+                //     'user_id' => auth()->user()->id,
+                //     'coupon_id' => $coupon->id,
+                // ]);
                 foreach ($carts as $cart) {
                     $cart->update([
                         'coupon_id' => $coupon->id,
