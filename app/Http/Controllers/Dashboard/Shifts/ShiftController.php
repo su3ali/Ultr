@@ -101,6 +101,87 @@ class ShiftController extends Controller
         return view('dashboard.appointments.shifts.create', compact('days', 'groups', 'services'));
     }
 
+    // public function store(Request $request)
+    // {
+    //     // Validate input fields
+    //     $request->validate([
+    //         'day_id' => 'required|array',
+    //         'day_id.*' => 'exists:days,id',
+    //         'group_id' => 'required|array',
+    //         'group_id.*' => 'exists:groups,id',
+    //         'service_id' => 'required|array',
+    //         'service_id.*' => 'exists:services,id',
+    //         'start_time' => 'required|date_format:H:i',
+    //         'end_time' => 'required|date_format:H:i|after:start_time',
+    //         'is_active' => 'required|boolean',
+    //     ]);
+
+    //     // Prepare to check for overlapping shifts
+    //     $dayIds = $request->day_id;
+    //     $groupIds = $request->group_id;
+    //     $startTime = $request->start_time;
+    //     $endTime = $request->end_time;
+
+    //     // Check for overlapping shifts
+    //     $overlappingShifts = Shift::where(function ($query) use ($dayIds, $groupIds, $startTime, $endTime) {
+    //         $query->where(function ($subQuery) use ($dayIds, $groupIds, $startTime, $endTime) {
+    //             // Check for day_ids in JSON
+    //             foreach ($dayIds as $dayId) {
+    //                 $subQuery->orWhereRaw("JSON_CONTAINS(day_id, '\"$dayId\"')");
+    //             }
+
+    //             // Check for group_ids in JSON
+    //             foreach ($groupIds as $groupId) {
+    //                 $subQuery->orWhereRaw("JSON_CONTAINS(group_id, '\"$groupId\"')");
+    //             }
+
+    //             // Time overlap conditions
+    //             $subQuery->where(function ($q) use ($startTime, $endTime) {
+    //                 $q->where('start_time', '<', $endTime)
+    //                     ->where('end_time', '>', $startTime);
+    //             })
+    //                 ->orWhere('start_time', '=', $startTime)
+    //                 ->orWhere('end_time', '=', $endTime)
+    //                 ->orWhere(function ($q) use ($startTime, $endTime) {
+    //                     $q->where('start_time', '<=', $startTime)
+    //                         ->where('end_time', '>=', $endTime);
+    //                 })
+    //                 ->orWhere(function ($q) use ($startTime, $endTime) {
+    //                     $q->where('start_time', '>=', $startTime)
+    //                         ->where('end_time', '<=', $endTime);
+    //                 });
+    //         });
+    //     })->exists(); // Use exists() for a boolean return
+
+    //     // If overlapping shifts are found, return an error
+    //     if ($overlappingShifts) {
+    //         return redirect()->back()->withErrors([
+    //             'error' => __('dash.error_overlapping', [
+    //                 'start' => $startTime,
+    //                 'end' => $endTime,
+    //             ]),
+    //         ]);
+    //     }
+
+    //     // Generate a unique shift number
+    //     $shift_no = 'shift-' . rand(1000, 9999);
+    //     while (Shift::where('shift_no', $shift_no)->exists()) {
+    //         $shift_no = 'shift-' . rand(1000, 9999); // Re-generate if already exists
+    //     }
+
+    //     // Create the new shift with the unique shift number
+    //     Shift::create([
+    //         'day_id' => json_encode($dayIds), // Store as JSON
+    //         'group_id' => json_encode($groupIds), // Store as JSON
+    //         'service_id' => json_encode($request->service_id), // Store as JSON
+    //         'start_time' => $startTime,
+    //         'end_time' => $endTime,
+    //         'shift_no' => $shift_no,
+    //         'is_active' => $request->is_active,
+    //     ]);
+
+    //     return redirect()->route('dashboard.shifts.index')->with('success', 'Shift created successfully');
+    // }
     public function store(Request $request)
     {
         // Validate input fields
@@ -122,34 +203,35 @@ class ShiftController extends Controller
         $startTime = $request->start_time;
         $endTime = $request->end_time;
 
-        // Check for overlapping shifts
+        // Check for overlapping shifts within the same group
         $overlappingShifts = Shift::where(function ($query) use ($dayIds, $groupIds, $startTime, $endTime) {
             $query->where(function ($subQuery) use ($dayIds, $groupIds, $startTime, $endTime) {
-                // Check for day_ids in JSON
+                // Check for each day in the selected days
                 foreach ($dayIds as $dayId) {
                     $subQuery->orWhereRaw("JSON_CONTAINS(day_id, '\"$dayId\"')");
                 }
 
-                // Check for group_ids in JSON
-                foreach ($groupIds as $groupId) {
-                    $subQuery->orWhereRaw("JSON_CONTAINS(group_id, '\"$groupId\"')");
-                }
-
-                // Time overlap conditions
-                $subQuery->where(function ($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '<', $endTime)
-                        ->where('end_time', '>', $startTime);
-                })
-                    ->orWhere('start_time', '=', $startTime)
-                    ->orWhere('end_time', '=', $endTime)
-                    ->orWhere(function ($q) use ($startTime, $endTime) {
-                        $q->where('start_time', '<=', $startTime)
-                            ->where('end_time', '>=', $endTime);
+                // Check for time overlap within the same group
+                $subQuery->where(function ($groupQuery) use ($groupIds) {
+                    foreach ($groupIds as $groupId) {
+                        $groupQuery->orWhereRaw("JSON_CONTAINS(group_id, '\"$groupId\"')");
+                    }
+                })->where(function ($timeQuery) use ($startTime, $endTime) {
+                    $timeQuery->where(function ($q) use ($startTime, $endTime) {
+                        $q->where('start_time', '<', $endTime)
+                            ->where('end_time', '>', $startTime);
                     })
-                    ->orWhere(function ($q) use ($startTime, $endTime) {
-                        $q->where('start_time', '>=', $startTime)
-                            ->where('end_time', '<=', $endTime);
-                    });
+                        ->orWhere('start_time', '=', $startTime)
+                        ->orWhere('end_time', '=', $endTime)
+                        ->orWhere(function ($q) use ($startTime, $endTime) {
+                            $q->where('start_time', '<=', $startTime)
+                                ->where('end_time', '>=', $endTime);
+                        })
+                        ->orWhere(function ($q) use ($startTime, $endTime) {
+                            $q->where('start_time', '>=', $startTime)
+                                ->where('end_time', '<=', $endTime);
+                        });
+                });
             });
         })->exists(); // Use exists() for a boolean return
 
