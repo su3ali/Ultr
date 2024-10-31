@@ -205,10 +205,10 @@ class ShiftController extends Controller
     public function edit($id)
     {
         $shift = Shift::findOrFail($id);
-        $services = Service::all(); // Retrieve the shift by its ID
+        $services = Service::where('active', 1)->get(); // Retrieve the shift by its ID
 
-        $groups = Group::all();
-        $days = Day::all(); // Assuming you have a 'days' table
+        $groups = Group::where('active', 1)->get();
+        $days = Day::where('is_active', 1)->get(); // Assuming you have a 'days' table
 
         return view('dashboard.appointments.shifts.edit', compact('shift', 'days', 'services', 'groups'));
     }
