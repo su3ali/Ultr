@@ -389,6 +389,7 @@ class Appointment
     //     return array_values($finalTimes);
     // }
 
+    // this get time but if i have 2 shifts
     protected function finalizeTimes($times)
     {
         $finalTimes = [];
