@@ -70,7 +70,6 @@ class CheckoutController extends Controller
 
     protected function checkout(Request $request)
     {
-
         $rules = [
             'user_address_id' => 'required',
             'car_user_id' => 'required|exists:car_clients,id',
@@ -105,7 +104,6 @@ class CheckoutController extends Controller
             if ($request->payment_method == 'wallet' && $total > $user->point) {
                 return self::apiResponse(400, __('api.Your wallet balance is not enough to complete this process'), []);
             }
-
             return $this->saveContract($user, $request, $total, $carts);
         } else {
             // if ($request->payment_method == 'wallet' && $request->amount > $user->point) {
@@ -195,29 +193,11 @@ class CheckoutController extends Controller
         $remaining_days = Carbon::now()->diffInDays(Carbon::parse($cart->date)) + 1;
         $page_number = floor($remaining_days / 14);
         $time = new Appointment($address->region_id, $services, null, $page_number);
-
         $times = $time->getAvailableTimesFromDate();
-
-        // The time in 24-hour format
-        $time24Hour = $cart->time;
-
-        // Convert the 24-hour time to a timestamp
-        $timestamp = strtotime($time24Hour);
-
-        // Format the timestamp to a 12-hour format with AM/PM
-        $time12Hour = date('g:i A', $timestamp);
-
-        foreach ($times as $time) {
-            if ($time['day'] == $cart->date and in_array($time12Hour, $time['times'])) {
-                DB::rollback();
-                return self::apiResponse(400, __('api.time_not_available'), $this->body);
-            }
-        }
         if ($times) {
             $days = array_column($times, 'day');
             if (!in_array($cart->date, $days)) {
                 DB::rollback();
-
                 return self::apiResponse(400, __('api.This Time is not available'), $this->body);
             }
             foreach ($times as $time) {
