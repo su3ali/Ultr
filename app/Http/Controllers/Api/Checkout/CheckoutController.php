@@ -21,7 +21,7 @@ use App\Models\Transaction;
 use App\Models\UserAddresses;
 use App\Models\Visit;
 use App\Notifications\SendPushNotification;
-use App\Services\Appointment;
+use App\Services\v2\Appointment;
 use App\Support\Api\ApiResponse;
 use App\Traits\imageTrait;
 use App\Traits\NotificationTrait;
