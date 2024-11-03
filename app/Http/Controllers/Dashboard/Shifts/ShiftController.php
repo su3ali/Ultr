@@ -182,6 +182,7 @@ class ShiftController extends Controller
 
     //     return redirect()->route('dashboard.shifts.index')->with('success', 'Shift created successfully');
     // }
+
     public function store(Request $request)
     {
         // Validate input fields
@@ -197,43 +198,33 @@ class ShiftController extends Controller
             'is_active' => 'required|boolean',
         ]);
 
-        // Prepare to check for overlapping shifts
+        // Retrieve input data
         $dayIds = $request->day_id;
         $groupIds = $request->group_id;
+        $serviceIds = $request->service_id;
         $startTime = $request->start_time;
         $endTime = $request->end_time;
 
-        // Check for overlapping shifts within the same group
-        $overlappingShifts = Shift::where(function ($query) use ($dayIds, $groupIds, $startTime, $endTime) {
-            $query->where(function ($subQuery) use ($dayIds, $groupIds, $startTime, $endTime) {
-                // Check for each day in the selected days
-                foreach ($dayIds as $dayId) {
-                    $subQuery->orWhereRaw("JSON_CONTAINS(day_id, '\"$dayId\"')");
-                }
-
-                // Check for time overlap within the same group
-                $subQuery->where(function ($groupQuery) use ($groupIds) {
-                    foreach ($groupIds as $groupId) {
-                        $groupQuery->orWhereRaw("JSON_CONTAINS(group_id, '\"$groupId\"')");
-                    }
-                })->where(function ($timeQuery) use ($startTime, $endTime) {
-                    $timeQuery->where(function ($q) use ($startTime, $endTime) {
-                        $q->where('start_time', '<', $endTime)
-                            ->where('end_time', '>', $startTime);
-                    })
-                        ->orWhere('start_time', '=', $startTime)
-                        ->orWhere('end_time', '=', $endTime)
-                        ->orWhere(function ($q) use ($startTime, $endTime) {
-                            $q->where('start_time', '<=', $startTime)
-                                ->where('end_time', '>=', $endTime);
-                        })
-                        ->orWhere(function ($q) use ($startTime, $endTime) {
-                            $q->where('start_time', '>=', $startTime)
-                                ->where('end_time', '<=', $endTime);
+        // Check for overlapping shifts only if all criteria match
+        $overlappingShifts = Shift::where(function ($query) use ($dayIds, $groupIds, $serviceIds, $startTime, $endTime) {
+            // Loop through each combination of day, group, and service
+            foreach ($dayIds as $dayId) {
+                foreach ($groupIds as $groupId) {
+                    foreach ($serviceIds as $serviceId) {
+                        $query->orWhere(function ($subQuery) use ($dayId, $groupId, $serviceId, $startTime, $endTime) {
+                            $subQuery->whereRaw("JSON_CONTAINS(day_id, '\"$dayId\"')")
+                                ->whereRaw("JSON_CONTAINS(group_id, '\"$groupId\"')")
+                                ->whereRaw("JSON_CONTAINS(service_id, '\"$serviceId\"')")
+                                ->where(function ($timeQuery) use ($startTime, $endTime) {
+                                    // Check for time overlap
+                                    $timeQuery->where('start_time', '<', $endTime)
+                                        ->where('end_time', '>', $startTime);
+                                });
                         });
-                });
-            });
-        })->exists(); // Use exists() for a boolean return
+                    }
+                }
+            }
+        })->exists();
 
         // If overlapping shifts are found, return an error
         if ($overlappingShifts) {
@@ -255,7 +246,7 @@ class ShiftController extends Controller
         Shift::create([
             'day_id' => json_encode($dayIds), // Store as JSON
             'group_id' => json_encode($groupIds), // Store as JSON
-            'service_id' => json_encode($request->service_id), // Store as JSON
+            'service_id' => json_encode($serviceIds), // Store as JSON
             'start_time' => $startTime,
             'end_time' => $endTime,
             'shift_no' => $shift_no,
