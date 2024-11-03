@@ -45,4 +45,7 @@ return [
     'This coupon con not be used to any of these services !' => 'This coupon con not be used to any of these services !',
     'This Time is not available' => 'Sorry, this time is not available',
     'time_not_available' => 'Sorry, this time is not available',
+    'Invalid user address' => 'Invalid user address',
+    'Something went wrong, please try again later' => 'Something went wrong, please try again later',
+
 ];

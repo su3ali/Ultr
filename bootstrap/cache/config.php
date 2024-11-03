@@ -3,7 +3,7 @@
   array (
     'name' => 'Laravel',
     'env' => 'local',
-    'debug' => true,
+    'debug' => false,
     'url' => 'http://ultr.test',
     'asset_url' => NULL,
     'firebase_credentials' => 'AAAAJhayUl0:APA91bE5oXlU6Mz_DMCYBCmxNkYlxF_mqFTN5AMcCse_kISQQMa021PpfYpR0rw2K5b_sO33DcA1D18I08JotzPL-95ADDs-OOKQ5DIPE5mNxrTmNrhFukahAb6TDgwo3z7EClrY0E81',
