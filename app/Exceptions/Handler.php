@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\JsonResponse;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -36,6 +37,16 @@ class Handler extends ExceptionHandler
     {
         $this->reportable(function (Throwable $e) {
             //
+        });
+
+        $this->renderable(function (Throwable $e, $request) {
+            if ($request->wantsJson()) { // Check if the request expects a JSON response
+                return new JsonResponse([
+                    'status' => false,
+                    'code' => 500,
+                    'message' => __('api.Something went wrong, please try again later'),
+                ], 500);
+            }
         });
     }
 }

@@ -18,6 +18,7 @@ use App\Models\OrderService;
 use App\Models\Service;
 use App\Models\Technician;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Models\UserAddresses;
 use App\Models\Visit;
 use App\Notifications\SendPushNotification;
@@ -42,30 +43,75 @@ class CheckoutController extends Controller
 
     protected function checkTimeDate(Request $request)
     {
-        $user = auth()->user('sanctum');
-        $carts = Cart::query()->where('user_id', $user->id)->get();
-        $regionId = UserAddresses::where('id', \request()->query('user_address_id'))->first()->region_id;
-        foreach ($carts as $cart) {
-            $groupIds = CategoryGroup::where('category_id', $cart->category_id)->pluck('group_id')->toArray();
-            $countGroup = Group::where('active', 1)->whereHas('regions', function ($qu) use ($regionId) {
-                $qu->where('region_id', $regionId);
-            })->whereIn('id', $groupIds)->count();
-            $countInBooking = Booking::whereHas('visit', function ($q) {
-                $q->whereNotIn('visits_status_id', [5, 6]);
-            })->whereHas(
-                'address.region',
-                function ($q) use ($regionId) {
+        // Get the authenticated user
+        $user = auth('sanctum')->user();
 
-                    $q->where('id', $regionId);
+        // Retrieve the user address and handle case if not found
+        $userAddress = UserAddresses::find($request->query('user_address_id'));
+        if (!$userAddress) {
+            return self::apiResponse(400, __('api.Invalid user address'), $this->body);
+        }
+        $regionId = $userAddress->region_id;
+
+        // Get user's carts
+        $carts = Cart::where('user_id', $user->id)->get();
+        if ($carts->isEmpty()) {
+            return self::apiResponse(400, __('api.No items in the cart'), $this->body);
+        }
+
+        // Prepare service details for appointment
+        $firstCart = $carts->first();
+        $services = [['id' => $firstCart->service_id, 'amount' => $firstCart->quantity]];
+        $remainingDays = Carbon::now()->diffInDays(Carbon::parse($firstCart->date)) + 1;
+        $pageNumber = floor($remainingDays / 14);
+
+        // Check available times using Appointment class
+        $appointment = new Appointment($userAddress->region_id, $services, null, $pageNumber);
+        $availableTimes = $appointment->getAvailableTimesFromDate();
+
+        // Format cart time
+        $time24Hour = $firstCart->time;
+        $time12Hour = date('g:i A', strtotime($time24Hour));
+
+        // Check if the date and time are available
+        if ($availableTimes) {
+            $availableDays = array_column($availableTimes, 'day');
+
+            if (!in_array($firstCart->date, $availableDays)) {
+                return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+            }
+
+            foreach ($availableTimes as $time) {
+                if ($firstCart->date == $time['day'] && in_array($time12Hour, $time['times'])) {
+                    return self::apiResponse(400, __('api.This Time is not available'), $this->body);
                 }
-            )->where([['category_id', '=', $cart->category_id], ['date', '=', $cart->date], ['time', '=', $cart->time]])
-                ->count();
-
-            if (($countInBooking == $countGroup)) {
-                return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
             }
         }
-        return self::apiResponse(200, __('api.order created successfully'), $this->body);
+
+        // Check for group availability
+        foreach ($carts as $cart) {
+            $groupIds = CategoryGroup::where('category_id', $cart->category_id)->pluck('group_id')->toArray();
+
+            $activeGroupCount = Group::where('active', 1)
+                ->whereHas('regions', fn($query) => $query->where('region_id', $regionId))
+                ->whereIn('id', $groupIds)
+                ->count();
+
+            $bookingCount = Booking::whereHas('visit', fn($query) => $query->whereNotIn('visits_status_id', [5, 6]))
+                ->whereHas('address.region', fn($query) => $query->where('id', $regionId))
+                ->where([
+                    ['category_id', '=', $cart->category_id],
+                    ['date', '=', $cart->date],
+                    ['time', '=', $cart->time],
+                ])->count();
+
+            if ($bookingCount >= $activeGroupCount) {
+                return self::apiResponse(400, __('api.No available technical groups for this category'), $this->body);
+            }
+        }
+
+        // If all checks pass, return success response
+        return self::apiResponse(200, __('api.Order created successfully'), $this->body);
     }
 
     protected function checkout(Request $request)
@@ -487,4 +533,69 @@ class CheckoutController extends Controller
 
         return self::apiResponse(200, __('api.paid successfully'), $this->body);
     }
+    // protected function checkTimeDate(Request $request)
+    // {
+
+    //     $user = auth()->user('sanctum');
+    //     $regionId = UserAddresses::where('id', \request()->query('user_address_id'))->first()->region_id;
+    //     $address = UserAddresses::where('id', \request()->query('user_address_id'))->first();
+
+    //     $carts = Cart::query()->where('user_id', $user->id)->get();
+    //     ///
+    //     $services[] = ['id' => $carts->first()->service_id, 'amount' => $carts->first()->quantity];
+    //     $remaining_days = Carbon::now()->diffInDays(Carbon::parse($carts->first()->date)) + 1;
+    //     $page_number = floor($remaining_days / 14);
+    //     $time = new Appointment($address->region_id, $services, null, $page_number);
+    //     $times = $time->getAvailableTimesFromDate();
+    //     // The time in 24-hour format
+    //     $time24Hour = $carts->first()->time;
+
+    //     // Convert the 24-hour time to a timestamp
+    //     $timestamp = strtotime($time24Hour);
+
+    //     // Format the timestamp to a 12-hour format with AM/PM
+    //     $time12Hour = date('g:i A', $timestamp);
+    //     if ($times) {
+    //         $days = array_column($times, 'day');
+
+    //         if (!in_array($carts->first()->date, $days)) {
+    //             DB::rollback();
+    //             return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+    //         }
+
+    //         foreach ($times as $time) {
+
+    //             // Compare the day with the date in the cart
+    //             if ($carts->first()->date == $time['day']) {
+    //                 // Check if the specific time matches the 'time' in the array
+    //                 if (in_array($time12Hour, $time['times'])) {
+    //                     DB::rollback();
+    //                     return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     foreach ($carts as $cart) {
+    //         $groupIds = CategoryGroup::where('category_id', $cart->category_id)->pluck('group_id')->toArray();
+    //         $countGroup = Group::where('active', 1)->whereHas('regions', function ($qu) use ($regionId) {
+    //             $qu->where('region_id', $regionId);
+    //         })->whereIn('id', $groupIds)->count();
+    //         $countInBooking = Booking::whereHas('visit', function ($q) {
+    //             $q->whereNotIn('visits_status_id', [5, 6]);
+    //         })->whereHas(
+    //             'address.region',
+    //             function ($q) use ($regionId) {
+
+    //                 $q->where('id', $regionId);
+    //             }
+    //         )->where([['category_id', '=', $cart->category_id], ['date', '=', $cart->date], ['time', '=', $cart->time]])
+    //             ->count($cart->date);
+
+    //         if (($countInBooking == $countGroup)) {
+    //             return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+    //         }
+    //     }
+    //     return self::apiResponse(200, __('api.order created successfully'), $this->body);
+    // }
 }
