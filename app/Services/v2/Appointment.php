@@ -164,27 +164,16 @@ class Appointment
         // Calculate the duration needed for the appointment
         $duration = $bookSetting->service_duration + $bookSetting->buffering_time;
 
-        // Perform an overlap check without restricting the selection of the same time slot
+        // Check for any existing visits that overlap with the requested period
         $takenIds = Visit::where('start_time', '<', $period->copy()->addMinutes($duration * $amount)->format('H:i:s'))
             ->where('end_time', '>', $period->format('H:i:s'))
             ->activeVisits()
             ->whereIn('booking_id', $booking_ids)
-            ->whereNotIn('visits_status_id', [5, 6])
             ->whereIn('assign_to_id', $activeGroups)
             ->pluck('assign_to_id')
             ->toArray();
 
-        $availableGroupIds = array_diff($activeGroups, $takenIds);
-
-        $availableGroupsCount = Group::GroupInRegionCategory($this->region_id, [$category_id])
-            ->whereIn('id', $availableGroupIds)
-            ->count();
-        if ($availableGroupsCount > 0) {
-            return true;
-        } else {
-            return false;
-
-        }
+        return !empty($takenIds);
     }
 
     protected function finalizeTimes($times)
@@ -395,59 +384,76 @@ class Appointment
 
     }
 
-    // protected function adjustTimesForVisits(&$times, $service_id, $day, $amount, $bookSetting)
-    // {
-    //     // Fetch the category ID of the service
-    //     $category_id = Service::where('id', $service_id)->first()->category_id;
+    protected function adjustTimesForVisits(&$times, $service_id, $day, $amount, $bookSetting)
+    {
+        // Fetch the category ID of the service
+        $category_id = Service::where('id', $service_id)->first()->category_id;
 
-    //     // Get all booking IDs for that day
-    //     $booking_ids = Booking::whereHas('category', function ($query) use ($category_id) {
-    //         $query->where('category_id', $category_id);
-    //     })->where('date', $day)->pluck('id')->toArray();
+        // Get all booking IDs for that day
+        $booking_ids = Booking::whereHas('category', function ($query) use ($category_id) {
+            $query->where('category_id', $category_id);
+        })->where('date', $day)->pluck('id')->toArray();
 
-    //     // Get active groups for the service's category
-    //     $activeGroups = Group::GroupInRegionCategory($this->region_id, [$category_id])
-    //         ->where('active', 1)
-    //         ->pluck('id')
-    //         ->toArray();
+        // Get active groups for the service's category
+        $activeGroups = Group::GroupInRegionCategory($this->region_id, [$category_id])
+            ->where('active', 1)
+            ->pluck('id')
+            ->toArray();
 
-    //     // Ensure the times array has the right structure
-    //     if (!isset($times[$service_id]['days'][$day])) {
-    //         return; // Early exit if no times are set for this day
-    //     }
+        // Ensure the times array has the right structure
+        if (!isset($times[$service_id]['days'][$day])) {
+            return; // Early exit if no times are set for this day
+        }
 
-    //     // Gather all time slots for the day from the times array
-    //     $timeSlots = $times[$service_id]['days'][$day];
+        // Gather all time slots for the day from the times array
+        $timeSlots = $times[$service_id]['days'][$day];
 
-    //     // Initialize an array to collect unavailable slots
-    //     $unavailableSlots = [];
+        // Initialize an array to collect unavailable slots
+        $unavailableSlots = [];
 
-    //     foreach ($timeSlots as $key => $timeSlot) {
-    //         $formattedTime = $timeSlot->format('H:i:s');
-    //         $duration = $bookSetting->service_duration + $bookSetting->buffering_time;
+        foreach ($timeSlots as $key => $timeSlot) {
+            $formattedTime = $timeSlot->format('H:i:s');
+            $duration = $bookSetting->service_duration + $bookSetting->buffering_time;
 
-    //         // Fetch visits that overlap with this time slot
-    //         $takenIds = Visit::where('start_time', '<', $timeSlot->copy()->addMinutes($duration * $amount)->format('H:i:s'))
-    //             ->where('end_time', '>', $formattedTime)
-    //             ->activeVisits()
-    //             ->whereIn('booking_id', $booking_ids)
-    //             ->whereIn('assign_to_id', $activeGroups)
-    //             ->pluck('assign_to_id')
-    //             ->toArray();
+            // Fetch visits that overlap with this time slot
+            $takenIds = Visit::where('start_time', '<', $timeSlot->copy()->addMinutes($duration * $amount)->format('H:i:s'))
+                ->where('end_time', '>', $formattedTime)
+                ->activeVisits()
+                ->whereIn('booking_id', $booking_ids)
+                ->whereNotIn('visits_status_id', [5, 6])
+                ->whereIn('assign_to_id', $activeGroups)
+                ->pluck('assign_to_id')
+                ->toArray();
 
-    //         // If there are overlapping visits, mark the slot as unavailable
-    //         if (!empty($takenIds)) {
-    //             $unavailableSlots[] = $timeSlot; // Add to the unavailable slots array
-    //         }
-    //     }
+            $availableGroupIds = array_diff($activeGroups, $takenIds);
+            $availableGroupsCount = Group::GroupInRegionCategory($this->region_id, [$category_id])
+                ->whereIn('id', $availableGroupIds)
+                ->count();
 
-    //     // Filter out the unavailable time slots
-    //     $times[$service_id]['days'][$day] = array_values(
-    //         array_filter($timeSlots, function ($timeSlot) use ($unavailableSlots) {
-    //             return !in_array($timeSlot, $unavailableSlots);
-    //         })
-    //     );
-    // }
+            if ($availableGroupIds == 0) {
+                return true;
+            } else {
+                return false;
+            }
+
+        }
+
+        //     // If there are overlapping visits, mark the slot as unavailable
+        //     if (!empty($takenIds)) {
+        //         $unavailableSlots[] = $timeSlot; // Add to the unavailable slots array
+        //     }
+        // }
+
+        // // Filter out the unavailable time slots
+        // $times[$service_id]['days'][$day] = array_values(
+        //     array_filter($timeSlots, function ($timeSlot) use ($unavailableSlots) {
+        //         dd(in_array($timeSlot, $unavailableSlots));
+        //         return !in_array($timeSlot, $unavailableSlots);
+
+        //     })
+        // );
+
+    }
 
     // protected function finalizeTimes($times)
     // {
