@@ -161,6 +161,10 @@ class Appointment
             ->pluck('id')
             ->toArray();
 
+        $availableGroupsCount = Group::GroupInRegionCategory($this->region_id, [$category_id])
+            ->whereIn('id', $activeGroups)
+            ->count();
+
         // Calculate the duration needed for the appointment
         $duration = $bookSetting->service_duration + $bookSetting->buffering_time;
 
@@ -169,12 +173,22 @@ class Appointment
             ->where('end_time', '>', $period->format('H:i:s'))
             ->activeVisits()
             ->whereIn('booking_id', $booking_ids)
-            ->whereIn('assign_to_id', $activeGroups)
+            ->whereIn('assign_to_id', $activeGroups)->whereNotIn('visits_status_id', [5, 6])
             ->pluck('assign_to_id')
             ->toArray();
 
-        // Allow the selection of the same time slot regardless of overlapping visits
-        return false; // Always return false to ensure the time slot is selectable
+        $availableGroupIds = array_diff($activeGroups, $takenIds);
+
+        $availableGroupsCount = Group::GroupInRegionCategory($this->region_id, [$category_id])
+            ->whereIn('id', $availableGroupIds)
+            ->count();
+
+        if ($availableGroupsCount > 0) {
+            return false;
+        } else {
+            return true;
+
+        }
     }
 
     protected function finalizeTimes($times)
