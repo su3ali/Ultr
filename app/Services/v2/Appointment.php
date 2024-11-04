@@ -394,7 +394,7 @@ class Appointment
             $query->where('category_id', $category_id);
         })->where('date', $day)->pluck('id')->toArray();
 
-        // Get active groups for the service's category
+        // Get active groups for the services category
         $activeGroups = Group::GroupInRegionCategory($this->region_id, [$category_id])
             ->where('active', 1)
             ->pluck('id')
@@ -426,7 +426,7 @@ class Appointment
 
             // If there are overlapping visits, mark the slot as unavailable
             if (!empty($takenIds)) {
-                $unavailableSlots[] = $timeSlot; // Add to the unavailable slots array
+                // $unavailableSlots[] = $timeSlot; // Add to the unavailable slots array
             }
         }
 
