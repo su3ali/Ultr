@@ -161,10 +161,6 @@ class Appointment
             ->pluck('id')
             ->toArray();
 
-        $availableGroupsCount = Group::GroupInRegionCategory($this->region_id, [$category_id])
-            ->whereIn('id', $activeGroups)
-            ->count();
-
         // Calculate the duration needed for the appointment
         $duration = $bookSetting->service_duration + $bookSetting->buffering_time;
 
@@ -173,7 +169,8 @@ class Appointment
             ->where('end_time', '>', $period->format('H:i:s'))
             ->activeVisits()
             ->whereIn('booking_id', $booking_ids)
-            ->whereIn('assign_to_id', $activeGroups)->whereNotIn('visits_status_id', [5, 6])
+            ->whereNotIn('visits_status_id', [5, 6])
+            ->whereIn('assign_to_id', $activeGroups)
             ->pluck('assign_to_id')
             ->toArray();
 
@@ -182,11 +179,10 @@ class Appointment
         $availableGroupsCount = Group::GroupInRegionCategory($this->region_id, [$category_id])
             ->whereIn('id', $availableGroupIds)
             ->count();
-
         if ($availableGroupsCount > 0) {
-            return false;
-        } else {
             return true;
+        } else {
+            return false;
 
         }
     }
