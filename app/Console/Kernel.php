@@ -18,9 +18,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->job(New SendVisitReminder)->everyFiveMinutes();
-        $schedule->job(New SendRateReminder)->everyFiveMinutes();
-        $schedule->job(New ClearUsersCarts)->everyThirtyMinutes();
+        $schedule->job(new SendVisitReminder)->everyFiveMinutes();
+        $schedule->job(new SendRateReminder)->everyFiveMinutes();
+        $schedule->job(new ClearUsersCarts)->everyTenMinutes();
     }
 
     /**
@@ -30,7 +30,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands()
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }
