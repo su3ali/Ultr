@@ -30,6 +30,7 @@ class Appointment
     }
     public function getAvailableTimesFromDate()
     {
+
         $servicesCollection = collect($this->services);
         $ids = $servicesCollection->pluck('id');
         $service_ids = $ids->toArray();
@@ -173,7 +174,18 @@ class Appointment
             ->pluck('assign_to_id')
             ->toArray();
 
-        return !empty($takenIds);
+        $availableGroupIds = array_diff($activeGroups, $takenIds);
+        $availableGroupsCount = Group::GroupInRegionCategory($this->region_id, [$category_id])
+            ->whereIn('id', $availableGroupIds)
+            ->count();
+        // dd($availableGroupsCount);
+        if ($availableGroupsCount > 0) {
+            return false;
+        } else {
+            return true;
+        }
+
+        // return !empty($takenIds);
     }
 
     protected function finalizeTimes($times)
@@ -425,16 +437,16 @@ class Appointment
                 ->pluck('assign_to_id')
                 ->toArray();
 
-            $availableGroupIds = array_diff($activeGroups, $takenIds);
-            $availableGroupsCount = Group::GroupInRegionCategory($this->region_id, [$category_id])
-                ->whereIn('id', $availableGroupIds)
-                ->count();
-
-            if ($availableGroupIds == 0) {
-                return true;
-            } else {
-                return false;
-            }
+            // $availableGroupIds = array_diff($activeGroups, $takenIds);
+            // $availableGroupsCount = Group::GroupInRegionCategory($this->region_id, [$category_id])
+            //     ->whereIn('id', $availableGroupIds)
+            //     ->count();
+            // dd($availableGroupIds);
+            // if ($availableGroupIds == 0) {
+            //     return true;
+            // } else {
+            //     return false;
+            // }
 
         }
 
