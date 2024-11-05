@@ -15,12 +15,11 @@ class Service extends Model
     public function getTitleAttribute()
     {
         if (app()->getLocale() == 'ar') {
-            return $this->title_ar;
+            return $this->title_ar; // Assuming 'title_ar' is the Arabic title
         } else {
-            return $this->title_en;
+            return $this->title_en; // Assuming 'title_en' is the English title
         }
     }
-
     public function getDescriptionAttribute()
     {
         if (app()->getLocale() == 'ar') {

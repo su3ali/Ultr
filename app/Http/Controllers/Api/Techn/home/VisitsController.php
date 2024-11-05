@@ -3,13 +3,9 @@
 namespace App\Http\Controllers\Api\Techn\home;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Order\OrderResource;
-use App\Http\Resources\Order\StatusResource;
-use App\Http\Resources\Service\ServiceResource;
 use App\Http\Resources\Technician\home\VisitsResource;
 use App\Models\Admin;
 use App\Models\Booking;
-use App\Models\Category;
 use App\Models\CustomerWallet;
 use App\Models\Group;
 use App\Models\Order;
@@ -47,7 +43,7 @@ class VisitsController extends Controller
             $q->with(['service' => function ($q) {
                 $q->with('category');
             }, 'customer', 'address']);
-        })->with('status')->whereIn('visits_status_id', [1, 2, 3, 4])->whereIn('assign_to_id',   $groupIds)
+        })->with('status')->whereIn('visits_status_id', [1, 2, 3, 4])->whereIn('assign_to_id', $groupIds)
             ->orderBy('created_at', 'desc')->get();
 
         $this->body['visits'] = VisitsResource::collection($orders);
@@ -69,7 +65,7 @@ class VisitsController extends Controller
                 $q->with('category');
             }, 'customer', 'address']);
         })->with('status')->whereIn('visits_status_id', [5, 6])
-            ->whereIn('assign_to_id',  $groupIds)->orderBy('created_at', 'desc')->get();
+            ->whereIn('assign_to_id', $groupIds)->orderBy('created_at', 'desc')->get();
         $this->body['visits'] = VisitsResource::collection($orders);
         return self::apiResponse(200, null, $this->body);
     }
@@ -90,11 +86,10 @@ class VisitsController extends Controller
                 $q->with('category');
             }, 'customer', 'address']);
         })->with('status')->whereIn('visits_status_id', [1, 2, 3, 4])
-            ->whereIn('assign_to_id',   $groupIds)->orderBy('created_at', 'desc')->get();
+            ->whereIn('assign_to_id', $groupIds)->orderBy('created_at', 'desc')->get();
         $this->body['visits'] = VisitsResource::collection($orders);
         return self::apiResponse(200, null, $this->body);
     }
-
 
     protected function orderDetails($id)
     {
@@ -116,12 +111,11 @@ class VisitsController extends Controller
             'type' => 'required|in:visit,order,booking',
             'cancel_reason_id' => 'nullable|exists:reason_cancels,id',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
-            'note' => 'nullable|string|min:3|max:255'
+            'note' => 'nullable|string|min:3|max:255',
         ];
         if ($request->type == 'visit') {
             $rules['id'] = 'required|exists:visits,id';
             $rules['status_id'] = 'required|exists:visits_statuses,id';
-
 
             $request->validate($rules, $request->all());
 
@@ -213,11 +207,11 @@ class VisitsController extends Controller
                 })->first();
                 $total = $order->sub_total;
                 $order->update([
-                    'status_id' => 5
+                    'status_id' => 5,
                 ]);
                 $booking = Booking::where('id', $bookingId)->first();
                 $booking->update([
-                    'booking_status_id' => 2
+                    'booking_status_id' => 2,
                 ]);
 
                 //refund
@@ -228,7 +222,7 @@ class VisitsController extends Controller
                 if ($daysDifference >= 2) {
                     $user = User::where('id', $model->booking->user_id)->first();
                     $user->update([
-                        'point' => $user->point + $order->total ?? 0
+                        'point' => $user->point + $order->total ?? 0,
                     ]);
                 }
             }
@@ -244,7 +238,7 @@ class VisitsController extends Controller
             })->with('status')->where('id', $model->id)->first();
 
             $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
-            $FcmTokenArray = $adminFcmArray->merge([$user->fcm_token])->toArray();
+            $FcmTokenArray = $adminFcmArray->merge([$user->fcm_token]);
 
             $visit = VisitsResource::make($order);
             $notify = [
@@ -253,12 +247,11 @@ class VisitsController extends Controller
                 'data' => [
                     'order_details' => $visit,
                     'type' => 'change status',
-                ]
+                ],
             ];
 
             if ($request->status_id == 6) {
                 $user = User::where('id', $model->booking->user_id)->first();
-
 
                 $walletSetting = CustomerWallet::query()->first();
 
@@ -271,10 +264,10 @@ class VisitsController extends Controller
                 }
                 $newPoint = ((round($user->point - $point)) < 0 ? 0 : round($user->point - $point)) ?? 0;
                 $user->update([
-                    'point' => $newPoint
+                    'point' => $newPoint,
                 ]);
                 $user->update([
-                    'order_cancel' => 1
+                    'order_cancel' => 1,
                 ]);
             }
 
@@ -285,31 +278,12 @@ class VisitsController extends Controller
         }
     }
 
-    // public function test(){
-    //     $order = Visit::where('id',286)->with('booking', function ($q) {
-    //         $q->with(['service' => function ($q) {
-    //             $q->with('category');
-    //         },'customer','address']);
-
-    //     })->with('status')->first();
-    //     $visit = VisitsResource::make($order);
-    //     $notify = [
-    //         'fromFunc'=>'changeStatus',
-    //         'device_token'=>'',
-    //         'data' =>[
-    //             'order_details'=>$visit,
-    //             'type'=>'change status',
-    //         ]
-    //     ];
-    //     $this->pushNotificationBackground($notify);
-    // }
     protected function sendLatLong(Request $request)
     {
         $rules = [
             'lat' => 'required',
             'long' => 'required',
         ];
-
 
         $request->validate($rules, $request->all());
 
@@ -330,7 +304,7 @@ class VisitsController extends Controller
 
         $notify = [
             'fromFunc' => 'latlong',
-            'device_token' => [$user->fcm_token],
+            'device_token' => collect([$user->fcm_token]),
             'data' => [
                 'visit_id' => $model->id,
                 'booking_id' => $model->booking_id,
@@ -338,11 +312,11 @@ class VisitsController extends Controller
                 'lat' => $request->lat,
                 'long' => $request->long,
                 'type' => 'live location',
-            ]
+            ],
         ];
 
         $this->pushNotificationBackground($notify);
-        //$this->pushNotification($notify);
+
         return self::apiResponse(200, __('api.Update Location successfully'), $this->body);
     }
 
@@ -357,12 +331,11 @@ class VisitsController extends Controller
         $order = Order::query()->where('id', $request->order_id)->first();
 
         $order->update([
-            'partial_amount' => 0
+            'partial_amount' => 0,
         ]);
 
         return self::apiResponse(200, __('api.successfully'), $this->body);
     }
-
 
     protected function change_order_cancel(Request $request)
     {
@@ -372,10 +345,9 @@ class VisitsController extends Controller
 
         $request->validate($rules, $request->all());
 
-
         $user = User::where('id', $request->user_id)->first();
         $user->update([
-            'order_cancel' => 1
+            'order_cancel' => 1,
         ]);
 
         return self::apiResponse(200, __('api.successfully'), $this->body);

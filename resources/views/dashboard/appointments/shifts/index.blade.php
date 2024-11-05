@@ -65,6 +65,237 @@
         input:checked+.slider:before {
             transform: translateX(28px);
         }
+
+        // for group name style
+        .group-names-container {
+            max-height: 50px;
+            /* Set a maximum height */
+            overflow-y: auto;
+            /* Enable vertical scrolling */
+            border: 1px solid #ddd;
+            /* Add a border for separation */
+            border-radius: 4px;
+            /* Round the corners */
+            padding: 5px;
+            /* Add some padding */
+            background-color: #f9f9f9;
+            /* Light background color */
+        }
+
+        .group-names-list {
+            list-style-type: none;
+            /* Remove bullet points */
+            padding: 0;
+            /* Remove padding */
+            margin: 0;
+            /* Remove margin */
+        }
+
+        .group-name-item {
+            padding: 5px 10px;
+            /* Add padding for list items */
+            border-bottom: 1px solid #eaeaea;
+            /* Separate items with a line */
+            cursor: default;
+            /* Indicate non-clickable items */
+        }
+
+        /* Optional: Add hover effect */
+        .group-name-item:hover {
+            background-color: #f1f1f1;
+            /* Change background on hover */
+        }
+
+
+
+        /* Style For Group Name  */
+        .group-names-badges {
+            display: flex;
+            /* Use flexbox for alignment */
+            flex-wrap: wrap;
+            /* Allow badges to wrap to the next line if needed */
+            gap: 5px;
+            /* Add space between badges */
+            max-height: 50px;
+            /* Set a maximum height */
+            overflow-y: auto;
+            /* Enable vertical scrolling if needed */
+        }
+
+        .badge {
+            padding: 5px 10px;
+            /* Add padding for better appearance */
+            font-size: 0.9em;
+            /* Adjust font size */
+            border-radius: 5px;
+            /* Round the corners of the badges */
+            color: white;
+            /* Text color */
+        }
+
+        .badge-primary {
+            background-color: #2B68A6;
+            /* Blue background for group names */
+        }
+
+        .badge-secondary {
+            background-color: #6c757d;
+            /* Grey background for 'N/A' */
+        }
+
+        /* Optional: Adjust hover effect */
+        .badge:hover {
+            opacity: 0.8;
+            /* Change opacity on hover for feedback */
+        }
+    </style>
+    <style>
+        /* Button and SweetAlert styling */
+        .swal-button--danger,
+        .swal-button--cancel {
+            border: 0;
+            border-radius: 5px;
+            font-weight: bold;
+            padding: 10px 20px;
+            /* Uniform padding for both buttons */
+            font-size: 16px;
+            /* Consistent font size */
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            /* Transitions for smoothness */
+            cursor: pointer;
+            flex: 1;
+            /* Make buttons the same size */
+            margin: 0 5px;
+            /* Add margin for spacing */
+        }
+
+        .swal-button--danger {
+            background-color: #dc3545 !important;
+            /* Danger button color */
+            color: white;
+        }
+
+        .swal-button--danger:hover {
+            background-color: #c82333 !important;
+            /* Darker red on hover */
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .swal-button--danger:active {
+            background-color: #bd2130 !important;
+            /* Darker on click */
+            transform: scale(0.95);
+        }
+
+        .swal-button--cancel {
+            background-color: #6c757d !important;
+            /* Cancel button color */
+            color: white;
+        }
+
+        .swal-button--cancel:hover {
+            background-color: #5a6268 !important;
+            /* Darker gray on hover */
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .swal-button--cancel:active {
+            background-color: #4e555b !important;
+            /* Darker on click */
+            transform: scale(0.95);
+        }
+
+        /* Customizing the SweetAlert modal */
+        .swal-modal {
+            border-radius: 10px;
+            font-family: "Arial", sans-serif;
+        }
+
+        .swal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .swal-text {
+            font-size: 20px;
+            color: #555;
+        }
+
+        /* Center buttons with space in between */
+        .swal-footer {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            /* Adjust gap as needed */
+            width: 100%;
+            /* Ensure footer takes full width */
+        }
+
+        /* for group name  */
+        .group-names-badges {
+            display: flex;
+            /* Use flexbox for alignment */
+            flex-wrap: wrap;
+            /* Allow badges to wrap to the next line if needed */
+            gap: 8px;
+            /* Add space between badges */
+            max-height: 50px;
+            /* Set a maximum height */
+            overflow-y: auto;
+            /* Enable vertical scrolling if needed */
+            transition: max-height 0.3s ease;
+            /* Smooth transition for height */
+        }
+
+        .badge {
+            padding: 6px 12px;
+            /* Add padding for better appearance */
+            font-size: 0.95em;
+            /* Adjust font size */
+            border-radius: 12px;
+            /* Rounded corners for badges */
+            color: white;
+            /* Text color */
+            transition: transform 0.2s;
+            /* Animation for badge hover */
+        }
+
+        .badge-primary {
+            background-color: #2B68A6;
+            /* Blue background for group names */
+        }
+
+        .badge-secondary {
+            background-color: #6c757d;
+            /* Grey background for 'N/A' */
+        }
+
+        .badge:hover {
+            transform: scale(1.1);
+            /* Scale up on hover */
+            opacity: 0.9;
+            /* Slightly change opacity for effect */
+        }
+
+        /* Optional: Add custom scrollbars for better aesthetics */
+        .group-names-badges::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .group-names-badges::-webkit-scrollbar-thumb {
+            background: #2B68A6;
+            /* Color of the scrollbar */
+            border-radius: 10px;
+            /* Rounded scrollbar */
+        }
+
+        .group-names-badges::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            /* Background of the scrollbar track */
+        }
     </style>
 @endpush
 
@@ -160,7 +391,24 @@
                     },
                     {
                         data: 'group_name',
-                        name: 'group_name'
+                        name: 'group_name',
+                        render: function(data, type, row) {
+                            // Check if group names exist
+                            if (Array.isArray(row.group) && row.group.length > 0) {
+                                // Create a container for the group names with badge style and tooltips
+                                return `
+                            <div class="group-names-badges">
+                                ${row.group.map(group => `
+                                                    <span class="badge badge-primary" title="${group}">
+                                                        ${group}
+                                                    </span>
+                                                `).join('')}
+                            </div>
+                        `;
+                            }
+                            return '<span class="badge badge-secondary">N/A</span>'; // Return 'N/A' if no groups found
+                        }
+
                     },
                     {
                         data: 'service_name',
@@ -198,14 +446,21 @@
                         searchable: false,
                         render: function(data, type, row) {
                             return `
-                                <a href="/admin/shifts/${row.id}/edit" class="btn btn-sm btn-primary card-tools edit"><i class="far fa-edit fa-2x"></i></a>
-                               
-                                <a href="/admin/shifts/${row.id}" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
-                            <i class="far fa-trash-alt fa-2x"></i></a>
-                                
-                            `;
+                            <a href="/admin/shifts/${row.id}/edit" class="btn btn-sm btn-primary card-tools edit">
+                                <i class="far fa-edit fa-2x"></i>
+                            </a>
+                      
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteShift(${row.id})">
+                                <i class="far fa-trash-alt fa-2x"></i>
+                            </button>
+
+
+                        `;
+
                         }
                     }
+
+
                     // <a href="/admin/shifts/${row.id}" class="btn btn-info btn-sm">{{ __('dash.view') }}</a>
                 ],
                 order: [
@@ -259,5 +514,59 @@
                 }
             });
         }
+
+        function deleteShift(id) {
+            swal({
+                title: "تأكيد الحذف",
+                text: "هل أنت متأكد أنك تريد حذف هذا العنصر؟",
+                icon: "warning",
+                buttons: {
+                    cancel: {
+                        text: "إلغاء",
+                        value: false,
+                        visible: true,
+                        className: "btn btn-secondary",
+                        closeModal: true
+                    },
+                    confirm: {
+                        text: "حذف",
+                        value: true,
+                        visible: true,
+                        className: "btn btn-danger",
+                        closeModal: false
+                    }
+                },
+                dangerMode: true,
+            }).then((willDelete) => {
+                if (willDelete) {
+                    $.ajax({
+                        url: `/admin/shifts/${id}`,
+                        method: 'DELETE',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                        },
+                        success: function(data) {
+                            $('#shift-table').DataTable().ajax.reload();
+                            swal({
+                                title: "عملية ناجحة",
+                                text: "تم تنفيذ الطلب بنجاح",
+                                icon: 'success',
+                                buttons: false,
+                                timer: 2000
+                            });
+                        },
+                        error: function(xhr) {
+                            console.error('Error:', xhr.responseText);
+                            swal({
+                                title: "فشلت العملية",
+                                text: xhr.responseJSON?.message || "فشل في تنفيذ الطلب",
+                                icon: 'error',
+                            });
+                        }
+                    });
+                }
+            });
+        }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert@2.1.2/dist/sweetalert.min.js"></script>
 @endpush

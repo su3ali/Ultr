@@ -12,8 +12,10 @@ use App\Models\Category;
 use App\Models\CategoryGroup;
 use App\Models\ContractPackage;
 use App\Models\ContractPackagesUser;
+use App\Models\Group;
 use App\Models\Icon;
 use App\Models\Service;
+use App\Models\Visit;
 use App\Services\v2\Appointment;
 use App\Support\Api\ApiResponse;
 use App\Traits\schedulesTrait;
@@ -122,90 +124,161 @@ class CartController extends Controller
 
     protected function updateCart(Request $request)
     {
-        $cart = auth()->user()->carts->first();
-        if ($cart) {
-            $rules = [
-                'category_ids' => 'required|array',
-                'category_ids.*' => 'required|exists:categories,id',
-                'date' => 'required|array',
-                'date.*' => 'required|date',
-                'time' => 'required|array',
-                'time.*' => 'required|date_format:h:i A',
-                'notes' => 'nullable|array',
-                'notes.*' => 'nullable|string|max:191',
-            ];
-            $request->validate($rules, $request->all());
-            if ($cart->type == 'service' || !$cart->type) {
-                $cartCategoryCount = count(array_unique(auth()->user()->carts->pluck('category_id')->toArray()));
-                if (
-                    count($request->category_ids) < $cartCategoryCount
-                    ||
-                    count($request->time) < $cartCategoryCount
-                    ||
-                    count($request->date) < $cartCategoryCount
-                ) {
-                    return self::apiResponse(400, __('api.date or time is missed'), $this->body);
+        try {
+
+            $cart = auth()->user()->carts->first();
+            if ($cart) {
+                $rules = [
+                    'category_ids' => 'required|array',
+                    'category_ids.*' => 'required|exists:categories,id',
+                    'region_id' => 'required|exists:regions,id',
+                    'date' => 'required|array',
+                    'date.*' => 'required|date',
+                    'time' => 'required|array',
+                    'time.*' => 'required|date_format:h:i A',
+                    'notes' => 'nullable|array',
+                    'notes.*' => 'nullable|string|max:191',
+                ];
+
+                $categoryId = $request['category_ids'][0];
+                $cart_time = $request['time'][0];
+                $cart_date = $request['date'][0];
+                $time24 = Carbon::parse($cart_time)->format('H:i');
+                $cart_time = $time24;
+
+                // Retrieve all group IDs in the specified region and category
+                $allGroupIdsInRegionCategory = Group::GroupInRegionCategory($request->region_id, [$categoryId])
+                    ->pluck('id')
+                    ->toArray();
+
+                // Check if no groups are available
+                if (empty($allGroupIdsInRegionCategory)) {
+                    return false;
                 }
 
-                foreach ($request->category_ids as $key => $category_id) {
+                // Retrieve group IDs associated with the provided category IDs
+                $groupIdsForCategories = CategoryGroup::whereIn('category_id', $request['category_ids'])
+                    ->pluck('group_id')
+                    ->toArray();
 
-                    $countGroup = CategoryGroup::where('category_id', $category_id)->count();
+                // Fetch booking IDs for the given category and cart date
+                $bookingIdsForCategory = Booking::whereHas('category', function ($query) use ($categoryId) {
+                    $query->where('category_id', $categoryId);
+                })->where('date', $cart->date)
+                    ->pluck('id')
+                    ->toArray();
 
-                    $countInBooking = Booking::whereHas('visit', function ($q) {
-                        $q->whereNotIn('visits_status_id', [5, 6]);
-                    })->where('category_id', $category_id)->where('date', $request->date[$key])
-                        ->where('time', Carbon::createFromFormat('H:i A', $request->time[$key])->format('H:i:s'))->count();
+                // Retrieve IDs of visits assigned to these bookings
+                $assignedVisitIds = Visit::whereIn('booking_id', $bookingIdsForCategory)->whereNotIn('visits_status_id', [5, 6])
+                    ->pluck('assign_to_id')
+                    ->toArray();
 
-                    if ($countInBooking == $countGroup) {
-                        return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+                // Calculate the available group IDs
+                $availableGroupIds = array_diff($groupIdsForCategories, $assignedVisitIds);
+
+                // Fetch the available groups based on region, category, and availability
+                $availableGroupsCount = Group::GroupInRegionCategory($request->region_id, $request['category_ids'])
+                    ->whereIn('id', $availableGroupIds)
+                    ->count();
+
+                // Prepare data for debugging or further use
+                // $debugData = [
+                //     'groupIdsForCategories' => $groupIdsForCategories,
+                //     'availableGroupIds' => $availableGroupIds,
+                //     'assignedVisitIds' => $assignedVisitIds,
+                // ];
+                // return $debugData;
+
+                // Return the available groups
+                $cartsCount = Cart::where([
+                    'region_id' => $request->region_id,
+                    'date' => $cart_date,
+                    'time' => $cart_time,
+                ])->count();
+                // return 'availableGroupsCount = ' . $availableGroupsCount . ' cartsCount = ' . $cartsCount;
+
+                if ($availableGroupsCount <= $cartsCount) {
+                    return self::apiResponse(
+                        400,
+                        __('api.time_not_available'),
+                        $this->body
+                    );
+                }
+
+                if ($cart->type == 'service' || !$cart->type) {
+                    $cartCategoryCount = count(array_unique(auth()->user()->carts->pluck('category_id')->toArray()));
+                    if (
+                        count($request->category_ids) < $cartCategoryCount
+                        ||
+                        count($request->time) < $cartCategoryCount
+                        ||
+                        count($request->date) < $cartCategoryCount
+                    ) {
+                        return self::apiResponse(400, __('api.date or time is missed'), $this->body);
                     }
 
-                    Cart::query()->where('user_id', auth('sanctum')->user()->id)
-                        ->where('category_id', $category_id)->update([
-                        'date' => $request->date[$key],
-                        'time' => Carbon::parse($request->time[$key])->timezone('Asia/Riyadh')->toTimeString(),
-                        'notes' => $request->notes ? array_key_exists($key, $request->notes) ? $request->notes[$key] : '' : '',
-                    ]);
-                }
-                return self::apiResponse(200, __('api.date and time for reservations updated successfully'), $this->body);
-            } else {
-                $cartCategoryCount = auth()->user()->carts->count();
+                    foreach ($request->category_ids as $key => $category_id) {
 
-                if (
-                    count($request->category_ids) < $cartCategoryCount
-                    ||
-                    count($request->time) < $cartCategoryCount
-                    ||
-                    count($request->date) < $cartCategoryCount
-                ) {
-                    return self::apiResponse(400, __('api.date or time is missed'), $this->body);
-                }
+                        $countGroup = CategoryGroup::where('category_id', $category_id)->count();
 
-                foreach (auth()->user()->carts as $key => $cart) {
+                        $countInBooking = Booking::whereHas('visit', function ($q) {
+                            $q->whereNotIn('visits_status_id', [5, 6]);
+                        })->where('category_id', $category_id)->where('date', $request->date[$key])
+                            ->where('time', Carbon::createFromFormat('H:i A', $request->time[$key])->format('H:i:s'))->count();
 
-                    $countGroup = CategoryGroup::where('category_id', $cart->category_id)->count();
+                        if ($countInBooking == $countGroup) {
+                            return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+                        }
 
-                    $countInBooking = Booking::whereHas('visit', function ($q) {
-                        $q->whereNotIn('visits_status_id', [5, 6]);
-                    })->where('category_id', $cart->category_id)->where('date', $request->date[$key])
-                        ->where('time', Carbon::createFromFormat('H:i A', $request->time[$key])->format('H:i:s'))->count();
+                        Cart::query()->where('user_id', auth('sanctum')->user()->id)
+                            ->where('category_id', $category_id)->update([
+                            'date' => $request->date[$key],
+                            'time' => Carbon::parse($request->time[$key])->timezone('Asia/Riyadh')->toTimeString(),
+                            'notes' => $request->notes ? array_key_exists($key, $request->notes) ? $request->notes[$key] : '' : '',
+                        ]);
+                    }
+                    return self::apiResponse(200, __('api.date and time for reservations updated successfully'), $this->body);
+                } else {
+                    $cartCategoryCount = auth()->user()->carts->count();
 
-                    if ($countInBooking == $countGroup) {
-                        return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+                    if (
+                        count($request->category_ids) < $cartCategoryCount
+                        ||
+                        count($request->time) < $cartCategoryCount
+                        ||
+                        count($request->date) < $cartCategoryCount
+                    ) {
+                        return self::apiResponse(400, __('api.date or time is missed'), $this->body);
                     }
 
-                    error_log($cart->id);
+                    foreach (auth()->user()->carts as $key => $cart) {
 
-                    $cart->update([
-                        'date' => $request->date[$key],
-                        'time' => Carbon::parse($request->time[$key])->timezone('Asia/Riyadh')->toTimeString(),
-                        'notes' => $request->notes ? array_key_exists($key, $request->notes) ? $request->notes[$key] : '' : '',
-                    ]);
+                        $countGroup = CategoryGroup::where('category_id', $cart->category_id)->count();
+
+                        $countInBooking = Booking::whereHas('visit', function ($q) {
+                            $q->whereNotIn('visits_status_id', [5, 6]);
+                        })->where('category_id', $cart->category_id)->where('date', $request->date[$key])
+                            ->where('time', Carbon::createFromFormat('H:i A', $request->time[$key])->format('H:i:s'))->count();
+
+                        if ($countInBooking == $countGroup) {
+                            return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+                        }
+
+                        error_log($cart->id);
+
+                        $cart->update([
+                            'date' => $request->date[$key],
+                            'time' => Carbon::parse($request->time[$key])->timezone('Asia/Riyadh')->toTimeString(),
+                            'notes' => $request->notes ? array_key_exists($key, $request->notes) ? $request->notes[$key] : '' : '',
+                        ]);
+                    }
+                    return self::apiResponse(200, __('api.date and time for reservations updated successfully'), $this->body);
                 }
-                return self::apiResponse(200, __('api.date and time for reservations updated successfully'), $this->body);
             }
+            return self::apiResponse(400, __('api.cart empty'), $this->body);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-        return self::apiResponse(400, __('api.cart empty'), $this->body);
     }
 
     protected function controlItem(Request $request): JsonResponse
@@ -302,7 +375,6 @@ class CartController extends Controller
         $times = new Appointment($request->region_id, $request->services, $request->package_id, $request->page_number);
 
         $collectionOfTimesOfServices = $times->getAvailableTimesFromDate();
-
         if ($collectionOfTimesOfServices) {
             $this->body['times']['available_days'] = $collectionOfTimesOfServices;
             return self::apiResponse(200, null, $this->body);

@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Models\Cart;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -21,8 +20,16 @@ class ClearUsersCarts implements ShouldQueue
      */
     public function handle()
     {
-        Cart::where('created_at', '<', now()->subMinutes(30))->each(function ($cart) {
-            $cart->delete();
-        });
+        Cart::where('created_at', '<', now()->subMinutes(10))
+            ->chunk(100, function ($carts) {
+                foreach ($carts as $cart) {
+                    $cart->update([
+                        'time' => null,
+                        'date' => null,
+                        'region_id' => null,
+                    ]);
+                }
+            });
+
     }
 }

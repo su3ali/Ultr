@@ -1,23 +1,7 @@
 @extends('dashboard.layout.layout')
 
 @push('style')
-    <style>
-        .table>thead>tr>th {
-            white-space: pre-wrap !important;
-        }
-
-        .form-control {
-            padding: 10px;
-            /* Add padding for better touch target */
-            border-radius: 5px;
-            /* Round corners for a modern look */
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-            /* Add some space between fields */
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/shifts/shifts.css') }}">
 @endpush
 
 @section('sub-header')
@@ -56,26 +40,24 @@
             <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
                 <div class="widget-content widget-content-area br-6">
                     <h5>{{ __('dash.add_new_shift') }}</h5>
-                    <form action="{{ route('dashboard.shifts.store') }}" method="POST">
+                    <form action="{{ route('dashboard.shifts.store') }}" id="create-shift" method="POST">
                         @csrf
                         <div class="form-row">
                             <div class="form-group col-md-4">
                                 <label for="day_id">{{ __('dash.day') }}</label>
-                                <select name="day_id" id="day_id" class="form-control" required>
-                                    <option value="">{{ __('dash.select_day') }}</option>
+                                <select name="day_id[]" id="day_id" class="form-control" multiple required>
+                                    <option value="" disabled selected hidden>{{ __('dash.select_day') }}</option>
                                     @foreach ($days as $day)
                                         <option value="{{ $day->id }}">{{ __('dash.' . strtolower($day->name)) }}
                                         </option>
                                     @endforeach
                                 </select>
-
                             </div>
-
 
                             <div class="form-group col-md-4">
                                 <label for="group_id">المجموعة</label>
-                                <select name="group_id" id="group_id" class="form-control" required>
-                                    <option value="">اختر المجموعة</option>
+                                <select name="group_id[]" id="group_id" class="form-control" multiple required>
+                                    <option value="" disabled selected hidden>اختر المجموعة</option>
                                     @foreach ($groups as $group)
                                         <option value="{{ $group->id }}">{{ $group->name }}</option>
                                     @endforeach
@@ -84,14 +66,15 @@
 
                             <div class="form-group col-md-4">
                                 <label for="service_id">الخدمة</label>
-                                <select name="service_id" id="service_id" class="form-control" required>
-                                    <option value="">اختر الخدمة</option>
+                                <select name="service_id[]" id="service_id" class="form-control" multiple required>
+                                    <option value="" disabled selected hidden>اختر الخدمة</option>
                                     @foreach ($services as $service)
                                         <option value="{{ $service->id }}">{{ $service->title }}</option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
+
 
                         <div class="form-row">
 
@@ -126,7 +109,7 @@
 
                         <div class="form-group text-right">
                             <button type="submit" class="btn btn-primary">إنشاء مناوبة</button>
-                            <a href="{{ route('dashboard.shifts.index') }}" class="btn btn-secondary">إلغاء</a>
+                            <a href="{{ route('dashboard.shifts.index') }}" class="flaticon-cancel-12">إلغاء</a>
                         </div>
                     </form>
                 </div>

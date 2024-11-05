@@ -12,6 +12,9 @@ Route::prefix('carts')->group(function () {
     Route::post('/update_cart', [CartController::class, 'updateCart']);
     Route::post('control_cart_item', [CartController::class, 'controlItem']);
 });
+Route::prefix('v2/carts')->group(function () {
+    Route::post('/update_cart', [CartControllerV2::class, 'updateCart']);
+});
 
 // Start Version 2 routes
 Route::prefix('v2/carts')->group(function () {

@@ -203,7 +203,7 @@
                         </svg>
                     </div>
                 </a>
-                <ul class="collapse submenu list-unstyled" id="appointments" data-parent="#accordionExample"> --}}
+                <ul class="collapse submenu list-unstyled" id="appointments" data-parent="#accordionExample">
 
                     {{-- @can('update_bookings') --}}
                     <li>

@@ -40,64 +40,73 @@
                         @csrf
                         @method('PUT')
 
-                        <!-- Day Field -->
-                        <div class="form-group">
-                            <label for="day_id">اليوم</label>
-                            <select class="form-control" id="day_id" name="day_id">
-                                @foreach ($days as $day)
-                                    <option value="{{ $day->id }}" {{ $shift->day_id == $day->id ? 'selected' : '' }}>
-                                        {{ app()->getLocale() == 'ar' ? __($day->name_ar) : __($day->name) }}
-                                    </option>
-                                @endforeach
-                            </select>
+                        <div class="row">
+                            <!-- Day Field -->
+                            <div class="form-group col-md-6">
+                                <label for="day_id">الأيام</label>
+                                <select class="form-control" id="day_id" name="day_id[]" multiple
+                                    style="direction: {{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}; text-align: {{ app()->getLocale() == 'ar' ? 'right' : 'left' }};">
+                                    @foreach ($days as $day)
+                                        <option value="{{ $day->id }}"
+                                            {{ in_array($day->id, json_decode($shift->day_id)) ? 'selected' : '' }}>
+                                            {{ app()->getLocale() == 'ar' ? __($day->name_ar) : __($day->name) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Shift Number Field -->
+                            <div class="form-group col-md-6">
+                                <label for="shift_no">رقم المناوبة</label>
+                                <input type="text" class="form-control" id="shift_no" name="shift_no" readonly
+                                    value="{{ $shift->shift_no }}" required>
+                            </div>
                         </div>
 
+                        <div class="row">
+                            <!-- Service Field -->
+                            <div class="form-group col-md-6">
+                                <label for="service_id">الخدمة</label>
+                                <select class="form-control" id="service_id" name="service_id[]" multiple
+                                    style="direction: {{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}; text-align: {{ app()->getLocale() == 'ar' ? 'right' : 'left' }};">
+                                    @foreach ($services as $service)
+                                        <option value="{{ $service->id }}"
+                                            {{ in_array($service->id, json_decode($shift->service_id)) ? 'selected' : '' }}>
+                                            {{ $service->title }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
 
-                        <!-- Shift Number Field -->
-                        <div class="form-group">
-                            <label for="shift_no">رقم المناوبة</label>
-                            <input type="text" class="form-control" id="shift_no" name="shift_no" readonly
-                                value="{{ $shift->shift_no }}" required>
+                            <!-- Group Field -->
+                            <div class="form-group col-md-6">
+                                <label for="group_id">المجموعة</label>
+                                <select class="form-control" id="group_id" name="group_id[]" multiple
+                                    style="direction: {{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}; text-align: {{ app()->getLocale() == 'ar' ? 'right' : 'left' }};">
+                                    @foreach ($groups as $group)
+                                        <option value="{{ $group->id }}"
+                                            {{ in_array($group->id, json_decode($shift->group_id)) ? 'selected' : '' }}>
+                                            {{ $group->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
 
-                        <!-- Service Field -->
-                        <div class="form-group">
-                            <label for="service_id">الخدمة</label>
-                            <select class="form-control" id="service_id" name="service_id">
-                                @foreach ($services as $service)
-                                    <option value="{{ $service->id }}"
-                                        {{ $shift->service_id == $service->id ? 'selected' : '' }}>
-                                        {{ $service->title }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                        <div class="row">
+                            <!-- Start Time Field -->
+                            <div class="form-group col-md-6">
+                                <label for="start_time">وقت البداية</label>
+                                <input type="time" class="form-control" id="start_time" name="start_time"
+                                    value="{{ $shift->start_time }}" required>
+                            </div>
 
-                        <!-- Group Field -->
-                        <div class="form-group">
-                            <label for="group_id">المجموعة</label>
-                            <select class="form-control" id="group_id" name="group_id">
-                                @foreach ($groups as $group)
-                                    <option value="{{ $group->id }}"
-                                        {{ $shift->group_id == $group->id ? 'selected' : '' }}>
-                                        {{ $group->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <!-- Start Time Field -->
-                        <div class="form-group">
-                            <label for="start_time">وقت البداية</label>
-                            <input type="time" class="form-control" id="start_time" name="start_time"
-                                value="{{ $shift->start_time }}" required>
-                        </div>
-
-                        <!-- End Time Field -->
-                        <div class="form-group">
-                            <label for="end_time">وقت النهاية</label>
-                            <input type="time" class="form-control" id="end_time" name="end_time"
-                                value="{{ $shift->end_time }}" required>
+                            <!-- End Time Field -->
+                            <div class="form-group col-md-6">
+                                <label for="end_time">وقت النهاية</label>
+                                <input type="time" class="form-control" id="end_time" name="end_time"
+                                    value="{{ $shift->end_time }}" required>
+                            </div>
                         </div>
 
                         <!-- Is Active Field -->
@@ -114,7 +123,6 @@
                             <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
                             <a href="{{ route('dashboard.shifts.index') }}" data-dismiss="modal"><i
                                     class="flaticon-cancel-12"></i>{{ __('dash.close') }}</a>
-
                         </div>
                     </form>
                 </div>

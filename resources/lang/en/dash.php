@@ -553,7 +553,7 @@ return [
     'request_failed' => 'Please check entries',
     'regions' => 'regions',
 
-    'error_overlapping' => 'A shift with the same group and service already exists in the selected time range',
     'error_overlapping_group' => 'This group is already assigned to a shift at the same time in another service',
+    'error_overlapping' => 'There is already a shift for group :group on day :day from :start to :end.',
 
 ];
