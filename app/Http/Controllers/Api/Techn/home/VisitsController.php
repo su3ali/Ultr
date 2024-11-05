@@ -238,7 +238,7 @@ class VisitsController extends Controller
             })->with('status')->where('id', $model->id)->first();
 
             $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
-            $FcmTokenArray = $adminFcmArray->merge([$user->fcm_token])->toArray();
+            $FcmTokenArray = $adminFcmArray->merge([$user->fcm_token]);
 
             $visit = VisitsResource::make($order);
             $notify = [
@@ -278,24 +278,6 @@ class VisitsController extends Controller
         }
     }
 
-    // public function test(){
-    //     $order = Visit::where('id',286)->with('booking', function ($q) {
-    //         $q->with(['service' => function ($q) {
-    //             $q->with('category');
-    //         },'customer','address']);
-
-    //     })->with('status')->first();
-    //     $visit = VisitsResource::make($order);
-    //     $notify = [
-    //         'fromFunc'=>'changeStatus',
-    //         'device_token'=>'',
-    //         'data' =>[
-    //             'order_details'=>$visit,
-    //             'type'=>'change status',
-    //         ]
-    //     ];
-    //     $this->pushNotificationBackground($notify);
-    // }
     protected function sendLatLong(Request $request)
     {
         $rules = [
@@ -322,7 +304,7 @@ class VisitsController extends Controller
 
         $notify = [
             'fromFunc' => 'latlong',
-            'device_token' => [$user->fcm_token],
+            'device_token' => collect([$user->fcm_token]),
             'data' => [
                 'visit_id' => $model->id,
                 'booking_id' => $model->booking_id,
@@ -334,7 +316,7 @@ class VisitsController extends Controller
         ];
 
         $this->pushNotificationBackground($notify);
-        //$this->pushNotification($notify);
+
         return self::apiResponse(200, __('api.Update Location successfully'), $this->body);
     }
 
