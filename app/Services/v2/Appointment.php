@@ -66,7 +66,8 @@ class Appointment
             })->where('service_id', $service_id)->first();
 
             if (!$bookSetting) {
-                return ['error' => "No booking settings found for service ID: $service_id."];
+                return false;
+                // return ['error' => "No booking settings found for service ID: $service_id."];
             }
 
             // Fetch active days for the service
@@ -74,7 +75,8 @@ class Appointment
             $dayEnd = Day::where('is_active', 1)->where('name', $bookSetting->service_end_date)->first();
 
             if (!$dayStart || !$dayEnd) {
-                return ['error' => 'Service start or end days not found.'];
+                return false;
+                // return ['error' => 'Service start or end days not found.'];
             }
 
             // Fetch all active days between start and end
@@ -99,7 +101,8 @@ class Appointment
 
             // If no dates are available, return an error
             if (empty($dates)) {
-                return ['error' => 'No available dates for the service.'];
+                return false;
+                // return ['error' => 'No available dates for the service.'];
             }
 
             // For each day, fetch shifts and generate unique time slots
@@ -131,7 +134,7 @@ class Appointment
 
                     foreach ($periods as $period) {
                         // Check if the slot is available and format the time
-                        if (!$this->isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting)) {
+                        if (!$this->isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shift)) {
                             $formattedTime = $period->format('H:i');
 
                             // Store unique time slots only
@@ -147,8 +150,16 @@ class Appointment
         return $this->finalizeTimes($times);
     }
 
-    protected function isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting)
+    protected function isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shift)
     {
+        $shiftGroupsIds = $shift->pluck('group_id')->toArray();
+
+        $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
+            return array_map('intval', json_decode($jsonString, true));
+        }, $shiftGroupsIds));
+
+        // dd($shiftGroupsIds);
+
         $category_id = Service::where('id', $service_id)->first()->category_id;
 
         // Fetch booking IDs for the given date
@@ -169,17 +180,19 @@ class Appointment
         $takenIds = Visit::where('start_time', '<', $period->copy()->addMinutes($duration * $amount)->format('H:i:s'))
             ->where('end_time', '>', $period->format('H:i:s'))
             ->activeVisits()
-            ->whereIn('booking_id', $booking_ids)
-            ->whereIn('assign_to_id', $activeGroups)
+            ->whereIn('booking_id', $booking_ids)->whereNotIn('visits_status_id', [5, 6])
+            ->whereIn('assign_to_id', $shiftGroupsIds)
             ->pluck('assign_to_id')
             ->toArray();
 
-        $availableGroupIds = array_diff($activeGroups, $takenIds);
-        $availableGroupsCount = Group::GroupInRegionCategory($this->region_id, [$category_id])
-            ->whereIn('id', $availableGroupIds)
+        $availableShiftGroupsIds = array_diff($shiftGroupsIds, $takenIds);
+
+        $availableShiftGroupsCount = Group::GroupInRegionCategory($this->region_id, [$category_id])
+            ->whereIn('id', $availableShiftGroupsIds)
             ->count();
-        // dd($availableGroupsCount);
-        if ($availableGroupsCount > 0) {
+
+        // dd($availableShiftGroupsIds);
+        if ($availableShiftGroupsCount > 0) {
             return false;
         } else {
             return true;
@@ -227,107 +240,6 @@ class Appointment
 
         return array_values($finalTimes);
     }
-
-    // public function getAvailableTimesFromDate()
-    // {
-
-    //     $servicesCollection = collect($this->services);
-    //     $ids = $servicesCollection->pluck('id');
-    //     $service_ids = $ids->toArray();
-
-    //     $category_id = Service::where('id', $this->services[0]['id'])->first()->category_id;
-
-    //     // Fetch the group available in the region for the category
-    //     $group = Group::GroupInRegionCategory($this->region_id, [$category_id])->get();
-    //     if ($group->isEmpty()) {
-    //         return ['error' => 'No group available for the selected category and region.'];
-    //     }
-
-    //     // Determine the time duration for the appointment
-    //     $timeDuration = 60; // Default duration
-    //     if ($this->package_id != 0) {
-    //         $contract = ContractPackage::where('id', $this->package_id)->first();
-    //         $timeDuration = $contract ? $contract->time * 30 : 60; // Validate contract and multiply by 30 minutes
-    //     }
-
-    //     $times = [];
-    //     foreach ($this->services as $service) {
-    //         $amount = $service['amount'];
-    //         $service_id = $service['id'];
-    //         $times[$service_id]['amount'] = $amount;
-
-    //         // Initialize days key
-    //         $times[$service_id]['days'] = [];
-
-    //         // Fetch booking settings for the service in the region
-    //         $bookSetting = BookingSetting::whereHas('regions', function ($q) {
-    //             $q->where('region_id', $this->region_id);
-    //         })->where('service_id', $service_id)->first();
-
-    //         if (!$bookSetting) {
-    //             return ['error' => "No booking settings found for service ID: $service_id."];
-    //         }
-
-    //         // Fetch active days for the service
-    //         $dayStart = Day::where('is_active', 1)->where('name', $bookSetting->service_start_date)->first();
-    //         $dayEnd = Day::where('is_active', 1)->where('name', $bookSetting->service_end_date)->first();
-
-    //         if (!$dayStart || !$dayEnd) {
-    //             return ['error' => 'Service start or end days not found.'];
-    //         }
-
-    //         // Fetch all active days between start and end
-    //         $serviceDays = Day::whereBetween('id', [$dayStart->id, $dayEnd->id])
-    //             ->where('is_active', true)
-    //             ->get();
-
-    //         $dates = [];
-    //         $page_size = 14;
-    //         $page_number = $this->page_number ?? 0;
-    //         $start = $page_number * $page_size;
-    //         $end = ($page_number + 1) * $page_size;
-
-    //         // Limit the date range to the service duration
-    //         for ($i = $start; $i < $end; $i++) {
-    //             $date = Carbon::now('Asia/Riyadh')->addDays($i)->format('Y-m-d');
-    //             if (in_array(Carbon::parse($date)->format('l'), $serviceDays->pluck('name')->toArray())) {
-    //                 $dates[] = $date;
-    //             }
-    //         }
-
-    //         // If no dates are available, return an error
-    //         if (empty($dates)) {
-    //             return ['error' => 'No available dates for the service.'];
-    //         }
-
-    //         // For each day, fetch shifts and generate time slots
-    //         foreach ($dates as $day) {
-    //             $dayName = Carbon::parse($day)->timezone('Asia/Riyadh')->locale('en')->dayName;
-    //             // Fetch the shifts for the specific day
-    //             $shifts = $this->getShiftsForDay($dayName);
-
-    //             if ($shifts->isEmpty()) {
-    //                 continue; // Skip this day if no active shifts are found
-    //             }
-
-    //             foreach ($shifts as $shift) {
-    //                 $startTime = Carbon::parse($shift->start_time)->timezone('Asia/Riyadh')->locale(app()->getLocale());
-    //                 $endTime = Carbon::parse($shift->end_time)->timezone('Asia/Riyadh')->locale(app()->getLocale());
-
-    //                 // Generate time slots within each shift
-    //                 $periods = CarbonInterval::minutes($bookSetting->service_duration + $bookSetting->buffering_time)
-    //                     ->toPeriod($startTime, $endTime);
-
-    //                 $times[$service_id]['days'][$day] = iterator_to_array($periods);
-
-    //                 // Adjust time slots based on already booked visits
-    //                 $this->adjustTimesForVisits($times, $service_id, $day, $amount, $bookSetting);
-    //             }
-
-    //         }
-    //     }
-    //     return $this->finalizeTimes($times);
-    // }
 
     protected function getShiftsForDay($day)
     {
@@ -466,121 +378,5 @@ class Appointment
         // );
 
     }
-
-    // protected function finalizeTimes($times)
-    // {
-    //     $finalTimes = [];
-    //     $currentDateTime = Carbon::now('Asia/Riyadh'); // Current date and time in Riyadh timezone
-    //     $currentDay = $currentDateTime->format('Y-m-d'); // Today's date in Y-m-d format
-
-    //     // Iterate through the provided times to organize time slots for each day
-    //     foreach ($times as $service_id => $serviceData) {
-    //         foreach ($serviceData['days'] as $day => $timeSlots) {
-    //             // If this day hasn't been initialized yet, set it up
-    //             if (!isset($finalTimes[$day])) {
-    //                 $finalTimes[$day] = [
-    //                     'day' => $day,
-    //                     'dayName' => Carbon::parse($day)->translatedFormat('l'), // Get localized day name
-    //                     'times' => [], // Initialize times as an empty array
-    //                 ];
-    //             }
-
-    //             $formattedTimeSlots = [];
-
-    //             if ($day === $currentDay) {
-    //                 // For today, include only time slots that are at least 45 minutes from now
-    //                 foreach ($timeSlots as $time) {
-    //                     $dateTime = Carbon::parse($time, 'Asia/Riyadh');
-    //                     if ($dateTime->greaterThan($currentDateTime->copy()->addMinutes(45))) {
-    //                         $formattedTimeSlots[] = $dateTime->format('g:i A'); // Format as "6:00 PM"
-    //                     }
-    //                 }
-    //             } else {
-    //                 // For future days, directly format the provided time slots
-    //                 $formattedTimeSlots = array_map(function ($time) {
-    //                     return Carbon::parse($time, 'Asia/Riyadh')->format('g:i A');
-    //                 }, $timeSlots);
-    //             }
-
-    //             // Merge and remove duplicates across all shifts for this day
-    //             if (!empty($formattedTimeSlots)) {
-    //                 $finalTimes[$day]['times'] = array_unique(array_merge($finalTimes[$day]['times'], $formattedTimeSlots));
-    //             }
-    //         }
-    //     }
-
-    //     // Initialize any days that didn't have time slots if necessary (covering a 7-day range)
-    //     for ($i = 0; $i < 7; $i++) {
-    //         $day = $currentDateTime->copy()->addDays($i)->format('Y-m-d');
-    //         if (!isset($finalTimes[$day])) {
-    //             $finalTimes[$day] = [
-    //                 'day' => $day,
-    //                 'dayName' => $currentDateTime->copy()->addDays($i)->translatedFormat('l'),
-    //                 'times' => [], // Ensure times is an empty array by default
-    //             ];
-    //         }
-    //     }
-
-    //     // Reset array keys to be sequential
-    //     return array_values($finalTimes);
-    // }
-
-    // protected function finalizeTimes($times)
-    // {
-    //     $finalTimes = [];
-    //     $currentDateTime = Carbon::now('Asia/Riyadh'); // Current date and time in Riyadh timezone
-    //     $currentDay = $currentDateTime->format('Y-m-d'); // Today's date in Y-m-d format
-
-    //     // Iterate through the provided times to organize time slots for each day
-    //     foreach ($times as $service_id => $serviceData) {
-    //         foreach ($serviceData['days'] as $day => $timeSlots) {
-    //             // If this day hasn't been initialized yet, set it up
-    //             if (!isset($finalTimes[$day])) {
-    //                 $finalTimes[$day] = [
-    //                     'day' => $day,
-    //                     'dayName' => Carbon::parse($day)->translatedFormat('l'), // Get localized day name
-    //                     'times' => [], // Initialize times as an empty array
-    //                 ];
-    //             }
-
-    //             $formattedTimeSlots = [];
-
-    //             if ($day === $currentDay) {
-    //                 // For today, include only time slots that are at least 45 minutes from now
-    //                 foreach ($timeSlots as $time) {
-    //                     $dateTime = Carbon::parse($time, 'Asia/Riyadh');
-    //                     if ($dateTime->greaterThan($currentDateTime->copy()->addMinutes(45))) {
-    //                         $formattedTimeSlots[] = $dateTime->format('g:i A'); // Format as "6:00 PM"
-    //                     }
-    //                 }
-    //             } else {
-    //                 // For future days, directly format the provided time slots
-    //                 $formattedTimeSlots = array_map(function ($time) {
-    //                     return Carbon::parse($time, 'Asia/Riyadh')->format('g:i A');
-    //                 }, $timeSlots);
-    //             }
-
-    //             // Merge and remove duplicates across all shifts for this day
-    //             if (!empty($formattedTimeSlots)) {
-    //                 $finalTimes[$day]['times'] = array_unique(array_merge($finalTimes[$day]['times'], $formattedTimeSlots));
-    //             }
-    //         }
-    //     }
-
-    //     // Initialize any days that didn't have time slots if necessary (covering a 7-day range)
-    //     for ($i = 0; $i < 7; $i++) {
-    //         $day = $currentDateTime->copy()->addDays($i)->format('Y-m-d');
-    //         if (!isset($finalTimes[$day])) {
-    //             $finalTimes[$day] = [
-    //                 'day' => $day,
-    //                 'dayName' => $currentDateTime->copy()->addDays($i)->translatedFormat('l'),
-    //                 'times' => [], // Ensure times is an empty array by default
-    //             ];
-    //         }
-    //     }
-
-    //     // Reset array keys to be sequential
-    //     return array_values($finalTimes);
-    // }
 
 }
