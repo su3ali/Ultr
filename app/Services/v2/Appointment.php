@@ -169,6 +169,8 @@ class Appointment
             $query->where('category_id', $category_id);
         })->where('date', $day)->pluck('id')->toArray();
 
+        // dd($booking_ids);
+
         // Fetch active groups for the service category
         $activeGroups = Group::GroupInRegionCategory($this->region_id, [$category_id])
             ->where('active', 1)
@@ -177,15 +179,14 @@ class Appointment
 
         // Calculate the duration needed for the appointment
         $duration = $bookSetting->service_duration + $bookSetting->buffering_time;
-        // dd($period->copy()->addMinutes($duration * $amount)->format('H:i:s') . '*' . $period->format('H:i:s'));
 
-        // Check for any existing visits that overlap with the requested period
-        $takenIds = Visit::where('start_time', '=', $period->copy()->addMinutes($duration * $amount)->format('H:i:s'))
-            ->where('end_time', '=', $period->format('H:i:s'))
+        // Check for any existing visits that overlap with the requested
+
+        $takenIds = Visit::where('start_time', $period->copy()->addMinutes($duration * $amount)->format('H:i:s'))
+            ->where('end_time', '>', $period->format('H:i:s'))
             ->activeVisits()
-            ->whereIn('booking_id', $booking_ids)->whereNotIn('visits_status_id', [5, 6])
-            ->whereIn('assign_to_id', $shiftGroupsIds)
-            ->pluck('assign_to_id')
+            ->whereIn('booking_id', $booking_ids)
+            ->whereIn('assign_to_id', $shiftGroupsIds)->pluck('assign_to_id')
             ->toArray();
 
         $availableShiftGroupsIds = array_diff($shiftGroupsIds, $takenIds);
@@ -194,7 +195,7 @@ class Appointment
             ->whereIn('id', $availableShiftGroupsIds)
             ->count();
 
-        // dd($shiftGroupsIds);
+        // dd($availableShiftGroupsCount);
         if ($availableShiftGroupsCount > 0) {
             return false;
         } else {
@@ -203,7 +204,6 @@ class Appointment
 
         // return !empty($takenIds);
     }
-
     protected function finalizeTimes($times)
     {
         $finalTimes = [];
@@ -235,6 +235,11 @@ class Appointment
                     }, $timeSlots);
                 }
 
+                // Sort the time slots in ascending order
+                usort($formattedTimeSlots, function ($a, $b) {
+                    return strtotime($a) - strtotime($b);
+                });
+
                 if (!empty($formattedTimeSlots)) {
                     $finalTimes[$day]['times'] = $formattedTimeSlots;
                 }
@@ -243,6 +248,46 @@ class Appointment
 
         return array_values($finalTimes);
     }
+
+    // protected function finalizeTimes($times)
+    // {
+    //     $finalTimes = [];
+    //     $currentDateTime = Carbon::now('Asia/Riyadh');
+    //     $currentDay = $currentDateTime->format('Y-m-d');
+
+    //     foreach ($times as $service_id => $serviceData) {
+    //         foreach ($serviceData['days'] as $day => $timeSlots) {
+    //             if (!isset($finalTimes[$day])) {
+    //                 $finalTimes[$day] = [
+    //                     'day' => $day,
+    //                     'dayName' => Carbon::parse($day)->translatedFormat('l'),
+    //                     'times' => [],
+    //                 ];
+    //             }
+
+    //             $formattedTimeSlots = [];
+
+    //             if ($day === $currentDay) {
+    //                 foreach ($timeSlots as $time) {
+    //                     $dateTime = Carbon::parse($time, 'Asia/Riyadh');
+    //                     if ($dateTime->greaterThan($currentDateTime->copy()->addMinutes(45))) {
+    //                         $formattedTimeSlots[] = $dateTime->format('g:i A');
+    //                     }
+    //                 }
+    //             } else {
+    //                 $formattedTimeSlots = array_map(function ($time) {
+    //                     return Carbon::parse($time)->format('g:i A');
+    //                 }, $timeSlots);
+    //             }
+
+    //             if (!empty($formattedTimeSlots)) {
+    //                 $finalTimes[$day]['times'] = $formattedTimeSlots;
+    //             }
+    //         }
+    //     }
+
+    //     return array_values($finalTimes);
+    // }
 
     protected function getShiftsForDay($day)
     {
