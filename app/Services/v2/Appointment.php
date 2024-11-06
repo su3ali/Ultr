@@ -120,6 +120,7 @@ class Appointment
                 $uniqueTimeSlots = [];
 
                 foreach ($shifts as $shift) {
+                    $shiftId = $shift->id;
                     $startTime = Carbon::parse($shift->start_time)->timezone('Asia/Riyadh');
                     $endTime = Carbon::parse($shift->end_time)->timezone('Asia/Riyadh');
 
@@ -134,7 +135,7 @@ class Appointment
 
                     foreach ($periods as $period) {
                         // Check if the slot is available and format the time
-                        if (!$this->isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shift)) {
+                        if (!$this->isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId)) {
                             $formattedTime = $period->format('H:i');
 
                             // Store unique time slots only
@@ -150,9 +151,10 @@ class Appointment
         return $this->finalizeTimes($times);
     }
 
-    protected function isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shift)
+    protected function isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId)
     {
-        $shiftGroupsIds = $shift->pluck('group_id')->toArray();
+
+        $shiftGroupsIds = Shift::where('id', $shiftId)->pluck('group_id')->toArray();
 
         $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
             return array_map('intval', json_decode($jsonString, true));
@@ -175,10 +177,11 @@ class Appointment
 
         // Calculate the duration needed for the appointment
         $duration = $bookSetting->service_duration + $bookSetting->buffering_time;
+        // dd($period->copy()->addMinutes($duration * $amount)->format('H:i:s') . '*' . $period->format('H:i:s'));
 
         // Check for any existing visits that overlap with the requested period
-        $takenIds = Visit::where('start_time', '<', $period->copy()->addMinutes($duration * $amount)->format('H:i:s'))
-            ->where('end_time', '>', $period->format('H:i:s'))
+        $takenIds = Visit::where('start_time', '=', $period->copy()->addMinutes($duration * $amount)->format('H:i:s'))
+            ->where('end_time', '=', $period->format('H:i:s'))
             ->activeVisits()
             ->whereIn('booking_id', $booking_ids)->whereNotIn('visits_status_id', [5, 6])
             ->whereIn('assign_to_id', $shiftGroupsIds)
@@ -191,7 +194,7 @@ class Appointment
             ->whereIn('id', $availableShiftGroupsIds)
             ->count();
 
-        // dd($availableShiftGroupsIds);
+        // dd($shiftGroupsIds);
         if ($availableShiftGroupsCount > 0) {
             return false;
         } else {
