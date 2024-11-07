@@ -235,8 +235,11 @@ class Appointment
                 }
             }
         }
-
-        return empty($availableShiftGroupsIds);
+        // dd($this->unavailableTimeSlots);
+        if (empty($availableShiftGroupsIds)) {
+            return true;
+        }
+        return false;
     }
 
     protected function finalizeTimes($times)
