@@ -158,7 +158,6 @@ class Appointment
 
     protected function isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId)
     {
-
         $shiftGroupsIds = Shift::where('id', $shiftId)->pluck('group_id')->toArray();
 
         $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
@@ -174,36 +173,39 @@ class Appointment
             $query->where('category_id', $category_id);
         })->where('date', $day)->pluck('id')->toArray();
 
-        // Calculate the duration needed for the appointment
+        // Calculate the duration including buffering time
         $duration = $bookSetting->service_duration + $bookSetting->buffering_time;
+        $periodEndTime = $period->copy()->addMinutes($duration * $amount)->format('H:i:s');
+        $periodStartTime = $period->format('H:i:s');
 
-        // Check for any existing visits that overlap with the requested
+        // Fetch unavailable group IDs within the specific period
+        $takenIds = Visit::where(function ($query) use ($periodStartTime, $periodEndTime) {
 
-        $takenIds = Visit::where('start_time', $period->copy()->addMinutes($duration * $amount)->format('H:i:s'))
-            ->where('end_time', '>', $period->format('H:i:s'))
+            $query->where('start_time', '<', $periodEndTime)
+                ->where('end_time', '>', $periodStartTime);
+        })
+
             ->activeVisits()
-            ->whereIn('booking_id', $booking_ids)->whereNotIn('visits_status_id', [5, 6])
-            ->whereIn('assign_to_id', $shiftGroupsIds)->pluck('assign_to_id')
+            ->whereIn('booking_id', $booking_ids)
+            ->whereNotIn('visits_status_id', [5, 6])
+            ->whereIn('assign_to_id', $shiftGroupsIds)
+            ->pluck('assign_to_id')
             ->toArray();
 
-        $takenTime24 = Visit::where('start_time', $period->copy()->addMinutes($duration * $amount)->format('H:i:s'))
-            ->where('end_time', '>', $period->format('H:i:s'))
+        // dd($takenIds);
+
+        // Fetch the specific times that are unavailable within this period
+        $takenTimes = Visit::where(function ($query) use ($periodStartTime, $periodEndTime) {
+            $query->where('start_time', '<', $periodEndTime)
+                ->where('end_time', '>', $periodStartTime);
+        })
+
             ->activeVisits()
-            ->whereIn('booking_id', $booking_ids)->whereNotIn('visits_status_id', [5, 6])
+            ->whereIn('booking_id', $booking_ids)
+            ->whereNotIn('visits_status_id', [5, 6])
             ->whereIn('assign_to_id', $shiftGroupsIds)
             ->pluck('start_time')
-            ->first();
-
-        $takenTime = $takenTime24 ? Carbon::parse($takenTime24)->format('g:i A') : null;
-
-        // Only proceed if takenTime is not null
-        if ($takenTime) {
-            // Check if this date and time combination already exists in unavailableTimeSlots
-            $exists = collect($this->unavailableTimeSlots)->contains(function ($slot) use ($takenTime, $day, $service_id) {
-                return $slot['time'] === $takenTime && $slot['date'] === $day && $slot['service_id'] === $service_id;
-            });
-
-        }
+            ->toArray();
 
         $availableShiftGroupsIds = array_diff($shiftGroupsIds, $takenIds);
 
@@ -211,24 +213,32 @@ class Appointment
             ->whereIn('id', $availableShiftGroupsIds)
             ->count();
 
-        // If no available shift groups exist, the time slot is unavailable
-        // dd($availableShiftGroupsIds);
-        if (empty($availableShiftGroupsIds)) {
+        // dd($takenTimes);
 
-            // Add the new slot only if it doesn't already exist
-            if (!$exists) {
-                $this->unavailableTimeSlots[] = [
-                    'time' => $takenTime,
-                    'date' => $day,
-                    'service_id' => $service_id,
-                ];
+        foreach ($takenTimes as $takenTime) {
+            $takenTime = $takenTime ? Carbon::parse($takenTime)->format('g:i A') : null;
+
+            if (empty($availableShiftGroupsIds) && $takenTime == $period->format('H:i:s')) {
+                if ($takenTime) {
+                    // Check if this date and time combination already exists in unavailableTimeSlots
+                    $exists = collect($this->unavailableTimeSlots)->contains(function ($slot) use ($takenTime, $day, $service_id) {
+                        return $slot['time'] === $takenTime && $slot['date'] === $day && $slot['service_id'] === $service_id;
+                    });
+
+                    if (!$exists) {
+                        $this->unavailableTimeSlots[] = [
+                            'time' => $takenTime,
+                            'date' => $day,
+                            'service_id' => $service_id,
+                        ];
+                    }
+                }
             }
-            return true;
-        } else {
-            return false;
         }
 
+        return empty($availableShiftGroupsIds);
     }
+
     protected function finalizeTimes($times)
     {
 
@@ -268,7 +278,7 @@ class Appointment
                 usort($formattedTimeSlots, function ($a, $b) {
                     return strtotime($a) - strtotime($b);
                 });
-
+                // dd($formattedTimeSlots);
                 if (!empty($formattedTimeSlots)) {
                     // dd($this->unavailableTimeSlots);
 
