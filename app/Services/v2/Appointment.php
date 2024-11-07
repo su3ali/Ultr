@@ -20,6 +20,7 @@ class Appointment
     public $services;
     public $package_id;
     public $page_number;
+    public $unavailableTimeSlots = [];
 
     public function __construct($region_id, $services, $package_id, $page_number)
     {
@@ -132,10 +133,12 @@ class Appointment
                     if (!isset($times[$service_id]['days'][$day])) {
                         $times[$service_id]['days'][$day] = [];
                     }
+                    $duration = $bookSetting->service_duration + $bookSetting->buffering_time;
 
                     foreach ($periods as $period) {
-                        // Check if the slot is available and format the time
-                        if (!$this->isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId)) {
+                        $periodStatus = $this->isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId);
+                        // Check if the slot is unavailable; if it is, skip storing this time
+                        if (!$periodStatus) {
                             $formattedTime = $period->format('H:i');
 
                             // Store unique time slots only
@@ -145,9 +148,11 @@ class Appointment
                             }
                         }
                     }
+
                 }
             }
         }
+
         return $this->finalizeTimes($times);
     }
 
@@ -169,14 +174,6 @@ class Appointment
             $query->where('category_id', $category_id);
         })->where('date', $day)->pluck('id')->toArray();
 
-        // dd($booking_ids);
-
-        // Fetch active groups for the service category
-        $activeGroups = Group::GroupInRegionCategory($this->region_id, [$category_id])
-            ->where('active', 1)
-            ->pluck('id')
-            ->toArray();
-
         // Calculate the duration needed for the appointment
         $duration = $bookSetting->service_duration + $bookSetting->buffering_time;
 
@@ -189,29 +186,60 @@ class Appointment
             ->whereIn('assign_to_id', $shiftGroupsIds)->pluck('assign_to_id')
             ->toArray();
 
+        $takenTime24 = Visit::where('start_time', $period->copy()->addMinutes($duration * $amount)->format('H:i:s'))
+            ->where('end_time', '>', $period->format('H:i:s'))
+            ->activeVisits()
+            ->whereIn('booking_id', $booking_ids)
+            ->whereIn('assign_to_id', $shiftGroupsIds)
+            ->pluck('start_time')
+            ->first();
+
+        $takenTime = $takenTime24 ? Carbon::parse($takenTime24)->format('g:i A') : null;
+
+        // Only proceed if takenTime is not null
+        if ($takenTime) {
+            // Check if this date and time combination already exists in unavailableTimeSlots
+            $exists = collect($this->unavailableTimeSlots)->contains(function ($slot) use ($takenTime, $day, $service_id) {
+                return $slot['time'] === $takenTime && $slot['date'] === $day && $slot['service_id'] === $service_id;
+            });
+
+            // Add the new slot only if it doesn't already exist
+            if (!$exists) {
+                $this->unavailableTimeSlots[] = [
+                    'time' => $takenTime,
+                    'date' => $day,
+                    'service_id' => $service_id,
+                ];
+            }
+        }
+
         $availableShiftGroupsIds = array_diff($shiftGroupsIds, $takenIds);
 
         $availableShiftGroupsCount = Group::GroupInRegionCategory($this->region_id, [$category_id])
             ->whereIn('id', $availableShiftGroupsIds)
             ->count();
 
-        // dd($availableShiftGroupsCount);
-        if ($availableShiftGroupsCount > 0) {
-            return false;
-        } else {
+        // If no available shift groups exist, the time slot is unavailable
+        // dd($availableShiftGroupsIds);
+        if (empty($availableShiftGroupsIds)) {
+
             return true;
+        } else {
+            return false;
         }
 
-        // return !empty($takenIds);
     }
     protected function finalizeTimes($times)
     {
+
         $finalTimes = [];
         $currentDateTime = Carbon::now('Asia/Riyadh');
         $currentDay = $currentDateTime->format('Y-m-d');
 
         foreach ($times as $service_id => $serviceData) {
+
             foreach ($serviceData['days'] as $day => $timeSlots) {
+
                 if (!isset($finalTimes[$day])) {
                     $finalTimes[$day] = [
                         'day' => $day,
@@ -224,6 +252,7 @@ class Appointment
 
                 if ($day === $currentDay) {
                     foreach ($timeSlots as $time) {
+
                         $dateTime = Carbon::parse($time, 'Asia/Riyadh');
                         if ($dateTime->greaterThan($currentDateTime->copy()->addMinutes(45))) {
                             $formattedTimeSlots[] = $dateTime->format('g:i A');
@@ -241,13 +270,103 @@ class Appointment
                 });
 
                 if (!empty($formattedTimeSlots)) {
-                    $finalTimes[$day]['times'] = $formattedTimeSlots;
+                    // dd($this->unavailableTimeSlots);
+
+                    // Filter unavailable time slots for the specific day and service
+                    $filteredTimeSlots = $this->filterUnavailableSlots($formattedTimeSlots, $day, $service_id);
+                    // dd($filteredTimeSlots);
+                    $finalTimes[$day]['times'] = $filteredTimeSlots;
                 }
             }
         }
 
         return array_values($finalTimes);
     }
+
+    private function filterUnavailableSlots($timeSlots, $day, $service_id)
+    {
+
+        // dd($timeSlots);
+        // dd($this->unavailableTimeSlots);
+        $availableSlots = [];
+
+        foreach ($timeSlots as $timeSlot) {
+            $isAvailable = true;
+
+            foreach ($this->unavailableTimeSlots as $unavailableSlot) {
+                // $unavailableSlot = $unavailableSlot['time'];
+                // $unavailableSlotService = $unavailableSlot['service_id'];
+                // $unavailableSlotDate = $unavailableSlot['date'];
+
+                // dd($unavailableSlot['time'] . ' ' . $timeSlot);
+
+                // if ($unavailableSlot['time'] === $timeSlot) {dd("true");} else {dd("false");}
+
+                if ($unavailableSlot['date'] === $day && $unavailableSlot['time'] === $timeSlot) {
+                    // dd("true");
+                    $isAvailable = false;
+                    break;
+                }
+            }
+
+            if ($isAvailable) {
+                // dd("false");
+
+                $availableSlots[] = $timeSlot;
+            }
+            // dd($availableSlots);
+
+        }
+
+        // Return the filtered available slots
+        return $availableSlots;
+    }
+
+    // protected function finalizeTimes($times)
+    // {
+    //     // dd($this->unavailableTimeSlots);
+    //     $finalTimes = [];
+    //     $currentDateTime = Carbon::now('Asia/Riyadh');
+    //     $currentDay = $currentDateTime->format('Y-m-d');
+
+    //     foreach ($times as $service_id => $serviceData) {
+    //         foreach ($serviceData['days'] as $day => $timeSlots) {
+    //             if (!isset($finalTimes[$day])) {
+    //                 $finalTimes[$day] = [
+    //                     'day' => $day,
+    //                     'dayName' => Carbon::parse($day)->translatedFormat('l'),
+    //                     'times' => [],
+    //                 ];
+    //             }
+
+    //             $formattedTimeSlots = [];
+
+    //             if ($day === $currentDay) {
+    //                 foreach ($timeSlots as $time) {
+    //                     $dateTime = Carbon::parse($time, 'Asia/Riyadh');
+    //                     if ($dateTime->greaterThan($currentDateTime->copy()->addMinutes(45))) {
+    //                         $formattedTimeSlots[] = $dateTime->format('g:i A');
+    //                     }
+    //                 }
+    //             } else {
+    //                 $formattedTimeSlots = array_map(function ($time) {
+    //                     return Carbon::parse($time)->format('g:i A');
+    //                 }, $timeSlots);
+    //             }
+
+    //             // Sort the time slots in ascending order
+    //             usort($formattedTimeSlots, function ($a, $b) {
+    //                 return strtotime($a) - strtotime($b);
+    //             });
+
+    //             if (!empty($formattedTimeSlots)) {
+    //                 $finalTimes[$day]['times'] = $formattedTimeSlots;
+    //             }
+    //         }
+    //     }
+
+    //     return array_values($finalTimes);
+    // }
 
     // protected function finalizeTimes($times)
     // {
