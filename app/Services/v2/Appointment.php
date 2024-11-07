@@ -182,14 +182,14 @@ class Appointment
         $takenIds = Visit::where('start_time', $period->copy()->addMinutes($duration * $amount)->format('H:i:s'))
             ->where('end_time', '>', $period->format('H:i:s'))
             ->activeVisits()
-            ->whereIn('booking_id', $booking_ids)
+            ->whereIn('booking_id', $booking_ids)->whereNotIn('visits_status_id', [5, 6])
             ->whereIn('assign_to_id', $shiftGroupsIds)->pluck('assign_to_id')
             ->toArray();
 
         $takenTime24 = Visit::where('start_time', $period->copy()->addMinutes($duration * $amount)->format('H:i:s'))
             ->where('end_time', '>', $period->format('H:i:s'))
             ->activeVisits()
-            ->whereIn('booking_id', $booking_ids)
+            ->whereIn('booking_id', $booking_ids)->whereNotIn('visits_status_id', [5, 6])
             ->whereIn('assign_to_id', $shiftGroupsIds)
             ->pluck('start_time')
             ->first();
@@ -203,14 +203,6 @@ class Appointment
                 return $slot['time'] === $takenTime && $slot['date'] === $day && $slot['service_id'] === $service_id;
             });
 
-            // Add the new slot only if it doesn't already exist
-            if (!$exists) {
-                $this->unavailableTimeSlots[] = [
-                    'time' => $takenTime,
-                    'date' => $day,
-                    'service_id' => $service_id,
-                ];
-            }
         }
 
         $availableShiftGroupsIds = array_diff($shiftGroupsIds, $takenIds);
@@ -223,6 +215,14 @@ class Appointment
         // dd($availableShiftGroupsIds);
         if (empty($availableShiftGroupsIds)) {
 
+            // Add the new slot only if it doesn't already exist
+            if (!$exists) {
+                $this->unavailableTimeSlots[] = [
+                    'time' => $takenTime,
+                    'date' => $day,
+                    'service_id' => $service_id,
+                ];
+            }
             return true;
         } else {
             return false;
