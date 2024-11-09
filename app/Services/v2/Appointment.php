@@ -227,6 +227,7 @@ class Appointment
                     }
 
                     foreach ($periods as $period) {
+                        // dd($period);
                         $periodStatus = $this->isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId);
 
                         if (!$periodStatus) {
@@ -247,13 +248,14 @@ class Appointment
 
     protected function isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId)
     {
+        // dd($period->format('H:i:s'));
         $shiftGroupsIds = Shift::where('id', $shiftId)->pluck('group_id')->toArray();
 
         $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
             return array_map('intval', json_decode($jsonString, true));
         }, $shiftGroupsIds));
 
-        // dd($shiftGroupsIds);
+        // dd($period->format('H:i:s'));
 
         $category_id = Service::where('id', $service_id)->first()->category_id;
 
@@ -281,7 +283,7 @@ class Appointment
             ->pluck('assign_to_id')
             ->toArray();
 
-        // dd($takenIds);
+        // dd($shiftGroupsIds);
 
         // Fetch the specific times that are unavailable within this period
         $takenTimes = Visit::where(function ($query) use ($periodStartTime, $periodEndTime) {
@@ -302,12 +304,13 @@ class Appointment
             ->whereIn('id', $availableShiftGroupsIds)
             ->count();
 
-        // dd($takenTimes);
+        // dd($availableShiftGroupsIds);
 
         foreach ($takenTimes as $takenTime) {
             $takenTime = $takenTime ? Carbon::parse($takenTime)->format('g:i A') : null;
-
-            if (empty($availableShiftGroupsIds) && $takenTime == $period->format('H:i:s')) {
+            // dd($takenTime);
+            // dd($period->format('g:i A'));
+            if (empty($availableShiftGroupsIds) && $takenTime == $period->format('g:i A')) {
                 if ($takenTime) {
                     // Check if this date and time combination already exists in unavailableTimeSlots
                     $exists = collect($this->unavailableTimeSlots)->contains(function ($slot) use ($takenTime, $day, $service_id) {
@@ -315,6 +318,7 @@ class Appointment
                     });
 
                     if (!$exists) {
+                        // dd("2020");
                         $this->unavailableTimeSlots[] = [
                             'time' => $takenTime,
                             'date' => $day,
@@ -464,7 +468,6 @@ class Appointment
             // Ensure the shifts are active
                 ->where('is_active', true);
         })
-        // Check for different time ranges
 
             ->get();
 
