@@ -124,6 +124,7 @@ class CartController extends Controller
 
     protected function updateCart(Request $request)
     {
+
         try {
 
             $cart = auth()->user()->carts->first();
@@ -172,7 +173,7 @@ class CartController extends Controller
                 $assignedVisitIds = Visit::whereIn('booking_id', $bookingIdsForCategory)->whereNotIn('visits_status_id', [5, 6])
                     ->pluck('assign_to_id')
                     ->toArray();
-
+                // dd($groupIdsForCategories);
                 // Calculate the available group IDs
                 $availableGroupIds = array_diff($groupIdsForCategories, $assignedVisitIds);
 

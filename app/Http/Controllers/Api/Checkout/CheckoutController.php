@@ -10,7 +10,6 @@ use App\Models\Cart;
 use App\Models\CategoryGroup;
 use App\Models\ContractPackage;
 use App\Models\ContractPackagesUser;
-use App\Models\CouponUser;
 use App\Models\CustomerWallet;
 use App\Models\Group;
 use App\Models\Order;
@@ -48,46 +47,45 @@ class CheckoutController extends Controller
             // Retrieve all bookings
             $bookings = Booking::where('booking_status_id', 1)->get();
 
-        // Format the date and time based on user preferences
-        $formattedBookings = $bookings->map(function ($booking) {
-            // Format the date
+            // Format the date and time based on user preferences
+            $formattedBookings = $bookings->map(function ($booking) {
+                // Format the date
 
-            // Format the time
-            $formatted_time = null;
+                // Format the time
+                $formatted_time = null;
 
-            // Check if the time is a valid timestamp
-            if (is_numeric($booking->time)) {
-                // Convert Unix timestamp to Carbon instance
-                $time = Carbon::createFromTimestamp($booking->time);
-                // Format time according to user preference (e.g., 12-hour format)
-                $formatted_time = $time->format('g:i A'); // Change format as needed
-            } else {
-                // If it's in the expected H:i:s format
-                try {
-                    $time = Carbon::createFromFormat('H:i:s', $booking->time);
+                // Check if the time is a valid timestamp
+                if (is_numeric($booking->time)) {
+                    // Convert Unix timestamp to Carbon instance
+                    $time = Carbon::createFromTimestamp($booking->time);
+                    // Format time according to user preference (e.g., 12-hour format)
                     $formatted_time = $time->format('g:i A'); // Change format as needed
-                } catch (\Exception $e) {
-                    // Handle the exception if the format is invalid
-                    $formatted_time = null; // or set to a default value
+                } else {
+                    // If it's in the expected H:i:s format
+                    try {
+                        $time = Carbon::createFromFormat('H:i:s', $booking->time);
+                        $formatted_time = $time->format('g:i A'); // Change format as needed
+                    } catch (\Exception $e) {
+                        // Handle the exception if the format is invalid
+                        $formatted_time = null; // or set to a default value
+                    }
                 }
-            }
 
-            // Return a new object with formatted date, time, and other booking fields
-            return [
-                'id' => $booking->id,
-                'user_id' => $booking->user_id,
-                'service_id' => $booking->service_id,
-                'quantity' => $booking->quantity,
-                'date' => $booking->date, // Original date
-                'time' => $formatted_time, // Add formatted time
-                'status_id' => $booking->booking_status_id, // Add formatted time
-                // Add other fields as needed
-            ];
-        });
+                // Return a new object with formatted date, time, and other booking fields
+                return [
+                    'id' => $booking->id,
+                    'user_id' => $booking->user_id,
+                    'service_id' => $booking->service_id,
+                    'quantity' => $booking->quantity,
+                    'date' => $booking->date, // Original date
+                    'time' => $formatted_time, // Add formatted time
+                    'status_id' => $booking->booking_status_id, // Add formatted time
+                    // Add other fields as needed
+                ];
+            });
 
+            // Return the formatted bookings as a JSON response
 
-        // Return the formatted bookings as a JSON response
-    
             // Get the authenticated user
             $user = auth('sanctum')->user();
 
@@ -105,7 +103,7 @@ class CheckoutController extends Controller
             if ($carts->isEmpty()) {
                 return self::apiResponse(400, __('api.No items in the cart'), $this->body);
             }
-            
+
             $remaining_days = Carbon::now()->diffInDays(Carbon::parse($carts->first()->date)) + 1;
             $page_number = floor($remaining_days / 14);
 
@@ -127,7 +125,6 @@ class CheckoutController extends Controller
 
                 if ($availableTimes) {
                     $availableDays = array_column($availableTimes, 'day');
-
 
                     // Check if the date is available
                     if (in_array($formattedBooking['date'], $availableDays)) {

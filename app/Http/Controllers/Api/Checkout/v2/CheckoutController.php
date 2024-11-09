@@ -15,6 +15,7 @@ use App\Models\Group;
 use App\Models\Order;
 use App\Models\OrderService;
 use App\Models\Service;
+use App\Models\Shift;
 use App\Models\Technician;
 use App\Models\Transaction;
 use App\Models\UserAddresses;
@@ -31,7 +32,7 @@ use Illuminate\Support\Facades\Notification;
 
 class CheckoutController extends Controller
 {
-    
+
     use ApiResponse, imageTrait, NotificationTrait;
 
     public function __construct()
@@ -69,6 +70,7 @@ class CheckoutController extends Controller
 
     protected function checkout(Request $request)
     {
+
         $rules = [
             'user_address_id' => 'required',
             'car_user_id' => 'required|exists:car_clients,id',
@@ -151,6 +153,7 @@ class CheckoutController extends Controller
 
     private function saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method)
     {
+
         $totalAfterDiscount = $total - $request->coupon;
         $order = Order::create([
             'user_id' => $user->id,
@@ -180,6 +183,20 @@ class CheckoutController extends Controller
             $service = Service::query()->find($cart->service_id);
             $service?->save();
         }
+        // dd($cart->time);
+
+        $shift = Shift::where('start_time', '<=', $cart->time)
+            ->where('end_time', '>=', $cart->time)
+            ->where('is_active', true)
+            ->first();
+        if (empty($shift)) {
+            return false;
+        }
+
+        $shiftGroupsIds = Shift::where('id', $shift->id)->pluck('group_id')->toArray();
+
+        // dd($shift);
+
         $remaining_days = Carbon::now()->diffInDays(Carbon::parse($cart->date)) + 1;
         $page_number = floor($remaining_days / 14);
         $time = new Appointment($address->region_id, $services, null, $page_number);
@@ -190,7 +207,9 @@ class CheckoutController extends Controller
                 DB::rollback();
                 return self::apiResponse(400, __('api.This Time is not available'), $this->body);
             }
+            // dd($times);
             foreach ($times as $time) {
+
                 if (!in_array(Carbon::parse($cart->time)->format('g:i A'), $time['times']) && $cart->date == $time['day']) {
                     DB::rollback();
                     return self::apiResponse(400, __('api.This Time is not available'), $this->body);
@@ -200,6 +219,7 @@ class CheckoutController extends Controller
 
         $category_ids = $carts->pluck('category_id')->toArray();
         $category_ids = array_unique($category_ids);
+
         foreach ($category_ids as $key => $category_id) {
 
             $cart = Cart::query()->where('user_id', auth('sanctum')->user()->id)
@@ -222,13 +242,16 @@ class CheckoutController extends Controller
             })->whereHas('category', function ($qu) use ($category_id) {
                 $qu->where('category_id', $category_id);
             })->where('date', $cart->date)->pluck('id')->toArray();
+
             $activeGroups = Group::where('active', 1)->pluck('id')->toArray();
             $assign_to_id = 0;
 
             $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
+
             $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
                 $qu->where('region_id', $address->region_id);
-            })->whereIn('id', $groupIds);
+            })->whereIn('id', $shiftGroupsIds);
+            // dd($shiftGroupsIds);
 
             if ($group->get()->isEmpty()) {
                 return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
@@ -237,7 +260,7 @@ class CheckoutController extends Controller
             $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time) * $cart->quantity)->format('H:i:s'))
                 ->where('end_time', '>', $cart->time)
                 ->activeVisits()->whereIn('booking_id', $booking_id)
-                ->whereIn('assign_to_id', $activeGroups)->pluck('assign_to_id');
+                ->whereIn('assign_to_id', $shiftGroupsIds)->pluck('assign_to_id');
             if ($takenGroupsIds->isNotEmpty()) {
                 $assign_to_id = $group->whereNotIn('id', $takenGroupsIds)->inRandomOrder()?->first()?->id;
                 if (!isset($assign_to_id)) {
@@ -268,6 +291,8 @@ class CheckoutController extends Controller
             'time' => Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString(),
             'end_time' => $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null,
         ]);
+
+        // dd($cart->time);
 
         $start_time = Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString();
         $end_time = $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null;
