@@ -44,24 +44,52 @@ class CheckoutController extends Controller
     {
         $user = auth()->user('sanctum');
         $carts = Cart::query()->where('user_id', $user->id)->get();
+        // dd($carts->first()->time);
+
+        if ($carts->first()) {
+            $shift = Shift::where('start_time', '<=', $carts->first()->time)
+                ->where('end_time', '>=', $carts->first()->time)
+                ->where('is_active', true)
+                ->first();
+
+        } else {
+            return self::apiResponse(400, __('api.cart empty'), $this->body);
+
+        }
+
+        if (empty($shift)) {
+            return false;
+        }
+
+        $shiftGroupsIds = Shift::where('id', $shift->id)->pluck('group_id')->toArray();
+        $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
+            return array_map('intval', json_decode($jsonString, true));
+        }, $shiftGroupsIds));
+
         $regionId = UserAddresses::where('id', \request()->query('user_address_id'))->first()->region_id;
         foreach ($carts as $cart) {
+
             $groupIds = CategoryGroup::where('category_id', $cart->category_id)->pluck('group_id')->toArray();
             $countGroup = Group::where('active', 1)->whereHas('regions', function ($qu) use ($regionId) {
                 $qu->where('region_id', $regionId);
-            })->whereIn('id', $groupIds)->count();
-            $countInBooking = Booking::whereHas('visit', function ($q) {
-                $q->whereNotIn('visits_status_id', [5, 6]);
-            })->whereHas(
-                'address.region',
-                function ($q) use ($regionId) {
+            })->whereIn('id', $shiftGroupsIds)->count();
 
+            $countInBooking = Booking::whereHas('visit', function ($q) use ($shiftGroupsIds) {
+                $q->whereNotIn('visits_status_id', [5, 6])
+                    ->whereIn('assign_to_id', $shiftGroupsIds);
+            })
+                ->whereHas('address.region', function ($q) use ($regionId) {
                     $q->where('id', $regionId);
-                }
-            )->where([['category_id', '=', $cart->category_id], ['date', '=', $cart->date], ['time', '=', $cart->time]])
+                })
+                ->where([
+                    ['category_id', '=', $cart->category_id],
+                    ['date', '=', $cart->date],
+                    ['time', '=', $cart->time],
+                ])
                 ->count();
+            // dd($countGroup);
 
-            if (($countInBooking == $countGroup)) {
+            if (($countInBooking >= $countGroup)) {
                 return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
             }
         }

@@ -29,6 +29,9 @@ Route::post('add-address', [CheckoutController::class, 'addAddress']);
 
 Route::get('get-areas', [CheckoutController::class, 'getArea']);
 
+Route::prefix('v2/')->group(function () {
+    Route::get('checkTimeDate', [CheckoutControllerV2::class, 'checkTimeDate']);
+});
 Route::get('checkTimeDate', [CheckoutController::class, 'checkTimeDate']);
 
 Route::prefix('checkout')->group(function () {
