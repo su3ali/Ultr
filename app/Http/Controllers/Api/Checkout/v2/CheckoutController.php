@@ -153,6 +153,7 @@ class CheckoutController extends Controller
 
     private function saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method)
     {
+        // dd("*");
 
         $totalAfterDiscount = $total - $request->coupon;
         $order = Order::create([
@@ -184,11 +185,16 @@ class CheckoutController extends Controller
             $service?->save();
         }
         // dd($cart->time);
+        if ($cart) {
+            $shift = Shift::where('start_time', '<=', $cart->time)
+                ->where('end_time', '>=', $cart->time)
+                ->where('is_active', true)
+                ->first();
+        } else {
+            return self::apiResponse(400, __('api.cart empty'), $this->body);
 
-        $shift = Shift::where('start_time', '<=', $cart->time)
-            ->where('end_time', '>=', $cart->time)
-            ->where('is_active', true)
-            ->first();
+        }
+
         if (empty($shift)) {
             return false;
         }
@@ -198,28 +204,28 @@ class CheckoutController extends Controller
             return array_map('intval', json_decode($jsonString, true));
         }, $shiftGroupsIds));
 
-        // dd($shiftGroupsIds);
+        // dd($shift);
 
         $remaining_days = Carbon::now()->diffInDays(Carbon::parse($cart->date)) + 1;
         $page_number = floor($remaining_days / 14);
         $time = new Appointment($address->region_id, $services, null, $page_number);
-        $times = $time->getAvailableTimesFromDate();
-        if ($times) {
-            $days = array_column($times, 'day');
-            if (!in_array($cart->date, $days)) {
-                DB::rollback();
-                return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-            }
-            // dd($times);
-            foreach ($times as $time) {
+        // $times = $time->getAvailableTimesFromDate();
+        // if ($times) {
+        //     $days = array_column($times, 'day');
+        //     if (!in_array($cart->date, $days)) {
+        //         DB::rollback();
+        //         return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+        //     }
+        //     // dd($times);
+        //     foreach ($times as $time) {
 
-                if (!in_array(Carbon::parse($cart->time)->format('g:i A'), $time['times']) && $cart->date == $time['day']) {
-                    DB::rollback();
-                    return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-                }
-            }
-        }
-
+        //         if (!in_array(Carbon::parse($cart->time)->format('g:i A'), $time['times']) && $cart->date == $time['day']) {
+        //             DB::rollback();
+        //             return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+        //         }
+        //     }
+        // }
+        // dd("*");
         $category_ids = $carts->pluck('category_id')->toArray();
         $category_ids = array_unique($category_ids);
 
@@ -254,9 +260,11 @@ class CheckoutController extends Controller
             $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
                 $qu->where('region_id', $address->region_id);
             })->whereIn('id', $shiftGroupsIds);
-            // dd($group->get());
+
+            // dd($shiftGroupsIds);
 
             if ($group->get()->isEmpty()) {
+
                 return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
             }
 
@@ -264,8 +272,10 @@ class CheckoutController extends Controller
                 ->where('end_time', '>', $cart->time)
                 ->activeVisits()->whereIn('booking_id', $booking_id)
                 ->whereIn('assign_to_id', $shiftGroupsIds)->pluck('assign_to_id');
+            // dd($takenGroupsIds);
             if ($takenGroupsIds->isNotEmpty()) {
                 $assign_to_id = $group->whereNotIn('id', $takenGroupsIds)->inRandomOrder()?->first()?->id;
+                // dd($assign_to_id);
                 if (!isset($assign_to_id)) {
                     DB::rollback();
                     return self::apiResponse(400, __('api.This Time is not available'), $this->body);
