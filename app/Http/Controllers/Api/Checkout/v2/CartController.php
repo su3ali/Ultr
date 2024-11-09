@@ -15,6 +15,7 @@ use App\Models\ContractPackagesUser;
 use App\Models\Group;
 use App\Models\Icon;
 use App\Models\Service;
+use App\Models\Shift;
 use App\Models\Visit;
 use App\Services\v2\Appointment;
 use App\Support\Api\ApiResponse;
@@ -140,6 +141,7 @@ class CartController extends Controller
                     'notes' => 'nullable|array',
                     'notes.*' => 'nullable|string|max:191',
                 ];
+                // dd($cart);
 
                 $categoryId = $request['category_ids'][0];
                 $cart_time = $request['time'][0];
@@ -147,13 +149,36 @@ class CartController extends Controller
                 $time24 = Carbon::parse($cart_time)->format('H:i');
                 $cart_time = $time24;
 
+                // dd($cart_time);
+
+                if ($cart_time) {
+                    $shift = Shift::where('start_time', '<=', $cart_time)
+                        ->where('end_time', '>=', $cart_time)
+                        ->where('is_active', true)
+                        ->first();
+                } else {
+                    return self::apiResponse(400, __('api.cart empty'), $this->body);
+
+                }
+
+                if (empty($shift)) {
+                    return false;
+                }
+
+                $shiftGroupsIds = Shift::where('id', $shift->id)->pluck('group_id')->toArray();
+                $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
+                    return array_map('intval', json_decode($jsonString, true));
+                }, $shiftGroupsIds));
+
+                // dd($shift);
+
                 // Retrieve all group IDs in the specified region and category
                 $allGroupIdsInRegionCategory = Group::GroupInRegionCategory($request->region_id, [$categoryId])
                     ->pluck('id')
                     ->toArray();
 
                 // Check if no groups are available
-                if (empty($allGroupIdsInRegionCategory)) {
+                if (empty($shiftGroupsIds)) {
                     return false;
                 }
 
@@ -171,11 +196,12 @@ class CartController extends Controller
 
                 // Retrieve IDs of visits assigned to these bookings
                 $assignedVisitIds = Visit::whereIn('booking_id', $bookingIdsForCategory)->whereNotIn('visits_status_id', [5, 6])
+                    ->whereIn('assign_to_id', $shiftGroupsIds)
                     ->pluck('assign_to_id')
                     ->toArray();
                 // dd($groupIdsForCategories);
                 // Calculate the available group IDs
-                $availableGroupIds = array_diff($groupIdsForCategories, $assignedVisitIds);
+                $availableGroupIds = array_diff($shiftGroupsIds, $assignedVisitIds);
 
                 // Fetch the available groups based on region, category, and availability
                 $availableGroupsCount = Group::GroupInRegionCategory($request->region_id, $request['category_ids'])
@@ -196,7 +222,7 @@ class CartController extends Controller
                     'date' => $cart_date,
                     'time' => $cart_time,
                 ])->count();
-                // return 'availableGroupsCount = ' . $availableGroupsCount . ' cartsCount = ' . $cartsCount;
+                // dd($availableGroupsCount);
 
                 if ($availableGroupsCount <= $cartsCount) {
                     return self::apiResponse(
@@ -233,6 +259,7 @@ class CartController extends Controller
 
                         Cart::query()->where('user_id', auth('sanctum')->user()->id)
                             ->where('category_id', $category_id)->update([
+                            'region_id' => $request->region_id,
                             'date' => $request->date[$key],
                             'time' => Carbon::parse($request->time[$key])->timezone('Asia/Riyadh')->toTimeString(),
                             'notes' => $request->notes ? array_key_exists($key, $request->notes) ? $request->notes[$key] : '' : '',
