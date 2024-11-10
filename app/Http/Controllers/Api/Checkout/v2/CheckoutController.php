@@ -51,11 +51,7 @@ class CheckoutController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Validation failed',
-                    'errors' => $validator->errors(),
-                ], 400);
+                return self::apiResponse(400, 'Validation failed', $validator->errors());
             }
 
             $user = auth()->user('sanctum');
