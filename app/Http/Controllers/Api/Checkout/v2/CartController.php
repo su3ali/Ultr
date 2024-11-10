@@ -23,6 +23,7 @@ use App\Traits\schedulesTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Validator;
 
 class CartController extends Controller
 {
@@ -142,6 +143,11 @@ class CartController extends Controller
                     'notes' => 'nullable|array',
                     'notes.*' => 'nullable|string|max:191',
                 ];
+                $validator = Validator::make($request->all(), $rules);
+
+                if ($validator->fails()) {
+                    return self::apiResponse(400, 'Validation failed', $validator->errors());
+                }
                 // dd($cart);
 
                 $categoryId = $request['category_ids'][0];
@@ -158,6 +164,7 @@ class CartController extends Controller
                     return self::apiResponse(400, __('api.cart empty'), $this->body);
 
                 }
+                // dd($shift);
 
                 if (empty($shift)) {
                     return false;
@@ -205,14 +212,6 @@ class CartController extends Controller
                 $availableGroupsCount = Group::GroupInRegionCategory($request->region_id, $request['category_ids'])
                     ->whereIn('id', $availableGroupIds)
                     ->count();
-
-                // Prepare data for debugging or further use
-                // $debugData = [
-                //     'groupIdsForCategories' => $groupIdsForCategories,
-                //     'availableGroupIds' => $availableGroupIds,
-                //     'assignedVisitIds' => $assignedVisitIds,
-                // ];
-                // return $debugData;
 
                 // Return the available groups
                 $cartsCount = Cart::where([
