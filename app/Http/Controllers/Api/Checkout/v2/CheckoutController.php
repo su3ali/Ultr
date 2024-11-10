@@ -103,6 +103,7 @@ class CheckoutController extends Controller
             'user_address_id' => 'required',
             'car_user_id' => 'required|exists:car_clients,id',
             'payment_method' => 'required|in:cache,visa,wallet,package',
+            'shift_id' => 'required|exists:shifts,id',
             'coupon' => 'nullable|numeric',
             'transaction_id' => 'nullable',
             'wallet_discounts' => 'nullable|numeric',
@@ -181,7 +182,7 @@ class CheckoutController extends Controller
 
     private function saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method)
     {
-        // dd("*");
+        // dd($request->shift_id);
 
         $totalAfterDiscount = $total - $request->coupon;
         $order = Order::create([
@@ -212,6 +213,18 @@ class CheckoutController extends Controller
             $service = Service::query()->find($cart->service_id);
             $service?->save();
         }
+        if ($cart) {
+            $shift = Shift::find($request->shift_id);
+        } else {
+            return self::apiResponse(400, __('api.cart empty'), $this->body);
+
+        }
+
+        if (empty($shift)) {
+            return false;
+        }
+
+        // dd($shift);
 
         $remaining_days = Carbon::now()->diffInDays(Carbon::parse($cart->date)) + 1;
         $page_number = floor($remaining_days / 14);
@@ -226,26 +239,20 @@ class CheckoutController extends Controller
             }
             // dd($times);
             foreach ($times as $time) {
+                $timeEntries = $time['times']; // Access the array of time entries
+                $times_values = [];
+                foreach ($timeEntries as $entry) {
+                    $times_values[] = $entry['time']; // Access 'time'
+                    $shiftId = $entry['shift_id']; // Access 'shift_id' if needed
+                    // You can now use $timeValue and $shiftId as needed
+                }
+                // dd(in_array(date("g:i A", strtotime($cart->time)), $times_values) && $cart->date == $time['day']);
 
-                if (!in_array(date("g:i A", strtotime($cart->time)), $time['times']) && $cart->date == $time['day']) {
+                if (!in_array(date("g:i A", strtotime($cart->time)), $times_values) && $cart->date == $time['day']) {
                     DB::rollback();
                     return self::apiResponse(400, __('api.This Time is not available'), $this->body);
                 }
             }
-        }
-
-        if ($cart) {
-            $shift = Shift::where('start_time', '<=', $cart->time)
-                ->where('end_time', '>=', $cart->time)
-                ->where('is_active', true)
-                ->first();
-        } else {
-            return self::apiResponse(400, __('api.cart empty'), $this->body);
-
-        }
-
-        if (empty($shift)) {
-            return false;
         }
 
         $shiftGroupsIds = Shift::where('id', $shift->id)->pluck('group_id')->toArray();
