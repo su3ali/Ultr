@@ -21,7 +21,7 @@ use App\Models\Transaction;
 use App\Models\UserAddresses;
 use App\Models\Visit;
 use App\Notifications\SendPushNotification;
-use App\Services\Appointment;
+use App\Services\v2\Appointment;
 use App\Support\Api\ApiResponse;
 use App\Traits\imageTrait;
 use App\Traits\NotificationTrait;
@@ -212,7 +212,31 @@ class CheckoutController extends Controller
             $service = Service::query()->find($cart->service_id);
             $service?->save();
         }
-        // dd($cart->time);
+
+        $remaining_days = Carbon::now()->diffInDays(Carbon::parse($cart->date)) + 1;
+        $page_number = floor($remaining_days / 14);
+        $time = new Appointment($address->region_id, $services, null, $page_number);
+        $times = $time->getAvailableTimesFromDate();
+        if ($times) {
+
+            $days = array_column($times, 'day');
+            if (!in_array($cart->date, $days)) {
+                DB::rollback();
+                return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+            }
+            // dd($times);
+            foreach ($times as $time) {
+                // dd($time);
+
+                // dd(date("g:i A", strtotime($cart->time)));
+
+                if (!in_array(date("g:i A", strtotime($cart->time)), $time['times']) && $cart->date == $time['day']) {
+                    DB::rollback();
+                    return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+                }
+            }
+        }
+
         if ($cart) {
             $shift = Shift::where('start_time', '<=', $cart->time)
                 ->where('end_time', '>=', $cart->time)
@@ -233,26 +257,6 @@ class CheckoutController extends Controller
         }, $shiftGroupsIds));
 
         // dd($shift);
-
-        $remaining_days = Carbon::now()->diffInDays(Carbon::parse($cart->date)) + 1;
-        $page_number = floor($remaining_days / 14);
-        $time = new Appointment($address->region_id, $services, null, $page_number);
-        // $times = $time->getAvailableTimesFromDate();
-        // if ($times) {
-        //     $days = array_column($times, 'day');
-        //     if (!in_array($cart->date, $days)) {
-        //         DB::rollback();
-        //         return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-        //     }
-        //     // dd($times);
-        //     foreach ($times as $time) {
-
-        //         if (!in_array(Carbon::parse($cart->time)->format('g:i A'), $time['times']) && $cart->date == $time['day']) {
-        //             DB::rollback();
-        //             return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-        //         }
-        //     }
-        // }
         // dd("*");
         $category_ids = $carts->pluck('category_id')->toArray();
         $category_ids = array_unique($category_ids);
