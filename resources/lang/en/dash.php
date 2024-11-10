@@ -557,5 +557,6 @@ return [
     'error_overlapping' => 'There is already a shift for group :group on day :day from :start to :end.',
     'Shift created successfully' => 'Shift created successfully',
     'ok' => 'Ok',
+    'appointment settings' => 'Appointment Settings',
 
 ];
