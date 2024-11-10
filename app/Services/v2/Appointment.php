@@ -450,27 +450,57 @@ class Appointment
 
                 $formattedTimeSlots = [];
 
-                foreach ($timeSlots as $slot) {
-                    // Filter out past times if the day is today
-                    if ($day == $currentDay && $slot['time'] < $currentDateTime->format('H:i')) {
-                        continue;
+                // Filter and format time slots based on the day and current time
+                if ($day === $currentDay) {
+                    foreach ($timeSlots as $time) {
+                        $store_time = $time['time'];
+                        $dateTime = Carbon::parse($store_time, 'Asia/Riyadh');
+                        if ($dateTime->greaterThan($currentDateTime->copy()->addMinutes(45))) {
+                            $formattedTimeSlots[] = [
+                                'time' => Carbon::parse($store_time)->format('g:i A'),
+                                'shift_id' => $time['shift_id'],
+                            ];
+                        }
                     }
-
-                    // Add time and shift_id to the formatted array
-                    $formattedTimeSlots[] = [
-                        'time' => $slot['time'],
-                        'shift_id' => $slot['shift_id'],
-                    ];
+                } else {
+                    foreach ($timeSlots as $time) {
+                        $formattedTimeSlots[] = [
+                            'time' => Carbon::parse($time['time'])->format('g:i A'),
+                            'shift_id' => $time['shift_id'],
+                        ];
+                    }
                 }
 
-                // Add the formatted times to the day's entry in the final array if there are any valid slots
-                if (!empty($formattedTimeSlots)) {
-                    $finalTimes[$day]['times'] = $formattedTimeSlots;
+                // Sort time slots in ascending order
+                usort($formattedTimeSlots, function ($a, $b) {
+                    return strtotime($a['time']) - strtotime($b['time']);
+                });
+
+                // Filter time slots based on requested quantity
+                $availableTimeSlots = [];
+                $totalSlots = count($formattedTimeSlots);
+
+                foreach ($formattedTimeSlots as $index => $slot) {
+                    if (($totalSlots - $index) >= $serviceData['amount']) {
+                        $availableTimeSlots[] = $slot;
+                    }
+                }
+
+                // Apply unavailable time filtering
+                $filteredTimeSlots = $this->filterUnavailableSlots($availableTimeSlots, $day, $service_id);
+
+                if (!empty($filteredTimeSlots)) {
+                    $finalTimes[$day]['times'] = array_map(function ($slot) {
+                        return [
+                            'time' => $slot['time'],
+                            'shift_id' => $slot['shift_id'],
+                        ];
+                    }, $filteredTimeSlots);
                 }
             }
         }
 
-        return $finalTimes;
+        return array_values($finalTimes);
     }
 
     private function filterUnavailableSlots($timeSlots, $day, $service_id)
