@@ -211,18 +211,70 @@ class Appointment
         }
         return false;
     }
+    // ok
+    // protected function finalizeTimes($times)
+    // {
+    //     // dd($times);
+    //     $finalTimes = [];
+    //     $currentDateTime = Carbon::now('Asia/Riyadh');
+    //     $currentDay = $currentDateTime->format('Y-m-d');
+
+    //     foreach ($times as $service_id => $serviceData) {
+    //         // dd($serviceData);
+    //         foreach ($serviceData['days'] as $day => $timeSlots) {
+
+    //             if (!isset($finalTimes[$day])) {
+    //                 $finalTimes[$day] = [
+    //                     'day' => $day,
+    //                     'dayName' => Carbon::parse($day)->translatedFormat('l'),
+    //                     'times' => [],
+    //                 ];
+    //             }
+
+    //             $formattedTimeSlots = [];
+
+    //             if ($day === $currentDay) {
+    //                 foreach ($timeSlots as $time) {
+
+    //                     $dateTime = Carbon::parse($time, 'Asia/Riyadh');
+    //                     if ($dateTime->greaterThan($currentDateTime->copy()->addMinutes(45))) {
+    //                         $formattedTimeSlots[] = $dateTime->format('g:i A');
+    //                     }
+    //                 }
+    //             } else {
+    //                 $formattedTimeSlots = array_map(function ($time) {
+    //                     return Carbon::parse($time)->format('g:i A');
+    //                 }, $timeSlots);
+    //             }
+
+    //             // Sort the time slots in ascending order
+    //             usort($formattedTimeSlots, function ($a, $b) {
+    //                 return strtotime($a) - strtotime($b);
+    //             });
+    //             // dd($formattedTimeSlots);
+    //             if (!empty($formattedTimeSlots)) {
+    //                 // dd($this->unavailableTimeSlots);
+
+    //                 // Filter unavailable time slots for the specific day and service
+    //                 $filteredTimeSlots = $this->filterUnavailableSlots($formattedTimeSlots, $day, $service_id);
+    //                 // dd($filteredTimeSlots);
+    //                 $finalTimes[$day]['times'] = $filteredTimeSlots;
+    //             }
+    //         }
+    //     }
+
+    //     return array_values($finalTimes);
+    // }
 
     protected function finalizeTimes($times)
     {
-        // dd($times);
         $finalTimes = [];
         $currentDateTime = Carbon::now('Asia/Riyadh');
         $currentDay = $currentDateTime->format('Y-m-d');
 
         foreach ($times as $service_id => $serviceData) {
-            // dd($serviceData);
+            // dd($serviceData['amount']);
             foreach ($serviceData['days'] as $day => $timeSlots) {
-
                 if (!isset($finalTimes[$day])) {
                     $finalTimes[$day] = [
                         'day' => $day,
@@ -233,9 +285,9 @@ class Appointment
 
                 $formattedTimeSlots = [];
 
+                // Filter and format time slots based on the day and current time
                 if ($day === $currentDay) {
                     foreach ($timeSlots as $time) {
-
                         $dateTime = Carbon::parse($time, 'Asia/Riyadh');
                         if ($dateTime->greaterThan($currentDateTime->copy()->addMinutes(45))) {
                             $formattedTimeSlots[] = $dateTime->format('g:i A');
@@ -247,17 +299,27 @@ class Appointment
                     }, $timeSlots);
                 }
 
-                // Sort the time slots in ascending order
+                // Sort time slots in ascending order
                 usort($formattedTimeSlots, function ($a, $b) {
                     return strtotime($a) - strtotime($b);
                 });
-                // dd($formattedTimeSlots);
-                if (!empty($formattedTimeSlots)) {
-                    // dd($this->unavailableTimeSlots);
 
-                    // Filter unavailable time slots for the specific day and service
-                    $filteredTimeSlots = $this->filterUnavailableSlots($formattedTimeSlots, $day, $service_id);
-                    // dd($filteredTimeSlots);
+                // Filter time slots based on requested quantity
+                $availableTimeSlots = [];
+                $totalSlots = count($formattedTimeSlots);
+
+                foreach ($formattedTimeSlots as $index => $time) {
+                    // dd(($totalSlots - $index));
+                    // Check if there are enough remaining time slots to satisfy the quantity
+                    if (($totalSlots - $index) >= $serviceData['amount']) {
+                        $availableTimeSlots[] = $time;
+                    }
+                }
+
+                // Apply unavailable time filtering
+                $filteredTimeSlots = $this->filterUnavailableSlots($availableTimeSlots, $day, $service_id);
+
+                if (!empty($filteredTimeSlots)) {
                     $finalTimes[$day]['times'] = $filteredTimeSlots;
                 }
             }
