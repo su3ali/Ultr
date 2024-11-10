@@ -432,11 +432,86 @@ class Appointment
 
     //     return array_values($finalTimes);
     // }
+    // protected function finalizeTimes($times)
+    // {
+    //     $finalTimes = [];
+    //     $currentDateTime = Carbon::now('Asia/Riyadh');
+    //     $currentDay = $currentDateTime->format('Y-m-d');
+
+    //     foreach ($times as $service_id => $serviceData) {
+    //         foreach ($serviceData['days'] as $day => $timeSlots) {
+    //             if (!isset($finalTimes[$day])) {
+    //                 $finalTimes[$day] = [
+    //                     'day' => $day,
+    //                     'dayName' => Carbon::parse($day)->translatedFormat('l'),
+    //                     'times' => [],
+    //                 ];
+    //             }
+
+    //             $formattedTimeSlots = [];
+
+    //             // Filter and format time slots based on the day and current time
+    //             if ($day === $currentDay) {
+    //                 foreach ($timeSlots as $time) {
+    //                     $store_time = $time['time'];
+    //                     $dateTime = Carbon::parse($store_time, 'Asia/Riyadh');
+    //                     if ($dateTime->greaterThan($currentDateTime->copy()->addMinutes(45))) {
+    //                         $formattedTimeSlots[] = [
+    //                             'time' => Carbon::parse($store_time)->format('g:i A'),
+    //                             'shift_id' => $time['shift_id'],
+    //                         ];
+    //                     }
+    //                 }
+    //             } else {
+    //                 foreach ($timeSlots as $time) {
+
+    //                     $formattedTimeSlots[] = [
+    //                         'time' => Carbon::parse($time['time'])->format('g:i A'),
+    //                         'shift_id' => $time['shift_id'],
+    //                     ];
+
+    //                 }
+    //             }
+    //             dd($formattedTimeSlots);
+
+    //             // Sort time slots in ascending order
+    //             usort($formattedTimeSlots, function ($a, $b) {
+    //                 return strtotime($a['time']) - strtotime($b['time']);
+    //             });
+
+    //             // Filter time slots based on requested quantity
+    //             $availableTimeSlots = [];
+    //             $totalSlots = count($formattedTimeSlots);
+
+    //             foreach ($formattedTimeSlots as $index => $slot) {
+    //                 if (($totalSlots - $index) >= $serviceData['amount']) {
+    //                     $availableTimeSlots[] = $slot;
+    //                 }
+    //             }
+
+    //             // Apply unavailable time filtering
+    //             $filteredTimeSlots = $this->filterUnavailableSlots($availableTimeSlots, $day, $service_id);
+
+    //             if (!empty($filteredTimeSlots)) {
+    //                 $finalTimes[$day]['times'] = array_map(function ($slot) {
+    //                     return [
+    //                         'time' => $slot['time'],
+    //                         'shift_id' => $slot['shift_id'],
+    //                     ];
+    //                 }, $filteredTimeSlots);
+    //             }
+    //         }
+    //     }
+
+    //     return array_values($finalTimes);
+    // }
+
     protected function finalizeTimes($times)
     {
         $finalTimes = [];
         $currentDateTime = Carbon::now('Asia/Riyadh');
         $currentDay = $currentDateTime->format('Y-m-d');
+        $currentTime = $currentDateTime->format('H:i'); // Get current time for comparison
 
         foreach ($times as $service_id => $serviceData) {
             foreach ($serviceData['days'] as $day => $timeSlots) {
@@ -455,6 +530,8 @@ class Appointment
                     foreach ($timeSlots as $time) {
                         $store_time = $time['time'];
                         $dateTime = Carbon::parse($store_time, 'Asia/Riyadh');
+
+                        // Check if the time is later than the current time (add 45 minutes buffer for buffer before)
                         if ($dateTime->greaterThan($currentDateTime->copy()->addMinutes(45))) {
                             $formattedTimeSlots[] = [
                                 'time' => Carbon::parse($store_time)->format('g:i A'),
@@ -476,14 +553,20 @@ class Appointment
                     return strtotime($a['time']) - strtotime($b['time']);
                 });
 
-                // Filter time slots based on requested quantity
-                $availableTimeSlots = [];
+                // Dynamically filter time slots based on the requested quantity
                 $totalSlots = count($formattedTimeSlots);
+                $requestedQuantity = $serviceData['amount']; // This is the dynamic requested amount
 
-                foreach ($formattedTimeSlots as $index => $slot) {
-                    if (($totalSlots - $index) >= $serviceData['amount']) {
-                        $availableTimeSlots[] = $slot;
-                    }
+                $availableTimeSlots = [];
+
+                // If the quantity is greater than the available slots, we just show the available slots
+                if ($requestedQuantity <= $totalSlots) {
+                    // Calculate how many slots we need to keep
+                    $slotsToKeep = $totalSlots - ($requestedQuantity - 1);
+                    $availableTimeSlots = array_slice($formattedTimeSlots, 0, $slotsToKeep);
+                } else {
+                    // If there are not enough slots for the requested quantity, show all available slots
+                    $availableTimeSlots = $formattedTimeSlots;
                 }
 
                 // Apply unavailable time filtering
