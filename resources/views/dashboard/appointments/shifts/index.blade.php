@@ -399,10 +399,10 @@
                                 return `
                             <div class="group-names-badges">
                                 ${row.group.map(group => `
-                                                    <span class="badge badge-primary" title="${group}">
-                                                        ${group}
-                                                    </span>
-                                                `).join('')}
+                                                        <span class="badge badge-primary" title="${group}">
+                                                            ${group}
+                                                        </span>
+                                                    `).join('')}
                             </div>
                         `;
                             }
@@ -492,8 +492,7 @@
                         title: "{{ __('dash.successful_operation') }}",
                         text: "{{ __('dash.request_executed_successfully') }}",
                         type: 'success',
-
-                        icon: 'success',
+                        icon: 'success',    
                         padding: '2em'
                     });
 

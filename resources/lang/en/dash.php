@@ -555,5 +555,7 @@ return [
 
     'error_overlapping_group' => 'This group is already assigned to a shift at the same time in another service',
     'error_overlapping' => 'There is already a shift for group :group on day :day from :start to :end.',
+    'Shift created successfully' => 'Shift created successfully',
+    'ok' => 'Ok',
 
 ];
