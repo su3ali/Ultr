@@ -134,6 +134,7 @@ class CartController extends Controller
                     'category_ids' => 'required|array',
                     'category_ids.*' => 'required|exists:categories,id',
                     'region_id' => 'required|exists:regions,id',
+                    'shift_id' => 'required|exists:shifts,id',
                     'date' => 'required|array',
                     'date.*' => 'required|date',
                     'time' => 'required|array',
@@ -152,10 +153,7 @@ class CartController extends Controller
                 // dd($cart_time);
 
                 if ($cart_time) {
-                    $shift = Shift::where('start_time', '<=', $cart_time)
-                        ->where('end_time', '>=', $cart_time)
-                        ->where('is_active', true)
-                        ->first();
+                    $shift = Shift::find($request->shift_id);
                 } else {
                     return self::apiResponse(400, __('api.cart empty'), $this->body);
 
