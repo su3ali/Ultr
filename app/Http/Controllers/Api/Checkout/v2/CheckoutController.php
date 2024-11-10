@@ -226,9 +226,6 @@ class CheckoutController extends Controller
             }
             // dd($times);
             foreach ($times as $time) {
-                // dd($time);
-
-                // dd(date("g:i A", strtotime($cart->time)));
 
                 if (!in_array(date("g:i A", strtotime($cart->time)), $time['times']) && $cart->date == $time['day']) {
                     DB::rollback();
