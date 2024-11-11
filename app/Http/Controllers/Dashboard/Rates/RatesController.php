@@ -3,24 +3,16 @@
 namespace App\Http\Controllers\Dashboard\Rates;
 
 use App\Http\Controllers\Controller;
-use App\Models\Banner;
-use App\Models\BannerImage;
-use App\Models\Booking;
-use App\Models\BookingSetting;
-use App\Models\ContractPackage;
 use App\Models\RateService;
 use App\Models\RateTechnician;
-use App\Models\Visit;
-use App\Traits\imageTrait;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
 
 class RatesController extends Controller
 {
     protected function rateTechnicians()
     {
+
         if (request()->ajax()) {
             $visit = RateTechnician::all();
             return DataTables::of($visit)
@@ -36,9 +28,16 @@ class RatesController extends Controller
                 ->addColumn('rate', function ($row) {
                     return $row->rate;
                 })
+                ->addColumn('created_at', function ($row) {
+                    return $row->created_at;
+                })
+                ->addColumn('created_at', function ($row) {
+                    return $row->created_at->format('Y-m-d') ?? '';
+                })
                 ->addColumn('note', function ($row) {
                     return $row->note;
                 })
+
                 ->addColumn('control', function ($row) {
 
                     $html = '
@@ -55,6 +54,7 @@ class RatesController extends Controller
                     'technician_name',
                     'order_nu',
                     'rate',
+                    'created_at',
                     'note',
                     'control',
                 ])
@@ -65,11 +65,10 @@ class RatesController extends Controller
 
     protected function showTechnicians($id)
     {
-        $tech = RateTechnician::where('id',$id)->first();
-        return view('dashboard.rate.showTechnicians',compact('tech'));
+        $tech = RateTechnician::where('id', $id)->first();
+        return view('dashboard.rate.showTechnicians', compact('tech'));
 
     }
-
 
     protected function rateServices()
     {
@@ -93,6 +92,9 @@ class RatesController extends Controller
                 ->addColumn('rate', function ($row) {
                     return $row->rate;
                 })
+                ->addColumn('created_at', function ($row) {
+                    return $row->created_at->format('Y-m-d') ?? '';
+                })
                 ->addColumn('note', function ($row) {
                     return $row->note;
                 })
@@ -113,6 +115,7 @@ class RatesController extends Controller
                     'user_phone',
                     'order_nu',
                     'rate',
+                    'created_at',
                     'note',
                     'control',
                 ])
@@ -123,10 +126,8 @@ class RatesController extends Controller
 
     protected function showServices($id)
     {
-        $serv = RateService::where('id',$id)->first();
-        return view('dashboard.rate.showServices',compact('serv'));
+        $serv = RateService::where('id', $id)->first();
+        return view('dashboard.rate.showServices', compact('serv'));
     }
-
-
 
 }
