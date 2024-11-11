@@ -50,17 +50,34 @@ class Appointment
                 continue;
             }
 
-            $dayStart = Day::where('is_active', 1)->where('name', $bookSetting->service_start_date)->first();
-            $dayEnd = Day::where('is_active', 1)->where('name', $bookSetting->service_end_date)->first();
+            // $dayStart = Day::where('is_active', 1)->where('name', $bookSetting->service_start_date)->first();
+            // $dayEnd = Day::where('is_active', 1)->where('name', $bookSetting->service_end_date)->first();
+            // if (!$dayStart || !$dayEnd) {
+            //     continue;
+            // }
 
+            // $serviceDays = Day::whereBetween('id', [$dayStart->id, $dayEnd->id])
+            //     ->where('is_active', true)
+            //     ->pluck('name')
+            //     ->toArray();
+            // dd($serviceDays);
+
+            // Get $dayStart and $dayEnd without checking is_active
+            $dayStart = Day::where('name', $bookSetting->service_start_date)->first();
+            $dayEnd = Day::where('name', $bookSetting->service_end_date)->first();
+
+            // If either $dayStart or $dayEnd is not found, skip this iteration
             if (!$dayStart || !$dayEnd) {
                 continue;
             }
 
+            // Retrieve only active days within the specified range
             $serviceDays = Day::whereBetween('id', [$dayStart->id, $dayEnd->id])
-                ->where('is_active', true)
+                ->where('is_active', 1) // Filter for active days only
                 ->pluck('name')
                 ->toArray();
+
+            // dd($serviceDays);
 
             // Generate dates for this specific service
             $dates = [];
