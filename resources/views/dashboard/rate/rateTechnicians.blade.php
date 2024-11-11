@@ -6,8 +6,8 @@
 
             <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                     class="feather feather-menu">
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="feather feather-menu">
                     <line x1="3" y1="12" x2="21" y2="12"></line>
                     <line x1="3" y1="6" x2="21" y2="6"></line>
                     <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -21,7 +21,7 @@
                         <nav class="breadcrumb-one" aria-label="breadcrumb">
                             <ol class="breadcrumb mb-0 py-2">
                                 <li class="breadcrumb-item"><a
-                                        href="{{route('dashboard.home')}}">{{__('dash.home')}}</a></li>
+                                        href="{{ route('dashboard.home') }}">{{ __('dash.home') }}</a></li>
                                 <li class="breadcrumb-item active" aria-current="page">تقييمات الفنيين</li>
                             </ol>
                         </nav>
@@ -33,7 +33,6 @@
 
         </header>
     </div>
-
 @endsection
 
 @section('content')
@@ -49,15 +48,16 @@
                     </div>
                     <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
                         <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>رقم جوال العميل</th>
-                            <th>اسم الفني</th>
-                            <th>رقم الطلب</th>
-                            <th>التقييم (عدد النجوم)</th>
-                            <th>ملاحظات</th>
-                            <th class="no-content">{{__('dash.actions')}}</th>
-                        </tr>
+                            <tr>
+                                <th>#</th>
+                                <th>رقم جوال العميل</th>
+                                <th>اسم الفني</th>
+                                <th>رقم الطلب</th>
+                                <th>التقييم (عدد النجوم)</th>
+                                <th>التاريخ</th>
+                                <th>ملاحظات</th>
+                                <th class="no-content">{{ __('dash.actions') }}</th>
+                            </tr>
                         </thead>
                     </table>
 
@@ -71,41 +71,82 @@
 @endsection
 
 @push('script')
-
     <script type="text/javascript">
-        $(document).ready(function () {
+        $(document).ready(function() {
             $('#html5-extension').DataTable({
                 dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-6 d-flex justify-content-md-start justify-content-center'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
                     "<'table-responsive'tr>" +
                     "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count  mb-sm-0 mb-3'i><'dt--pagination'p>>",
-                order: [[0, 'desc']],
+                order: [
+                    [0, 'desc']
+                ],
                 "language": {
-                    "url": "{{app()->getLocale() == 'ar'? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json'}}"
+                    "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
                 },
                 buttons: {
-                    buttons: [
-                        {extend: 'copy', className: 'btn btn-sm',text:'نسخ'},
-                        {extend: 'csv', className: 'btn btn-sm',text:'تصدير إلى CSV'},
-                        {extend: 'excel', className: 'btn btn-sm',text:'تصدير إلى Excel'},
-                        {extend: 'print', className: 'btn btn-sm',text:'طباعة'}
+                    buttons: [{
+                            extend: 'copy',
+                            className: 'btn btn-sm',
+                            text: 'نسخ'
+                        },
+                        {
+                            extend: 'csv',
+                            className: 'btn btn-sm',
+                            text: 'تصدير إلى CSV'
+                        },
+                        {
+                            extend: 'excel',
+                            className: 'btn btn-sm',
+                            text: 'تصدير إلى Excel'
+                        },
+                        {
+                            extend: 'print',
+                            className: 'btn btn-sm',
+                            text: 'طباعة'
+                        }
                     ]
                 },
                 processing: true,
-                 serverSide: false,
+                serverSide: false,
                 ajax: '{{ route('dashboard.rates.RateTechnician') }}',
-                columns: [
-                    {data: 'id', name: 'id'},
-                    {data: 'user_phone', name: 'user_phone'},
-                    {data: 'technician_name', name: 'technician_name'},
-                    {data: 'order_nu', name: 'order_nu'},
-                    {data: 'rate', name: 'rate'},
-                    {data: 'note', name: 'note'},
-                    {data: 'control', name: 'control', orderable: false, searchable: false},
+                columns: [{
+                        data: 'id',
+                        name: 'id'
+                    },
+                    {
+                        data: 'user_phone',
+                        name: 'user_phone'
+                    },
+                    {
+                        data: 'technician_name',
+                        name: 'technician_name'
+                    },
+                    {
+                        data: 'order_nu',
+                        name: 'order_nu'
+                    },
+                    {
+                        data: 'rate',
+                        name: 'rate'
+                    },
+
+                    {
+                        data: 'created_at',
+                        name: 'created_at'
+                    },
+                    {
+                        data: 'note',
+                        name: 'note'
+                    },
+                    {
+                        data: 'control',
+                        name: 'control',
+                        orderable: false,
+                        searchable: false
+                    },
 
                 ]
             });
         });
-
     </script>
-
 @endpush
