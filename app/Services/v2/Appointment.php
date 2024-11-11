@@ -386,10 +386,15 @@ class Appointment
         $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
             return array_map('intval', json_decode($jsonString, true));
         }, $shiftGroupsIds));
-
-        // dd($period->format('H:i:s'));
-
         $category_id = Service::where('id', $service_id)->first()->category_id;
+        $region_id = $this->region_id;
+        $ShiftGroupsInRegion = Group::whereIn('id', $shiftGroupsIds)
+            ->whereHas('regions', function ($qu) use ($region_id) {
+                $qu->where('region_id', $region_id);
+            })
+            ->pluck('id')->toArray();
+
+        // dd($ShiftGroupsInRegion);
 
         // Fetch booking IDs for the given date
         $booking_ids = Booking::whereHas('category', function ($query) use ($category_id) {
@@ -411,7 +416,7 @@ class Appointment
             ->activeVisits()
             ->whereIn('booking_id', $booking_ids)
             ->whereNotIn('visits_status_id', [5, 6])
-            ->whereIn('assign_to_id', $shiftGroupsIds)
+            ->whereIn('assign_to_id', $ShiftGroupsInRegion)
             ->pluck('assign_to_id')
             ->toArray();
 
@@ -430,13 +435,13 @@ class Appointment
             ->pluck('start_time')
             ->toArray();
 
-        $availableShiftGroupsIds = array_diff($shiftGroupsIds, $takenIds);
+        $availableShiftGroupsIds = array_diff($ShiftGroupsInRegion, $takenIds);
 
         $availableShiftGroupsCount = Group::GroupInRegionCategory($this->region_id, [$category_id])
             ->whereIn('id', $availableShiftGroupsIds)
             ->count();
 
-        // dd($takenTimes);
+        // dd($availableShiftGroupsIds);
 
         foreach ($takenTimes as $takenTime) {
             $takenTime = $takenTime ? Carbon::parse($takenTime)->format('g:i A') : null;
