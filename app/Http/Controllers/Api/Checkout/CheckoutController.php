@@ -17,11 +17,10 @@ use App\Models\OrderService;
 use App\Models\Service;
 use App\Models\Technician;
 use App\Models\Transaction;
-use App\Models\User;
 use App\Models\UserAddresses;
 use App\Models\Visit;
 use App\Notifications\SendPushNotification;
-use App\Services\v2\Appointment;
+use App\Services\Appointment;
 use App\Support\Api\ApiResponse;
 use App\Traits\imageTrait;
 use App\Traits\NotificationTrait;
@@ -32,7 +31,6 @@ use Illuminate\Support\Facades\Notification;
 
 class CheckoutController extends Controller
 {
-
     use ApiResponse, imageTrait, NotificationTrait;
 
     public function __construct()
@@ -42,215 +40,31 @@ class CheckoutController extends Controller
 
     protected function checkTimeDate(Request $request)
     {
-        try {
+        $user = auth()->user('sanctum');
+        $carts = Cart::query()->where('user_id', $user->id)->get();
+        $regionId = UserAddresses::where('id', \request()->query('user_address_id'))->first()->region_id;
+        foreach ($carts as $cart) {
+            $groupIds = CategoryGroup::where('category_id', $cart->category_id)->pluck('group_id')->toArray();
+            $countGroup = Group::where('active', 1)->whereHas('regions', function ($qu) use ($regionId) {
+                $qu->where('region_id', $regionId);
+            })->whereIn('id', $groupIds)->count();
+            $countInBooking = Booking::whereHas('visit', function ($q) {
+                $q->whereNotIn('visits_status_id', [5, 6]);
+            })->whereHas(
+                'address.region',
+                function ($q) use ($regionId) {
 
-            // Retrieve all bookings
-            $bookings = Booking::where('booking_status_id', 1)->get();
-
-            // Format the date and time based on user preferences
-            $formattedBookings = $bookings->map(function ($booking) {
-                // Format the date
-
-                // Format the time
-                $formatted_time = null;
-
-                // Check if the time is a valid timestamp
-                if (is_numeric($booking->time)) {
-                    // Convert Unix timestamp to Carbon instance
-                    $time = Carbon::createFromTimestamp($booking->time);
-                    // Format time according to user preference (e.g., 12-hour format)
-                    $formatted_time = $time->format('g:i A'); // Change format as needed
-                } else {
-                    // If it's in the expected H:i:s format
-                    try {
-                        $time = Carbon::createFromFormat('H:i:s', $booking->time);
-                        $formatted_time = $time->format('g:i A'); // Change format as needed
-                    } catch (\Exception $e) {
-                        // Handle the exception if the format is invalid
-                        $formatted_time = null; // or set to a default value
-                    }
+                    $q->where('id', $regionId);
                 }
+            )->where([['category_id', '=', $cart->category_id], ['date', '=', $cart->date], ['time', '=', $cart->time]])
+                ->count();
 
-                // Return a new object with formatted date, time, and other booking fields
-                return [
-                    'id' => $booking->id,
-                    'user_id' => $booking->user_id,
-                    'service_id' => $booking->service_id,
-                    'quantity' => $booking->quantity,
-                    'date' => $booking->date, // Original date
-                    'time' => $formatted_time, // Add formatted time
-                    'status_id' => $booking->booking_status_id, // Add formatted time
-                    // Add other fields as needed
-                ];
-            });
-
-            // Return the formatted bookings as a JSON response
-
-            // Get the authenticated user
-            $user = auth('sanctum')->user();
-
-            // Retrieve the user address and handle case if not found
-            $userAddress = UserAddresses::find($request->query('user_address_id'));
-
-            if (!$userAddress) {
-                return self::apiResponse(400, __('api.Invalid user address'), $this->body);
+            if (($countInBooking == $countGroup)) {
+                return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
             }
-            $regionId = $userAddress->region_id;
-
-            // Get user's carts
-            $carts = Cart::all();
-
-            if ($carts->isEmpty()) {
-                return self::apiResponse(400, __('api.No items in the cart'), $this->body);
-            }
-
-            $remaining_days = Carbon::now()->diffInDays(Carbon::parse($carts->first()->date)) + 1;
-            $page_number = floor($remaining_days / 14);
-
-            // Prepare service details for appointments
-            $services = [];
-            foreach ($carts as $cart) {
-                $services[] = ['id' => $cart->service_id, 'amount' => $cart->quantity];
-            }
-
-            // Check available times using Appointment class
-            $appointment = new Appointment($userAddress->region_id, $services, null, $page_number);
-            $availableTimes = $appointment->getAvailableTimesFromDate();
-
-            // Check each cart for availability
-            foreach ($formattedBookings as $formattedBooking) {
-                $time24Hour = $formattedBooking['time'];
-
-                $time12Hour = date('g:i A', strtotime($time24Hour));
-
-                if ($availableTimes) {
-                    $availableDays = array_column($availableTimes, 'day');
-
-                    // Check if the date is available
-                    if (in_array($formattedBooking['date'], $availableDays)) {
-                        // Check if the time is available
-                        foreach ($availableTimes as $time) {
-                            if ($formattedBooking['date'] == $time['day'] && in_array($time12Hour, $time['times'])) {
-                                return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-                            }
-                        }
-                    }
-
-                }
-
-                // Check for group availability
-                $groupIds = CategoryGroup::where('category_id', $cart->category_id)->pluck('group_id')->toArray();
-
-                $activeGroupCount = Group::where('active', 1)
-                    ->whereHas('regions', fn($query) => $query->where('region_id', $regionId))
-                    ->whereIn('id', $groupIds)
-                    ->count();
-
-                $bookingCount = Booking::whereHas('visit', fn($query) => $query->whereNotIn('visits_status_id', [5, 6]))
-                    ->whereHas('address.region', fn($query) => $query->where('id', $regionId))
-                    ->where([
-                        ['category_id', '=', $cart->category_id],
-                        ['date', '=', $cart->date],
-                        ['time', '=', $cart->time],
-                    ])->count();
-
-                if ($bookingCount >= $activeGroupCount) {
-                    return self::apiResponse(400, __('api.No available technical groups for this category'), $this->body);
-                }
-            }
-
-            // If all checks pass, return success response
-            return self::apiResponse(200, __('api.Order created successfully'), $this->body);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed .'], 500);
         }
+        return self::apiResponse(200, __('api.order created successfully'), $this->body);
     }
-
-    // protected function checkout(Request $request)
-    // {
-    //     try {
-    //         $rules = [
-    //             'user_address_id' => 'required',
-    //             'car_user_id' => 'required|exists:car_clients,id',
-    //             'payment_method' => 'required|in:cache,visa,wallet,package',
-    //             'coupon' => 'nullable|numeric',
-    //             'transaction_id' => 'nullable',
-    //             'wallet_discounts' => 'nullable|numeric',
-    //             'amount' => 'nullable|numeric',
-    //             'file' => 'nullable',
-    //             'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
-    //             'notes' => 'nullable',
-    //         ];
-    //         $request->validate($rules, $request->all());
-    //         $user = auth()->user('sanctum');
-    //         $carts = Cart::query()->where('user_id', $user->id)->get();
-    //         $parent_payment_method = null;
-
-    //         if (!$carts->first()) {
-    //             return self::apiResponse(400, 'Cart is empty', []);
-    //         }
-
-    //         $coupon_id = $carts->first()->coupon_id ?? null;
-    //         if (!empty($coupon_id)) {
-    //             CouponUser::query()->create([
-    //                 'user_id' => $user->id,
-    //                 'coupon_id' => $coupon_id,
-    //             ]);
-    //         }
-
-    //         if ($carts->first()->type == 'package') {
-    //             $total = $carts->first()->price;
-    //             if ($request->payment_method == 'wallet' && $total > $user->point) {
-    //                 return self::apiResponse(400, __('api.Your wallet balance is not enough to complete this process'), []);
-    //             }
-    //             return $this->saveContract($user, $request, $total, $carts);
-    //         } else {
-    //             // if ($request->payment_method == 'wallet' && $request->amount > $user->point) {
-    //             //     return self::apiResponse(400, __('api.Your wallet balance is not enough to complete this process'), []);
-    //             // }
-    //             $uploadImage = null;
-    //             if ($request->image && $request->image != null) {
-    //                 $image = $this->storeImages($request->image, 'order');
-    //                 $uploadImage = 'storage/images/order' . '/' . $image;
-    //             }
-    //             $uploadFile = null;
-    //             if ($request->file && $request->file != null) {
-    //                 $file = $this->storeImages($request->file, 'order');
-    //                 $uploadFile = 'storage/images/order' . '/' . $file;
-    //             }
-
-    //             foreach ($carts as $cart) {
-    //                 $now = Carbon::now('Asia/Riyadh');
-    //                 $contractPackagesUser = ContractPackagesUser::where('user_id', auth()->user()->id)
-    //                     ->whereDate('end_date', '>=', $now)
-    //                     ->where(function ($query) use ($cart) {
-    //                         $query->whereHas('contactPackage', function ($qu) use ($cart) {
-    //                             $qu->whereHas('ContractPackagesServices', function ($qu) use ($cart) {
-    //                                 $qu->where('service_id', $cart->service_id);
-    //                             });
-    //                         });
-    //                     })->first();
-
-    //                 if ($contractPackagesUser) {
-    //                     $contractPackage = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
-    //                     $cart->coupon = null;
-    //                     $parent_payment_method = $contractPackagesUser->payment_method;
-    //                     if ($cart->quantity < $contractPackage->visit_number - $contractPackagesUser->used) {
-    //                         $contractPackagesUser->increment('used', $cart->quantity);
-    //                     } else {
-    //                         $contractPackagesUser->increment('used', ($contractPackage->visit_number - $contractPackagesUser->used));
-    //                     }
-    //                 }
-
-    //             }
-    //             $total = $this->calc_total($carts);
-    //             return $this->saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method);
-    //         }
-    //     } catch (\Exception $e) {
-    //         Log::error('Error : ' . $e->getMessage());
-    //         return response()->json(['error' => 'Failed to .'], 500);
-    //     }
-    // }
 
     protected function checkout(Request $request)
     {
@@ -662,69 +476,4 @@ class CheckoutController extends Controller
 
         return self::apiResponse(200, __('api.paid successfully'), $this->body);
     }
-    // protected function checkTimeDate(Request $request)
-    // {
-
-    //     $user = auth()->user('sanctum');
-    //     $regionId = UserAddresses::where('id', \request()->query('user_address_id'))->first()->region_id;
-    //     $address = UserAddresses::where('id', \request()->query('user_address_id'))->first();
-
-    //     $carts = Cart::query()->where('user_id', $user->id)->get();
-    //     ///
-    //     $services[] = ['id' => $carts->first()->service_id, 'amount' => $carts->first()->quantity];
-    //     $remaining_days = Carbon::now()->diffInDays(Carbon::parse($carts->first()->date)) + 1;
-    //     $page_number = floor($remaining_days / 14);
-    //     $time = new Appointment($address->region_id, $services, null, $page_number);
-    //     $times = $time->getAvailableTimesFromDate();
-    //     // The time in 24-hour format
-    //     $time24Hour = $carts->first()->time;
-
-    //     // Convert the 24-hour time to a timestamp
-    //     $timestamp = strtotime($time24Hour);
-
-    //     // Format the timestamp to a 12-hour format with AM/PM
-    //     $time12Hour = date('g:i A', $timestamp);
-    //     if ($times) {
-    //         $days = array_column($times, 'day');
-
-    //         if (!in_array($carts->first()->date, $days)) {
-    //             DB::rollback();
-    //             return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-    //         }
-
-    //         foreach ($times as $time) {
-
-    //             // Compare the day with the date in the cart
-    //             if ($carts->first()->date == $time['day']) {
-    //                 // Check if the specific time matches the 'time' in the array
-    //                 if (in_array($time12Hour, $time['times'])) {
-    //                     DB::rollback();
-    //                     return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     foreach ($carts as $cart) {
-    //         $groupIds = CategoryGroup::where('category_id', $cart->category_id)->pluck('group_id')->toArray();
-    //         $countGroup = Group::where('active', 1)->whereHas('regions', function ($qu) use ($regionId) {
-    //             $qu->where('region_id', $regionId);
-    //         })->whereIn('id', $groupIds)->count();
-    //         $countInBooking = Booking::whereHas('visit', function ($q) {
-    //             $q->whereNotIn('visits_status_id', [5, 6]);
-    //         })->whereHas(
-    //             'address.region',
-    //             function ($q) use ($regionId) {
-
-    //                 $q->where('id', $regionId);
-    //             }
-    //         )->where([['category_id', '=', $cart->category_id], ['date', '=', $cart->date], ['time', '=', $cart->time]])
-    //             ->count($cart->date);
-
-    //         if (($countInBooking == $countGroup)) {
-    //             return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
-    //         }
-    //     }
-    //     return self::apiResponse(200, __('api.order created successfully'), $this->body);
-    // }
 }

@@ -18,6 +18,7 @@ class CreateShiftsTable extends Migration
             $table->boolean('is_active')->default(true); // Active status
             $table->timestamps(); // Created at and Updated at timestamps
         });
+        
     }
     public function down()
     {
