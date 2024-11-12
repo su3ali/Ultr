@@ -185,7 +185,34 @@ class ShiftController extends Controller
 
     public function store(Request $request)
     {
-        // Validate input fields
+
+        $language = session('locale', App::getLocale()); // Get the language from session
+
+        $messages = [
+            'day_id.required' => $language == 'ar' ? 'يرجى اختيار يوم واحد على الأقل.' : 'Please select at least one day.',
+            'day_id.array' => $language == 'ar' ? 'يجب أن تكون الأيام في صيغة مصفوفة.' : 'The days must be in array format.',
+            'day_id.*.exists' => $language == 'ar' ? 'يوم أو أكثر من الأيام المحددة غير صالح.' : 'One or more selected days are invalid.',
+
+            'group_id.required' => $language == 'ar' ? 'يرجى اختيار مجموعة واحدة على الأقل.' : 'Please select at least one group.',
+            'group_id.array' => $language == 'ar' ? 'يجب أن تكون المجموعات في صيغة مصفوفة.' : 'The groups must be in array format.',
+            'group_id.*.exists' => $language == 'ar' ? 'مجموعة أو أكثر من المجموعات المحددة غير صالح.' : 'One or more selected groups are invalid.',
+
+            'service_id.required' => $language == 'ar' ? 'يرجى اختيار خدمة واحدة على الأقل.' : 'Please select at least one service.',
+            'service_id.array' => $language == 'ar' ? 'يجب أن تكون الخدمات في صيغة مصفوفة.' : 'The services must be in array format.',
+            'service_id.*.exists' => $language == 'ar' ? 'خدمة أو أكثر من الخدمات المحددة غير صالحة.' : 'One or more selected services are invalid.',
+
+            'start_time.required' => $language == 'ar' ? 'يرجى إدخال وقت البدء.' : 'Please enter a start time.',
+            'start_time.date_format' => $language == 'ar' ? 'يجب أن يكون وقت البدء بتنسيق HH:mm.' : 'The start time must be in the format HH:mm.',
+
+            'end_time.required' => $language == 'ar' ? 'يرجى إدخال وقت الانتهاء.' : 'Please enter an end time.',
+            'end_time.date_format' => $language == 'ar' ? 'يجب أن يكون وقت الانتهاء بتنسيق HH:mm.' : 'The end time must be in the format HH:mm.',
+            'end_time.after' => $language == 'ar' ? 'يجب أن يكون وقت الانتهاء بعد وقت البدء.' : 'The end time must be after the start time.',
+
+            'is_active.required' => $language == 'ar' ? 'يرجى تحديد ما إذا كانت الورقة نشطة.' : 'Please specify whether the shift is active.',
+            'is_active.boolean' => $language == 'ar' ? 'يجب أن يكون حالة النشاط إما صحيح أو خطأ.' : 'The active status must be true or false.',
+        ];
+
+// Validate the request with custom messages
         $request->validate([
             'day_id' => 'required|array',
             'day_id.*' => 'exists:days,id',
@@ -196,7 +223,7 @@ class ShiftController extends Controller
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'is_active' => 'required|boolean',
-        ]);
+        ], $messages);
 
         // Retrieve input data
         $dayIds = $request->day_id;
@@ -253,7 +280,7 @@ class ShiftController extends Controller
             'is_active' => $request->is_active,
         ]);
 
-        return redirect()->route('dashboard.shifts.index')->with('success', 'Shift created successfully');
+        return redirect()->route('dashboard.shifts.index')->with('success', __('dash.Shift created successfully'));
     }
 
     /**

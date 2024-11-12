@@ -259,16 +259,21 @@
     </script>
     <script>
         $(document).ready(function() {
+            @if (session('success'))
+                let session = "{{ session('success') }}"
+                if (session) {
+                    swal({
+                        title: "{{ __('dash.successful_operation') }}",
+                        text: "{{ session('success') }}",
+                        type: 'success',
+                        icon: 'success',
+                        buttons: "{{ __('dash.ok') }}",
+                        timer: 2000, // Hide after 3 seconds
+                        padding: '2em'
+                    })
+                }
+            @endif
 
-            let session = "{{ session('success') }}"
-            if (session) {
-                swal({
-                    title: "{{ __('dash.successful_operation') }}",
-                    text: "{{ __('dash.request_executed_successfully') }}",
-                    type: 'success',
-                    padding: '2em'
-                })
-            }
             let arr = [];
             <?php foreach ($msgs as $key => $val){ ?>
             arr.push('<?php echo $val; ?>');

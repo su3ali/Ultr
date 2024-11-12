@@ -3,13 +3,10 @@
 namespace App\Http\Controllers\Dashboard\Core;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
 use App\Models\City;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
-use Illuminate\Support\Facades\File;
-
 
 class CustomerController extends Controller
 {
@@ -110,7 +107,6 @@ class CustomerController extends Controller
 
         $data['active'] = 1;
 
-
         $user = User::find($id);
         $user->update($data);
         session()->flash('success');
@@ -124,7 +120,7 @@ class CustomerController extends Controller
         $user->delete();
         return [
             'success' => true,
-            'msg' => __("dash.deleted_success")
+            'msg' => __("dash.deleted_success"),
         ];
     }
 

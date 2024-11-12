@@ -192,7 +192,9 @@
                 <a href="#appointments" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
                         <div class="icon-container">
-                            <i data-feather="book"></i><span class="icon-name"> إعدادات المواعيد </span>
+                            <i data-feather="clock"></i><span class="icon-name">
+                                {{ __('dash.appointment settings') }}
+                            </span>
                         </div>
                     </div>
                     <div>
