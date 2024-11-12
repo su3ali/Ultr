@@ -393,26 +393,56 @@
                         data: 'group_name',
                         name: 'group_name',
                         render: function(data, type, row) {
-                            // Check if group names exist
+                            // console.log(row.group_id);
+                            // debugger;
                             if (Array.isArray(row.group) && row.group.length > 0) {
-                                // Create a container for the group names with badge style and tooltips
                                 return `
-                            <div class="group-names-badges">
-                                ${row.group.map(group => `
-                                                        <span class="badge badge-primary" title="${group}">
-                                                            ${group}
-                                                        </span>
-                                                    `).join('')}
-                            </div>
-                        `;
+                                <div class="group-names-badges">
+                                    ${row.group.map(group => `
+                                                             <button class="btn-sm btn-primary" title="${group}">
+                                                                <a href="core/group/" style=color:#FFFFFF;> ${group}</a>
+                                                                 </button>
+                                                               `).join('')}
+                                </div>
+                            `;
                             }
-                            return '<span class="badge badge-secondary">N/A</span>'; // Return 'N/A' if no groups found
+
+                            // Return 'N/A' if no groups found
+                            return '<button class="btn-sm btn-secondary">N/A</button>';
                         }
 
+
+
                     },
+
                     {
                         data: 'service_name',
-                        name: 'service_name'
+                        name: 'service_name',
+                        render: function(data, type, row) {
+                            // Check if data exists and is a non-empty string
+                            if (data && typeof data === 'string') {
+                                let serviceIds = data.split(
+                                    ',');
+                                let html = '';
+
+                                serviceIds.forEach(function(serviceId) {
+                                    serviceId = serviceId
+                                        .trim();
+                                    html +=
+
+                                        '<button class="btn-sm btn-primary" title=" ' +
+                                        serviceId + '"> ' +
+                                        '<a href="core/service/" style=color:#FFFFFF;>' +
+                                        serviceId + '</a>' + '</button> ';
+
+
+                                });
+
+                                return html;
+                            }
+
+                            return 'N/A'; // Fallback in case there's no data
+                        }
                     },
                     {
                         data: 'shift_no',
@@ -492,7 +522,7 @@
                         title: "{{ __('dash.successful_operation') }}",
                         text: "{{ __('dash.request_executed_successfully') }}",
                         type: 'success',
-                        icon: 'success',    
+                        icon: 'success',
                         padding: '2em'
                     });
 

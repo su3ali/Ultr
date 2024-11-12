@@ -32,6 +32,7 @@ class OrderController extends Controller
     use schedulesTrait;
     public function index()
     {
+        
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
         // Start building the query
