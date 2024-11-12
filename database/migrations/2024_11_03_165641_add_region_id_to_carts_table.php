@@ -31,4 +31,7 @@ class AddRegionIdToCartsTable extends Migration
             $table->dropColumn('region_id');
         });
     }
+    
+    
+
 }
