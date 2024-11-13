@@ -24,79 +24,135 @@ class VisitsController extends Controller
 {
     use NotificationTrait;
 
-    protected function index()
-    {
+    // protected function index()
+    // {
 
+    //     $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
+
+    //     if (request()->ajax()) {
+    //         $visit = Visit::query()->whereHas('booking.address', function ($query) use ($regionIds) {
+    //             $query->whereIn('region_id', $regionIds);
+    //         });
+
+    //         if (request()->page) {
+    //             $now = Carbon::now('Asia/Riyadh')->toDateString();
+    //             $visit->where('visits_status_id', '!=', 6)->whereHas('booking', function ($qu) use ($now) {
+    //                 $qu->whereDate('date', '=', $now);
+    //             });
+    //         }
+    //         if (request()->status) {
+
+    //             $visit->where('visits_status_id', request()->status);
+    //         }
+
+    //         $visit->where('is_active', 1)->paginate(10);
+
+    //         return DataTables::of($visit)
+    //             ->addColumn('booking_id', function ($row) {
+    //                 return $row->booking?->id;
+    //             })
+    //             ->addColumn('date', function ($row) {
+    //                 return $row->booking?->date;
+    //             })
+    //             ->addColumn('group_name', function ($row) {
+    //                 return $row->group?->name;
+    //             })
+    //             ->addColumn('start_time', function ($row) {
+    //                 return \Carbon\Carbon::parse($row->start_time)->timezone('Asia/Riyadh')->format('g:i A');
+    //             })
+    //             ->addColumn('end_time', function ($row) {
+    //                 return \Carbon\Carbon::parse($row->end_time)->timezone('Asia/Riyadh')->format('g:i A');
+    //             })
+    //             ->addColumn('duration', function ($row) {
+    //                 return $row->duration;
+    //             })
+    //             ->addColumn('status', function ($row) {
+    //                 return $row->status->name;
+    //             })
+    //             ->addColumn('control', function ($row) {
+
+    //                 $html = '
+    //                 <a href="#" class="mr-2 btn btn-outline-primary btn-sm">
+    //                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+
+    //                             <a href="' . route('dashboard.visits.show', $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+    //                         <i class="far fa-eye fa-2x"></i>
+
+    //                 </a>
+    //                             ';
+
+    //                 return $html;
+    //             })
+    //             ->rawColumns([
+    //                 'booking_id',
+    //                 'date',
+    //                 'group_name',
+    //                 'start_time',
+    //                 'end_time',
+    //                 'duration',
+    //                 'status',
+    //                 'control',
+    //             ])
+    //             ->make(true);
+    //     }
+    //     $statuses = VisitsStatus::all()->pluck('name', 'id');
+
+    //     return view('dashboard.visits.index', compact('statuses'));
+    // }
+    protected function index(Request $request)
+    {
+        // Get the region IDs the user has access to
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
-        if (request()->ajax()) {
+        // Check if it's an AJAX request (DataTables)
+        if ($request->ajax()) {
+            // Start query
             $visit = Visit::query()->whereHas('booking.address', function ($query) use ($regionIds) {
                 $query->whereIn('region_id', $regionIds);
             });
 
-            if (request()->page) {
-                $now = Carbon::now('Asia/Riyadh')->toDateString();
-                $visit->where('visits_status_id', '!=', 6)->whereHas('booking', function ($qu) use ($now) {
-                    $qu->whereDate('date', '=', $now);
-                });
-            }
-            if (request()->status) {
-
-                $visit->where('visits_status_id', request()->status);
+            // Check if the 'status' filter is applied
+            if ($request->has('status') && $request->status !== 'all') {
+                $visit->where('visits_status_id', $request->status);
             }
 
-            $visit->where('is_active', 1)->get();
+            // Only active visits
+            $visit->where('is_active', 1);
 
-            return DataTables::of($visit)
-                ->addColumn('booking_id', function ($row) {
-                    return $row->booking?->id;
-                })
-                ->addColumn('date', function ($row) {
-                    return $row->booking?->date;
-                })
-                ->addColumn('group_name', function ($row) {
-                    return $row->group?->name;
-                })
-                ->addColumn('start_time', function ($row) {
-                    return \Carbon\Carbon::parse($row->start_time)->timezone('Asia/Riyadh')->format('g:i A');
-                })
-                ->addColumn('end_time', function ($row) {
-                    return \Carbon\Carbon::parse($row->end_time)->timezone('Asia/Riyadh')->format('g:i A');
-                })
-                ->addColumn('duration', function ($row) {
-                    return $row->duration;
-                })
-                ->addColumn('status', function ($row) {
-                    return $row->status->name;
-                })
-                ->addColumn('control', function ($row) {
+            // Get total records before pagination
+            $totalRecords = $visit->count(); // Get total records matching the filters
 
-                    $html = '
-                    <a href="#" class="mr-2 btn btn-outline-primary btn-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+            // Apply pagination
+            $visits = $visit->skip($request->input('start', 0)) // Skip the records for current page
+                ->take($request->input('length', 10)) // Limit records per page
+                ->get();
 
-                                <a href="' . route('dashboard.visits.show', $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+            // Return DataTables response in the required format
+            return response()->json([
+                'draw' => $request->input('draw'),
+                'recordsTotal' => $totalRecords, // Total records in the database
+                'recordsFiltered' => $totalRecords, // Total filtered records
+                'data' => $visits->map(function ($row) {
+                    return [
+                        'id' => $row->id,
+                        'booking_id' => $row->booking?->id,
+                        'date' => $row->booking?->date,
+                        'group_name' => $row->group?->name,
+                        'start_time' => \Carbon\Carbon::parse($row->start_time)->timezone('Asia/Riyadh')->format('g:i A'),
+                        'end_time' => \Carbon\Carbon::parse($row->end_time)->timezone('Asia/Riyadh')->format('g:i A'),
+                        'duration' => $row->duration,
+                        'status' => $row->status->name,
+                        'control' => '
+                        <a href="' . route('dashboard.visits.show', $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
                             <i class="far fa-eye fa-2x"></i>
-
-                    </a>
-                                ';
-
-                    return $html;
-                })
-                ->rawColumns([
-                    'booking_id',
-                    'date',
-                    'group_name',
-                    'start_time',
-                    'end_time',
-                    'duration',
-                    'status',
-                    'control',
-                ])
-                ->make(true);
+                        </a>',
+                    ];
+                }),
+            ]);
         }
-        $statuses = VisitsStatus::all()->pluck('name', 'id');
 
+        // For non-AJAX requests (for initial page load)
+        $statuses = VisitsStatus::all()->pluck('name', 'id');
         return view('dashboard.visits.index', compact('statuses'));
     }
 
