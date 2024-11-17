@@ -278,8 +278,6 @@ class CheckoutController extends Controller
                 return array_map('intval', json_decode($jsonString, true));
             }, $shiftGroupsIds));
 
-            // dd($shift);
-            // dd("*");
             $category_ids = $carts->pluck('category_id')->toArray();
             $category_ids = array_unique($category_ids);
 

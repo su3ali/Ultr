@@ -213,15 +213,23 @@ class CartController extends Controller
                     ->whereIn('id', $availableGroupIds)
                     ->count();
 
+                $cartsIds = Cart::where([
+                    'region_id' => $request->region_id,
+                    'date' => $cart_date,
+                    'time' => $cart_time,
+                ])->pluck('user_id')->toArray();
+
                 // Return the available groups
                 $cartsCount = Cart::where([
                     'region_id' => $request->region_id,
                     'date' => $cart_date,
                     'time' => $cart_time,
                 ])->count();
-                // dd($availableGroupsCount);
 
-                if ($availableGroupsCount <= $cartsCount) {
+                $exists = in_array(auth()->user()->id, $cartsIds);
+                // dd(!$exists);
+
+                if (!$exists && $availableGroupsCount <= $cartsCount) {
                     return self::apiResponse(
                         400,
                         __('api.time_not_available'),

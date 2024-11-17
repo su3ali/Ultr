@@ -28,18 +28,6 @@ class BookingController extends Controller
     {
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
-        // $tests = Booking::query()->whereHas('address', function ($query) use ($regionIds) {
-        //     $query->whereIn('region_id', $regionIds);
-        // });
-
-        // dd($tests->get());
-
-        // $bookings = Booking::query()->whereHas('address', function ($query) use ($regionIds) {
-        //     $query->whereIn('region_id', $regionIds);
-        // })->where('is_active', 1)->where('type', 'contract')->with(['order', 'customer', 'service', 'group', 'booking_status']);
-        // foreach ($bookings as $booking) {
-        //     dd($booking);
-        // }
         if (request()->ajax()) {
             $date = \request()->query('date');
             $date2 = \request()->query('date2');
