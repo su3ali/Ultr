@@ -144,8 +144,16 @@
                 },
                 processing: true,
                 responsive: true,
-                serverSide: false,
-                ajax: '{{ route('dashboard.orders.index') }}',
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('dashboard.orders.index') }}',
+                    data: function(d) {
+                        // Pass the pagination data along with the request
+                        // d.start = {{ $start }}; // Pass start index
+                        // d.length = {{ $length }}; // Pass page size
+                    }
+                },
+                pagingType: 'full_numbers', // Ensure proper paging with next/prev buttons
                 columns: [{
                         data: 'id',
                         name: 'id'
@@ -188,7 +196,6 @@
                         orderable: false,
                         searchable: false
                     },
-
                 ]
             });
 
@@ -202,12 +209,25 @@
 
                 // Update table data
                 table.ajax.url(url).load();
-
             }
+
+
+
             $('.status_filter').change(function() {
                 updateTableData();
             });
+
+            // Trigger table reload when search input changes
+            $('input[type="search"]').on('input', function() {
+                table.ajax.reload();
+            });
+
         });
+
+
+
+
+
 
         /*         {{-- $(document).on('click', '#edit-order', function () { --}}
                 {{--    let id = $(this).data('id'); --}}

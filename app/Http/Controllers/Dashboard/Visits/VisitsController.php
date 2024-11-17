@@ -117,7 +117,25 @@ class VisitsController extends Controller
             }
 
             // Only active visits
-            $visit->where('is_active', 1);
+            $visit->where('is_active', 1)->orderBy('created_at', 'desc');
+
+            // Apply search filter
+            if ($request->filled('search.value')) {
+                $search = $request->input('search.value');
+                $visit->where(function ($query) use ($search) {
+                    $query->where('id', 'LIKE', "%$search%")
+                        ->orWhereHas('booking', function ($query) use ($search) {
+                            $query->where('id', 'LIKE', "%$search%")
+                                ->orWhere('date', 'LIKE', "%$search%");
+                        })
+                        ->orWhereHas('group', function ($query) use ($search) {
+                            $query->where('name_ar', 'LIKE', "%$search%");
+                        })
+                        ->orWhere('start_time', 'LIKE', "%$search%")
+                        ->orWhere('end_time', 'LIKE', "%$search%")
+                        ->orWhere('duration', 'LIKE', "%$search%");
+                });
+            }
 
             // Get total records before pagination
             $totalRecords = $visit->count(); // Get total records matching the filters

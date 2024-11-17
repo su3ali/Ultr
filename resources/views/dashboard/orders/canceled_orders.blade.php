@@ -85,32 +85,43 @@
                 "language": {
                     "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
                 },
-                buttons: {
-                    buttons: [{
-                            extend: 'copy',
-                            className: 'btn btn-sm',
-                            text: 'نسخ'
-                        },
-                        {
-                            extend: 'csv',
-                            className: 'btn btn-sm',
-                            text: 'تصدير إلى CSV'
-                        },
-                        {
-                            extend: 'excel',
-                            className: 'btn btn-sm',
-                            text: 'تصدير إلى Excel'
-                        },
-                        {
-                            extend: 'print',
-                            className: 'btn btn-sm',
-                            text: 'طباعة'
-                        }
-                    ]
-                },
+                buttons: [{
+                        extend: 'copy',
+                        className: 'btn btn-sm',
+                        text: 'نسخ'
+                    },
+                    {
+                        extend: 'csv',
+                        className: 'btn btn-sm',
+                        text: 'تصدير إلى CSV'
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-sm',
+                        text: 'تصدير إلى Excel'
+                    },
+                    {
+                        extend: 'print',
+                        className: 'btn btn-sm',
+                        text: 'طباعة'
+                    }
+                ],
                 processing: true,
-                serverSide: false,
-                ajax: '{{ route('dashboard.order.canceledOrders') }}',
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('dashboard.order.canceledOrders') }}',
+                    data: function(d) {
+                        // Pass custom parameters for pagination
+                        d.start = d.start || 0; // Start index
+                        d.length = d.length || 10; // Page size
+
+                        // Handle any additional filters if needed
+                        var status_filter = $('.status_filter').val();
+                        if (status_filter && status_filter !== 'all') {
+                            d.status = status_filter; // Send status filter if available
+                        }
+                    }
+                },
                 columns: [{
                         data: 'id',
                         name: 'id'
@@ -153,10 +164,10 @@
                         orderable: false,
                         searchable: false
                     },
-
                 ]
             });
 
+            // Function to update table data based on filters
             function updateTableData() {
                 var status_filter = $('.status_filter').val();
                 var url = '{{ route('dashboard.order.canceledOrders') }}';
@@ -167,8 +178,9 @@
 
                 // Update table data
                 table.ajax.url(url).load();
-
             }
+
+            // Update data when status filter changes
             $('.status_filter').change(function() {
                 updateTableData();
             });

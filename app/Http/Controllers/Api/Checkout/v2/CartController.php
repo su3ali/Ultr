@@ -139,7 +139,7 @@ class CartController extends Controller
                     'date' => 'required|array',
                     'date.*' => 'required|date',
                     'time' => 'required|array',
-                    'time.*' => 'required|date_format:h:i A',
+                    'time.*' => 'required',
                     'notes' => 'nullable|array',
                     'notes.*' => 'nullable|string|max:191',
                 ];
@@ -302,6 +302,7 @@ class CartController extends Controller
             }
             return self::apiResponse(400, __('api.cart empty'), $this->body);
         } catch (\Exception $e) {
+
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
