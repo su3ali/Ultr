@@ -444,6 +444,8 @@ class BookingController extends Controller
                 ->whereJsonContains('day_id', (string) $adjustedIndex) // Cast to string for JSON comparison
                 ->where('is_active', 1)->first();
 
+            // return $shift->id->ToArray();
+
             // Pull the group_id from the shift and convert it to an array (assuming it's stored as a JSON array)
             $groupIds = $shift->pluck('group_id')->toArray();
 
