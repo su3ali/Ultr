@@ -6,8 +6,8 @@
 
             <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                     class="feather feather-menu">
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="feather feather-menu">
                     <line x1="3" y1="12" x2="21" y2="12"></line>
                     <line x1="3" y1="6" x2="21" y2="6"></line>
                     <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -21,10 +21,10 @@
                         <nav class="breadcrumb-one" aria-label="breadcrumb">
                             <ol class="breadcrumb mb-0 py-2">
                                 <li class="breadcrumb-item"><a
-                                        href="{{route('dashboard.home')}}">{{__('dash.home')}}</a></li>
+                                        href="{{ route('dashboard.home') }}">{{ __('dash.home') }}</a></li>
 
-                                <li class="breadcrumb-item"><a
-                                        href="{{route('dashboard.bookings.index')}}">الحجوزات</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('dashboard.bookings.index') }}">الحجوزات</a>
+                                </li>
                                 <li class="breadcrumb-item active" aria-current="page">تعديل الحجز</li>
                             </ol>
                         </nav>
@@ -36,7 +36,6 @@
 
         </header>
     </div>
-
 @endsection
 
 @section('content')
@@ -50,9 +49,8 @@
                         <h3>تعديل الحجز</h3>
                     </div>
                     <div class="col-md-8">
-                        <form action="{{route('dashboard.bookings.update', $booking->id)}}" method="post" class="form-horizontal"
-
-                              enctype="multipart/form-data" id="" data-parsley-validate="">
+                        <form action="{{ route('dashboard.bookings.update', $booking->id) }}" method="post"
+                            class="form-horizontal" enctype="multipart/form-data" id="" data-parsley-validate="">
                             {!! method_field('PUT') !!}
                             @csrf
                             <div class="box-body">
@@ -61,30 +59,33 @@
                                     <div class="form-group col-md-6">
 
                                         <label for="customer_name">الطلب</label>
-                                        <select required class="select2 form-control pt-1"
-                                                name="order_id">
-                                            <option selected disabled>{{__('dash.choose')}}</option>
-                                            @foreach($orders as $order)
-                                                <option value="{{$order->id}}"{{$booking->order_id == $order->id? 'selected' : ''}}>{{'الطلب رقم: '.$order->id}}</option>
+                                        <select required class="select2 form-control pt-1" name="order_id">
+                                            <option selected disabled>{{ __('dash.choose') }}</option>
+                                            @foreach ($orders as $order)
+                                                <option
+                                                    value="{{ $order->id }}"{{ $booking->order_id == $order->id ? 'selected' : '' }}>
+                                                    {{ 'الطلب رقم: ' . $order->id }}</option>
                                             @endforeach
                                         </select>
                                         @error('order_id')
-                                        <div class="alert alert-danger">{{ $message }}</div>
+                                            <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
 
                                     </div>
                                     <div class="form-group col-md-6">
 
-                                        <label for="customer_name">{{__('dash.customer_name')}}</label>
+                                        <label for="customer_name">{{ __('dash.customer_name') }}</label>
                                         <select required id="customer_name" class="select2 form-control pt-1"
-                                                name="user_id">
-                                            <option selected disabled>{{__('dash.choose')}}</option>
-                                            @foreach($customers as $customer)
-                                                <option value="{{$customer->id}}"{{$booking->user_id == $customer->id? 'selected' : ''}}>{{$customer->name}}</option>
+                                            name="user_id">
+                                            <option selected disabled>{{ __('dash.choose') }}</option>
+                                            @foreach ($customers as $customer)
+                                                <option
+                                                    value="{{ $customer->id }}"{{ $booking->user_id == $customer->id ? 'selected' : '' }}>
+                                                    {{ $customer->name }}</option>
                                             @endforeach
                                         </select>
                                         @error('user_id')
-                                        <div class="alert alert-danger">{{ $message }}</div>
+                                            <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
 
                                     </div>
@@ -95,30 +96,32 @@
                                     <div class="form-group col-md-6">
 
                                         <label for="service">الخدمة</label>
-                                        <select required class="select2 form-control pt-1"
-                                                name="service_id">
-                                            <option selected disabled>{{__('dash.choose')}}</option>
-                                            @foreach($services as $service)
-                                                <option value="{{$service->id}}"{{$booking->service_id == $service->id? 'selected' : ''}}>{{$service->title}}</option>
+                                        <select required class="select2 form-control pt-1" name="service_id">
+                                            <option selected disabled>{{ __('dash.choose') }}</option>
+                                            @foreach ($services as $service)
+                                                <option
+                                                    value="{{ $service->id }}"{{ $booking->service_id == $service->id ? 'selected' : '' }}>
+                                                    {{ $service->title }}</option>
                                             @endforeach
                                         </select>
                                         @error('service_id')
-                                        <div class="alert alert-danger">{{ $message }}</div>
+                                            <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
 
                                     </div>
                                     <div class="form-group col-md-6">
 
                                         <label>الفريق الفني</label>
-                                        <select required class="select2 form-control pt-1"
-                                                name="group_id">
-                                            <option selected disabled>{{__('dash.choose')}}</option>
-                                            @foreach($groups as $group)
-                                                <option value="{{$group->id}}"{{$booking->group_id == $group->id? 'selected' : ''}}>{{$group->name}}</option>
+                                        <select required class="select2 form-control pt-1" name="group_id">
+                                            <option selected disabled>{{ __('dash.choose') }}</option>
+                                            @foreach ($groups as $group)
+                                                <option
+                                                    value="{{ $group->id }}"{{ $booking->group_id == $group->id ? 'selected' : '' }}>
+                                                    {{ $group->name }}</option>
                                             @endforeach
                                         </select>
                                         @error('group_id')
-                                        <div class="alert alert-danger">{{ $message }}</div>
+                                            <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
 
                                     </div>
@@ -131,10 +134,10 @@
                                     <div class="form-group col-md-4">
 
                                         <label for="birth">التاريخ</label>
-                                        <input required name="date" type="date" value="{{$booking->date}}" class="form-control datepicker"
-                                               data-date-format="dd/mm/yyyy">
+                                        <input required name="date" type="date" value="{{ $booking->date }}"
+                                            class="form-control datepicker" data-date-format="dd/mm/yyyy">
                                         @error('date')
-                                        <div class="alert alert-danger">{{ $message }}</div>
+                                            <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
 
                                     </div>
@@ -142,10 +145,10 @@
                                     <div class="form-group col-md-4">
 
                                         <label for="birth">الوقت</label>
-                                        <input required name="time" type="time" value="{{$booking->time}}" class="form-control timepicker"
-                                               data-date-format="h:i">
+                                        <input required name="time" type="time" value="{{ $booking->time }}"
+                                            class="form-control timepicker" data-date-format="h:i">
                                         @error('time')
-                                        <div class="alert alert-danger">{{ $message }}</div>
+                                            <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
 
                                     </div>
@@ -153,15 +156,16 @@
                                     <div class="form-group col-md-4">
 
                                         <label for="service">حالة الحجز</label>
-                                        <select required class="select2 form-control pt-1"
-                                                name="booking_status_id">
-                                            <option selected disabled>{{__('dash.choose')}}</option>
-                                            @foreach($statuses as $status)
-                                                <option value="{{$status->id}}" {{$booking->booking_status_id == $status->id? 'selected' : ''}}>{{$status->name}}</option>
+                                        <select required class="select2 form-control pt-1" name="booking_status_id">
+                                            <option selected disabled>{{ __('dash.choose') }}</option>
+                                            @foreach ($statuses as $status)
+                                                <option value="{{ $status->id }}"
+                                                    {{ $booking->booking_status_id == $status->id ? 'selected' : '' }}>
+                                                    {{ $status->name }}</option>
                                             @endforeach
                                         </select>
                                         @error('booking_status_id')
-                                        <div class="alert alert-danger">{{ $message }}</div>
+                                            <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
 
                                     </div>
@@ -173,9 +177,9 @@
                                     <div class="form-group col-md-12">
 
                                         <label for="notes">ملاحظات</label>
-                                        <textarea name="notes" cols="30" rows="2" class="form-control">{{$booking->notes}}</textarea>
+                                        <textarea name="notes" cols="30" rows="2" class="form-control">{{ $booking->notes }}</textarea>
                                         @error('notes')
-                                        <div class="alert alert-danger">{{ $message }}</div>
+                                            <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
 
                                     </div>
@@ -186,15 +190,10 @@
                             <div class="box-body">
                                 <div class="form-row">
                                     <div class="col-md-6">
-                                        <label
-                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
-                                            <input
-                                                type="checkbox"
-                                                name="notify"
-                                                class="new-control-input perm-check perm-check-admins"
-                                            >
-                                            <span
-                                                class="new-control-indicator"></span><span
+                                        <label class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                            <input type="checkbox" name="notify"
+                                                class="new-control-input perm-check perm-check-admins">
+                                            <span class="new-control-indicator"></span><span
                                                 class="new-chk-content"><strong>إرسال إخطار SMS إلى العميل</strong></span>
                                         </label>
                                     </div>
@@ -206,9 +205,9 @@
                                     </div>
 
                                     <div class="col-md-6 text-right">
-                                        <button type="submit" class="btn btn-primary">{{__('dash.save')}}</button>
-                                        <button class="btn" data-dismiss="modal"><i
-                                                class="flaticon-cancel-12"></i> {{__('dash.close')}}
+                                        <button type="submit" class="btn btn-primary">{{ __('dash.save') }}</button>
+                                        <button class="btn" data-dismiss="modal"><i class="flaticon-cancel-12"></i>
+                                            {{ __('dash.close') }}
                                         </button>
                                     </div>
                                 </div>
@@ -223,4 +222,3 @@
 
     </div>
 @endsection
-

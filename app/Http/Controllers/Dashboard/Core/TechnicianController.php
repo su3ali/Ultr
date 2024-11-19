@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Group;
 use App\Models\Specialization;
 use App\Models\Technician;
+use App\Models\Visit;
 use App\Traits\imageTrait;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -67,8 +68,10 @@ class TechnicianController extends Controller
                 'recordsFiltered' => $filteredRecords,
                 'data' => $technicians->map(function ($row) {
                     return [
-                        'id' => $row->id,
-                        'name' => $row->name,
+                        // 'id' => '<a href="' . route('your.route.name', ['id' => $row->id]) . '">' . $row->id . '</a>',
+                        'id' => '<a href="' . route('dashboard.core.technician.details', ['id' => $row->id]) . '">' . $row->id . '</a>',
+
+                        'name' => '<a href="#" >' . $row->name . '</a>',
                         't_image' => '<img class="img-fluid" style="width: 85px;" src="' . asset($row->image) . '"/>',
                         'spec' => $row->specialization?->name,
                         'phone' => $row->phone,
@@ -105,6 +108,19 @@ class TechnicianController extends Controller
         ];
 
         return view('dashboard.core.technicians.index', compact('groups', 'specs', 'nationalities'));
+
+    }
+
+    public function showTechnicianDetails($id)
+    {
+        // Fetch technician details
+        $technician = Technician::with(['group', 'specialization'])->findOrFail($id); // Eager load related data
+        $visits = Visit::where('assign_to_id', $technician->id)
+            ->orderBy('created_at', 'desc') // Order by created_at in descending order
+            ->paginate(10);
+
+        // Pass the technician data to the view
+        return view('dashboard.core.technicians.details', compact('technician', 'visits'));
 
     }
 
