@@ -95,7 +95,6 @@ class CheckoutController extends Controller
                         ['time', '=', $cart->time],
                     ])
                     ->count();
-                // dd($countGroup);
 
                 if (($countInBooking >= $countGroup)) {
                     return self::apiResponse(400, __('api.time_not_available'), $this->body);

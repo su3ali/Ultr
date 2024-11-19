@@ -440,7 +440,7 @@ class BookingController extends Controller
                 ->whereTime('end_time', '>', $request->time)
                 ->whereJsonContains('group_id', (string) $request->group_id) // Cast to string for JSON comparison
                 ->whereJsonContains('day_id', (string) $adjustedIndex) // Cast to string for JSON comparison
-                ->first();
+                ->where('is_active', 1)->first();
 
             // return $shift;
             if ($shift) {
