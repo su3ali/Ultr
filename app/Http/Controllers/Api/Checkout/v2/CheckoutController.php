@@ -56,13 +56,12 @@ class CheckoutController extends Controller
 
             $user = auth()->user('sanctum');
             $carts = Cart::query()->where('user_id', $user->id)->get();
-            // dd($carts->first()->time);
 
-            if ($carts->first()) {
+            if ($carts->first() && $carts->first()->time != null) {
                 $shift = Shift::find($request->shift_id);
 
             } else {
-                return self::apiResponse(400, __('api.cart empty'), $this->body);
+                return self::apiResponse(400, __('api.time_not_available'), $this->body);
 
             }
 
@@ -99,7 +98,7 @@ class CheckoutController extends Controller
                 // dd($countGroup);
 
                 if (($countInBooking >= $countGroup)) {
-                    return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+                    return self::apiResponse(400, __('api.time_not_available'), $this->body);
                 }
             }
             return self::apiResponse(200, __('api.order created successfully'), $this->body);

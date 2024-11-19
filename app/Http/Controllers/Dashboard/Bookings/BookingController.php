@@ -149,7 +149,6 @@ class BookingController extends Controller
         // dd($bookings->first()->visit->group->id);
 
         if (request()->ajax()) {
-            $search = $request->query('search'); // Get the search input
 
             $date = \request()->query('date');
             $date2 = \request()->query('date2');
@@ -187,6 +186,24 @@ class BookingController extends Controller
             }
 
             // Add search functionality
+            // Apply search filter
+            if ($request->filled('search.value')) {
+                $search = $request->input('search.value');
+                $bookings->where(function ($query) use ($search) {
+
+                    $query->WhereHas('customer', function ($query) use ($search) {
+                        $query->Where('first_name', 'LIKE', "%$search%")
+                            ->orWhere('phone', 'LIKE', "%$search%");
+                    })
+
+                        ->orWhereHas('visit.group', function ($query) use ($search) {
+                            $query->where('name_ar', 'LIKE', "%$search%");
+                        })
+
+                        ->orWhere('id', 'LIKE', "%$search%")
+                        ->orWhere('date', 'LIKE', "%$search%");
+                });
+            }
 
             $visits = Visit::query()->pluck('booking_id')->toArray();
 

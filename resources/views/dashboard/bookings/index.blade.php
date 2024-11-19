@@ -264,6 +264,11 @@
                 updateTableData();
             });
 
+            // Trigger search update
+            $('#searchInput').on('keyup', function() {
+                table.draw();
+            });
+
 
 
         });

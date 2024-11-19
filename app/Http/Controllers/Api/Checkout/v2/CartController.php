@@ -308,7 +308,7 @@ class CartController extends Controller
                     return self::apiResponse(200, __('api.date and time for reservations updated successfully'), $this->body);
                 }
             }
-            return self::apiResponse(400, __('api.cart empty'), $this->body);
+            return self::apiResponse(400, __('api.time_not_available'), $this->body);
         } catch (\Exception $e) {
 
             return response()->json(['error' => $e->getMessage()], 500);
