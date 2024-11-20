@@ -467,12 +467,12 @@ class BookingController extends Controller
             }
             // return $address;
 
-            $availableShiftGroups = Group::
+            $availableGroups = Group::
                 whereIn('id', $availableGroupsIds)
                 ->pluck('name_ar', 'id')
                 ->toArray();
 
-            return response($availableShiftGroups);
+            return response($availableGroups);
 
         }
 
