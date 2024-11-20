@@ -448,15 +448,14 @@ class BookingController extends Controller
 
             $duration = $bookSetting->service_duration;
 
-            $start_time = Carbon::createFromFormat('H:i:s', $start_time);
+            $formated_start_time = Carbon::createFromFormat('H:i:s', $start_time);
 
-            $end_time = $start_time->addMinutes($duration * $request->quantity)->format('H:i:s');
-            $today = Carbon::today(); // Get today's date at midnight
+            $end_time = $formated_start_time->addMinutes($duration * $request->quantity)->format('H:i:s');
 
-            $takenIds = Visit::whereDate('created_at', '>=', $today)
-                ->where('start_time', '<', $end_time)
-                ->where('end_time', '>', $start_time)
-                ->activeVisits()
+            $takenIds = Visit::
+                where('start_time', '<', $end_time) // Visit starts before the passed end_time
+                ->where('end_time', '>', $start_time) // Visit ends after the passed start_time
+                ->activeVisits() // Assuming this is a custom scope for active visits
                 ->whereIn('booking_id', $booking_id)
                 ->whereIn('assign_to_id', $groupIds)
                 ->pluck('assign_to_id')
