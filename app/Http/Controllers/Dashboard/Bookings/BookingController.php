@@ -11,7 +11,6 @@ use App\Models\ContractPackage;
 use App\Models\Group;
 use App\Models\Order;
 use App\Models\Service;
-use App\Models\Shift;
 use App\Models\User;
 use App\Models\UserAddresses;
 use App\Models\Visit;
@@ -409,7 +408,6 @@ class BookingController extends Controller
 
     protected function getGroupByService(Request $request)
     {
-        // return $request->all();
 
         // Return the data as a JSON response
         if ($request->type == 'package') {
@@ -430,76 +428,52 @@ class BookingController extends Controller
             $groupIds = CategoryGroup::where('category_id', $request->category_id)->pluck('group_id')->toArray();
             $address = UserAddresses::where('id', $request->address_id)->first();
 
-            // $groups = Group::where('active', 1)->whereIn('id', $groupIds)->get();
-
             $dayIndex = Carbon::parse()->timezone('Asia/Riyadh')->dayOfWeek;
             $adjustedIndex = ($dayIndex == 5) ? 1 : ($dayIndex == 6 ? 7 : $dayIndex + 2);
             // Ensure $adjustedIndex is cast to a string
-            $shift = Shift::whereTime('start_time', '<', $request->time)
-                ->whereTime('end_time', '>', $request->time)
-                ->whereJsonContains('group_id', (string) $request->group_id) // Cast to string for JSON comparison
-                ->whereJsonContains('day_id', (string) $adjustedIndex) // Cast to string for JSON comparison
-                ->where('is_active', 1)->first();
 
-            // return $shift->id->ToArray();
-            if ($shift != null) {
-                // Pull the group_id from the shift and convert it to an array (assuming it's stored as a JSON array)
-                $groupIds = $shift->pluck('group_id')->toArray();
+            $groupIds = Group::groupInRegionCategory($address->region_id, [$category_id])->pluck('id')->toArray();
 
-                // Optionally, convert the values to integers if necessary
-                $groupIds = json_decode($groupIds[0], true); // Decoding the JSON to an array
-                $groupIds = array_map('intval', $groupIds); // Convert the values to integers
-                // return $groupIds;
+            // return $groupIds;
 
-                $booking_id = Booking::whereHas('category', function ($qu) use ($category_id) {
-                    $qu->where('category_id', $category_id);
-                })->where('date', $request->date)->pluck('id')->toArray();
+            $booking_id = Booking::whereHas('category', function ($qu) use ($category_id) {
+                $qu->where('category_id', $category_id);
+            })->where('date', $request->date)->pluck('id')->toArray();
 
-                // return $shift;
+            // return $shift;
 
-                $bookSetting = BookingSetting::first();
+            $bookSetting = BookingSetting::first();
 
-                $start_time = $request->time;
+            $start_time = $request->time;
 
-                $duration = $bookSetting->service_duration;
+            $duration = $bookSetting->service_duration;
 
-                $start_time = Carbon::createFromFormat('H:i:s', $start_time);
+            $start_time = Carbon::createFromFormat('H:i:s', $start_time);
 
-                $end_time = $start_time->addMinutes($duration * $request->quantity)->format('H:i:s');
+            $end_time = $start_time->addMinutes($duration * $request->quantity)->format('H:i:s');
 
-                $takenIds = Visit::where('start_time', '>=', Carbon::today()) // Visits starting from today
-                    ->where('end_time', '>', Carbon::now())
-                    ->activeVisits()
-                    ->whereIn('booking_id', $booking_id)
-                    ->whereIn('assign_to_id', $groupIds)
-                    ->pluck('assign_to_id')
-                    ->toArray();
+            $takenIds = Visit::where('start_time', '>=', Carbon::today()) // Visits starting from today
+                ->where('end_time', '>', Carbon::now())
+                ->activeVisits()
+                ->whereIn('booking_id', $booking_id)
+                ->whereIn('assign_to_id', $groupIds)
+                ->pluck('assign_to_id')
+                ->toArray();
 
-                $availableShiftGroupsIds = array_diff($groupIds, $takenIds);
+            $availableGroupsIds = array_diff($groupIds, $takenIds);
 
-                if (empty($availableShiftGroupsIds)) {
-                    return [];
-                }
-                // return $address;
-
-                $availableShiftGroups = Group::
-                    whereIn('id', $availableShiftGroupsIds)
-                    ->pluck('name_ar', 'id')
-                    ->toArray();
-
-                return response($availableShiftGroups);
-
-            } else {
-
-                $group = [];
-                return response($group);
+            if (empty($availableGroupsIds)) {
+                return [];
             }
+            // return $address;
 
-            // error_log("BBBBBBB");
-            // error_log(sizeof($groups));
-            // foreach ($groups as $key => $value){
-            //     error_log($value);
-            // }
+            $availableShiftGroups = Group::
+                whereIn('id', $availableGroupsIds)
+                ->pluck('name_ar', 'id')
+                ->toArray();
+
+            return response($availableShiftGroups);
+
         }
 
     }
