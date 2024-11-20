@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 
 class UserFactory extends Factory
 {
@@ -15,11 +14,20 @@ class UserFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->name(),
-            'email' => $this->faker->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-            'remember_token' => Str::random(10),
+            'first_name' => $this->faker->name,
+            'last_name' => $this->faker->name,
+            'email' => $this->faker->unique()->safeEmail,
+            'phone' => $this->faker->unique()->regexify('(\+966|05)\d{8}'),
+            'email_verified_at' => $this->faker->optional()->dateTimeThisYear(),
+            'password' => bcrypt('password'), // you can modify the password as needed
+            'active' => '1', // Default value for active
+            // 'point' => $this->faker->point,
+            'fcm_token' => 'dWvH7_h3TvmghZvRQSw0Jd:APA91bHi2FloOBDquwB7VOmLEE_CC9p6nIPMOK7BGmxMEHU5-D1lCCu3Y9o7oGppJaTgSX7ZnCPRq4rCyUsgxsmlF2cIEOR6TuOSwxqcl3oDdyq31Cpge0XHh_hqgeE3rbH5q3TNwkL-',
+            'city_id' => 1,
+
+            'created_by' => $this->faker->optional()->randomDigitNotNull(),
+            'updated_by' => $this->faker->optional()->randomDigitNotNull(),
+            'remember_token' => \Str::random(10),
         ];
     }
 

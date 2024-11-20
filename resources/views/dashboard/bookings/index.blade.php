@@ -185,7 +185,7 @@
                 },
                 processing: true,
                 responsive: true,
-                serverSide: false,
+                serverSide: true,
                 ajax: '{{ url('admin/bookings?type=' . $type) }}',
                 columns: [{
                         data: 'id',
@@ -264,6 +264,11 @@
                 updateTableData();
             });
 
+            // Trigger search update
+            $('#searchInput').on('keyup', function() {
+                table.draw();
+            });
+
 
 
         });
@@ -276,6 +281,12 @@
             let visit_id = $(this).data('visit_id');
             let address_id = $(this).data('address_id');
             let type = $(this).data('type');
+            let date = $(this).data('date');
+            let time = $(this).data('time');
+            let group_id = $(this).data('group_id');
+            let quantity = $(this).data('quantity');
+
+
             $.ajax({
                 url: '{{ route('dashboard.getGroupByService') }}',
                 type: 'get',
@@ -284,10 +295,19 @@
                     type: type,
                     booking_id: booking_id,
                     category_id: category_id,
-                    address_id: address_id
+                    address_id: address_id,
+
+                    date: date,
+                    time: time,
+                    group_id: group_id,
+                    quantity: quantity,
+
+
+
                 },
                 success: function(data) {
                     console.log(data)
+
                     var select = document.getElementById("edit_group_id");
                     var length = select.options.length;
                     for (i = length - 1; i >= 0; i--) {

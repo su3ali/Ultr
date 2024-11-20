@@ -30,9 +30,12 @@ use Yajra\DataTables\DataTables;
 class OrderController extends Controller
 {
     use schedulesTrait;
-    public function index()
+    public function index(Request $request)
     {
-        
+        // Get pagination data sent by DataTables
+        $start = $request->input('start', 0); // Start index
+        $length = $request->input('length', 10); // Page size
+
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
         // Start building the query
@@ -56,9 +59,11 @@ class OrderController extends Controller
 
             // Additional filtering to ensure only active orders are returned
             $ordersQuery->where('is_active', 1);
+            // $ordersQuery->skip($start)
+            //     ->take($length);
 
             // Get the filtered results
-            return DataTables::of($ordersQuery->get())
+            return DataTables::of($ordersQuery)
                 ->addColumn('booking_id', function ($row) {
                     return $row->bookings->first() ? $row->bookings->first()->id : '';
                 })
@@ -115,120 +120,8 @@ class OrderController extends Controller
         }
 
         $statuses = OrderStatus::all()->pluck('name', 'id');
-        return view('dashboard.orders.index', compact('statuses'));
+        return view('dashboard.orders.index', compact('statuses', 'start', 'length'));
     }
-
-    // public function index()
-    // {
-    //     $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
-
-    //     if (request()->ajax()) {
-    //         // Build the query
-    //         $ordersQuery = Order::query()
-    //             ->whereHas('userAddresses', function ($query) use ($regionIds) {
-    //                 $query->whereIn('region_id', $regionIds);
-    //             })
-    //             ->with(['user', 'transaction', 'status', 'bookings.visit.status', 'services.category']);
-
-    //         // Apply page filter if provided
-    //         if (request()->page) {
-    //             $now = Carbon::now('Asia/Riyadh')->toDateString();
-    //             $ordersQuery->where('status_id', '!=', 5)
-    //                 ->whereDate('created_at', '=', $now);
-    //         }
-
-    //         // Apply status filter if provided
-    //         if (request()->status) {
-    //             $ordersQuery->where('status_id', request()->status);
-    //         }
-
-    //         // Apply is_active filter
-    //         $ordersQuery->where('is_active', 1);
-
-    //         // Get the results
-    //         $orders = $ordersQuery->get();
-
-    //         // Pass the results to DataTables
-    //         return DataTables::of($orders)
-    //             ->addColumn('booking_id', function ($row) {
-    //                 $booking = $row->bookings->first();
-    //                 return $booking ? $booking->id : '';
-    //             })
-    //             ->addColumn('user', function ($row) {
-    //                 return $row->user?->first_name . ' ' . $row->user?->last_name;
-    //             })
-    //             ->addColumn('service', function ($row) {
-    //                 $services = $row->services->unique();
-    //                 $html = '';
-    //                 foreach ($services as $service) {
-    //                     $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
-    //                 }
-
-    //                 return $html;
-    //             })
-    //             ->addColumn('quantity', function ($row) {
-    //                 $qu = $row->services->pluck('pivot.quantity')->toArray();
-    //                 return array_sum($qu);
-    //             })
-    //             ->addColumn('payment_method', function ($row) {
-    //                 $payment_method = $row->transaction?->payment_method;
-    //                 if ($payment_method == "cache" || $payment_method == "cash") {
-    //                     return "شبكة";
-    //                 } else if ($payment_method == "wallet") {
-    //                     return "محفظة";
-    //                 } else {
-    //                     return "فيزا";
-    //                 }
-    //             })
-    //             ->addColumn('status', function ($row) {
-    //                 return $row->bookings?->first()?->visit?->status->name_ar;
-    //             })
-    //             ->addColumn('created_at', function ($row) {
-    //                 $date = Carbon::parse($row->created_at)->timezone('Asia/Riyadh');
-    //                 return $date->format("Y-m-d H:i:s");
-    //             })
-    //             ->addColumn('control', function ($row) {
-    //                 $html = '';
-    //                 if ($row->status_id == 2) {
-    //                     $html .= '<a href="' . route('dashboard.order.confirmOrder', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-    //                     <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
-    //                 </a>';
-    //                 }
-    //                 $html .= '
-    //                 <button type="button" id="show-bookings" class="btn btn-sm btn-outline-primary" data-id="' . $row->id . '"
-    //                     data-toggle="modal" data-target="#changeGroupModel">
-    //                     <i class="far fa-eye fa-2x"></i>
-    //                 </button>
-
-    //                 <a href="' . route('dashboard.order.orderDetail', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-    //                     <i class="far fa-eye fa-2x"></i>
-    //                 </a>
-
-    //                 <a href="' . route('dashboard.order.showService', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-    //                     <i class="far fa-eye fa-2x"></i>
-    //                 </a>
-    //                 <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
-    //                     <i class="far fa-trash-alt fa-2x"></i>
-    //                 </a>';
-
-    //                 return $html;
-    //             })
-    //             ->rawColumns([
-    //                 'booking_id',
-    //                 'user',
-    //                 'service',
-    //                 'quantity',
-    //                 'payment_method',
-    //                 'status',
-    //                 'created_at',
-    //                 'control',
-    //             ])
-    //             ->make(true);
-    //     }
-
-    //     $statuses = OrderStatus::all()->pluck('name', 'id');
-    //     return view('dashboard.orders.index', compact('statuses'));
-    // }
 
     public function ordersToday()
     {
@@ -434,16 +327,128 @@ class OrderController extends Controller
         return view('dashboard.orders.canceled_orders_today', compact('statuses'));
     }
 
-    public function canceledOrders()
+    // public function canceledOrders()
+    // {
+    //     $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
+
+    //     if (request()->ajax()) {
+
+    //         $orders = Order::where('status_id', 5)->where('is_active', 1)
+    //             ->whereHas('userAddress', function ($query) use ($regionIds) {
+    //                 $query->whereIn('region_id', $regionIds);
+    //             })->get();
+
+    //         return DataTables::of($orders)
+    //             ->addColumn('booking_id', function ($row) {
+    //                 $booking = $row->bookings->first();
+    //                 return $booking ? $booking->id : '';
+    //             })
+    //             ->addColumn('user', function ($row) {
+    //                 return $row->user?->first_name . ' ' . $row->user?->last_name;
+    //             })
+    //             ->addColumn('service', function ($row) {
+    //                 $qu = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
+    //                 $services_ids = array_unique($qu);
+    //                 $services = Service::whereIn('id', $services_ids)->get();
+    //                 $html = '';
+    //                 foreach ($services as $service) {
+    //                     $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
+    //                 }
+
+    //                 return $html;
+    //             })
+    //             ->addColumn('quantity', function ($row) {
+    //                 $qu = OrderService::where('order_id', $row->id)->get()->pluck('quantity')->toArray();
+
+    //                 return array_sum($qu);
+    //             })
+    //             ->addColumn('status', function ($row) {
+
+    //                 return $row->status?->name;
+    //             })
+    //             ->addColumn('created_at', function ($row) {
+    //                 $date = Carbon::parse($row->created_at)->timezone('Asia/Riyadh');
+
+    //                 return $date->format("Y-m-d H:i:s");
+    //             })
+    //             ->addColumn('updated_at', function ($row) {
+    //                 $date = Carbon::parse($row->updated_at)->timezone('Asia/Riyadh');
+
+    //                 return $date->format("Y-m-d H:i:s");
+    //             })
+    //             ->addColumn('control', function ($row) {
+
+    //                 $html = '';
+    //                 if ($row->status_id == 2) {
+    //                     $html .= '<a href="' . route('dashboard.order.confirmOrder', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+    //                         <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
+    //                     </a>';
+    //                 }
+    //                 $html .= '
+    //                 <a href="' . route('dashboard.order.orderDetail', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+    //                         <i class="far fa-eye fa-2x"></i>
+    //                     </a>
+
+    //                     <a href="' . route('dashboard.order.showService', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+    //                         <i class="far fa-eye fa-2x"></i>
+    //                     </a>
+    //                             <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
+    //                         <i class="far fa-trash-alt fa-2x"></i>
+    //                 </a>
+    //                             ';
+
+    //                 return $html;
+    //             })
+    //             ->rawColumns([
+    //                 'booking_id',
+    //                 'user',
+    //                 'service',
+    //                 'quantity',
+    //                 'status',
+    //                 'created_at',
+    //                 'updated_at',
+    //                 'control',
+    //             ])
+    //             ->make(true);
+    //     }
+    //     $statuses = OrderStatus::all()->pluck('name', 'id');
+    //     return view('dashboard.orders.canceled_orders', compact('statuses'));
+    // }
+    public function canceledOrders(Request $request)
     {
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
-        if (request()->ajax()) {
+        // Get pagination data sent by DataTables
+        $start = $request->input('start', 0); // Start index
+        $length = $request->input('length', 10); // Page size
 
-            $orders = Order::where('status_id', 5)->where('is_active', 1)
-                ->whereHas('userAddress', function ($query) use ($regionIds) {
-                    $query->whereIn('region_id', $regionIds);
-                })->get();
+        // Start building the query
+        $ordersQuery = Order::query()
+            ->where('status_id', 5) // Filter for canceled orders
+            ->where('is_active', 1) // Ensure active orders are returned
+            ->whereHas('userAddress', function ($query) use ($regionIds) {
+                $query->whereIn('region_id', $regionIds);
+            })
+            ->with(['user', 'status', 'bookings.visit.status', 'services.category']);
+
+        // Count total records before applying pagination
+        $totalOrders = $ordersQuery->count();
+
+        // Apply additional filtering and pagination
+        if ($request->ajax()) {
+            if ($request->status) {
+                $ordersQuery->where('status_id', $request->status);
+            }
+
+            if ($request->page) {
+                $now = Carbon::now('Asia/Riyadh')->toDateString();
+                $ordersQuery->whereDate('created_at', '=', $now);
+            }
+
+            $orders = $ordersQuery->skip($start)
+                ->take($length)
+                ->get();
+
             return DataTables::of($orders)
                 ->addColumn('booking_id', function ($row) {
                     $booking = $row->bookings->first();
@@ -460,49 +465,39 @@ class OrderController extends Controller
                     foreach ($services as $service) {
                         $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
                     }
-
                     return $html;
                 })
                 ->addColumn('quantity', function ($row) {
                     $qu = OrderService::where('order_id', $row->id)->get()->pluck('quantity')->toArray();
-
                     return array_sum($qu);
                 })
                 ->addColumn('status', function ($row) {
-
                     return $row->status?->name;
                 })
                 ->addColumn('created_at', function ($row) {
-                    $date = Carbon::parse($row->created_at)->timezone('Asia/Riyadh');
-
-                    return $date->format("Y-m-d H:i:s");
+                    return Carbon::parse($row->created_at)->timezone('Asia/Riyadh')->format("Y-m-d H:i:s");
                 })
                 ->addColumn('updated_at', function ($row) {
-                    $date = Carbon::parse($row->updated_at)->timezone('Asia/Riyadh');
-
-                    return $date->format("Y-m-d H:i:s");
+                    return Carbon::parse($row->updated_at)->timezone('Asia/Riyadh')->format("Y-m-d H:i:s");
                 })
                 ->addColumn('control', function ($row) {
-
                     $html = '';
                     if ($row->status_id == 2) {
-                        $html .= '<a href="' . route('dashboard.order.confirmOrder', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                            <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
-                        </a>';
+                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                        <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
+                    </a>';
                     }
                     $html .= '
-                    <a href="' . route('dashboard.order.orderDetail', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                            <i class="far fa-eye fa-2x"></i>
-                        </a>
-
-                        <a href="' . route('dashboard.order.showService', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                            <i class="far fa-eye fa-2x"></i>
-                        </a>
-                                <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
-                            <i class="far fa-trash-alt fa-2x"></i>
+                    <a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                        <i class="far fa-eye fa-2x"></i>
                     </a>
-                                ';
-
+                    <a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                        <i class="far fa-eye fa-2x"></i>
+                    </a>
+                    <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
+                        <i class="far fa-trash-alt fa-2x"></i>
+                    </a>
+                ';
                     return $html;
                 })
                 ->rawColumns([
@@ -515,8 +510,14 @@ class OrderController extends Controller
                     'updated_at',
                     'control',
                 ])
+                ->with([
+                    'recordsTotal' => $totalOrders, // Total records count (without filtering)
+                    'recordsFiltered' => $totalOrders, // Filtered count (same here, as no additional filters applied)
+                ])
                 ->make(true);
         }
+
+        // Non-AJAX request (Initial page load)
         $statuses = OrderStatus::all()->pluck('name', 'id');
         return view('dashboard.orders.canceled_orders', compact('statuses'));
     }
