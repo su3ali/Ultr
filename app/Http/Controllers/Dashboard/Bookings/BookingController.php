@@ -453,9 +453,9 @@ class BookingController extends Controller
             $end_time = $start_time->addMinutes($duration * $request->quantity)->format('H:i:s');
             $today = Carbon::today(); // Get today's date at midnight
 
-            $takenIds = Visit::whereDate('created_at', '>=', $today)->
-                where('start_time', '>=', $start_time) // Visits starting from today
-                ->where('end_time', '>', $end_time)
+            $takenIds = Visit::whereDate('created_at', '>=', $today)
+                ->where('start_time', '<', $end_time)
+                ->where('end_time', '>', $start_time)
                 ->activeVisits()
                 ->whereIn('booking_id', $booking_id)
                 ->whereIn('assign_to_id', $groupIds)
