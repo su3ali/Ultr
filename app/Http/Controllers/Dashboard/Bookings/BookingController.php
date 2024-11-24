@@ -281,8 +281,15 @@ class BookingController extends Controller
                         'time' => Carbon::parse($row->time)->timezone('Asia/Riyadh')->format('g:i A'),
                         'group' => $row->visit?->group?->name,
                         'status' => $row->visit?->status?->name_ar,
+                        'new' => $row->visit?->status?->name_ar,
                         'date' => $row->date,
                         'quantity' => $row->quantity,
+                        'payment_method' => match ($row->visit->booking->order->transaction->payment_method ?? '') {
+                            'cache', 'cash' => '<i class="fas fa-money-bill-wave"></i> شبكة', // Replace with your desired icon class or Unicode
+                            'wallet' => '<i class="fas fa-wallet"></i> محفظة',
+                            default => '<i class="fas fa-credit-card"></i> فيزا',
+                        },
+
                         'notes' => $row->notes,
                         'control' => $html, // Add the generated HTML directly here
                     ];
