@@ -12,11 +12,15 @@ class Order extends Model
 
     // public function user()
     // {
-    //     return $this->hasOne(User::class, 'id', 'user_id');
+    //     return $this->belongsTo(User::class, 'id', 'user_id');
     // }
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    public function customer()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function category()
@@ -26,6 +30,11 @@ class Order extends Model
     public function service()
     {
         return $this->hasOne(Service::class, 'id', 'service_id');
+    }
+
+    public function orderService()
+    {
+        return $this->hasOne(OrderService::class, 'id', 'order_id');
     }
 
     public function contract()
@@ -61,5 +70,9 @@ class Order extends Model
         return $this->hasOne(CarClient::class, 'id', 'car_user_id')->withTrashed();
     }
 
-   
+    public function orderServices()
+    {
+        return $this->hasMany(OrderService::class, 'order_id'); // Relating orders to order_services
+    }
+
 }

@@ -110,9 +110,15 @@
     <script type="text/javascript">
         $(document).ready(function() {
             var table = $('#html5-extension').DataTable({
-                dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-6 d-flex justify-content-md-start justify-content-center'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
+                dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
                     "<'table-responsive'tr>" +
-                    "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count  mb-sm-0 mb-3'i><'dt--pagination'p>>",
+                    "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
+
+                lengthMenu: [
+                    [100, 200, 500],
+                    [100, 200, 500]
+                ], // Add dropdown for row selection
+                pageLength: 100, // Default rows per page
                 order: [
                     [0, 'desc']
                 ],
@@ -123,22 +129,29 @@
                     buttons: [{
                             extend: 'copy',
                             className: 'btn btn-sm',
-                            text: 'نسخ'
+                            text: 'نسخ',
+
+
+
                         },
                         {
                             extend: 'csv',
                             className: 'btn btn-sm',
-                            text: 'تصدير إلى CSV'
+                            text: 'تصدير إلى CSV',
+
                         },
                         {
                             extend: 'excel',
                             className: 'btn btn-sm',
-                            text: 'تصدير إلى Excel'
+                            text: 'تصدير إلى Excel',
+
+
                         },
                         {
                             extend: 'print',
                             className: 'btn btn-sm',
-                            text: 'طباعة'
+                            text: 'طباعة',
+
                         }
                     ]
                 },
@@ -148,12 +161,14 @@
                 ajax: {
                     url: '{{ route('dashboard.orders.index') }}',
                     data: function(d) {
-                        // Pass the pagination data along with the request
-                        // d.start = {{ $start }}; // Pass start index
-                        // d.length = {{ $length }}; // Pass page size
+
+                        d.start = d.start; // Ensures correct offset
+                        d.length = d.length; // Ensures correct page size
+
+
                     }
                 },
-                pagingType: 'full_numbers', // Ensure proper paging with next/prev buttons
+                pagingType: 'full_numbers',
                 columns: [{
                         data: 'id',
                         name: 'id'
@@ -196,7 +211,13 @@
                         orderable: false,
                         searchable: false
                     },
-                ]
+                ],
+
+
+
+            });
+            $('input[type="search"]').on('input', function() {
+                table.ajax.reload();
             });
 
             function updateTableData() {

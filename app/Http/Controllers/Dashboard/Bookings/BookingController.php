@@ -281,6 +281,7 @@ class BookingController extends Controller
                         'time' => Carbon::parse($row->time)->timezone('Asia/Riyadh')->format('g:i A'),
                         'group' => $row->visit?->group?->name,
                         'status' => $row->visit?->status?->name_ar,
+                        'new' => $row->visit?->status?->name_ar,
                         'date' => $row->date,
                         'quantity' => $row->quantity,
                         'notes' => $row->notes,
