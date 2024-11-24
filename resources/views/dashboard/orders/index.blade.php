@@ -114,11 +114,8 @@
                     "<'table-responsive'tr>" +
                     "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
 
-                lengthMenu: [
-                    [100, 200, 500],
-                    [100, 200, 500]
-                ], // Add dropdown for row selection
-                pageLength: 100, // Default rows per page
+
+                pageLength: 10, // Default rows per page
                 order: [
                     [0, 'desc']
                 ],

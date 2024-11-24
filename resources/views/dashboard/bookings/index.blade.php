@@ -227,9 +227,15 @@
                         data: 'group',
                         name: 'group'
                     },
+
                     {
+
                         data: 'status',
                         name: 'status'
+                    },
+                    {
+                        data: 'payment_method',
+                        name: 'payment_method'
                     },
                     {
                         data: 'notes',
