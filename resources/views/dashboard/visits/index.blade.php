@@ -110,7 +110,9 @@
                     buttons: [{
                             extend: 'copy',
                             className: 'btn btn-sm',
-                            text: 'نسخ'
+                            text: 'نسخ',
+
+
                         },
                         {
                             extend: 'csv',
