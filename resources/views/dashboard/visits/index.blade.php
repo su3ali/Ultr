@@ -97,12 +97,19 @@
     <script type="text/javascript">
         $(document).ready(function() {
             var table = $('#html5-extension').DataTable({
-                dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-6 d-flex justify-content-md-start justify-content-center'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
+                dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
                     "<'table-responsive'tr>" +
-                    "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count  mb-sm-0 mb-3'i><'dt--pagination'p>>",
+                    "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
+
+                lengthMenu: [
+                    [10, 25, 50, 100, 200, 500],
+                    [10, 25, 50, 100, 200, 500, ] // Dropdown options
+                ],
+                pageLength: 10, // Default rows per page
                 order: [
                     [0, 'desc']
                 ],
+
                 "language": {
                     "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
                 },
@@ -134,6 +141,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: '{{ route('dashboard.visits.index') }}',
+
                 columns: [{
                         data: 'id',
                         name: 'id'
