@@ -505,7 +505,6 @@ class CheckoutController extends Controller
                     'user_name' => auth()->user()->first_name ?? '',
                     'order_id' => $request->order_id,
                     'payment_method' => $request->payment_method,
-                    'transaction_id' => $trans->first()->id ?? '',
 
                 ])
                 ->log('Exception while processing the paid endpoint');
