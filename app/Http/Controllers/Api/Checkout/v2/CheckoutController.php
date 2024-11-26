@@ -509,13 +509,13 @@ class CheckoutController extends Controller
                     'url' => url()->current(),
                     'user_id' => auth()->user()->id,
                     'user_name' => auth()->user()->first_name,
-                    'cart_id' => Cart::where('user_id', auth()->user()->id)->pluck('id')->first(),
-                    'date' => $cart->date,
-                    'time' => $cart->time,
+                    'cart_id' => Cart::where('user_id', auth()->user()->id)->pluck('id')->first() ?? '',
+                    'date' => $cart->date ?? '',
+                    'time' => $cart->time ?? '',
                     'total' => $total,
-                    'transaction' => $transaction->id,
-                    'payment_method' => $transaction->payment_method,
-                    'order_id' => $order->id,
+                    'transaction' => $transaction->id ?? '',
+                    'payment_method' => $transaction->payment_method ?? '',
+                    'order_id' => $order->id ?? '',
 
                 ])
                 ->log('Exception while processing the Checkout V2 endpoint');

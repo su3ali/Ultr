@@ -508,6 +508,7 @@ class CheckoutController extends Controller
 
                 ])
                 ->log('Exception while processing the paid endpoint');
+            return response()->json(['error' => $e->getMessage()], 500);
 
         }
     }
