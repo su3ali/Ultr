@@ -100,8 +100,40 @@ class CheckoutController extends Controller
                     return self::apiResponse(400, __('api.time_not_available'), $this->body);
                 }
             }
+
+            activity()
+                ->causedBy(auth()->user()) // Action performed by the authenticated user
+                ->withProperties([
+                    'title' => 'A Test checkTimeDate  ', // Descriptive title of the action
+                    'user_id' => auth()->user()->id, // User’s ID for identification
+                    'user_name' => auth()->user()->first_name, // User’s name for clarity
+                    'region_id' => Cart::where('user_id', auth()->user()->id)->pluck('region_id')->first(),
+                    'date' => Cart::where('user_id', auth()->user()->id)->pluck('date')->first(),
+                    'time' => Cart::where('user_id', auth()->user()->id)->pluck('time')->first(),
+                    'price_in_cart' => Cart::where('user_id', auth()->user()->id)->pluck('price')->first(), // Total price of items in the cart (sum of prices)
+                    'quantity' => Cart::where('user_id', auth()->user()->id)->pluck('quantity')->first(), // Total quantity of items in the cart
+                    'current_url' => url()->current(), // URL of the page from which the action was triggered
+                ])
+                ->log('A Test checkTimeDate successfully '); // Log de
             return self::apiResponse(200, __('api.order created successfully'), $this->body);
         } catch (\Exception $e) {
+            // Log the exception with additional context
+            activity()
+                ->causedBy(auth()->user()) // Log the user who caused the action
+                ->withProperties([
+                    'exception_message' => $e->getMessage(),
+                    'exception_file' => $e->getFile(),
+                    'exception_line' => $e->getLine(),
+                    'url' => url()->current(),
+                    'user_id' => auth()->user()->id,
+                    'user_name' => auth()->user()->first_name,
+                    'cart_id' => Cart::where('user_id', auth()->user()->id)->pluck('id')->first(),
+                    'date' => $cart->date,
+                    'time' => $cart->time,
+                    'regionId' => $regionId,
+
+                ])
+                ->log('Exception while processing the add_to_cart endpoint');
 
             return response()->json(['error' => 'Failed .'], 500);
         }
@@ -177,6 +209,7 @@ class CheckoutController extends Controller
                 }
             }
             $total = $this->calc_total($carts);
+
             return $this->saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method);
         }
     }
@@ -423,7 +456,7 @@ class CheckoutController extends Controller
                 ]);
                 Order::where('id', $order->id)->update(array('partial_amount' => 0));
             } else {
-                Transaction::create([
+                $transaction = Transaction::create([
                     'order_id' => $order->id,
                     'transaction_number' => $request->transaction_id,
                     'payment_result' => 'success',
@@ -444,8 +477,49 @@ class CheckoutController extends Controller
 
             $this->body['order_id'] = $order->id;
 
+            activity()
+                ->causedBy(auth()->user()) // Action performed by the authenticated user
+                ->withProperties([
+                    'title' => 'A  checkout Endpoint  ', // Descriptive title of the action
+                    'user_id' => auth()->user()->id, // User’s ID for identification
+                    'user_name' => auth()->user()->first_name, // User’s name for clarity
+                    'region_id' => Cart::where('user_id', auth()->user()->id)->pluck('region_id')->first(),
+                    'date' => Cart::where('user_id', auth()->user()->id)->pluck('date')->first(),
+                    'time' => Cart::where('user_id', auth()->user()->id)->pluck('time')->first(),
+                    'total' => $total,
+                    'transaction' => $transaction->id,
+                    'payment_method' => $transaction->payment_method,
+                    'order_id' => $order->id,
+                    'price_in_cart' => Cart::where('user_id', auth()->user()->id)->pluck('price')->first(), // Total price of items in the cart (sum of prices)
+                    'quantity' => Cart::where('user_id', auth()->user()->id)->pluck('quantity')->first(), // Total quantity of items in the cart
+                    'current_url' => url()->current(), // URL of the page from which the action was triggered
+                ])
+                ->log('A Checkout  successfully '); //
+
             return self::apiResponse(200, __('api.order created successfully'), $this->body);
         } catch (\Exception $e) {
+
+            // Log the exception with additional context
+            activity()
+                ->causedBy(auth()->user()) // Log the user who caused the action
+                ->withProperties([
+                    'exception_message' => $e->getMessage(),
+                    'exception_file' => $e->getFile(),
+                    'exception_line' => $e->getLine(),
+                    'url' => url()->current(),
+                    'user_id' => auth()->user()->id,
+                    'user_name' => auth()->user()->first_name,
+                    'cart_id' => Cart::where('user_id', auth()->user()->id)->pluck('id')->first(),
+                    'date' => $cart->date,
+                    'time' => $cart->time,
+                    'total' => $total,
+                    'transaction' => $transaction->id,
+                    'payment_method' => $transaction->payment_method,
+                    'order_id' => $order->id,
+
+                ])
+                ->log('Exception while processing the Checkout V2 endpoint');
+
             DB::rollback(); // Rollback the transaction on error
             return self::apiResponse(500, __('api.Something went wrong, please try again later'), $this->body);
         }

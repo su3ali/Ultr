@@ -200,6 +200,11 @@
                     // {data: 'visit_id', name: 'visit_id'},
                     // {data: 'order', name: 'order'},
                     {
+                        data: 'order',
+                        name: 'order'
+                    },
+
+                    {
                         data: 'customer',
                         name: 'customer'
                     },
@@ -227,7 +232,11 @@
                         data: 'group',
                         name: 'group'
                     },
+                    {
 
+                        data: 'sub_total',
+                        name: 'sub_total'
+                    },
                     {
 
                         data: 'status',
