@@ -263,13 +263,16 @@ class BookingController extends Controller
                     }
 
                     // Add delete button
-                    $html .= '
+                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
+
+                        $html .= '
                     <a data-table_id="html5-extension"
                        data-href="' . route('dashboard.bookings.destroy', $row->id) . '"
                        data-id="' . $row->id . '"
                        class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
                        <i class="far fa-trash-alt fa-2x"></i>
                     </a>';
+                    }
 
                     // Return the generated HTML
                     return [
