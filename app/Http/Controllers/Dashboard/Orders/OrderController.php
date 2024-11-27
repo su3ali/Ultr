@@ -162,24 +162,20 @@ class OrderController extends Controller
             ->with(['user', 'bookings', 'transaction', 'status', 'bookings.visit.status', 'services.category']);
 
         $orders = $ordersQuery->get();
-        // dd($orders->first()->bookings); // Should return orders filtered by region and matching search criteria
+        // dd($orders->first()->user);
+        // dd($orders->user);
 
         if ($request->has('search_value') && $request->search_value != '') {
             $searchTerm = $request->search_value;
+
             $ordersQuery->where(function ($query) use ($searchTerm) {
                 $query->where('id', 'like', "%{$searchTerm}%")
-                    ->orWhereHas('user', function ($q) use ($searchTerm) {
-                        $q->where('first_name', 'like', "%{$searchTerm}%")
-                            ->orWhere('last_name', 'like', "%{$searchTerm}%");
-                    })
-
-                    ->orWhereHas('bookings', function ($q) use ($searchTerm) {
-                        $q->where('id', 'like', "%{$searchTerm}%");
-                    })
                     ->orWhere('total', 'like', "%{$searchTerm}%")
-                    ->orWhereHas('status', function ($q) use ($searchTerm) {
-                    })
-                    ->orWhereDate('created_at', 'like', "%{$searchTerm}%");
+                    ->orWhere('created_at', 'like', "%{$searchTerm}%")
+                    ->orWhere('user_id', 'like', "%{$searchTerm}%")
+                    ->orWhereHas('user', function ($query) use ($searchTerm) {
+                        $query->where('first_name', 'like', "%{$searchTerm}%");
+                    });
             });
         }
 
@@ -238,7 +234,7 @@ class OrderController extends Controller
                     return $row->bookings?->first()?->visit?->status->name_ar;
                 })
                 ->addColumn('created_at', function ($row) {
-                    return Carbon::parse($row->created_at)->timezone('Asia/Riyadh')->format("Y-m-d H");
+                    return Carbon::parse($row->created_at)->timezone('Asia/Riyadh')->format("Y-m-d");
                 })
                 ->addColumn('control', function ($row) {
                     $html = '';

@@ -47,7 +47,6 @@ return [
     'time_not_available' => 'عذراً ! ،هذا الوقت لم يعد متاح ، الرجاء اختيار موعد آخر',
     'Invalid user address' => 'عنوان المستخدم غير صالح',
     'Something went wrong, please try again later' => 'حدث خطأ ما، يرجى المحاولة مرة أخرى لاحقًا',
-
-    
+    'test_checkout' => 'يمكنك اكمال الطلب الوقت متاح ',
 
 ];
