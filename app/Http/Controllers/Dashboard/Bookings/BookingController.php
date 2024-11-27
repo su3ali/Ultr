@@ -287,7 +287,7 @@ class BookingController extends Controller
                         })->join(' '),
                         'time' => Carbon::parse($row->time)->timezone('Asia/Riyadh')->format('g:i A'),
                         'group' => $row->visit?->group?->name,
-                        'total' => is_float($row->visit->booking->order->total)
+                        'sub_total' => is_float($row->visit->booking->order->total)
                         ? number_format($row->visit->booking->order->total, 2)
                         : $row->visit->booking->order->total,
                         'status' => $row->visit?->status?->name_ar,
