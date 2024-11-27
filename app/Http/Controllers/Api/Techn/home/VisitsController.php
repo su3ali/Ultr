@@ -107,10 +107,11 @@ class VisitsController extends Controller
 
     protected function changeStatus(Request $request)
     {
+        dd("*");
         $rules = [
             'type' => 'required|in:visit,order,booking',
             'cancel_reason_id' => 'nullable|exists:reason_cancels,id',
-            'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
+            'image' => 'nullable|image',
             'note' => 'nullable|string|min:3|max:255',
         ];
         if ($request->type == 'visit') {
