@@ -10,18 +10,12 @@ class Order extends Model
     use HasFactory;
     protected $guarded = [];
 
-    // public function user()
-    // {
-    //     return $this->belongsTo(User::class, 'id', 'user_id');
-    // }
+    // Order belongs to a User
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
-    public function customer()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
+    
 
     public function category()
     {
@@ -51,9 +45,13 @@ class Order extends Model
     {
         return $this->hasOne(UserAddresses::class, 'id', 'user_address_id');
     }
+    // public function bookings()
+    // {
+    //     return $this->hasMany(Booking::class);
+    // }
     public function bookings()
     {
-        return $this->hasMany(Booking::class, 'order_id');
+        return $this->hasMany(Booking::class, 'order_id', 'id');
     }
     public function services()
     {

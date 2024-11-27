@@ -159,9 +159,11 @@ class OrderController extends Controller
             ->whereHas('userAddress', function ($query) use ($regionIds) {
                 $query->whereIn('region_id', $regionIds);
             })
-            ->with(['user', 'transaction', 'status', 'bookings.visit.status', 'services.category']);
+            ->with(['user', 'bookings', 'transaction', 'status', 'bookings.visit.status', 'services.category']);
 
-        // Apply search filter across all columns
+        $orders = $ordersQuery->get();
+        // dd($orders->first()->bookings); // Should return orders filtered by region and matching search criteria
+
         if ($request->has('search_value') && $request->search_value != '') {
             $searchTerm = $request->search_value;
             $ordersQuery->where(function ($query) use ($searchTerm) {
@@ -170,7 +172,9 @@ class OrderController extends Controller
                         $q->where('first_name', 'like', "%{$searchTerm}%")
                             ->orWhere('last_name', 'like', "%{$searchTerm}%");
                     })
-                    ->orWhereHas('services', function ($q) use ($searchTerm) {
+
+                    ->orWhereHas('bookings', function ($q) use ($searchTerm) {
+                        $q->where('id', 'like', "%{$searchTerm}%");
                     })
                     ->orWhere('total', 'like', "%{$searchTerm}%")
                     ->orWhereHas('status', function ($q) use ($searchTerm) {
