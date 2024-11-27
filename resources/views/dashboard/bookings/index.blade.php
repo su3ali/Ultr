@@ -234,8 +234,8 @@
                     },
                     {
 
-                        data: 'total',
-                        name: 'total'
+                        data: 'sub_total',
+                        name: 'sub_total'
                     },
                     {
 
