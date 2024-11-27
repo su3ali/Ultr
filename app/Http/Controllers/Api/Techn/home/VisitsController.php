@@ -16,6 +16,8 @@ use App\Models\Visit;
 use App\Support\Api\ApiResponse;
 use App\Traits\NotificationTrait;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 
@@ -128,15 +130,50 @@ class VisitsController extends Controller
                 'note' => $request->note,
             ];
             $image = null;
+            // if ($request->hasFile('image')) {
+            //     if (File::exists(public_path($model->image))) {
+            //         File::delete(public_path($model->image));
+            //     }
+            //     $image = $request->file('image');
+            //     $filename = time() . '.' . $image->getClientOriginalExtension();
+            //     $request->image->move(storage_path('app/public/images/visits/'), $filename);
+            //     $image = 'storage/images/visits' . '/' . $filename;
+            //     $data['image'] = $image;
+            // }
+
             if ($request->hasFile('image')) {
+                // Check if the old image exists and delete it if it does
                 if (File::exists(public_path($model->image))) {
                     File::delete(public_path($model->image));
                 }
+
+                // Validate the image file type and size before processing
+                $validatedData = $request->validate([
+                    'image' => 'nullable|mimes:jpeg,png,jpg,gif|max:2048',
+                ]);
+
+                // Get the image file
                 $image = $request->file('image');
+
+                // Generate a unique file name using timestamp
                 $filename = time() . '.' . $image->getClientOriginalExtension();
-                $request->image->move(storage_path('app/public/images/visits/'), $filename);
-                $image = 'storage/images/visits' . '/' . $filename;
-                $data['image'] = $image;
+
+                // Define the directory where the image will be stored
+                $directory = storage_path('app/public/images/visits/');
+
+                // Check if the directory exists, if not, create it
+                if (!File::exists($directory)) {
+                    File::makeDirectory($directory, 0755, true);
+                }
+
+                // Move the image to the desired storage location
+                $image->move($directory, $filename);
+
+                // Store the image path relative to the public storage folder
+                $imagePath = 'storage/images/visits/' . $filename;
+
+                // Save the image path to the data array
+                $data['image'] = $imagePath;
             }
 
             if ($request->status_id == 3) {
