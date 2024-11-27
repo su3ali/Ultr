@@ -16,8 +16,6 @@ use App\Models\Visit;
 use App\Support\Api\ApiResponse;
 use App\Traits\NotificationTrait;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Storage;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 
@@ -146,11 +144,6 @@ class VisitsController extends Controller
                 if (File::exists(public_path($model->image))) {
                     File::delete(public_path($model->image));
                 }
-
-                // Validate the image file type and size before processing
-                $validatedData = $request->validate([
-                    'image' => 'nullable|mimes:jpeg,png,jpg,gif|max:2048',
-                ]);
 
                 // Get the image file
                 $image = $request->file('image');
