@@ -111,7 +111,7 @@ class VisitsController extends Controller
         $rules = [
             'type' => 'required|in:visit,order,booking',
             'cancel_reason_id' => 'nullable|exists:reason_cancels,id',
-            'image' => 'nullable|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|mimes:jpeg,png,jpg,gif',
             'note' => 'nullable|string|min:3|max:255',
         ];
         if ($request->type == 'visit') {
