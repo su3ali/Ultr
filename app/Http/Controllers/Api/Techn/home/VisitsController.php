@@ -140,32 +140,26 @@ class VisitsController extends Controller
             // }
 
             if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+                if (!in_array($image->getMimeType(), $allowedMimeTypes)) {
+                    return response()->json([
+                        'message' => 'Invalid image type. Allowed types are: JPEG, PNG, JPG, GIF.',
+                    ], 422);
+                }
                 // Check if the old image exists and delete it if it does
                 if (File::exists(public_path($model->image))) {
                     File::delete(public_path($model->image));
                 }
-
-                // Get the image file
-                $image = $request->file('image');
-
-                // Generate a unique file name using timestamp
                 $filename = time() . '.' . $image->getClientOriginalExtension();
-
                 // Define the directory where the image will be stored
                 $directory = storage_path('app/public/images/visits/');
-
                 // Check if the directory exists, if not, create it
                 if (!File::exists($directory)) {
                     File::makeDirectory($directory, 0755, true);
                 }
-
-                // Move the image to the desired storage location
                 $image->move($directory, $filename);
-
-                // Store the image path relative to the public storage folder
                 $imagePath = 'storage/images/visits/' . $filename;
-
-                // Save the image path to the data array
                 $data['image'] = $imagePath;
             }
 
