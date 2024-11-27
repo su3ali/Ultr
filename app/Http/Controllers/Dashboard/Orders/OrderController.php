@@ -159,25 +159,23 @@ class OrderController extends Controller
             ->whereHas('userAddress', function ($query) use ($regionIds) {
                 $query->whereIn('region_id', $regionIds);
             })
-            ->with(['user', 'transaction', 'status', 'bookings.visit.status', 'services.category']);
+            ->with(['user', 'bookings', 'transaction', 'status', 'bookings.visit.status', 'services.category']);
 
-        // Apply search filter across all columns
         if ($request->has('search_value') && $request->search_value != '') {
             $searchTerm = $request->search_value;
+
             $ordersQuery->where(function ($query) use ($searchTerm) {
                 $query->where('id', 'like', "%{$searchTerm}%")
-                    ->orWhereHas('user', function ($q) use ($searchTerm) {
-                        $q->where('first_name', 'like', "%{$searchTerm}%")
-                            ->orWhere('last_name', 'like', "%{$searchTerm}%");
-                    })
-                    ->orWhereHas('services', function ($q) use ($searchTerm) {
-                    })
                     ->orWhere('total', 'like', "%{$searchTerm}%")
-                    ->orWhereHas('status', function ($q) use ($searchTerm) {
-                    })
-                    ->orWhereDate('created_at', 'like', "%{$searchTerm}%");
+                    ->orWhere('created_at', 'like', "%{$searchTerm}%")
+                    ->orWhere('user_id', 'like', "%{$searchTerm}%")
+                    ->orWhereHas('user', function ($query) use ($searchTerm) {
+                        $query->where('first_name', 'like', "%{$searchTerm}%");
+                    });
             });
+
         }
+        $orders = $ordersQuery->get();
 
         // Apply additional filters
         if ($request->ajax()) {
@@ -234,29 +232,43 @@ class OrderController extends Controller
                     return $row->bookings?->first()?->visit?->status->name_ar;
                 })
                 ->addColumn('created_at', function ($row) {
-                    return Carbon::parse($row->created_at)->timezone('Asia/Riyadh')->format("Y-m-d H");
+                    return Carbon::parse($row->created_at)->timezone('Asia/Riyadh')->format("Y-m-d");
                 })
                 ->addColumn('control', function ($row) {
                     $html = '';
+
+                    // Example: If the order status is '2' (pending or similar), show the confirm button
                     if ($row->status_id == 2) {
                         $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                        <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
-                    </a>';
+                                        <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
+                                    </a>';
                     }
+
+                    // Show the "show bookings" button
                     $html .= '<button type="button" id="show-bookings" class="btn btn-sm btn-outline-primary" data-id="' . $row->id . '" data-toggle="modal" data-target="#changeGroupModel">
-                    <i class="far fa-eye fa-2x"></i>
-                </button>
-                <a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                    <i class="far fa-eye fa-2x"></i>
-                </a>
-                <a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                    <i class="far fa-eye fa-2x"></i>
-                </a>
-                <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
-                    <i class="far fa-trash-alt fa-2x"></i>
-                </a>';
+                                    <i class="far fa-eye fa-2x"></i>
+                                </button>';
+
+                    // Link to order details page
+                    $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                                    <i class="far fa-eye fa-2x"></i>
+                                </a>';
+
+                    // Link to service details page
+                    $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                                    <i class="far fa-eye fa-2x"></i>
+                                </a>';
+
+                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
+                        // Show delete button only if the permission exists in the session
+                        $html .= '<a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
+                                        <i class="far fa-trash-alt fa-2x"></i>
+                                    </a>';
+                    }
+
                     return $html;
                 })
+
                 ->rawColumns(['booking_id', 'user', 'service', 'quantity', 'payment_method', 'status', 'created_at', 'control'])
                 ->make(true);
         }
@@ -421,34 +433,69 @@ class OrderController extends Controller
 
                     return $date->format("Y-m-d H:i:s");
                 })
+            // ->addColumn('control', function ($row) {
+
+            //     $html = '';
+            //     if ($row->status_id == 2) {
+            //         $html .= '<a href="' . route('dashboard.order.confirmOrder', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+            //             <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
+            //         </a>';
+            //     }
+            //     $html .= '
+            //     <button type="button" id="show-bookings" class="btn btn-sm btn-outline-primary" data-id="' . $row->id . '"
+            //         data-toggle="modal" data-target="#changeGroupModel">
+            //         <i class="far fa-eye fa-2x"></i>
+            //     </button>
+
+            //     <a href="' . route('dashboard.order.orderDetail', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+            //             <i class="far fa-eye fa-2x"></i>
+            //         </a>
+
+            //         <a href="' . route('dashboard.order.showService', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+            //             <i class="far fa-eye fa-2x"></i>
+            //         </a>
+            //                 <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
+            //             <i class="far fa-trash-alt fa-2x"></i>
+            //     </a>
+            //                 ';
+
+            //     return $html;
+            // })
                 ->addColumn('control', function ($row) {
-
                     $html = '';
+
+                    // Check if the order status is 2 (pending, for example)
                     if ($row->status_id == 2) {
-                        $html .= '<a href="' . route('dashboard.order.confirmOrder', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                            <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
-                        </a>';
+                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                                    <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
+                                </a>';
                     }
-                    $html .= '
-                    <button type="button" id="show-bookings" class="btn btn-sm btn-outline-primary" data-id="' . $row->id . '"
-                        data-toggle="modal" data-target="#changeGroupModel">
-                        <i class="far fa-eye fa-2x"></i>
-                    </button>
 
-                    <a href="' . route('dashboard.order.orderDetail', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                            <i class="far fa-eye fa-2x"></i>
-                        </a>
+                    // Show "show bookings" button
+                    $html .= '<button type="button" id="show-bookings" class="btn btn-sm btn-outline-primary" data-id="' . $row->id . '" data-toggle="modal" data-target="#changeGroupModel">
+                                <i class="far fa-eye fa-2x"></i>
+                              </button>';
 
-                        <a href="' . route('dashboard.order.showService', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                            <i class="far fa-eye fa-2x"></i>
-                        </a>
-                                <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
-                            <i class="far fa-trash-alt fa-2x"></i>
-                    </a>
-                                ';
+                    // Link to order details page
+                    $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                                <i class="far fa-eye fa-2x"></i>
+                              </a>';
+
+                    // Link to service details page
+                    $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                                <i class="far fa-eye fa-2x"></i>
+                              </a>';
+
+                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
+                        // Show delete button only if user has permission
+                        $html .= '<a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
+                                    <i class="far fa-trash-alt fa-2x"></i>
+                                  </a>';
+                    }
 
                     return $html;
                 })
+
                 ->rawColumns([
                     'booking_id',
                     'user',

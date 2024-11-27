@@ -195,6 +195,10 @@ class BookingController extends Controller
                             ->orWhere('phone', 'LIKE', "%$search%");
                     })
 
+                        ->orWhereHas('visit.booking.order', function ($query) use ($search) {
+                            $query->where('id', 'LIKE', "%$search%");
+                        })
+
                         ->orWhereHas('visit.group', function ($query) use ($search) {
                             $query->where('name_ar', 'LIKE', "%$search%");
                         })
@@ -233,7 +237,6 @@ class BookingController extends Controller
                             data-category_id="' . $row->category_id . '"
                             data-service_id="' . $data . '"
 
-
                             data-type="' . \request()->query('type') . '"
                             data-toggle="modal" data-target="#addGroupModel">
                             اضافة فريق
@@ -260,17 +263,21 @@ class BookingController extends Controller
                     }
 
                     // Add delete button
-                    $html .= '
+                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
+
+                        $html .= '
                     <a data-table_id="html5-extension"
                        data-href="' . route('dashboard.bookings.destroy', $row->id) . '"
                        data-id="' . $row->id . '"
                        class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
                        <i class="far fa-trash-alt fa-2x"></i>
                     </a>';
+                    }
 
                     // Return the generated HTML
                     return [
                         'id' => $row->id,
+                        'order' => $row->visit->booking->order->id,
                         'customer' => $row->customer?->first_name . ' ' . $row->customer?->last_name,
                         'customer_phone' => $row->customer?->phone,
                         'service' => \request()->query('type') == 'package'
@@ -280,14 +287,17 @@ class BookingController extends Controller
                         })->join(' '),
                         'time' => Carbon::parse($row->time)->timezone('Asia/Riyadh')->format('g:i A'),
                         'group' => $row->visit?->group?->name,
+                        'sub_total' => is_float($row->visit->booking->order->sub_total)
+                        ? number_format($row->visit->booking->order->sub_total, 2)
+                        : $row->visit->booking->order->sub_total,
                         'status' => $row->visit?->status?->name_ar,
                         'new' => $row->visit?->status?->name_ar,
                         'date' => $row->date,
                         'quantity' => $row->quantity,
                         'payment_method' => match ($row->visit->booking->order->transaction->payment_method ?? '') {
-                            'cache', 'cash' => '<i class="fas fa-money-bill-wave"></i> شبكة', // Replace with your desired icon class or Unicode
-                            'wallet' => '<i class="fas fa-wallet"></i> محفظة',
-                            default => '<i class="fas fa-credit-card"></i> فيزا',
+                            'cache', 'cash' => '<i class="fas fa-money-bill-wave text-success" title="Cash Payment (Cash or Physical Money)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> شبكة', // Green with hover animation for cash
+                            'wallet' => '<i class="fas fa-wallet text-primary" title="Wallet Payment (e.g., Digital Wallet)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> محفظة', // Blue with hover animation for wallet
+                            default => '<i class="fas fa-credit-card text-warning" title="Credit Card Payment (Visa, MasterCard, etc.)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> فيزا', // Yellow with hover animation for credit card
                         },
 
                         'notes' => $row->notes,
