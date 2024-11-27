@@ -142,153 +142,186 @@ class CheckoutController extends Controller
     protected function checkTimeDate(Request $request)
     {
 
-        $rules = [
-            'user_address_id' => 'required|exists:user_addresses,id',
-            'shift_id' => 'required|exists:shifts,id',
-        ];
-        $request->validate($rules, $request->all());
-        $user = auth()->user('sanctum');
-        $carts = Cart::query()->where('user_id', $user->id)->get();
-        $parent_payment_method = null;
+        try {
 
-        if (!$carts->first()) {
-            return self::apiResponse(400, t_('Cart is empty'), []);
-        }
-
-        $services = [];
-
-        foreach ($carts as $cart) {
-            $services[] = [
-                'amount' => $cart->quantity,
-                'id' => $cart->service_id,
+            $rules = [
+                'user_address_id' => 'required|exists:user_addresses,id',
+                'shift_id' => 'required|exists:shifts,id',
             ];
-        }
+            $request->validate($rules, $request->all());
+            $user = auth()->user('sanctum');
+            $carts = Cart::query()->where('user_id', $user->id)->get();
+            $parent_payment_method = null;
 
-        if ($carts->first()->type == 'package') {
-            $total = $carts->first()->price;
-            if ($request->payment_method == 'wallet' && $total > $user->point) {
-                return self::apiResponse(400, __('api.Your wallet balance is not enough to complete this process'), []);
+            if (!$carts->first()) {
+                return self::apiResponse(400, t_('Cart is empty'), []);
             }
-            return $this->saveContract($user, $request, $total, $carts);
-        }
 
-        $total = $this->calc_total($carts);
-        if ($carts->first()) {
-            $shift = Shift::find($request->shift_id);
+            $services = [];
 
-        } else {
-            DB::rollback();
-            return self::apiResponse(400, __('api.cart empty'), $this->body);
-
-        }
-
-        if (empty($shift)) {
-            DB::rollback();
-            return false;
-        }
-
-        // dd($shift);
-        $regionId = UserAddresses::where('user_id', $request->user_address_id)->pluck('region_id')->toArray();
-
-        $remaining_days = Carbon::now()->diffInDays(Carbon::parse($carts->first()->date)) + 1;
-        $page_number = floor($remaining_days / 14);
-        $time = new Appointment($regionId, $services, null, $page_number);
-        $times = $time->getAvailableTimesFromDate();
-        if ($times) {
-
-            $days = array_column($times, 'day');
-            if (!in_array($carts->first()->date, $days)) {
-                DB::rollback();
-                return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+            foreach ($carts as $cart) {
+                $services[] = [
+                    'amount' => $cart->quantity,
+                    'id' => $cart->service_id,
+                ];
             }
-            // dd($times);
-            foreach ($times as $time) {
-                $timeEntries = $time['times']; // Access the array of time entries
-                $times_values = [];
-                foreach ($timeEntries as $entry) {
-                    $times_values[] = $entry['time']; // Access 'time'
-                    $shiftId = $entry['shift_id']; // Access 'shift_id' if needed
-                    // You can now use $timeValue and $shiftId as needed
+
+            if ($carts->first()->type == 'package') {
+                $total = $carts->first()->price;
+                if ($request->payment_method == 'wallet' && $total > $user->point) {
+                    return self::apiResponse(400, __('api.Your wallet balance is not enough to complete this process'), []);
                 }
-                // dd(in_array(date("g:i A", strtotime($cart->time)), $times_values) && $cart->date == $time['day']);
-
-                if (!in_array(date("g:i A", strtotime($carts->first()->time)), $times_values) && $carts->first()->date == $time['day']) {
-                    DB::rollback();
-                    return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-                }
-            }
-        }
-
-        $shiftGroupsIds = Shift::where('id', $shift->id)->pluck('group_id')->toArray();
-        $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
-            return array_map('intval', json_decode($jsonString, true));
-        }, $shiftGroupsIds));
-
-        $category_ids = $carts->pluck('category_id')->toArray();
-        $category_ids = array_unique($category_ids);
-
-        foreach ($category_ids as $key => $category_id) {
-
-            $cart = Cart::query()->where('user_id', auth('sanctum')->user()->id)
-                ->where('category_id', $category_id)->first();
-            $booking_no = 'dash2023/' . $cart->id;
-            $minutes = 0;
-
-            $bookSetting = BookingSetting::where('service_id', $cart->service_id)->first();
-            if ($bookSetting) {
-                foreach (Service::with('BookingSetting')->whereIn('id', $carts->pluck('service_id')->toArray())->get() as $service) {
-                    $serviceMinutes = $service->BookingSetting->service_duration
-                     * $carts->where('service_id', $service->id)->first()->quantity;
-                    $minutes += $serviceMinutes;
-                }
+                return $this->saveContract($user, $request, $total, $carts);
             }
 
-            $address = UserAddresses::find($request->user_address_id);
-            $booking_id = Booking::whereHas('address', function ($qu) use ($address) {
-                $qu->where('region_id', $address->region_id);
-            })->whereHas('category', function ($qu) use ($category_id) {
-                $qu->where('category_id', $category_id);
-            })->where('date', $cart->date)->pluck('id')->toArray();
+            $total = $this->calc_total($carts);
+            if ($carts->first()) {
+                $shift = Shift::find($request->shift_id);
 
-            $activeGroups = Group::where('active', 1)->pluck('id')->toArray();
-            $assign_to_id = 0;
-
-            $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
-
-            $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
-                $qu->where('region_id', $address->region_id);
-            })->whereIn('id', $shiftGroupsIds);
-
-            // dd($shiftGroupsIds);
-
-            if ($group->get()->isEmpty()) {
-                DB::rollback();
-                return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
-            }
-
-            $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time) * $cart->quantity)->format('H:i:s'))
-                ->where('end_time', '>', $cart->time)
-                ->activeVisits()->whereIn('booking_id', $booking_id)
-                ->whereIn('assign_to_id', $shiftGroupsIds)->pluck('assign_to_id');
-            // dd($takenGroupsIds);
-            if ($takenGroupsIds->isNotEmpty()) {
-                $assign_to_id = $group->whereNotIn('id', $takenGroupsIds)->inRandomOrder()?->first()?->id;
-                // dd($assign_to_id);
-                if (!isset($assign_to_id)) {
-                    DB::rollback();
-                    return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-                }
             } else {
-                $assign_to_id = $group->inRandomOrder()?->first()?->id;
-                if (!isset($assign_to_id)) {
+                DB::rollback();
+                return self::apiResponse(400, __('api.cart empty'), $this->body);
+
+            }
+
+            if (empty($shift)) {
+                DB::rollback();
+                return false;
+            }
+
+            // dd($shift);
+            $regionId = UserAddresses::where('user_id', $request->user_address_id)->pluck('region_id')->toArray();
+
+            $remaining_days = Carbon::now()->diffInDays(Carbon::parse($carts->first()->date)) + 1;
+            $page_number = floor($remaining_days / 14);
+            $time = new Appointment($regionId, $services, null, $page_number);
+            $times = $time->getAvailableTimesFromDate();
+            if ($times) {
+
+                $days = array_column($times, 'day');
+                if (!in_array($carts->first()->date, $days)) {
                     DB::rollback();
                     return self::apiResponse(400, __('api.This Time is not available'), $this->body);
                 }
+                // dd($times);
+                foreach ($times as $time) {
+                    $timeEntries = $time['times']; // Access the array of time entries
+                    $times_values = [];
+                    foreach ($timeEntries as $entry) {
+                        $times_values[] = $entry['time']; // Access 'time'
+                        $shiftId = $entry['shift_id']; // Access 'shift_id' if needed
+                        // You can now use $timeValue and $shiftId as needed
+                    }
+                    // dd(in_array(date("g:i A", strtotime($cart->time)), $times_values) && $cart->date == $time['day']);
+
+                    if (!in_array(date("g:i A", strtotime($carts->first()->time)), $times_values) && $carts->first()->date == $time['day']) {
+                        DB::rollback();
+                        return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+                    }
+                }
             }
 
-        }
+            $shiftGroupsIds = Shift::where('id', $shift->id)->pluck('group_id')->toArray();
+            $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
+                return array_map('intval', json_decode($jsonString, true));
+            }, $shiftGroupsIds));
 
-        return self::apiResponse(200, __('api.test_checkout'), $this->body);
+            $category_ids = $carts->pluck('category_id')->toArray();
+            $category_ids = array_unique($category_ids);
+
+            foreach ($category_ids as $key => $category_id) {
+
+                $cart = Cart::query()->where('user_id', auth('sanctum')->user()->id)
+                    ->where('category_id', $category_id)->first();
+                $booking_no = 'dash2023/' . $cart->id;
+                $minutes = 0;
+
+                $bookSetting = BookingSetting::where('service_id', $cart->service_id)->first();
+                if ($bookSetting) {
+                    foreach (Service::with('BookingSetting')->whereIn('id', $carts->pluck('service_id')->toArray())->get() as $service) {
+                        $serviceMinutes = $service->BookingSetting->service_duration
+                         * $carts->where('service_id', $service->id)->first()->quantity;
+                        $minutes += $serviceMinutes;
+                    }
+                }
+
+                $address = UserAddresses::find($request->user_address_id);
+                $booking_id = Booking::whereHas('address', function ($qu) use ($address) {
+                    $qu->where('region_id', $address->region_id);
+                })->whereHas('category', function ($qu) use ($category_id) {
+                    $qu->where('category_id', $category_id);
+                })->where('date', $cart->date)->pluck('id')->toArray();
+
+                $activeGroups = Group::where('active', 1)->pluck('id')->toArray();
+                $assign_to_id = 0;
+
+                $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
+
+                $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
+                    $qu->where('region_id', $address->region_id);
+                })->whereIn('id', $shiftGroupsIds);
+
+                // dd($shiftGroupsIds);
+
+                if ($group->get()->isEmpty()) {
+                    DB::rollback();
+                    return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+                }
+
+                $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time) * $cart->quantity)->format('H:i:s'))
+                    ->where('end_time', '>', $cart->time)
+                    ->activeVisits()->whereIn('booking_id', $booking_id)
+                    ->whereIn('assign_to_id', $shiftGroupsIds)->pluck('assign_to_id');
+                // dd($takenGroupsIds);
+                if ($takenGroupsIds->isNotEmpty()) {
+                    $assign_to_id = $group->whereNotIn('id', $takenGroupsIds)->inRandomOrder()?->first()?->id;
+                    // dd($assign_to_id);
+                    if (!isset($assign_to_id)) {
+                        DB::rollback();
+                        return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+                    }
+                } else {
+                    $assign_to_id = $group->inRandomOrder()?->first()?->id;
+                    if (!isset($assign_to_id)) {
+                        DB::rollback();
+                        return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+                    }
+                }
+
+            }
+            activity()
+                ->causedBy(auth()->user()) // Log the user who caused the action
+                ->withProperties([
+                    'url' => url()->current(),
+                    'user_id' => auth()->user()->id,
+                    'user_name' => auth()->user()->first_name,
+                    'region_id' => $address->region_id ?? '',
+                    'cart_time' => $cart->time ?? '',
+                    'cart_date' => $cart->date ?? '',
+                    'total' => $total ?? '',
+                    'service_id' => $cart->service_id ?? '',
+
+                ])
+                ->log('  processing the test checkout endpoint');
+
+            return self::apiResponse(200, __('api.test_checkout'), $this->body);
+        } catch (\Exception $e) {
+            // Log the exception with additional context
+            activity()
+                ->causedBy(auth()->user()) // Log the user who caused the action
+                ->withProperties([
+                    'exception_message' => $e->getMessage(),
+                    'exception_file' => $e->getFile(),
+                    'exception_line' => $e->getLine(),
+                    'url' => url()->current(),
+                    'user_id' => auth()->user()->id,
+                    'user_name' => auth()->user()->first_name,
+
+                ])
+                ->log('Exception while processing the test checkout endpoint');
+
+            return response()->json(['error' => 'Failed .'], 500);
+        }
 
     }
 
