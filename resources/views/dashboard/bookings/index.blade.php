@@ -197,8 +197,7 @@
                         data: 'id',
                         name: 'id'
                     },
-                    // {data: 'visit_id', name: 'visit_id'},
-                    // {data: 'order', name: 'order'},
+
                     {
                         data: 'order',
                         name: 'order'
@@ -234,8 +233,8 @@
                     },
                     {
 
-                        data: 'sub_total',
-                        name: 'sub_total'
+                        data: 'total',
+                        name: 'total'
                     },
                     {
 
@@ -382,22 +381,5 @@
                 }
             });
         });
-
-
-        // $("body").on('change', '#status', function () {
-        //     if ($(this).val() == 'canceled') {
-        //         $('.notes').removeClass('col-md-12');
-        //         $('.notes').addClass('col-md-6');
-        //         $('.reason_cancel').show();
-        //
-        //
-        //     } else {
-        //         $('.notes').removeClass('col-md-6');
-        //         $('.notes').addClass('col-md-12');
-        //         $('.reason_cancel').hide();
-        //
-        //     }
-        //
-        // })
     </script>
 @endpush

@@ -184,7 +184,6 @@ class BookingController extends Controller
                 $bookings->where('date', '<=', $formattedDate2);
             }
 
-            // Add search functionality
             // Apply search filter
             if ($request->filled('search.value')) {
                 $search = $request->input('search.value');
@@ -277,31 +276,32 @@ class BookingController extends Controller
                     // Return the generated HTML
                     return [
                         'id' => $row->id,
-                        'order' => $row->visit->booking->order->id,
-                        'customer' => $row->customer?->first_name . ' ' . $row->customer?->last_name,
-                        'customer_phone' => $row->customer?->phone,
+                        'order' => $row->visit?->booking?->order?->id ?? 'N/A',
+                        'customer' => ($row->customer?->first_name ?? '') . ' ' . ($row->customer?->last_name ?? ''),
+                        'customer_phone' => $row->customer?->phone ?? 'N/A',
                         'service' => \request()->query('type') == 'package'
                         ? $row->package?->name
                         : $row->order->services->where('category_id', $row->category_id)->map(function ($service) {
                             return '<button class="btn-sm btn-primary">' . $service->title . '</button>';
                         })->join(' '),
-                        'time' => Carbon::parse($row->time)->timezone('Asia/Riyadh')->format('g:i A'),
-                        'group' => $row->visit?->group?->name,
-                        'sub_total' => is_float($row->visit->booking->order->total)
+                        'time' => $row->time ? Carbon::parse($row->time)->timezone('Asia/Riyadh')->format('g:i A') : 'N/A',
+
+                        'group' => $row->visit?->group?->name ?? 'N/A',
+                        'total' => isset($row->visit?->booking?->order?->total) && is_float($row->visit?->booking?->order?->total)
                         ? number_format($row->visit->booking->order->total, 2)
-                        : $row->visit->booking->order->total,
-                        'status' => $row->visit?->status?->name_ar,
-                        'new' => $row->visit?->status?->name_ar,
-                        'date' => $row->date,
-                        'quantity' => $row->quantity,
-                        'payment_method' => match ($row->visit->booking->order->transaction->payment_method ?? '') {
+                        : 'N/A',
+                        'status' => $row->visit?->status?->name_ar ?? 'N/A',
+                        'new' => $row->visit?->status?->name_ar ?? 'N/A',
+                        'date' => $row->date ?? 'N/A',
+                        'quantity' => $row->quantity ?? 'N/A',
+                        'payment_method' => match ($row->visit?->booking?->order?->transaction?->payment_method ?? 'N/A') {
                             'cache', 'cash' => '<i class="fas fa-money-bill-wave text-success" title="Cash Payment (Cash or Physical Money)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> شبكة', // Green with hover animation for cash
                             'wallet' => '<i class="fas fa-wallet text-primary" title="Wallet Payment (e.g., Digital Wallet)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> محفظة', // Blue with hover animation for wallet
                             default => '<i class="fas fa-credit-card text-warning" title="Credit Card Payment (Visa, MasterCard, etc.)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> فيزا', // Yellow with hover animation for credit card
                         },
 
-                        'notes' => $row->notes,
-                        'control' => $html, // Add the generated HTML directly here
+                        'notes' => $row->notes ?? 'N/A',
+                        'control' => $html ?? 'N/A',
                     ];
                 }),
             ]);
