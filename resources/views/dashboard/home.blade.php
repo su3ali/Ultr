@@ -38,12 +38,14 @@
 
             <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
                 <div class="row widget-statistic">
+
                     <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                         <a href="{{ route('dashboard.core.customer.index') }}" class="widget-link">
                             <div class="widget widget-one_hybrid widget-followers">
-                                <div class="widget-heading">
-                                    <div class="w-title">
-                                        <div class="w-icon">
+                                <div class="widget-heading p-4 rounded-lg bg-white shadow-sm">
+                                    <div class="d-flex align-items-center">
+                                        <!-- Icon Container -->
+                                        <div class="w-icon bg-primary text-white rounded-circle p-3 shadow-sm me-4">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                                 stroke-linecap="round" stroke-linejoin="round"
@@ -54,21 +56,30 @@
                                                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                                             </svg>
                                         </div>
-                                        <div class="">
-                                            <p class="w-value">{{ $customers }}</p>
-                                            <h5 class="">العملاء</h5>
+
+                                        <!-- Title and Value -->
+                                        <div>
+                                            <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $customers }}</p>
+                                            <h5 class="text-muted mb-0">العملاء</h5>
                                         </div>
                                     </div>
+                                </div>
+
+                                <!-- Hover Effect Container -->
+                                <div class="widget-footer p-4 text-center">
+                                    <p class="text-muted mb-0">إدارة العملاء</p>
                                 </div>
                             </div>
                         </a>
                     </div>
+
                     <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                         <a href="{{ route('dashboard.orders.index') }}" class="widget-link">
                             <div class="widget widget-one_hybrid widget-referral">
-                                <div class="widget-heading">
-                                    <div class="w-title">
-                                        <div class="w-icon">
+                                <div class="widget-heading p-4 rounded-lg bg-white shadow-sm">
+                                    <div class="d-flex align-items-center">
+                                        <!-- Icon Container -->
+                                        <div class="w-icon bg-info text-white rounded-circle p-3 shadow-sm me-4">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                                 stroke-linecap="round" stroke-linejoin="round"
@@ -79,21 +90,30 @@
                                                 </path>
                                             </svg>
                                         </div>
-                                        <div class="">
-                                            <p class="w-value">{{ $client_orders }}</p>
-                                            <h5 class="">{{ __('dash.client_orders') }}</h5>
+
+                                        <!-- Title and Value -->
+                                        <div>
+                                            <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $client_orders }}</p>
+                                            <h5 class="text-muted mb-0">{{ __('dash.client_orders') }}</h5>
                                         </div>
                                     </div>
+                                </div>
+
+                                <!-- Hover Effect Container -->
+                                <div class="widget-footer p-4 text-center">
+                                    <p class="text-muted mb-0">إدارة الطلبات</p>
                                 </div>
                             </div>
                         </a>
                     </div>
+
                     <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                         <a href="{{ route('dashboard.core.technician.index') }}" class="widget-link">
                             <div class="widget widget-one_hybrid widget-engagement">
-                                <div class="widget-heading">
-                                    <div class="w-title">
-                                        <div class="w-icon">
+                                <div class="widget-heading p-4 rounded-lg bg-white shadow-sm">
+                                    <div class="d-flex align-items-center">
+                                        <!-- Icon Container -->
+                                        <div class="w-icon bg-warning text-white rounded-circle p-3 shadow-sm me-4">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                                 stroke-linecap="round" stroke-linejoin="round"
@@ -102,22 +122,30 @@
                                                 <circle cx="12" cy="7" r="4"></circle>
                                             </svg>
                                         </div>
-                                        <div class="">
-                                            <p class="w-value">{{ $technicians }}</p>
-                                            <h5 class="">الفنيين</h5>
+
+                                        <!-- Title and Value -->
+                                        <div>
+                                            <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $technicians }}</p>
+                                            <h5 class="text-muted mb-0">{{ __('dash.technicians') }}</h5>
                                         </div>
                                     </div>
                                 </div>
 
+                                <!-- Hover Effect Container -->
+                                <div class="widget-footer p-4 text-center">
+                                    <p class="text-muted mb-0">إدارة الفنيين</p>
+                                </div>
                             </div>
                         </a>
                     </div>
+
                     <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                         <a href="{{ route('dashboard.visits.index') }}" class="widget-link">
                             <div class="widget widget-one_hybrid widget-engagement">
-                                <div class="widget-heading">
-                                    <div class="w-title">
-                                        <div class="w-icon">
+                                <div class="widget-heading p-4 rounded-lg bg-white shadow-sm">
+                                    <div class="d-flex align-items-center">
+                                        <!-- Icon Container -->
+                                        <div class="w-icon bg-primary text-white rounded-circle p-3 shadow-sm me-4">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -127,151 +155,183 @@
                                                 </path>
                                             </svg>
                                         </div>
-                                        <div class="">
-                                            <p class="w-value">{{ $tech_visits }}</p>
-                                            <h5 class="">{{ __('dash.tech_orders') }}</h5>
+
+                                        <!-- Title and Value -->
+                                        <div>
+                                            <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $tech_visits }}</p>
+                                            <h5 class="text-muted mb-0">{{ __('dash.tech_orders') }}</h5>
                                         </div>
                                     </div>
                                 </div>
 
+                                <!-- Hover Effect Container -->
+                                <div class="widget-footer p-4 text-center">
+                                    <p class="text-muted mb-0"> إدارة طلبات الفنيين</p>
+                                </div>
                             </div>
                         </a>
                     </div>
                 </div>
             </div>
+
+
+
             <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
                 <div class="row widget-statistic">
 
+                    <!-- Canceled Orders Widget -->
                     <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                         <a href="{{ route('dashboard.order.canceledOrders') }}" class="widget-link">
                             <div class="widget widget-one_hybrid widget-engagement">
-                                <div class="widget-heading">
-                                    <div class="w-title">
-                                        <div class="w-icon">
+                                <div class="widget-heading p-4 rounded-lg bg-lightblue shadow-sm">
+                                    <div class="d-flex align-items-center">
+                                        <div class="w-icon bg-danger text-white rounded-circle p-3 shadow-sm me-4">
+                                            <!-- X Circle Icon for Canceled Orders -->
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                class="feather feather-book">
-                                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z">
-                                                </path>
+                                                class="feather feather-x-circle">
+                                                <path d="M12 19c3.9 0 7-3.1 7-7s-3.1-7-7-7-7 3.1-7 7 3.1 7 7 7z"></path>
+                                                <path d="M15 9l-6 6"></path>
+                                                <path d="M9 9l6 6"></path>
                                             </svg>
                                         </div>
-                                        <div class="">
-                                            <p class="w-value">{{ $canceled_orders }}</p>
-                                            <h5 class="">{{ __('dash.canceled_orders') }}</h5>
+                                        <div>
+                                            <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $canceled_orders }}</p>
+                                            <h5 class="text-muted mb-0">{{ __('dash.canceled_orders') }}</h5>
                                         </div>
                                     </div>
                                 </div>
-
+                                <div class="widget-footer p-4 text-center bg-lightblue">
+                                    <p class="text-muted mb-0">إدارة الطلبات الملغية</p>
+                                </div>
                             </div>
                         </a>
                     </div>
 
+
+                    <!-- Canceled Orders Today Widget -->
                     <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                         <a href="{{ route('dashboard.order.canceledOrdersToday') }}" class="widget-link">
                             <div class="widget widget-one_hybrid widget-engagement">
-                                <div class="widget-heading">
-                                    <div class="w-title">
-                                        <div class="w-icon">
+                                <div class="widget-heading p-4 rounded-lg bg-lightgreen shadow-sm">
+                                    <div class="d-flex align-items-center">
+                                        <div class="w-icon bg-warning text-white rounded-circle p-3 shadow-sm me-4">
+                                            <!-- Warning or X Circle Icon for Canceled Orders Today -->
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                class="feather feather-book">
-                                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z">
+                                                class="feather feather-alert-triangle">
+                                                <path
+                                                    d="M10.29 3.29l-6 6c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0L12 4.83l5.29 5.29c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-6-6c-.39-.39-1.02-.39-1.41 0z">
+                                                </path>
+                                                <path d="M12 20c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z">
                                                 </path>
                                             </svg>
                                         </div>
-                                        <div class="">
-                                            <p class="w-value">{{ $canceled_orders_today }}</p>
-                                            <h5 class="">{{ __('dash.canceled_orders_today') }}</h5>
+                                        <div>
+                                            <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $canceled_orders_today }}
+                                            </p>
+                                            <h5 class="text-muted mb-0">{{ __('dash.canceled_orders_today') }}</h5>
                                         </div>
                                     </div>
                                 </div>
-
+                                <div class="widget-footer p-4 text-center bg-lightgreen">
+                                    <p class="text-muted mb-0">إدارة الطلبات الملغية اليوم</p>
+                                </div>
                             </div>
                         </a>
                     </div>
 
+
+                    <!-- Orders Today Widget -->
                     <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                         <a href="{{ route('dashboard.order.ordersToday') }}" class="widget-link">
                             <div class="widget widget-one_hybrid widget-referral">
-                                <div class="widget-heading">
-                                    <div class="w-title">
-                                        <div class="w-icon">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                class="feather feather-shopping-cart">
-                                                <circle cx="9" cy="21" r="1"></circle>
-                                                <circle cx="20" cy="21" r="1"></circle>
-                                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6">
-                                                </path>
-                                            </svg>
+                                <div class="widget-heading p-4 rounded-lg bg-lightyellow shadow-sm">
+                                    <div class="d-flex align-items-center">
+                                        <div class="w-icon bg-success text-white rounded-circle p-3 shadow-sm me-4">
+                                            <i class="fas fa-check-circle" style="font-size: 24px;"></i>
                                         </div>
-                                        <div class="">
-                                            <p class="w-value">{{ $client_orders_today }}</p>
-                                            <h5 class="">{{ __('dash.client_orders_today') }}</h5>
+                                        <div>
+                                            <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $client_orders_today }}</p>
+                                            <h5 class="text-muted mb-0">{{ __('dash.client_orders_today') }}</h5>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="widget-footer p-4 text-center bg-lightyellow">
+                                    <p class="text-muted mb-0">إدارة طلبات العملاء اليوم</p>
                                 </div>
                             </div>
                         </a>
                     </div>
 
+                    <!-- Visits Today Widget -->
                     <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                         <a href="{{ route('dashboard.visits.visitsToday') }}" class="widget-link">
                             <div class="widget widget-one_hybrid widget-engagement">
-                                <div class="widget-heading">
-                                    <div class="w-title">
-                                        <div class="w-icon">
+                                <div class="widget-heading p-4 rounded-lg bg-lightblue shadow-sm">
+                                    <div class="d-flex align-items-center">
+                                        <div class="w-icon bg-info text-white rounded-circle p-3 shadow-sm me-4">
+                                            <!-- Clipboard Check Icon for Today's Orders -->
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                class="feather feather-book">
-                                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z">
-                                                </path>
+                                                class="feather feather-clipboard-check">
+                                                <path d="M9 2H15V6H9z"></path>
+                                                <path d="M9 10H15V14H9z"></path>
+                                                <path d="M9 18H15V22H9z"></path>
+                                                <path d="M18 2L22 6"></path>
+                                                <path d="M18 6L22 2"></path>
                                             </svg>
                                         </div>
-                                        <div class="">
-                                            <p class="w-value">{{ $tech_visits_today }}</p>
-                                            <h5 class="">{{ __('dash.tech_orders_today') }}</h5>
+                                        <div>
+                                            <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $tech_visits_today }}</p>
+                                            <h5 class="text-muted mb-0">{{ __('dash.tech_orders_today') }}</h5>
                                         </div>
                                     </div>
                                 </div>
-
+                                <div class="widget-footer p-4 text-center bg-lightblue">
+                                    <p class="text-muted mb-0">إدارة الطلبات اليوم</p>
+                                </div>
                             </div>
                         </a>
                     </div>
+
+
+                    <!-- Finished Visits Today Widget -->
                     <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                         <a href="{{ route('dashboard.visits.finishedVisitsToday') }}" class="widget-link">
                             <div class="widget widget-one_hybrid widget-engagement">
-                                <div class="widget-heading">
-                                    <div class="w-title">
-                                        <div class="w-icon">
+                                <div class="widget-heading p-4 rounded-lg bg-lightpink shadow-sm">
+                                    <div class="d-flex align-items-center">
+                                        <div class="w-icon bg-success text-white rounded-circle p-3 shadow-sm me-4">
+                                            <!-- Check Circle Icon for Completed Orders -->
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                class="feather feather-book">
-                                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z">
-                                                </path>
+                                                class="feather feather-check-circle">
+                                                <path d="M9 11l3 3L22 4"></path>
+                                                <circle cx="12" cy="12" r="10"></circle>
                                             </svg>
                                         </div>
-                                        <div class="">
-                                            <p class="w-value">{{ $finished_visits_today }}</p>
-                                            <h5 class="">{{ __('dash.finished_orders_today') }}</h5>
+                                        <div>
+                                            <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $finished_visits_today }}
+                                            </p>
+                                            <h5 class="text-muted mb-0">{{ __('dash.finished_orders_today') }}</h5>
                                         </div>
                                     </div>
                                 </div>
-
+                                <div class="widget-footer p-4 text-center bg-lightpink">
+                                    <p class="text-muted mb-0">إدارة الطلبات المكتملة اليوم</p>
+                                </div>
                             </div>
                         </a>
                     </div>
+
                 </div>
             </div>
+
 
 
             <div class="col-xl-6 col-lg-12 col-sm-12  layout-spacing">
@@ -333,33 +393,10 @@
 
             </div>
 
-            {{-- <div class="col-xl-6 col-lg-12 col-sm-12  layout-spacing">
-                <div class="widget-content widget-content-area br-6">
-                    <div class="col-md-12 text-left mb-3">
 
-                        <h5 class="">{{ __('dash.tech_orders_today') }}</h5>
-
-
-                    </div>
-                    <table id="html5-extension-order" class="table table-hover non-hover">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>رقم الطلب</th>
-                                <th>الفريق</th>
-                                <th>موعد الحجز</th>
-                                <th>وقت البدء</th>
-                                <th>الحاله</th>
-                            </tr>
-                        </thead>
-                    </table>
-
-
-
-                </div>
-            </div> --}}
 
         </div>
+
         <!-- sales chart start -->
         <div class="row">
             <div class="col-sm-12">
