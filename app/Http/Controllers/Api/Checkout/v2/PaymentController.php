@@ -50,7 +50,7 @@ class PaymentController extends Controller
         return Validator::make($request->all(), [
             'transaction_id' => 'nullable|string|unique:payments',
             'amount' => 'nullable|numeric',
-            'gateway_response' => 'required|json',
+            'gateway_response' => 'required',
             'payment_date' => 'nullable|date',
             'description' => 'nullable|string',
             'status' => 'nullable|string|in:pending,success,failed,cancelled',
