@@ -48,5 +48,7 @@ return [
     'Invalid user address' => 'عنوان المستخدم غير صالح',
     'Something went wrong, please try again later' => 'حدث خطأ ما، يرجى المحاولة مرة أخرى لاحقًا',
     'test_checkout' => 'يمكنك اكمال الطلب الوقت متاح ',
+    'payment created successfully' => '  تم تخزين سجل عملية الدفع بنجاح ',
+    'Invalid data provided' => 'تم إدخال بيانات غير صحيحة',
 
 ];
