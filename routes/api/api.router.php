@@ -41,6 +41,7 @@ Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
     require __DIR__ . '/auth.router.php';
     require __DIR__ . '/users.router.php';
     require __DIR__ . '/checkout.router.php';
+    require __DIR__ . '/payment.router.php';
     require __DIR__ . '/order.router.php';
     require __DIR__ . '/cars.router.php';
     require __DIR__ . '/complaint.router.php';

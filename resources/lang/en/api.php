@@ -48,5 +48,8 @@ return [
     'Invalid user address' => 'Invalid user address',
     'Something went wrong, please try again later' => 'Something went wrong, please try again later',
     'test_checkout' => 'You can complete the Order , time is available',
+    'payment created successfully' => 'The history of the payment transaction was successfully stored',
+    'invalid data provided' => 'Invalid data provided',
+
 
 ];
