@@ -53,6 +53,7 @@ class PaymentController extends Controller
             'gateway_response' => 'required',
             'payment_date' => 'nullable|date',
             'description' => 'nullable|string',
+            'type' => 'nullable|string',
             'status' => 'nullable|string|in:pending,success,failed,cancelled',
         ]);
     }
@@ -70,7 +71,7 @@ class PaymentController extends Controller
         $payment->transaction_id = $request->input('transaction_id');
         $payment->amount = $request->input('amount');
         $payment->status = $request->input('status', 'pending');
-        $payment->payment_method = $request->input('payment_method', null);
+        $payment->payment_method = $request->input('type', null);
         $payment->phone = $request->input('phone', null);
         $payment->gateway_response = json_encode($request->input('gateway_response'));
         $payment->payment_date = $request->input('payment_date', now());
