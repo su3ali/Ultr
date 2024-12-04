@@ -218,13 +218,13 @@
                         orderable: true,
                         searchable: true
                     },
-
                     {
                         data: 'region',
                         name: 'region',
                         orderable: true,
                         searchable: true
                     },
+
 
 
                 ]

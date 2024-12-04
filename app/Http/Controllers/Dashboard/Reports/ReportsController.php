@@ -19,6 +19,7 @@ use Yajra\DataTables\DataTables;
 
 class ReportsController extends Controller
 {
+
     protected function sales(Request $request)
     {
         if (request()->ajax()) {
@@ -26,117 +27,87 @@ class ReportsController extends Controller
             $date2 = $request->date2;
             $service = $request->service;
             $payment_method = $request->payment_method;
-            $order = Order::where(function ($query) {
-                $query->where('status_id', '=', 4)->orWhereHas('transaction', function ($q) {
-                    $q->where('payment_method', '!=', 'cache');
+
+            // Start the query
+            $orderQuery = Order::with(['services.category', 'user', 'transaction', 'userAddress.region'])
+                ->where('is_active', 1)
+                ->where(function ($query) {
+                    $query->where('status_id', 4)
+                        ->orWhereHas('transaction', function ($q) {
+                            $q->where('payment_method', '!=', 'cache');
+                        });
                 });
-            });
 
+            // Apply date filters
             if ($date) {
-                error_log($date);
                 $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
-                $formattedDate = $carbonDate->format('Y-m-d H:i:s');
-                $order = $order->where('created_at', '>=', $formattedDate);
+                $orderQuery->where('created_at', '>=', $carbonDate->startOfDay());
             }
-            if ($date2) {
 
+            if ($date2) {
                 $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
-                $formattedDate2 = $carbonDate2->format('Y-m-d H:i:s');
-                $order = $order->where('created_at', '<=', $formattedDate2);
+                $orderQuery->where('created_at', '<=', $carbonDate2->endOfDay());
             }
+
+            // Apply payment method filter
             if ($payment_method) {
-                $order = $order->whereHas('transaction', function ($q) use ($payment_method) {
+                $orderQuery->whereHas('transaction', function ($q) use ($payment_method) {
                     $q->where('payment_method', $payment_method);
                 });
             }
-            if ($service) {
 
-                $orders_ids = OrderService::where('service_id', $service)->get()->pluck('order_id')->toArray();
-                $order = $order->whereIn('id', $orders_ids);
+            // Apply service filter
+            if ($service) {
+                $orderQuery->whereHas('services', function ($q) use ($service) {
+                    $q->where('service_id', $service);
+                });
             }
 
-            $order = $order->where('is_active', 1)->with(['services.category', 'user', 'transaction'])->get();
+            // Initialize the DataTables collection
+            $data = collect();
 
-            return DataTables::of($order)
-                ->addColumn('order_number', function ($row) {
-                    return $row->id;
-                })
-                ->addColumn('user_name', function ($row) {
-                    return $row->user?->first_name . '' . $row->user?->last_name;
-                })
-                ->addColumn('created_at', function ($row) {
-                    return $row->created_at;
-                })
-                ->addColumn('service', function ($row) {
-                    /* $services_ids = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
-                $services = Service::whereIn('id', $services_ids)->get(); */
-                    $services = $row->services;
-                    $html = '';
-                    foreach ($services as $item) {
-                        $html .= '<button class="btn-sm btn-primary">' . $item->title_ar . '</button>';
-                    }
-                    // $category_ids = OrderService::where('order_id',$row->id)->get()->pluck('category_id')->toArray();
-                    // $category_ids = array_unique($category_ids);
-                    // $categories = Category::whereIn('id',$category_ids)->get();
-                    // $html = '';
-                    // foreach ($categories as $item) {
-                    //     $html.='<button class="btn-sm btn-primary">'.$item->title.'</button>';
-                    // }
-                    return $html;
-                })
-                ->addColumn('service_number', function ($row) {
-                    //  $service_ids = OrderService::where('order_id',$row->id)->get()->pluck('service_id')->toArray();
-                    /* $service_count = OrderService::where('order_id', $row->id)->count(); */
-                    $service_count = $row->services->count();
-                    return $service_count;
-                })
-                ->addColumn('price', function ($row) {
-                    return number_format(($row->total / 115 * 100), 2);
-                })
-                ->addColumn('payment_method', function ($row) use ($payment_method) {
-                    $payment_methodd = $row->transaction?->payment_method;
-                    if ($payment_method) {
-                        $payment_methodd = $payment_method;
-                    }
+            // Execute the query and fetch results in chunks
+            $orderQuery->chunk(100, function ($orders) use ($data) {
+                foreach ($orders as $row) {
+                    $data->push([
+                        'order_number' => $row->id,
+                        'user_name' => $row->user?->first_name . ' ' . $row->user?->last_name,
+                        'created_at' => Carbon::parse($row->created_at)->timezone('Asia/Riyadh')->format('Y-m-d'),
 
-                    if ($payment_methodd == "cache" || $payment_methodd == "cash") {
-                        return "شبكة";
-                    } else if ($payment_methodd == "wallet") {
-                        return "محفظة";
-                    } else {
-                        return "فيزا";
-                    }
+                        'service' => $row->services->map(fn($item) => '<button class="btn-sm btn-primary">' . $item->title_ar . '</button>')->join(' '),
+                        'service_number' => $row->services->count(),
+                        'price' => number_format(($row->total / 115 * 100), 2),
+                        'payment_method' => match ($row->transaction?->payment_method ?? '') {
+                            'cache', 'cash' => 'شبكة',
+                            'wallet' => 'محفظة',
+                            default => 'فيزا',
+                        },
+                        'total' => $row->total,
+                        'region' => $row->userAddress?->region?->title ?? '',
+                    ]);
+                }
+            });
 
-                })->addColumn('total', function ($row) {
-                return $row->total;
-            })
-
-                ->addColumn('region', function ($row) {
-                    return $row->userAddress?->region?->title;
-                })
-
+            // Return the data in DataTables format
+            return DataTables::of($data)
                 ->rawColumns([
-                    'order_number',
-                    'user_name',
-                    'created_at',
-                    'service',
-                    'service_number',
-                    'price',
-                    'payment_method',
-                    'total',
-                    'region',
+                    'order_number', 'user_name', 'created_at', 'service', 'service_number', 'price', 'payment_method', 'total', 'region',
                 ])
                 ->make(true);
         }
 
-        $total = Order::where('is_active', 1)->where(function ($query) {
-            $query->Where('status_id', '=', 4)->orWhereHas('transaction', function ($q) {
-                $q->where('payment_method', '!=', 'cache');
-            });
-        })->sum('total');
-        error_log($total);
-        $tax = ($total * 15) / 100 ?? 0;
+        // Calculate total and tax for non-AJAX request
+        $total = Order::where('is_active', 1)
+            ->where(function ($query) {
+                $query->where('status_id', 4)
+                    ->orWhereHas('transaction', function ($q) {
+                        $q->where('payment_method', '!=', 'cache');
+                    });
+            })->sum('total');
+
+        $tax = $total * 0.15;
         $services = Service::all()->pluck('title', 'id');
+
         return view('dashboard.reports.sales', compact('total', 'tax', 'services'));
     }
 
