@@ -72,7 +72,9 @@
                                     <option value="visa">فيزا</option>
                                 </select>
                             </div>
+                            <div class="col-md-1">
 
+                            </div>
                             <div class="col-md-1">
                                 <label for="inputEmail4">الخدمة</label>
                             </div>
@@ -98,7 +100,7 @@
                                 <th>عدد الخدمات</th>
                                 <th>المبلغ</th>
                                 <th>طريقة الدفع</th>
-                                <th> الـمنـطـقة</th>
+                                <th> المنطقة</th>
                             </tr>
                         </thead>
                     </table>
@@ -223,8 +225,6 @@
                         orderable: true,
                         searchable: true
                     },
-
-
 
 
                 ]
