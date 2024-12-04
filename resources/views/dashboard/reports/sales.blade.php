@@ -100,7 +100,7 @@
                                 <th>عدد الخدمات</th>
                                 <th>المبلغ</th>
                                 <th>طريقة الدفع</th>
-                                <th> المنطقـة</th>
+                                <th> المنطقة</th>
                             </tr>
                         </thead>
                     </table>
@@ -218,6 +218,7 @@
                         orderable: true,
                         searchable: true
                     },
+
                     {
                         data: 'region',
                         name: 'region',

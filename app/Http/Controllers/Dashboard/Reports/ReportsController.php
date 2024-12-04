@@ -110,8 +110,9 @@ class ReportsController extends Controller
                 })->addColumn('total', function ($row) {
                 return $row->total;
             })
+
                 ->addColumn('region', function ($row) {
-                    return $row->userAddress?->region->title ?? '';
+                    return $row->userAddress?->region?->title;
                 })
 
                 ->rawColumns([
