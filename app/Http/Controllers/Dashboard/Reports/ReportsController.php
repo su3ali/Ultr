@@ -21,14 +21,6 @@ class ReportsController extends Controller
 {
     protected function sales(Request $request)
     {
-
-        $order = Order::where(function ($query) {
-            $query->where('status_id', '=', 4)->orWhereHas('transaction', function ($q) {
-                $q->where('payment_method', '!=', 'cache');
-            });
-        });
-        $order = $order->where('is_active', 1)->with(['services.category', 'user', 'transaction'])->get();
-
         if (request()->ajax()) {
             $date = $request->date;
             $date2 = $request->date2;
@@ -73,7 +65,7 @@ class ReportsController extends Controller
                     return $row->user?->first_name . '' . $row->user?->last_name;
                 })
                 ->addColumn('created_at', function ($row) {
-                    return $row->created_at->format('Y-m-d');
+                    return $row->created_at;
                 })
                 ->addColumn('service', function ($row) {
                     /* $services_ids = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
@@ -101,9 +93,6 @@ class ReportsController extends Controller
                 ->addColumn('price', function ($row) {
                     return number_format(($row->total / 115 * 100), 2);
                 })
-                ->addColumn('region', function ($row) {
-                    return $row->userAddress?->region?->title ?? '';
-                })
                 ->addColumn('payment_method', function ($row) use ($payment_method) {
                     $payment_methodd = $row->transaction?->payment_method;
                     if ($payment_method) {
@@ -121,6 +110,9 @@ class ReportsController extends Controller
                 })->addColumn('total', function ($row) {
                 return $row->total;
             })
+                ->addColumn('region', function ($row) {
+                    return $row->userAddress?->region->title ?? '';
+                })
 
                 ->rawColumns([
                     'order_number',
@@ -131,6 +123,7 @@ class ReportsController extends Controller
                     'price',
                     'payment_method',
                     'total',
+                    'region',
                 ])
                 ->make(true);
         }
