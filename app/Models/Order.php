@@ -15,7 +15,6 @@ class Order extends Model
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
-    
 
     public function category()
     {
@@ -45,10 +44,7 @@ class Order extends Model
     {
         return $this->hasOne(UserAddresses::class, 'id', 'user_address_id');
     }
-    // public function bookings()
-    // {
-    //     return $this->hasMany(Booking::class);
-    // }
+
     public function bookings()
     {
         return $this->hasMany(Booking::class, 'order_id', 'id');

@@ -53,17 +53,6 @@
       'Image' => 'Intervention\\Image\\Facades\\Image',
     ),
   ),
-  'itsgoingd/clockwork' => 
-  array (
-    'aliases' => 
-    array (
-      'Clockwork' => 'Clockwork\\Support\\Laravel\\Facade',
-    ),
-    'providers' => 
-    array (
-      0 => 'Clockwork\\Support\\Laravel\\ClockworkServiceProvider',
-    ),
-  ),
   'laravel/sail' => 
   array (
     'providers' => 
