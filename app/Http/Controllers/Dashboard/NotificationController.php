@@ -2,19 +2,15 @@
 
 namespace App\Http\Controllers\Dashboard;
 
-
-
+use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\Technician;
 use App\Models\User;
-use App\Models\Order;
 use App\Notifications\SendPushNotification;
 use App\Traits\NotificationTrait;
 use Exception;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Models\Admin;
 use Illuminate\Support\Facades\Notification;
-
 
 class NotificationController extends Controller
 {
@@ -37,8 +33,6 @@ class NotificationController extends Controller
             return response()->json(['subjects' => $subjects]);
         }
 
-
-
         $subjects = $subjects->get();
         return view('dashboard.notification.notification', compact('subjects'));
     }
@@ -51,7 +45,7 @@ class NotificationController extends Controller
             'technician_id' => 'nullable',
             'title' => 'required',
             'message' => 'required',
-            'type' => 'required'
+            'type' => 'required',
         ]);
         if ($request->type == 'customer') {
             if ($request->subject_id == 'all') {
@@ -95,7 +89,6 @@ class NotificationController extends Controller
             $type = 'technician';
         }
 
-
         if (isset($FcmTokenArray) && count($FcmTokenArray) == 0) {
             return redirect()->back()->withErrors(['fcm_token' => 'لا يمكن ارسال الاشعارت لعدم توفر رمز الجهاز']);
         }
@@ -116,7 +109,7 @@ class NotificationController extends Controller
                 'title' => $request->title,
                 'message' => $message,
                 'type' => $type ?? '',
-                'code' => 2
+                'code' => 2,
             ];
 
             try {
