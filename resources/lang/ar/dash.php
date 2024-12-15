@@ -839,5 +839,8 @@ return [
     'appointment settings' => 'إعدادات المواعيد',
     'zone' => 'المنطقة (الزون)',
     'technical_data' => 'بيانات الفني',
+    'training_management' => 'إدارة التدريب',
+    'number_of_trainees' => 'عدد المتدربين',
+    'trainees' => 'المتدربيّن',
 
 ];

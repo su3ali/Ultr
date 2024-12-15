@@ -22,7 +22,7 @@
                             <ol class="breadcrumb mb-0 py-2">
                                 <li class="breadcrumb-item"><a
                                         href="{{ route('dashboard.home') }}">{{ __('dash.home') }}</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">{{ __('dash.technicians') }}</li>
+                                <li class="breadcrumb-item active" aria-current="page">{{ __('dash.trainees') }}</li>
                             </ol>
                         </nav>
 
@@ -34,7 +34,7 @@
         </header>
     </div>
 
-    @include('dashboard.core.technicians.create')
+    @include('dashboard.core.trainees.create')
 @endsection
 
 @section('content')
@@ -57,11 +57,8 @@
                             <tr>
                                 <th>#</th>
                                 <th>{{ __('dash.name') }}</th>
-                                <th>{{ __('dash.image') }}</th>
-                                <th>التخصص</th>
-                                <th>{{ __('dash.phone') }}</th>
-                                <th>{{ __('dash.group') }}</th>
-                                <th>{{ __('dash.status') }}</th>
+                                <th>{{ __('dash.rate') }}</th>
+                                <th>{{ __('dash.note') }}</th>
                                 <th class="no-content">{{ __('dash.actions') }}</th>
                             </tr>
                         </thead>
@@ -74,7 +71,7 @@
         </div>
 
     </div>
-    @include('dashboard.core.technicians.edit')
+    @include('dashboard.core.trainees.edit')
 @endsection
 
 @push('script')
@@ -132,27 +129,14 @@
                         name: 'name'
                     },
                     {
-                        data: 't_image',
-                        name: 't_image',
-                        orderable: false,
-                        searchable: false
+                        data: 'rate',
+                        name: 'rate'
                     },
                     {
-                        data: 'spec',
-                        name: 'spec'
+                        data: 'note',
+                        name: 'note'
                     },
-                    {
-                        data: 'phone',
-                        name: 'phone'
-                    },
-                    {
-                        data: 'group',
-                        name: 'group'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status'
-                    },
+
                     {
                         data: 'control',
                         name: 'control',
@@ -214,7 +198,7 @@
             }
             // $('.editImage .custom-file-container__image-preview').css('background-image', 'url(' + 'data:image/png;base64,' + img + ')');
             //
-            let action = "{{ route('dashboard.core.technician.update', 'id') }}";
+            let action = "{{ route('dashboard.core.trainee.update', 'id') }}";
             action = action.replace('id', id)
             $('#edit_tech_form').attr('action', action);
 

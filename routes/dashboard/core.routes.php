@@ -29,6 +29,9 @@ route_group('core', function () {
     Route::resource('category', 'CategoryController');
 
     Route::resource('technician', 'TechnicianController');
+
+    Route::resource('trainee', 'TraineeController');
+
     Route::get('technician/{id}/details', 'TechnicianController@showTechnicianDetails')->name('technician.details');
     Route::get('technician/change_status/change', 'TechnicianController@changeStatus')->name('technician.change_status');
     Route::resource('tech_specializations', 'TechSpecializationController');
