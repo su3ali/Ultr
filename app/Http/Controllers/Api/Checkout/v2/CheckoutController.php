@@ -12,6 +12,7 @@ use App\Models\ContractPackage;
 use App\Models\ContractPackagesUser;
 use App\Models\CustomerWallet;
 use App\Models\Group;
+use App\Models\GroupRegion;
 use App\Models\Order;
 use App\Models\OrderService;
 use App\Models\Service;
@@ -192,6 +193,8 @@ class CheckoutController extends Controller
             // dd($shift);
             $regionId = UserAddresses::where('user_id', $request->user_address_id)->pluck('region_id')->toArray();
 
+            $region = UserAddresses::where('user_id', $request->user_address_id)->pluck('region_id')->first();
+
             $remaining_days = Carbon::now()->diffInDays(Carbon::parse($carts->first()->date)) + 1;
             $page_number = floor($remaining_days / 14);
             $time = new Appointment($regionId, $services, null, $page_number);
@@ -225,6 +228,10 @@ class CheckoutController extends Controller
             $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
                 return array_map('intval', json_decode($jsonString, true));
             }, $shiftGroupsIds));
+
+            $shiftGroupsIds = GroupRegion::whereIn('group_id', $shiftGroupsIds)->where('region_id', $region)
+
+                ->pluck('group_id')->toArray();
 
             $category_ids = $carts->pluck('category_id')->toArray();
             $category_ids = array_unique($category_ids);
