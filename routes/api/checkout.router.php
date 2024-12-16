@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Api\Checkout\CartController;
 use App\Http\Controllers\Api\Checkout\CheckoutController;
-use App\Http\Controllers\Api\Checkout\v2\CheckoutController as CheckoutControllerV2 ;
+use App\Http\Controllers\Api\Checkout\v2\CheckoutController  as CheckoutControllerV2 ;
 use App\Http\Controllers\Api\Checkout\v2\CartController as CartControllerV2;
 
 Route::prefix('carts')->group(function () {
