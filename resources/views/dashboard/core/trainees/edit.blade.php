@@ -1,9 +1,9 @@
-<div class="modal fade " id="editTechModel" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="editTechModel" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">{{ __('dash.edit_technician') }}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="exampleModalLabel" style="color: #ddd">{{ __('dash.rate_trainee') }}</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round" class="feather feather-x">
@@ -18,203 +18,166 @@
                     @csrf
                     {!! method_field('PUT') !!}
                     <div class="box-body">
-                        <div class="form-row mb-3">
-                            <div class="form-group col-md-4">
-                                <label for="edit_name">{{ __('dash.name') }}</label>
+                        <div class="form-row mb-6">
+                            <div class="form-group col-md-6">
+                                <label for="edit_name" class="form-label fw-bold">{{ __('dash.name') }}</label>
                                 <input type="hidden" id="tech_id" name="tech_id">
-                                <input required type="text" name="name" class="form-control" id="edit_name"
-                                    placeholder="{{ __('dash.name') }}">
+                                <input required type="text" name="name" readonly class="form-control"
+                                    id="edit_name" placeholder="{{ __('dash.name') }}">
                                 @error('name')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                    <div class="alert alert-danger mt-2">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            <div class="form-group col-md-4">
-                                <label for="edit_user_name">اسم الفني</label>
-                                <input required type="text" name="user_name" class="form-control" id="edit_user_name"
-                                    placeholder="اسم الفني المستخدم">
-                                @error('user_name')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
 
-                            <div class="form-group col-md-4">
-                                <label for="edit_email">{{ __('dash.email') }}</label>
-                                <input type="email" name="email" class="form-control" id="edit_email"
-                                    placeholder="{{ __('dash.email') }}">
-                                @error('email')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
 
-                        <div class="form-row mb-3">
                             <div class="form-group col-md-6">
-                                <label for="inputEmail4">{{ __('dash.password') }}</label>
-                                <input type="password" name="password" class="form-control" id="inputEmail4"
-                                    placeholder="{{ __('dash.password') }}">
-                                @error('password')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="inputEmail4">{{ __('dash.password_confirmation') }}</label>
-                                <input type="password" name="password_confirmation" class="form-control"
-                                    id="inputEmail4" placeholder="{{ __('dash.password_confirmation') }}">
-                                @error('password_confirmation')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="form-row mb-3">
-                            <div class="form-group col-md-6">
-                                <label for="edit_phone">{{ __('dash.phone') }}</label>
-                                <input required type="text" name="phone" class="form-control" id="edit_phone"
-                                    placeholder="{{ __('dash.phone') }}">
-                                @error('phone')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="form-group col-md-6">
-
-                                <label for="edit_spec">التخصص</label>
-                                <select id="edit_spec" class="select2 form-control pt-1" name="spec_id">
+                                <label for="edit_rate" class="form-label fw-bold">{{ __('dash.rate') }}</label>
+                                <select id="edit_rate" class="select2 form-control pt-1" name="rate"
+                                    style="border-radius: 8px; border: 2px solid #ddd;">
                                     <option selected disabled>{{ __('dash.choose') }}</option>
-                                    @foreach ($specs as $spec)
-                                        <option value="{{ $spec->id }}">{{ $spec->name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('specialization')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-
-                            </div>
-                        </div>
-                        <div class="form-row mb-3">
-                            <div class="form-group col-md-6">
-
-                                <label for="edit_country_id">{{ __('dash.nationality') }}</label>
-                                <select required id="edit_country_id" class="select2 form-control pt-1"
-                                    name="country_id">
-                                    @foreach ($nationalities as $key => $nationality)
-                                        <option value="{{ $nationality }}">{{ $key }}</option>
-                                    @endforeach
-                                </select>
-                                @error('country_id')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-
-                            </div>
-
-                            <div class="form-group col-md-6">
-                                <label for="edit_identity_id">{{ __('dash.identity_number') }}</label>
-                                <input required type="text" name="identity_id" class="form-control"
-                                    id="edit_identity_id" placeholder="{{ __('dash.identity_number') }}">
-                                @error('identity')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="form-row mb-3">
-                            <div class="form-group col-md-6">
-
-                                <label for="edit_birth">{{ __('dash.birth_date') }}</label>
-                                <input required id="edit_birth" name="birth_date" type="date"
-                                    class="form-control datepicker" data-date-format="dd/mm/yyyy">
-                                @error('birth_date')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-
-                            </div>
-
-                            <div class="form-group col-md-6">
-
-                                <label for="edit_wallet">{{ __('dash.wallet') }}</label>
-                                <select required id="edit_wallet" class="select2 form-control pt-1" name="wallet_id">
-                                    <option disabled>{{ __('dash.choose') }}</option>
-                                    {{--                                    @foreach ($categories as $category) --}}
-                                    <option value="1">wallet</option>
-                                    {{--                                    @endforeach --}}
-                                </select>
-                                @error('nationality')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-
-                            </div>
-                        </div>
-
-                        <div class="form-row mb-3">
-                            <div class="col-md-6 custom-file-container form-group" data-upload-id="myImage">
-                                <label>{{ __('dash.upload') }}<a href="javascript:void(0)"
-                                        class="custom-file-container__image-clear" title="Clear Image">x</a></label>
-                                <div style="display: flex">
-                                    <label class="custom-file-container__custom-file">
-                                        <input type="file"
-                                            class="custom-file-container__custom-file__custom-file-input"
-                                            name="image">
-                                        {{-- <input type="hidden" name="MAX_FILE_SIZE" value="10485760"/> --}}
-                                        <span class="custom-file-container__custom-file__custom-file-control"></span>
-                                    </label>
-
-                                    <div class=" col-md-2 custom-file-container__image-preview"></div>
-                                </div>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="edit_address">{{ __('dash.address') }}</label>
-                                <textarea required type="text" name="address" class="form-control" id="edit_address" rows="3"
-                                    placeholder="{{ __('dash.identity_number') }}"></textarea>
-                                @error('image')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="form-row mb-3">
-                            <div class="form-group col-md-6">
-
-                                <label for="edit_group">{{ __('dash.group') }}</label>
-                                <select id="edit_group" class="select2 form-control pt-1" name="group_id">
-                                    <option selected disabled>{{ __('dash.choose') }}</option>
-                                    @foreach ($groups as $group)
-                                        <option value="{{ $group->id }}">{{ $group->name }}</option>
+                                    @foreach ($ratings as $rate)
+                                        <option value="{{ $rate }}">{{ $rate }}</option>
                                     @endforeach
                                 </select>
                                 @error('group_id')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                    <div class="alert alert-danger mt-2">{{ $message }}</div>
                                 @enderror
-
                             </div>
-                            <div class="form-group col-md-6">
-                                <label for="status"></label>
-                                <label class="switch s-outline s-outline-info  mb-4 mx-4 mt-3 d-block w-50">
-                                    <label class="mx-5" for="edit_status">{{ __('dash.status') }}</label>
-                                    <input type="checkbox" name="active" id="edit_status">
-                                    <span class="slider round"></span>
-                                </label>
-                                @error('status')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
 
+                            <div class="form-row align-items-center mb-4">
+                                <div class="form-group col-md-6">
+                                    <label for="upload_file" class="form-label fw-bold">{{ __('dash.upload') }}</label>
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input shadow-sm" id="upload_file"
+                                            name="upload_file" accept="image/*">
+                                        <label class="custom-file-label" for="upload_file"
+                                            id="upload_label">{{ __('dash.choose_file') }}</label>
+                                    </div>
+                                </div>
+                                @error('upload_file')
+                                    <div class="alert alert-danger mt-2 col-md-12">
+                                        <i class="bi bi-exclamation-circle"></i> {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+
+
+
+
+
+                        </div>
+
+
+                        <div class="form-row mb-4">
+                            <div class="form-group col-md-12">
+                                <label for="edit_note" class="form-label fw-bold">{{ __('dash.note') }}</label>
+                                <textarea class="form-control shadow-sm" id="edit_note" name="note" rows="4"
+                                    style="border-radius: 8px; resize: vertical; border: 2px solid #ddd; transition: all 0.3s ease-in-out;"></textarea>
+                                @error('note')
+                                    <div class="alert alert-danger mt-2 px-3 py-2"
+                                        style="border-radius: 8px; font-size: 14px;">
+                                        <i class="bi bi-exclamation-circle"></i> {{ $message }}
+                                    </div>
+                                @enderror
                             </div>
                         </div>
+
+
+
 
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">{{ __('dash.save') }}</button>
-                        <button class="btn" data-dismiss="modal"><i class="flaticon-cancel-12"></i>
-                            {{ __('dash.close') }}
-                        </button>
+                        <button class="btn btn-light" data-dismiss="modal"><i class="flaticon-cancel-12"></i>
+                            {{ __('dash.close') }}</button>
                     </div>
                 </form>
             </div>
-
         </div>
     </div>
 </div>
 
 
+
 @push('script')
     <script>
         let myImage = new FileUploadWithPreview('myImage')
+
+        document.getElementById('upload_file').addEventListener('change', function() {
+            var fileName = this.files[0] ? this.files[0].name : '{{ __('dash.choose_file') }}';
+            document.getElementById('upload_label').textContent = fileName;
+        });
     </script>
+
+    <style>
+        /* General Styling */
+        .form-label {
+            font-weight: bold;
+            font-size: 1rem;
+            color: #495057;
+        }
+
+        .custom-file {
+            position: relative;
+            border: 2px dashed #d1d3e2;
+            border-radius: 8px;
+            padding: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .custom-file:hover {
+            border-color: #5a5c69;
+            background-color: #f8f9fc;
+        }
+
+        .custom-file-input {
+            opacity: 0;
+            /* Hides the default input */
+            position: absolute;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .custom-file-label {
+            position: relative;
+            z-index: 1;
+            display: block;
+            width: 100%;
+            height: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            text-align: center;
+            color: #6c757d;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .custom-file-input:focus+.custom-file-label {
+            border: 2px solid #007bff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            color: #495057;
+            background-color: #e9ecef;
+        }
+
+        /* Error Styling */
+        .alert.alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            padding: 0.75rem 1rem;
+        }
+
+        /* Additional styling for icons */
+        .bi-exclamation-circle {
+            margin-right: 5px;
+        }
+    </style>
 @endpush

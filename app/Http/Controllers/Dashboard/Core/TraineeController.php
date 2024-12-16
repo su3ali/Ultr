@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard\Core;
 
 use App\Http\Controllers\Controller;
 use App\Models\Group;
+use App\Models\RateTrainee;
 use App\Models\Specialization;
 use App\Models\Technician;
 use App\Models\Visit;
@@ -28,7 +29,7 @@ class TraineeController extends Controller
         // Handle AJAX request for DataTables
         if ($request->ajax()) {
             $traineesQuery = Technician::query()
-                ->with(['group', 'specialization']) // Eager load relationships
+                ->with(['group', 'specialization', 'traineeRates']) // Eager load relationships
                 ->where('is_trainee', 1); // Filter only trainees
 
             // Apply filters
@@ -69,11 +70,14 @@ class TraineeController extends Controller
                     return [
                         'id' => '<a href="' . route('dashboard.core.technician.details', ['id' => $trainee->id]) . '">' . $trainee->id . '</a>',
                         'name' => '<a href="#">' . e($trainee->name) . '</a>',
-                        'rate' => '<a href="#">' . ($trainee?->traineeRates->id) . '</a>',
-                        'note' => '<a href="#">' . e($trainee?->traineeRates->id) . '</a>',
+                        'rate' => '<a href="#">' . optional(RateTrainee::where('trainee_id', $trainee->id)->first())->rate . '</a>',
+                        'file' => $trainee->upload_file
+                        ? '<img class="img-fluid" style="width: 85px;" src="' . asset($trainee->upload_file) . '"/>'
+                        : 'لم يتم اضافة صورة',
+                        'note' => '<a href="#">' . optional(RateTrainee::where('trainee_id', $trainee->id)->first())->note . '</a>',
                         'status' => '
                             <label class="switch s-outline s-outline-info mb-4 mr-2">
-                                <input type="checkbox" id="customSwitchtech" data-id="' . $trainee->id . '" ' . ($trainee->active ? 'checked' : '') . '>
+                                <input type="checkbox" id="customSwitchtech" data-id="' . $trainee->id . '" ' . ($trainee->is_trainee ? '' : 'checked') . '>
                                 <span class="slider round"></span>
                             </label>',
                         'control' => '
@@ -81,10 +85,13 @@ class TraineeController extends Controller
                                 data-id="' . $trainee->id . '"
                                 data-name="' . e($trainee->name) . '"
                                 data-user_name="' . e($trainee->user_name) . '"
+                                data-rate="' . optional(RateTrainee::where('trainee_id', $trainee->id)->first())->rate . '"
+                                data-note="' . optional(RateTrainee::where('trainee_id', $trainee->id)->first())->note . '"
                                 data-email="' . e($trainee->email) . '"
                                 data-phone="' . e($trainee->phone) . '"
                                 data-specialization="' . e($trainee->spec_id) . '"
                                 data-active="' . e($trainee->active) . '"
+                                data-is_trainee="' . e($trainee->is_trainee) . '"
                                 data-group_id="' . e($trainee->group_id) . '"
                                 data-country_id="' . e($trainee->country_id) . '"
                                 data-address="' . e($trainee->address) . '"
@@ -93,7 +100,8 @@ class TraineeController extends Controller
                                 data-identity_number="' . e($trainee->identity_id) . '"
                                 data-image="' . asset($trainee->image) . '"
                                 data-toggle="modal" data-target="#editTechModel">
-                                <i class="far fa-edit fa-2x"></i>
+                                <i class="far fa-star fa-2x"></i>
+
                             </button>
                             <a data-table_id="html5-extension" data-href="' . route('dashboard.core.trainee.destroy', $trainee->id) . '"
                                 data-id="' . $trainee->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech">
@@ -115,7 +123,9 @@ class TraineeController extends Controller
             "مصر" => "7",
         ];
 
-        return view('dashboard.core.trainees.index', compact('groups', 'specs', 'nationalities'));
+        $ratings = ['ممتاز جدا', 'ممتاز', 'جيد جدا', 'جيد', 'سيئ'];
+
+        return view('dashboard.core.trainees.index', compact('groups', 'specs', 'nationalities', 'ratings'));
     }
 
     public function showTechnicianDetails($id)
@@ -139,18 +149,17 @@ class TraineeController extends Controller
 
         $rules = [
             'name' => 'required|String|min:3',
-            'email' => 'required|Email|unique:technicians,email',
             'phone' => 'required|unique:technicians,phone',
             'user_name' => ['required', 'regex:/^[^\s]+$/', 'unique:technicians,user_name'],
             'password' => ['required', 'confirmed', Password::min(4)],
             'spec_id' => 'required|exists:specializations,id',
             'country_id' => 'required',
             'identity_id' => 'required|Numeric',
-            'birth_date' => 'required|Date',
+            'birth_date' => 'nullable|Date',
             'wallet_id' => 'required',
-            'address' => 'required|String',
+            'address' => 'nullable|String',
             'group_id' => 'nullable',
-            'image' => 'required|image|mimes:jpeg,jpg,png,gif',
+            'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
             'active' => 'nullable|in:on,off',
         ];
         $validated = Validator::make($request->all(), $rules, ['user_name.regex' => 'يجب أن لا يحتوي اسم المستخدم على أي مسافات']);
@@ -158,59 +167,108 @@ class TraineeController extends Controller
             return redirect()->back()->withErrors($validated->errors());
         }
         $validated = $validated->validated();
-        if ($validated['active'] && $validated['active'] == 'on') {
-            $validated['active'] = 1;
-        } else {
-            $validated['active'] = 0;
-        }
+
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $filename = time() . '.' . $image->getClientOriginalExtension();
             $request->image->move(storage_path('app/public/images/technicians/'), $filename);
             $validated['image'] = 'storage/images/technicians' . '/' . $filename;
         }
-        Technician::query()->create($validated);
+        $trainee = Technician::query()->create($validated);
+        $trainee->update([
+            'is_trainee' => 1,
+            'active' => 0,
+        ]);
         session()->flash('success');
         return redirect()->back();
     }
     protected function update(Request $request, $id)
     {
+        // dd($request->all());
         $tech = Technician::query()->where('id', $id)->first();
         $rules = [
             'name' => 'required|String|min:3',
-            'email' => 'required|Email|unique:technicians,email,' . $id,
-            'phone' => 'required|unique:technicians,phone,' . $id,
-            'user_name' => ['required', 'regex:/^[^\s]+$/', 'unique:technicians,user_name,' . $id],
-            'spec_id' => 'required|exists:specializations,id',
-            'country_id' => 'required',
-            'identity_id' => 'required|Numeric',
-            'birth_date' => 'required|Date',
-            'wallet_id' => 'required',
-            'address' => 'required|String',
+            'email' => 'nullable|Email|unique:technicians,email,' . $id,
+            'phone' => 'nullable|unique:technicians,phone,' . $id,
+            'user_name' => ['nullable', 'regex:/^[^\s]+$/', 'unique:technicians,user_name,' . $id],
+            'spec_id' => 'nullable|exists:specializations,id',
+            'country_id' => 'nullable',
+            'identity_id' => 'requnullableired|Numeric',
+            'birth_date' => 'nullable|Date',
+            'wallet_id' => 'nullable',
+            'address' => 'nullable|String',
             'group_id' => 'nullable',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
+            'upload_file' => 'nullable|image|mimes:jpeg,jpg,png,gif,pdf',
+
             'active' => 'nullable|in:on,off',
+            'is_trainee' => 'nullable|in:on,off',
             'password' => ['nullable', 'confirmed', Password::min(4)],
         ];
         $validated = Validator::make($request->all(), $rules, ['user_name.regex' => 'يجب أن لا يحتوي اسم المستخدم على أي مسافات']);
         if ($validated->fails()) {;
             return redirect()->to(route('dashboard.core.technician.index'))->withErrors($validated->errors());}
         $validated = $validated->validated();
-        if ($validated['active'] && $validated['active'] == 'on') {
-            $validated['active'] = 1;
-        } else {
-            $validated['active'] = 0;
+
+        $ratings = ['ممتاز جدا', 'ممتاز', 'جيد جدا', 'جيد', 'سيئ'];
+
+        $validatedData = $request->validate([
+            'rate' => ['required', 'in:' . implode(',', $ratings)],
+        ]);
+        if ($request->has('is_trainee')) {
+            // Validate and set 'active'
+            if ($validated['is_trainee'] && $validated['is_trainee'] == 'on') {
+                $validated['is_trainee'] = 1;
+                // If active is 1, set 'is_trainee' to 0
+                $validated['is_trainee'] = 0;
+            } else {
+                $validated['is_trainee'] = 0;
+            }
         }
+
+        if ($request->has('active')) {
+            // Validate and set 'active'
+            if ($validated['active'] && $validated['active'] == 'on') {
+                $validated['active'] = 1;
+                // If active is 1, set 'is_trainee' to 0
+                $validated['active'] = 0;
+            } else {
+                $validated['active'] = 0;
+            }
+        }
+
         if ($request->hasFile('image')) {
             if (File::exists(public_path($tech->image))) {
                 File::delete(public_path($tech->image));
             }
             $image = $request->file('image');
             $filename = time() . '.' . $image->getClientOriginalExtension();
-            $request->image->move(storage_path('app/public/images/technicians/'), $filename);
-            $validated['image'] = 'storage/images/technicians' . '/' . $filename;
+            $request->image->move(storage_path('app/public/images/trainees/'), $filename);
+            $validated['image'] = 'storage/images/trainees' . '/' . $filename;
         }
-        $tech->update($validated);
+
+        if ($request->hasFile('upload_file')) {
+            if (File::exists(public_path($tech->upload_file))) {
+                File::delete(public_path($tech->upload_file));
+            }
+            $image = $request->file('upload_file');
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $request->upload_file->move(storage_path('app/public/images/trainees/'), $filename);
+            $path = 'storage/images/trainees' . '/' . $filename;
+        }
+
+        if ($request->has('rate') || $request->has('note') || $request->has('upload_file')) {
+            RateTrainee::updateOrCreate(
+                ['trainee_id' => $tech->id],
+                [
+                    'rate' => $request->get('rate'),
+                    'note' => $request->get('note') ?? '',
+                    'upload_file' => $path,
+
+                ]
+            );
+        }
+
         session()->flash('success');
         return redirect()->back();
     }
@@ -229,12 +287,17 @@ class TraineeController extends Controller
     }
     protected function changeStatus(Request $request)
     {
-        if ($request->active == 'true') {
+
+        if ($request->is_trainee == 'true') {
             error_log(1);
+            Technician::query()->where('id', $request->id)->update(['is_trainee' => 0]);
             Technician::query()->where('id', $request->id)->update(['active' => 1]);
+
         } else {
             error_log(2);
+            Technician::query()->where('id', $request->id)->update(['is_trainee' => 1]);
             Technician::query()->where('id', $request->id)->update(['active' => 0]);
+
         }
         return response('success');
     }

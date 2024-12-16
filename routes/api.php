@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Checkout\v2\CheckoutController as CheckoutControllerV2;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,3 +18,4 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::get('test', [CheckoutControllerV2::class, 'test'])->name('test');

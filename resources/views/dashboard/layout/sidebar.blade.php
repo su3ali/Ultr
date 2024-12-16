@@ -410,7 +410,7 @@
 
             @can('view_technicians')
                 <li class="menu">
-                    <a href="#tech" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    <a href="#trainees" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
                             <div class="icon-container">
                                 <i data-feather="users"></i>
@@ -425,9 +425,9 @@
                             </svg>
                         </div>
                     </a>
-                    <ul class="collapse submenu list-unstyled" id="tech" data-parent="#accordionExample">
+                    <ul class="collapse submenu list-unstyled" id="trainees" data-parent="#accordionExample">
                         <li>
-                            <a href="{{ route('dashboard.core.trainee.index') }}"> {{ __('dash.technicians') }} </a>
+                            <a href="{{ route('dashboard.core.trainee.index') }}"> {{ __('dash.trainees') }} </a>
                         </li>
 
 

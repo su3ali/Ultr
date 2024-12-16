@@ -15,7 +15,7 @@ class CreateRateTraineesTable extends Migration
     {
         Schema::create('rate_trainees', function (Blueprint $table) {
             $table->id(); // Primary key
-            $table->unsignedBigInteger('user_id'); // Foreign key for users
+            $table->unsignedBigInteger('user_id')->nullable(); // Foreign key for users
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->unsignedBigInteger('trainee_id')->nullable(); // Foreign key for technicians

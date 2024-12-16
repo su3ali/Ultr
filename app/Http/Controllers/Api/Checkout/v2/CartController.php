@@ -34,6 +34,8 @@ class CartController extends Controller
         $this->middleware('localization');
     }
 
+   
+
     protected function add_to_cart(Request $request): JsonResponse
     {
         // return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);

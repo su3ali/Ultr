@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Checkout\CartController;
 use App\Http\Controllers\Api\Checkout\CheckoutController;
 use App\Http\Controllers\Api\Checkout\v2\CartController as CartControllerV2;
+use App\Http\Controllers\Api\Checkout\v2\CheckoutController as CheckoutControllerV2;
 
 Route::prefix('carts')->group(function () {
     Route::post('add_to_cart', [CartController::class, 'add_to_cart']);
@@ -21,6 +22,8 @@ Route::prefix('v2/carts')->group(function () {
     Route::get('/get_avail_times_from_date', [CartControllerV2::class, 'getAvailableTimesFromDate']);
 });
 
+Route::get('test', [CheckoutControllerV2::class, 'test'])->name('test');
+
 // End Version 2 routes
 
 Route::get('address', [CheckoutController::class, 'index']);
@@ -29,8 +32,9 @@ Route::post('add-address', [CheckoutController::class, 'addAddress']);
 Route::get('get-areas', [CheckoutController::class, 'getArea']);
 
 Route::prefix('v2/')->group(function () {
-    Route::get('checkTimeDate', [CheckoutControllerV2::class, 'checkTimeDate']);
+    Route::get('checkTimeDate', [CheckoutControllerV2::class, 'checkTimeDate'])->name('get_avail_times_from_date');
 });
+
 Route::get('checkTimeDate', [CheckoutController::class, 'checkTimeDate']);
 
 Route::prefix('checkout')->group(function () {

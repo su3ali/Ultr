@@ -48,7 +48,7 @@
 
                         <button type="button" id="" class="btn btn-primary card-tools" data-toggle="modal"
                             data-target="#technicianModal">
-                            {{ __('dash.add_new') }}
+                            {{ __('dash.add_trainee') }}
                         </button>
 
                     </div>
@@ -58,7 +58,12 @@
                                 <th>#</th>
                                 <th>{{ __('dash.name') }}</th>
                                 <th>{{ __('dash.rate') }}</th>
+                                <th>{{ __('dash.upgrade_trainee') }}</th>
+
+                                <th>المرفق</th>
+
                                 <th>{{ __('dash.note') }}</th>
+
                                 <th class="no-content">{{ __('dash.actions') }}</th>
                             </tr>
                         </thead>
@@ -102,6 +107,7 @@
                         className: 'btn btn-sm',
                         text: 'تصدير إلى Excel'
                     },
+
                     {
                         extend: 'print',
                         className: 'btn btn-sm',
@@ -131,6 +137,16 @@
                     {
                         data: 'rate',
                         name: 'rate'
+                    },
+
+
+                    {
+                        data: 'status',
+                        name: 'status'
+                    },
+                    {
+                        data: 'file',
+                        name: 'file'
                     },
                     {
                         data: 'note',
@@ -171,7 +187,7 @@
             let email = $(this).data('email');
             let phone = $(this).data('phone');
             let specialization = $(this).data('specialization');
-            let active = $(this).data('active');
+            let is_trainee = $(this).data('is_trainee');
             let group_id = $(this).data('group_id');
             let country_id = $(this).data('country_id');
             let address = $(this).data('address');
@@ -191,11 +207,12 @@
             $('#edit_wallet').val(wallet_id).trigger('change')
             $('#edit_birth').val(birth_date)
             $('#edit_identity_id').val(identity_number)
-            if (active && active === 1) {
+            if (is_trainee && is_trainee === 1) {
                 $('#edit_status').prop('checked', true)
             } else {
                 $('#edit_status').prop('checked', false)
             }
+            debugger
             // $('.editImage .custom-file-container__image-preview').css('background-image', 'url(' + 'data:image/png;base64,' + img + ')');
             //
             let action = "{{ route('dashboard.core.trainee.update', 'id') }}";
@@ -206,16 +223,18 @@
         })
 
         $("body").on('change', '#customSwitchtech', function() {
-            let active = $(this).is(':checked');
+            let is_trainee = $(this).is(':checked');
             let id = $(this).attr('data-id');
 
             $.ajax({
-                url: '{{ route('dashboard.core.technician.change_status') }}',
+                url: '{{ route('dashboard.core.trainee.change_status') }}',
                 type: 'get',
+
                 data: {
                     id: id,
-                    active: active
+                    is_trainee: is_trainee
                 },
+
                 success: function(data) {
                     swal({
                         title: "{{ __('dash.successful_operation') }}",
