@@ -32,86 +32,123 @@ class CartController extends Controller
 
     protected function add_to_cart(Request $request): JsonResponse
     {
-        // return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
-        if ($request->type == 'package') {
-            $package = ContractPackage::where('id', $request->package_id)->first();
-            if ($package && $package->active === 1) {
-                $cart = Cart::query()->where('user_id', auth()->user()->id)
-                    ->first();
-                if ($cart) {
-                    return self::apiResponse(400, __('api.finish current order first or clear the cart'), $this->body);
+
+        try {
+
+            // dd("*");
+            // return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+            if ($request->type == 'package') {
+                $package = ContractPackage::where('id', $request->package_id)->first();
+                if ($package && $package->active === 1) {
+                    $cart = Cart::query()->where('user_id', auth()->user()->id)
+                        ->first();
+                    if ($cart) {
+                        return self::apiResponse(400, __('api.finish current order first or clear the cart'), $this->body);
+                    }
+                    for ($i = 0; $i < $package->visit_number; $i++) {
+                        Cart::query()->create([
+                            'user_id' => auth()->user()->id,
+                            'contract_package_id' => $package->id,
+                            'price' => $package->price,
+                            'quantity' => $package->visit_number,
+                            'type' => 'package',
+                        ]);
+                    }
+                    //                $carts = Cart::query()->where('user_id', auth()->user()->id)->count();
+                    //                $this->body['total_items_in_cart'] = $carts;
+                    $this->body['total_items_in_cart'] = 1;
+
+                    return self::apiResponse(200, __('api.Added To Cart Successfully'), $this->body);
                 }
-                for ($i = 0; $i < $package->visit_number; $i++) {
+            } else {
+                $service = Service::with('category')->find($request->service_id);
+                if ($service && $service->active === 1) {
+                    $cart = Cart::query()->where('user_id', auth()->user()->id)->where('service_id', $service->id)
+                        ->first();
+                    if ($cart) {
+                        return self::apiResponse(400, __('api.Already In Your Cart!'), $this->body);
+                    }
+                    if (auth()->user()->carts->where('type', 'package')->first()) {
+                        return self::apiResponse(400, __('api.finish current order first or clear the cart'), $this->body);
+                    }
+                    $price = $service->price;
+                    $now = Carbon::now('Asia/Riyadh');
+                    $contractPackagesUser = ContractPackagesUser::where('user_id', auth()->user()->id)
+                        ->whereDate('end_date', '>=', $now)
+                        ->where(function ($query) use ($service) {
+                            $query->whereHas('contactPackage', function ($qu) use ($service) {
+                                $qu->whereHas('ContractPackagesServices', function ($qu) use ($service) {
+                                    $qu->where('service_id', $service->id);
+                                });
+                            });
+                        })->first();
+
+                    if ($contractPackagesUser) {
+                        $contractPackage = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
+                        if ($request->quantity < ($contractPackage->visit_number - $contractPackagesUser->used)) {
+                            $price = 0;
+                        } else {
+                            $price = ($request->quantity - ($contractPackage->visit_number - $contractPackagesUser->used)) * $service->price;
+                        }
+                    }
+
+                    if ($request->icon_ids) {
+                        $icon_ids = $request->icon_ids;
+
+                        foreach ($icon_ids as $icon_id) {
+
+                            $price += Icon::where('id', $icon_id)->first()->price;
+                        }
+                    }
+
                     Cart::query()->create([
                         'user_id' => auth()->user()->id,
-                        'contract_package_id' => $package->id,
-                        'price' => $package->price,
-                        'quantity' => $package->visit_number,
-                        'type' => 'package',
+                        'service_id' => $service->id,
+                        'icon_ids' => json_encode($request->icon_ids),
+                        'category_id' => $service->category->id,
+                        'price' => $price,
+                        'quantity' => $request->quantity,
+                        'type' => 'service',
                     ]);
+                    $carts = Cart::query()->where('user_id', auth()->user()->id)->count();
+                    $this->body['total_items_in_cart'] = $carts;
+
+                    activity()
+                        ->causedBy(auth()->user()) // Action performed by the authenticated user
+                        ->withProperties([
+                            'title' => 'A Added  service to Cart', // Descriptive title of the action
+                            'user_id' => auth()->user()->id, // User’s ID for identification
+                            'user_name' => auth()->user()->first_name, // User’s name for clarity
+                            'region_id' => Cart::where('user_id', auth()->user()->id)->pluck('region_id')->first(),
+                            'date' => Cart::where('user_id', auth()->user()->id)->pluck('date')->first(),
+                            'time' => Cart::where('user_id', auth()->user()->id)->pluck('time')->first(),
+                            'price_in_cart' => Cart::where('user_id', auth()->user()->id)->pluck('price')->first(), // Total price of items in the cart (sum of prices)
+                            'quantity' => Cart::where('user_id', auth()->user()->id)->pluck('quantity')->first(), // Total quantity of items in the cart
+                            'current_url' => url()->current(), // URL of the page from which the action was triggered
+                        ])
+                        ->log('A service was added to the cart'); // Log description
+
+                    return self::apiResponse(200, __('api.Added To Cart Successfully'), $this->body);
                 }
-                //                $carts = Cart::query()->where('user_id', auth()->user()->id)->count();
-                //                $this->body['total_items_in_cart'] = $carts;
-                $this->body['total_items_in_cart'] = 1;
-                return self::apiResponse(200, __('api.Added To Cart Successfully'), $this->body);
             }
-        } else {
-            $service = Service::with('category')->find($request->service_id);
-            if ($service && $service->active === 1) {
-                $cart = Cart::query()->where('user_id', auth()->user()->id)->where('service_id', $service->id)
-                    ->first();
-                if ($cart) {
-                    return self::apiResponse(400, __('api.Already In Your Cart!'), $this->body);
-                }
-                if (auth()->user()->carts->where('type', 'package')->first()) {
-                    return self::apiResponse(400, __('api.finish current order first or clear the cart'), $this->body);
-                }
-                $price = $service->price;
-                $now = Carbon::now('Asia/Riyadh');
-                $contractPackagesUser = ContractPackagesUser::where('user_id', auth()->user()->id)
-                    ->whereDate('end_date', '>=', $now)
-                    ->where(function ($query) use ($service) {
-                        $query->whereHas('contactPackage', function ($qu) use ($service) {
-                            $qu->whereHas('ContractPackagesServices', function ($qu) use ($service) {
-                                $qu->where('service_id', $service->id);
-                            });
-                        });
-                    })->first();
 
-                if ($contractPackagesUser) {
-                    $contractPackage = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
-                    if ($request->quantity < ($contractPackage->visit_number - $contractPackagesUser->used)) {
-                        $price = 0;
-                    } else {
-                        $price = ($request->quantity - ($contractPackage->visit_number - $contractPackagesUser->used)) * $service->price;
-                    }
-                }
-
-                if ($request->icon_ids) {
-                    $icon_ids = $request->icon_ids;
-
-                    foreach ($icon_ids as $icon_id) {
-
-                        $price += Icon::where('id', $icon_id)->first()->price;
-                    }
-                }
-
-                Cart::query()->create([
+            return self::apiResponse(400, __('api.service not found or an error happened.'), $this->body);
+        } catch (\Exception $e) {
+            // Log the exception with additional context
+            activity()
+                ->causedBy(auth()->user()) // Log the user who caused the action
+                ->withProperties([
+                    'exception_message' => $e->getMessage(),
+                    'exception_file' => $e->getFile(),
+                    'exception_line' => $e->getLine(),
+                    'url' => url()->current(),
                     'user_id' => auth()->user()->id,
-                    'service_id' => $service->id,
-                    'icon_ids' => json_encode($request->icon_ids),
-                    'category_id' => $service->category->id,
-                    'price' => $price,
-                    'quantity' => $request->quantity,
-                    'type' => 'service',
-                ]);
-                $carts = Cart::query()->where('user_id', auth()->user()->id)->count();
-                $this->body['total_items_in_cart'] = $carts;
-                return self::apiResponse(200, __('api.Added To Cart Successfully'), $this->body);
-            }
-        }
+                    'user_name' => auth()->user()->first_name,
+                    'cart_id' => Cart::where('user_id', auth()->user()->id)->pluck('id')->first(),
 
-        return self::apiResponse(400, __('api.service not found or an error happened.'), $this->body);
+                ])
+                ->log('Exception while processing the add_to_cart endpoint');
+        }
     }
 
     protected function index(): JsonResponse

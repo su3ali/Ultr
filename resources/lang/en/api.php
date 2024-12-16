@@ -44,8 +44,12 @@ return [
     'Invalid Code !' => 'Invalid Code !',
     'This coupon con not be used to any of these services !' => 'This coupon con not be used to any of these services !',
     'This Time is not available' => 'Sorry, this time is not available',
-    'time_not_available' => 'Sorry, this time is not available',
+    'time_not_available' => 'Sorry! This time is no longer available, please choose another time.',
     'Invalid user address' => 'Invalid user address',
     'Something went wrong, please try again later' => 'Something went wrong, please try again later',
+    'test_checkout' => 'You can complete the Order , time is available',
+    'payment created successfully' => 'The history of the payment transaction was successfully stored',
+    'invalid data provided' => 'Invalid data provided',
+
 
 ];

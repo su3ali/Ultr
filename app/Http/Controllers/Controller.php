@@ -51,16 +51,16 @@ class Controller extends BaseController
         ?string $route = null,
         ?array $routeParams = [],
         bool $asJson = false
-    ): RedirectResponse|JsonResponse {
+    ): RedirectResponse | JsonResponse {
 
         if ($asJson) {
             return response()->json([
-                'status'  => true,
+                'status' => true,
                 'message' => __('dash.request_executed_successfully'),
             ]);
         }
         toast(t_('Request executed successfully'), 'success');
-        if (\Route::is('dashboard.core.administration.profile.update')){
+        if (\Route::is('dashboard.core.administration.profile.update')) {
             return redirect()->route('dashboard.core.administration.profile.edit', auth()->user()->id)->with('success', __('dash.successful_operation'));
         }
         return redirect()->route($route ?: "{$this->path}.index", $routeParams)->with('success', __('dash.successful_operation'));
@@ -74,7 +74,7 @@ class Controller extends BaseController
 
     protected function queryBuilder(): Builder
     {
-        
+
         return ($this->model)::query();
     }
 

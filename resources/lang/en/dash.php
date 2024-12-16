@@ -558,5 +558,7 @@ return [
     'Shift created successfully' => 'Shift created successfully',
     'ok' => 'Ok',
     'appointment settings' => 'Appointment Settings',
+    'zone' => 'zone',
+    'technical_data' => 'technical_data',
 
 ];

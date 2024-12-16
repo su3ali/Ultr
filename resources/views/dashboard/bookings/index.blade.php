@@ -151,9 +151,15 @@
     <script type="text/javascript">
         $(document).ready(function() {
             var table = $('#{{ $dataTabel }}').DataTable({
-                dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-6 d-flex justify-content-md-start justify-content-center'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
+                dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
                     "<'table-responsive'tr>" +
-                    "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count  mb-sm-0 mb-3'i><'dt--pagination'p>>",
+                    "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
+
+                lengthMenu: [
+                    [10, 25, 50, 100, 200, 500],
+                    [10, 25, 50, 100, 200, 500, ] // Dropdown options
+                ],
+                pageLength: 10, // Default rows per page
                 order: [
                     [0, 'desc']
                 ],
@@ -185,14 +191,18 @@
                 },
                 processing: true,
                 responsive: true,
-                serverSide: false,
+                serverSide: true,
                 ajax: '{{ url('admin/bookings?type=' . $type) }}',
                 columns: [{
                         data: 'id',
                         name: 'id'
                     },
-                    // {data: 'visit_id', name: 'visit_id'},
-                    // {data: 'order', name: 'order'},
+
+                    {
+                        data: 'order',
+                        name: 'order'
+                    },
+
                     {
                         data: 'customer',
                         name: 'customer'
@@ -222,8 +232,18 @@
                         name: 'group'
                     },
                     {
+
+                        data: 'total',
+                        name: 'total'
+                    },
+                    {
+
                         data: 'status',
                         name: 'status'
+                    },
+                    {
+                        data: 'payment_method',
+                        name: 'payment_method'
                     },
                     {
                         data: 'notes',
@@ -264,6 +284,11 @@
                 updateTableData();
             });
 
+            // Trigger search update
+            $('#searchInput').on('keyup', function() {
+                table.draw();
+            });
+
 
 
         });
@@ -276,6 +301,12 @@
             let visit_id = $(this).data('visit_id');
             let address_id = $(this).data('address_id');
             let type = $(this).data('type');
+            let date = $(this).data('date');
+            let time = $(this).data('time');
+            let group_id = $(this).data('group_id');
+            let quantity = $(this).data('quantity');
+
+
             $.ajax({
                 url: '{{ route('dashboard.getGroupByService') }}',
                 type: 'get',
@@ -284,10 +315,19 @@
                     type: type,
                     booking_id: booking_id,
                     category_id: category_id,
-                    address_id: address_id
+                    address_id: address_id,
+
+                    date: date,
+                    time: time,
+                    group_id: group_id,
+                    quantity: quantity,
+
+
+
                 },
                 success: function(data) {
                     console.log(data)
+
                     var select = document.getElementById("edit_group_id");
                     var length = select.options.length;
                     for (i = length - 1; i >= 0; i--) {
@@ -341,22 +381,5 @@
                 }
             });
         });
-
-
-        // $("body").on('change', '#status', function () {
-        //     if ($(this).val() == 'canceled') {
-        //         $('.notes').removeClass('col-md-12');
-        //         $('.notes').addClass('col-md-6');
-        //         $('.reason_cancel').show();
-        //
-        //
-        //     } else {
-        //         $('.notes').removeClass('col-md-6');
-        //         $('.notes').addClass('col-md-12');
-        //         $('.reason_cancel').hide();
-        //
-        //     }
-        //
-        // })
     </script>
 @endpush

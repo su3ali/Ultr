@@ -1,6 +1,5 @@
 <?php
 
-
 use App\Http\Controllers\Api\Cars\CarsController;
 
 Route::get('car/types', [CarsController::class, 'allType']);

@@ -107,10 +107,11 @@ class VisitsController extends Controller
 
     protected function changeStatus(Request $request)
     {
+
         $rules = [
             'type' => 'required|in:visit,order,booking',
             'cancel_reason_id' => 'nullable|exists:reason_cancels,id',
-            'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
+            'image' => 'nullable|mimes:jpeg,png,jpg,gif',
             'note' => 'nullable|string|min:3|max:255',
         ];
         if ($request->type == 'visit') {
@@ -127,15 +128,39 @@ class VisitsController extends Controller
                 'note' => $request->note,
             ];
             $image = null;
+            // if ($request->hasFile('image')) {
+            //     if (File::exists(public_path($model->image))) {
+            //         File::delete(public_path($model->image));
+            //     }
+            //     $image = $request->file('image');
+            //     $filename = time() . '.' . $image->getClientOriginalExtension();
+            //     $request->image->move(storage_path('app/public/images/visits/'), $filename);
+            //     $image = 'storage/images/visits' . '/' . $filename;
+            //     $data['image'] = $image;
+            // }
+
             if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+                if (!in_array($image->getMimeType(), $allowedMimeTypes)) {
+                    return response()->json([
+                        'message' => 'Invalid image type. Allowed types are: JPEG, PNG, JPG, GIF.',
+                    ], 422);
+                }
+                // Check if the old image exists and delete it if it does
                 if (File::exists(public_path($model->image))) {
                     File::delete(public_path($model->image));
                 }
-                $image = $request->file('image');
                 $filename = time() . '.' . $image->getClientOriginalExtension();
-                $request->image->move(storage_path('app/public/images/visits/'), $filename);
-                $image = 'storage/images/visits' . '/' . $filename;
-                $data['image'] = $image;
+                // Define the directory where the image will be stored
+                $directory = storage_path('app/public/images/visits/');
+                // Check if the directory exists, if not, create it
+                if (!File::exists($directory)) {
+                    File::makeDirectory($directory, 0755, true);
+                }
+                $image->move($directory, $filename);
+                $imagePath = 'storage/images/visits/' . $filename;
+                $data['image'] = $imagePath;
             }
 
             if ($request->status_id == 3) {

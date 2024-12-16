@@ -835,7 +835,9 @@ return [
     'error_overlapping' => 'توجد مناوبة بنفس المجموعة والخدمة بالفعل في النطاق الزمني المحدد',
     'error_overlapping_group' => 'تم تعيين هذه المجموعة بالفعل لمناوبة في نفس الوقت في خدمة أخرى',
     'Shift created successfully' => 'تم إنشاء  المناوبة بنجاح',
-    'ok'=> 'موافق',
-    'appointment settings' => 'إعدادات المواعيد'
+    'ok' => 'موافق',
+    'appointment settings' => 'إعدادات المواعيد',
+    'zone' => 'المنطقة (الزون)',
+    'technical_data' => 'بيانات الفني',
 
 ];

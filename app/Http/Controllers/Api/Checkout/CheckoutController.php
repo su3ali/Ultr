@@ -434,46 +434,82 @@ class CheckoutController extends Controller
 
     protected function paid(Request $request)
     {
-        $rules = [
-            'order_id' => 'required|exists:orders,id',
-            'payment_method' => 'required|in:cache,visa,wallet',
-            //   'amount' => 'required|numeric',
-            'transaction_id' => 'nullable',
-            'wallet_discounts' => 'nullable|numeric',
-        ];
-        $request->validate($rules, $request->all());
-        $user = auth()->user('sanctum');
 
-        $trans = Transaction::where('order_id', $request->order_id)->get();
-        if ($trans->isEmpty()) {
-            Transaction::create([
-                'order_id' => $request->order_id,
-                'transaction_number' => $request->transaction_id,
-                'payment_result' => 'success',
-                'payment_method' => $request->payment_method,
-                //     'amount' => $request->amount,
+        try {
+
+            $rules = [
+                'order_id' => 'required|exists:orders,id',
+                'payment_method' => 'required|in:cache,visa,wallet',
+                //   'amount' => 'required|numeric',
+                'transaction_id' => 'nullable',
+                'wallet_discounts' => 'nullable|numeric',
+            ];
+            $request->validate($rules, $request->all());
+            $user = auth()->user('sanctum');
+
+            $trans = Transaction::where('order_id', $request->order_id)->get();
+            if ($trans->isEmpty()) {
+                Transaction::create([
+                    'order_id' => $request->order_id,
+                    'transaction_number' => $request->transaction_id,
+                    'payment_result' => 'success',
+                    'payment_method' => $request->payment_method,
+                    //     'amount' => $request->amount,
+                ]);
+            } else {
+                Transaction::where('order_id', $request->order_id)->update([
+                    //   'order_id' => $request->order_id,
+                    'transaction_number' => $request->transaction_id,
+                    'payment_result' => 'success',
+                    'payment_method' => $request->payment_method,
+                    //     'amount' => $request->amount,
+                ]);
+            }
+
+            $order = Order::where('id', $request->order_id)->first();
+
+            $order->update([
+                //         'payment_status' => 'paid',
+                'partial_amount' => 0,
             ]);
-        } else {
-            Transaction::where('order_id', $request->order_id)->update([
-                //   'order_id' => $request->order_id,
-                'transaction_number' => $request->transaction_id,
-                'payment_result' => 'success',
-                'payment_method' => $request->payment_method,
-                //     'amount' => $request->amount,
+
+            $user->update([
+                'point' => $user->point - $request->wallet_discounts ?? 0,
             ]);
+
+            activity()
+                ->causedBy(auth()->user())
+                ->withProperties(
+                    json_decode(json_encode([
+                        'url' => url()->current(),
+                        'user_id' => auth()->id(),
+                        'user_name' => auth()->user()->first_name ?? 'N/A',
+                        'order_id' => $request->order_id,
+                        'payment_method' => $request->payment_method,
+                        'transaction_id' => $trans->first()->id ?? 'N/A',
+                    ]), JSON_PRETTY_PRINT)
+                )
+                ->log('Order Payment Completed');
+            return self::apiResponse(200, __('api.paid successfully'), $this->body);
+
+        } catch (\Exception $e) {
+            // Log the exception with additional context
+            activity()
+                ->causedBy(auth()->user()) // Log the user who caused the action
+                ->withProperties([
+                    'exception_message' => $e->getMessage(),
+                    'exception_file' => $e->getFile(),
+                    'exception_line' => $e->getLine(),
+                    'url' => url()->current(),
+                    'user_id' => auth()->user()->id,
+                    'user_name' => auth()->user()->first_name ?? '',
+                    'order_id' => $request->order_id,
+                    'payment_method' => $request->payment_method,
+
+                ])
+                ->log('Exception while processing the paid endpoint');
+            return response()->json(['error' => $e->getMessage()], 500);
+
         }
-
-        $order = Order::where('id', $request->order_id)->first();
-
-        $order->update([
-            //         'payment_status' => 'paid',
-            'partial_amount' => 0,
-        ]);
-
-        $user->update([
-            'point' => $user->point - $request->wallet_discounts ?? 0,
-        ]);
-
-        return self::apiResponse(200, __('api.paid successfully'), $this->body);
     }
 }

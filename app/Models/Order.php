@@ -10,13 +10,10 @@ class Order extends Model
     use HasFactory;
     protected $guarded = [];
 
-    // public function user()
-    // {
-    //     return $this->hasOne(User::class, 'id', 'user_id');
-    // }
+    // Order belongs to a User
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
     public function category()
@@ -26,6 +23,11 @@ class Order extends Model
     public function service()
     {
         return $this->hasOne(Service::class, 'id', 'service_id');
+    }
+
+    public function orderService()
+    {
+        return $this->hasOne(OrderService::class, 'id', 'order_id');
     }
 
     public function contract()
@@ -42,9 +44,10 @@ class Order extends Model
     {
         return $this->hasOne(UserAddresses::class, 'id', 'user_address_id');
     }
+
     public function bookings()
     {
-        return $this->hasMany(Booking::class, 'order_id');
+        return $this->hasMany(Booking::class, 'order_id', 'id');
     }
     public function services()
     {
@@ -61,5 +64,9 @@ class Order extends Model
         return $this->hasOne(CarClient::class, 'id', 'car_user_id')->withTrashed();
     }
 
-   
+    public function orderServices()
+    {
+        return $this->hasMany(OrderService::class, 'order_id'); // Relating orders to order_services
+    }
+
 }

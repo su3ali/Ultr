@@ -20,13 +20,14 @@
         "laravelcollective/html": "^6.3",
         "nesbot/carbon": "*",
         "realrashid/sweet-alert": "^6.0",
+        "spatie/laravel-activitylog": "^4.9",
         "spatie/laravel-enum": "^3.0",
         "spatie/laravel-permission": "^5.9",
         "yajra/laravel-datatables": "^1.5"
     },
     "require-dev": {
-        "facade/ignition": "^2.5",
         "barryvdh/laravel-ide-helper": "^2.9",
+        "facade/ignition": "^2.5",
         "fakerphp/faker": "^1.9.1",
         "laravel/sail": "^1.0.1",
         "mockery/mockery": "^1.4.4",
