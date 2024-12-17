@@ -65,8 +65,6 @@
         input:checked+.slider:before {
             transform: translateX(28px);
         }
-<<<<<<< HEAD
-=======
 
         // for group name style
         .group-names-container {
@@ -298,7 +296,6 @@
             background: #f1f1f1;
             /* Background of the scrollbar track */
         }
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
     </style>
 @endpush
 
@@ -394,13 +391,6 @@
                     },
                     {
                         data: 'group_name',
-<<<<<<< HEAD
-                        name: 'group_name'
-                    },
-                    {
-                        data: 'service_name',
-                        name: 'service_name'
-=======
                         name: 'group_name',
                         render: function(data, type, row) {
                             // console.log(row.group_id);
@@ -453,7 +443,6 @@
 
                             return 'N/A'; // Fallback in case there's no data
                         }
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
                     },
                     {
                         data: 'shift_no',
@@ -487,16 +476,6 @@
                         searchable: false,
                         render: function(data, type, row) {
                             return `
-<<<<<<< HEAD
-                                <a href="/admin/shifts/${row.id}/edit" class="btn btn-sm btn-primary card-tools edit"><i class="far fa-edit fa-2x"></i></a>
-                               
-                                <a href="/admin/shifts/${row.id}" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
-                            <i class="far fa-trash-alt fa-2x"></i></a>
-                                
-                            `;
-                        }
-                    }
-=======
                             <a href="/admin/shifts/${row.id}/edit" class="btn btn-sm btn-primary card-tools edit">
                                 <i class="far fa-edit fa-2x"></i>
                             </a>
@@ -512,7 +491,6 @@
                     }
 
 
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
                     // <a href="/admin/shifts/${row.id}" class="btn btn-info btn-sm">{{ __('dash.view') }}</a>
                 ],
                 order: [
@@ -544,10 +522,6 @@
                         title: "{{ __('dash.successful_operation') }}",
                         text: "{{ __('dash.request_executed_successfully') }}",
                         type: 'success',
-<<<<<<< HEAD
-
-=======
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
                         icon: 'success',
                         padding: '2em'
                     });
@@ -569,9 +543,6 @@
                 }
             });
         }
-<<<<<<< HEAD
-    </script>
-=======
 
         function deleteShift(id) {
             swal({
@@ -627,5 +598,4 @@
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert@2.1.2/dist/sweetalert.min.js"></script>
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
 @endpush

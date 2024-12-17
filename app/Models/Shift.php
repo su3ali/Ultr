@@ -2,20 +2,14 @@
 
 namespace App\Models;
 
-<<<<<<< HEAD
-=======
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
 use Illuminate\Database\Eloquent\Model;
 
 class Shift extends Model
 {
-<<<<<<< HEAD
-=======
     use HasFactory;
 
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
     protected $fillable = [
         'day_id',
         'group_id',
@@ -41,8 +35,6 @@ class Shift extends Model
     {
         return $this->belongsTo(Service::class);
     }
-<<<<<<< HEAD
-=======
 
     public function scopeForGroupInRegion(Builder $query, $region_id)
     {
@@ -57,5 +49,4 @@ class Shift extends Model
         return $this->belongsToMany(Group::class, 'group_regions', 'group_id', 'region_id');
     }
 
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
 }

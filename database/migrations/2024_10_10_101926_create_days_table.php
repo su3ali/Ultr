@@ -15,10 +15,7 @@ class CreateDaysTable extends Migration
     {
         Schema::create('days', function (Blueprint $table) {
             $table->id();
-<<<<<<< HEAD
-=======
             $table->string('name_ar')->unique();
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
             $table->string('name')->unique(); // e.g., 'Monday'
             $table->time('start_time')->nullable();
             $table->time('end_time')->nullable();
@@ -26,10 +23,6 @@ class CreateDaysTable extends Migration
             $table->timestamps();
         });
     }
-<<<<<<< HEAD
-
-=======
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
     /**
      * Reverse the migrations.
      *
