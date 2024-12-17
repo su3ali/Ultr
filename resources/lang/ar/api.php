@@ -52,5 +52,9 @@ return [
     'Invalid data provided' => 'تم إدخال بيانات غير صحيحة',
     'time_out_your_region' => 'الموعد المختار خارج منطقتك  ، الرجاء اختيار موعد آخر  ',
     'address_not_found' => 'الرجاء إضافة عنوانك',
+    'trainee_rate_update' => 'تم اضافة التقييم للمتدرب بنجاح',
+    'trainee_upgrade' => 'تم تحويل المتدرب الي فني بنجاح',
+    'send_notifications' => 'تم إرسال الإشعارات بنجاح',
+    'add_trainee' => 'تمت اضافة المتدرب بنجاح',
 
 ];

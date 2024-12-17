@@ -187,7 +187,7 @@ class TraineeController extends Controller
             'active' => 0,
             'country_id' => 1,
         ]);
-        session()->flash('success', __('تم إنشاء متدرب بنجاح'));
+        session()->flash('success', __('api.add_trainee'));
         return redirect()->back();
 
     }
