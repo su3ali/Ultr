@@ -50,5 +50,7 @@ return [
     'test_checkout' => 'يمكنك اكمال الطلب الوقت متاح ',
     'payment created successfully' => '  تم تخزين سجل عملية الدفع بنجاح ',
     'Invalid data provided' => 'تم إدخال بيانات غير صحيحة',
+    'time_out_your_region' => 'الموعد المختار خارج منطقتك  ، الرجاء اختيار موعد آخر  ',
+    'address_not_found' => 'الرجاء إضافة عنوانك',
 
 ];
