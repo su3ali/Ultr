@@ -52,5 +52,9 @@ return [
     'invalid data provided' => 'Invalid data provided',
     'time_out_your_region' => 'The selected date is outside your region, please choose another date',
     'address_not_found' => 'Please add your address',
+    'trainee_rate_update' => 'The rating has been successfully added to the trainee',
+    'trainee_upgrade' => 'The trainee was successfully converted into a technician',
+    'send_notifications' => 'Notifications sent successfully',
+    'add_trainee' => 'The trainee has been added successfully',
 
 ];
