@@ -8,13 +8,9 @@ use App\Models\Group;
 use App\Models\Service;
 use App\Models\Shift;
 use Illuminate\Http\Request;
-<<<<<<< HEAD
-use Illuminate\Support\Facades\Log; // Import the day model
-=======
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB; // Import the day model
 use Illuminate\Support\Facades\Log;
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
 use Yajra\DataTables\Facades\DataTables;
 
 // Import the Shift model
@@ -24,24 +20,6 @@ class ShiftController extends Controller
 
     public function index(Request $request)
     {
-<<<<<<< HEAD
-        // Check if it's an AJAX request (for DataTables)
-        if ($request->ajax()) {
-            try {
-                // Retrieve shifts with their related models (assuming relationships exist in Shift model)
-                $shifts = Shift::with(['day', 'group', 'service'])->get();
-
-                return DataTables::of($shifts)
-                    ->addIndexColumn() // Adds an index column automatically
-                    ->addColumn('day_name', function ($row) {
-                        return $row->day ? $row->day->name : 'N/A'; // Handle null relationship
-                    })
-                    ->addColumn('group_name', function ($row) {
-                        return $row->group ? $row->group->name : 'N/A'; // Handle null relationship
-                    })
-                    ->addColumn('service_name', function ($row) {
-                        return $row->service ? $row->service->title : 'N/A';
-=======
         if ($request->ajax()) {
             try {
                 // Retrieve shifts and decode JSON fields for service_id, group_id, and day_id
@@ -69,7 +47,6 @@ class ShiftController extends Controller
                     })
                     ->addColumn('service_name', function ($row) {
                         return !empty($row->service) ? implode(', ', $row->service) : 'N/A'; // Join service titles as a string
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
                     })
                     ->addColumn('shift_no', function ($row) {
                         return $row->shift_no;
@@ -91,16 +68,9 @@ class ShiftController extends Controller
                         return '<a href="' . route('dashboard.shifts.edit', $row->id) . '" class="btn btn-primary btn-sm">Edit</a>
                             <a href="' . route('dashboard.shifts.show', $row->id) . '" class="btn btn-info btn-sm">View</a>';
                     })
-<<<<<<< HEAD
-                    ->rawColumns(['action']) // Enable HTML for the action column
-                    ->make(true);
-            } catch (\Exception $e) {
-                // Log the error
-=======
                     ->rawColumns(['action'])
                     ->make(true);
             } catch (\Exception $e) {
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
                 Log::error('Error fetching shifts: ' . $e->getMessage());
                 return response()->json(['error' => 'Failed to retrieve shifts.'], 500);
             }
@@ -124,15 +94,9 @@ class ShiftController extends Controller
      */
     public function create()
     {
-<<<<<<< HEAD
-        $days = Day::all(); // Fetch all days from the database
-        $groups = Group::all(); // Fetch all groups from the database
-        $services = Service::all(); // Fetch all services from the database
-=======
         $days = Day::where('is_active', 1)->get();
         $groups = Group::where('active', 1)->get();
         $services = Service::where('active', 1)->get();
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
 
         return view('dashboard.appointments.shifts.create', compact('days', 'groups', 'services'));
     }
@@ -141,33 +105,6 @@ class ShiftController extends Controller
     // {
     //     // Validate input fields
     //     $request->validate([
-<<<<<<< HEAD
-    //         'day_id' => 'required|exists:days,id', // day_id must exist in the days table
-    //         'group_id' => 'required|exists:groups,id', // group_id must exist in the groups table
-    //         'service_id' => 'required|exists:services,id', // service_id must exist in the services table
-    //         'start_time' => 'required|date_format:H:i', // Ensure start_time is in correct time format
-    //         'end_time' => 'required|date_format:H:i|after:start_time', // Ensure end_time is valid and after start_time
-    //         'is_active' => 'required|boolean', // Ensure is_active is either 1 or 0 (true or false)
-    //     ]);
-
-    //     // Generate a unique shift number
-    //     do {
-    //         $shift_no = 'shift-' . rand(1000, 9999);
-    //     } while (Shift::where('shift_no', $shift_no)->exists());
-
-    //     // Create the new shift with the unique shift number
-    //     Shift::create([
-    //         'day_id' => $request->day_id,
-    //         'group_id' => $request->group_id,
-    //         'service_id' => $request->service_id,
-    //         'start_time' => $request->start_time,
-    //         'end_time' => $request->end_time,
-    //         'shift_no' => $shift_no, // Ensure uniqueness
-    //         'is_active' => $request->is_active,
-    //     ]);
-    //     return redirect()->route('dashboard.shifts.index')->with('success', 'Shift created successfully');
-
-=======
     //         'day_id' => 'required|array',
     //         'day_id.*' => 'exists:days,id',
     //         'group_id' => 'required|array',
@@ -244,57 +181,10 @@ class ShiftController extends Controller
     //     ]);
 
     //     return redirect()->route('dashboard.shifts.index')->with('success', 'Shift created successfully');
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
     // }
 
     public function store(Request $request)
     {
-<<<<<<< HEAD
-        // Validate input fields
-        $request->validate([
-            'day_id' => 'required|exists:days,id', // day_id must exist in the days table
-            'group_id' => 'required|exists:groups,id', // group_id must exist in the groups table
-            'service_id' => 'required|exists:services,id', // service_id must exist in the services table
-            'start_time' => 'required|date_format:H:i', // Ensure start_time is in correct time format
-            'end_time' => 'required|date_format:H:i|after:start_time', // Ensure end_time is valid and after start_time
-            'is_active' => 'required|boolean', // Ensure is_active is either 1 or 0 (true or false)
-        ]);
-
-        // Check for overlapping shifts for the same group and service on the same day
-        $overlappingShifts = Shift::where('day_id', $request->day_id)
-            ->where('group_id', $request->group_id)
-            ->where('service_id', $request->service_id)
-            ->where(function ($query) use ($request) {
-                $query->whereBetween('start_time', [$request->start_time, $request->end_time])
-                    ->orWhereBetween('end_time', [$request->start_time, $request->end_time])
-                    ->orWhere(function ($query) use ($request) {
-                        $query->where('start_time', '<', $request->start_time)
-                            ->where('end_time', '>', $request->end_time);
-                    });
-            })->exists();
-
-        if ($overlappingShifts) {
-            return redirect()->back()->withErrors([
-                'error' => 'A shift with the same group and service already exists in the selected time range.',
-            ]);
-        }
-
-        // Check if the group has overlapping shifts at the same time in other services
-        $groupConflict = Shift::where('day_id', $request->day_id)
-            ->where('group_id', $request->group_id)
-            ->where(function ($query) use ($request) {
-                $query->whereBetween('start_time', [$request->start_time, $request->end_time])
-                    ->orWhereBetween('end_time', [$request->start_time, $request->end_time])
-                    ->orWhere(function ($query) use ($request) {
-                        $query->where('start_time', '<', $request->start_time)
-                            ->where('end_time', '>', $request->end_time);
-                    });
-            })->exists();
-
-        if ($groupConflict) {
-            return redirect()->back()->withErrors([
-                'error' => 'This group is already assigned to a shift at the same time in another service.',
-=======
 
         $language = session('locale', App::getLocale()); // Get the language from session
 
@@ -370,29 +260,10 @@ class ShiftController extends Controller
                     'start' => $startTime,
                     'end' => $endTime,
                 ]),
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
             ]);
         }
 
         // Generate a unique shift number
-<<<<<<< HEAD
-        do {
-            $shift_no = 'shift-' . rand(1000, 9999);
-        } while (Shift::where('shift_no', $shift_no)->exists());
-
-        // Create the new shift with the unique shift number
-        Shift::create([
-            'day_id' => $request->day_id,
-            'group_id' => $request->group_id,
-            'service_id' => $request->service_id,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-            'shift_no' => $shift_no, // Ensure uniqueness
-            'is_active' => $request->is_active,
-        ]);
-
-        return redirect()->route('dashboard.shifts.index')->with('success', 'Shift created successfully');
-=======
         $shift_no = 'shift-' . rand(1000, 9999);
         while (Shift::where('shift_no', $shift_no)->exists()) {
             $shift_no = 'shift-' . rand(1000, 9999); // Re-generate if already exists
@@ -410,7 +281,6 @@ class ShiftController extends Controller
         ]);
 
         return redirect()->route('dashboard.shifts.index')->with('success', __('dash.Shift created successfully'));
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
     }
 
     /**
@@ -434,12 +304,6 @@ class ShiftController extends Controller
      */
     public function edit($id)
     {
-<<<<<<< HEAD
-        $shift = Shift::findOrFail($id); // Retrieve the shift by its ID
-        $days = Day::all(); // Assuming you have a 'days' table
-
-        return view('dashboard.appointments.shifts.edit', compact('shift', 'days'));
-=======
         $shift = Shift::findOrFail($id);
         $services = Service::where('active', 1)->get(); // Retrieve the shift by its ID
 
@@ -447,7 +311,6 @@ class ShiftController extends Controller
         $days = Day::where('is_active', 1)->get(); // Assuming you have a 'days' table
 
         return view('dashboard.appointments.shifts.edit', compact('shift', 'days', 'services', 'groups'));
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
     }
 
     /**
@@ -462,11 +325,8 @@ class ShiftController extends Controller
         // Validate the request
         $request->validate([
             'day_id' => 'required|exists:days,id',
-<<<<<<< HEAD
-=======
             'group_id' => 'required|exists:groups,id',
             'service_id' => 'required|exists:services,id',
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
             'shift_no' => 'required',
             'start_time' => 'required',
             'end_time' => 'required',
@@ -477,11 +337,8 @@ class ShiftController extends Controller
         $shift = Shift::findOrFail($id);
         $shift->update([
             'day_id' => $request->day_id,
-<<<<<<< HEAD
-=======
             'group_id' => $request->group_id,
             'service_id' => $request->service_id,
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
             'shift_no' => $request->shift_no,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
@@ -489,11 +346,7 @@ class ShiftController extends Controller
         ]);
 
         // Redirect back with success message
-<<<<<<< HEAD
-        return redirect()->route('dashboard.shifts.index')->with('success', 'تم تحديث الشيفت بنجاح.');
-=======
         return redirect()->route('dashboard.shifts.index')->with('success', 'تم تحديث  المناوبة بنجاح.');
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
     }
 
     /**
@@ -504,9 +357,6 @@ class ShiftController extends Controller
      */
     public function destroy($id)
     {
-<<<<<<< HEAD
-        //
-=======
         try {
             $shift = Shift::findOrFail($id);
             $shift->delete();
@@ -514,7 +364,6 @@ class ShiftController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to delete shift.'], 500);
         }
->>>>>>> 56de7c2d5ebf6136d8cbbd14ced17475edfe6130
     }
 
     public function toggleStatus(Request $request, $id)
