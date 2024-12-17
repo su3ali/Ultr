@@ -50,6 +50,10 @@ return [
     'test_checkout' => 'You can complete the Order , time is available',
     'payment created successfully' => 'The history of the payment transaction was successfully stored',
     'invalid data provided' => 'Invalid data provided',
+    'add_trainee' => 'Trainee  has been Added successfully',
 
+    'trainee_rate_update' => 'Trainee rating has been updated',
+    'send_notifications' => 'Notifications sent successfully',
+    'trainee_upgrade' => 'The trainee has been successfully converted into a technician',
 
 ];

@@ -50,5 +50,9 @@ return [
     'test_checkout' => 'يمكنك اكمال الطلب الوقت متاح ',
     'payment created successfully' => '  تم تخزين سجل عملية الدفع بنجاح ',
     'Invalid data provided' => 'تم إدخال بيانات غير صحيحة',
+    'add_trainee' => 'تم إضافة المتدرب بنجاح',
+    'trainee_rate_update' => 'تم تحديث تقييم المتدرب',
+    'send_notifications' => 'تم إرسال الإشعارات بنجاح',
+    'trainee_upgrade' => 'تم تحويل المتدرب الي فني  بنجاح',
 
 ];

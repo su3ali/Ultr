@@ -178,9 +178,11 @@ class TraineeController extends Controller
         $trainee->update([
             'is_trainee' => 1,
             'active' => 0,
+            'country_id' => 1,
         ]);
-        session()->flash('success');
+        session()->flash('success', __('تم إنشاء متدرب بنجاح'));
         return redirect()->back();
+
     }
     protected function update(Request $request, $id)
     {
@@ -236,6 +238,7 @@ class TraineeController extends Controller
                 $validated['active'] = 0;
             }
         }
+        $path = '';
 
         if ($request->hasFile('image')) {
             if (File::exists(public_path($tech->image))) {
@@ -269,7 +272,7 @@ class TraineeController extends Controller
             );
         }
 
-        session()->flash('success');
+        session()->flash('success', __('api.trainee_rate_update'));
         return redirect()->back();
     }
 
@@ -299,6 +302,9 @@ class TraineeController extends Controller
             Technician::query()->where('id', $request->id)->update(['active' => 0]);
 
         }
-        return response('success');
+
+        session()->flash('success', __('api.trainee_upgrade'));
+        return redirect()->back();
+
     }
 }

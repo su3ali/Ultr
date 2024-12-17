@@ -238,7 +238,7 @@
                 success: function(data) {
                     swal({
                         title: "{{ __('dash.successful_operation') }}",
-                        text: "{{ __('dash.request_executed_successfully') }}",
+                        text: "{{ __('api.trainee_upgrade') }}",
                         type: 'success',
                         padding: '2em'
                     })
