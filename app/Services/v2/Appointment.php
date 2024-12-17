@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\BookingSetting;
 use App\Models\Day;
 use App\Models\Group;
+use App\Models\GroupRegion;
 use App\Models\Service;
 use App\Models\Shift;
 use App\Models\Visit;
@@ -18,6 +19,7 @@ class Appointment
     public $services;
     public $package_id;
     public $page_number;
+    public $unavailableTimeSlots = [];
 
     public function __construct($region_id, $services, $package_id, $page_number)
     {
@@ -287,7 +289,6 @@ class Appointment
         }, $shiftGroupsIds));
         $category_id = Service::where('id', $service_id)->first()->category_id;
         $region_id = $this->region_id;
-
         $ShiftGroupsInRegion = Group::whereIn('id', $shiftGroupsIds)
             ->whereHas('regions', function ($qu) use ($region_id) {
                 $qu->where('region_id', $region_id);
