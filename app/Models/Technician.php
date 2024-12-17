@@ -11,6 +11,10 @@ use Spatie\Permission\Traits\HasRoles;
 
 class Technician extends Authenticatable
 {
+
+    public const TECHNICIAN = 0;
+    public const TRAINEE = 1;
+
     use HasApiTokens, HasPassword, HasFactory, HasRoles, Notifiable;
     protected $guard = 'technician';
     protected $guarded = [];

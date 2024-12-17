@@ -331,7 +331,7 @@
 
                     <!-- Training Management Widget -->
                     <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                        <a href="#" class="widget-link">
+                        <a href="{{ route('dashboard.core.trainee.index') }}" class="widget-link">
                             <div class="widget widget-one_hybrid widget-engagement">
                                 <div class="widget-heading p-4 rounded-lg bg-lightblue shadow-sm">
                                     <div class="d-flex align-items-center">
@@ -349,6 +349,7 @@
                                         </div>
                                         <div>
                                             <p class="w-value fs-2 fw-bold text-dark mb-1">
+                                                {{ $total_trainees }}
                                             </p>
                                             <h5 class="text-muted mb-0">{{ __('dash.number_of_trainees') }}</h5>
                                         </div>
