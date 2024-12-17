@@ -161,10 +161,11 @@ class BookingController extends Controller
                         'id' => $row->id,
                         'order' => $row->visit?->booking?->order?->id ?? 'N/A',
                         'customer' => '<a href="' . route('dashboard.customer.bookings', ['customer_id' => $row->customer->id ?? '']) . '"
-                            class="customer-link"
-                            title=" عرض حجوزات ' . ($row->customer?->first_name ?? '') . ' ' . ($row->customer?->last_name ?? '') . '">
-                                ' . ($row->customer?->first_name ?? '') . ' ' . ($row->customer?->last_name ?? '') . '
-                            </a>',
+                class="customer-link"
+                title="عرض حجوزات ' . ($row->customer?->first_name ?? '') . ' ' . ($row->customer?->last_name ?? '') . '">
+                    ' . ($row->customer?->first_name ?? '') . ' ' . ($row->customer?->last_name ?? '') . '
+
+                </a>',
 
                         'customer_phone' => $row->customer?->phone ?? 'N/A',
                         'service' => \request()->query('type') == 'package'

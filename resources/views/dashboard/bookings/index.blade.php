@@ -6,6 +6,43 @@
             white-space: unset !important;
 
         }
+
+        .customer-link {
+            text-decoration: none;
+            color: #2B68A6;
+            /* Blue color for visibility */
+            font-weight: bold;
+            cursor: pointer;
+            /* Changes cursor to a pointer */
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            /* Smooth transition for hover effect */
+        }
+
+        .customer-link:hover {
+            color: #2B68A6;
+            /* Darker blue on hover */
+            text-decoration: underline;
+            /* Underline on hover */
+        }
+
+        .customer-link i {
+            font-size: 0.8em;
+            /* Optional smaller icon */
+        }
+
+        /* Optional color variations */
+        .customer-link.active {
+            color: #28a745;
+            /* Green for active state */
+        }
+
+        .customer-link.disabled {
+            color: #6c757d;
+            /* Gray for disabled state */
+            cursor: not-allowed;
+        }
     </style>
 @endpush
 
