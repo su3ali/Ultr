@@ -22,7 +22,7 @@
                             <ol class="breadcrumb mb-0 py-2">
                                 <li class="breadcrumb-item"><a
                                         href="{{ route('dashboard.home') }}">{{ __('dash.home') }}</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">{{ __('dash.technicians') }}</li>
+                                <li class="breadcrumb-item active" aria-current="page">{{ __('dash.trainees') }}</li>
                             </ol>
                         </nav>
 
@@ -34,7 +34,7 @@
         </header>
     </div>
 
-    @include('dashboard.core.technicians.create')
+    @include('dashboard.core.trainees.create')
 @endsection
 
 @section('content')
@@ -48,7 +48,7 @@
 
                         <button type="button" id="" class="btn btn-primary card-tools" data-toggle="modal"
                             data-target="#technicianModal">
-                            {{ __('dash.add_new') }}
+                            {{ __('dash.add_trainee') }}
                         </button>
 
                     </div>
@@ -57,11 +57,13 @@
                             <tr>
                                 <th>#</th>
                                 <th>{{ __('dash.name') }}</th>
-                                <th>{{ __('dash.image') }}</th>
-                                <th>التخصص</th>
-                                <th>{{ __('dash.phone') }}</th>
-                                <th>{{ __('dash.group') }}</th>
-                                <th>{{ __('dash.status') }}</th>
+                                <th>{{ __('dash.rate') }}</th>
+                                <th>{{ __('dash.upgrade_trainee') }}</th>
+
+                                <th>المرفق</th>
+
+                                <th>{{ __('dash.note') }}</th>
+
                                 <th class="no-content">{{ __('dash.actions') }}</th>
                             </tr>
                         </thead>
@@ -74,7 +76,7 @@
         </div>
 
     </div>
-    @include('dashboard.core.technicians.edit')
+    @include('dashboard.core.trainees.edit')
 @endsection
 
 @push('script')
@@ -105,6 +107,7 @@
                         className: 'btn btn-sm',
                         text: 'تصدير إلى Excel'
                     },
+
                     {
                         extend: 'print',
                         className: 'btn btn-sm',
@@ -132,27 +135,24 @@
                         name: 'name'
                     },
                     {
-                        data: 't_image',
-                        name: 't_image',
-                        orderable: false,
-                        searchable: false
+                        data: 'rate',
+                        name: 'rate'
                     },
-                    {
-                        data: 'spec',
-                        name: 'spec'
-                    },
-                    {
-                        data: 'phone',
-                        name: 'phone'
-                    },
-                    {
-                        data: 'group',
-                        name: 'group'
-                    },
+
+
                     {
                         data: 'status',
                         name: 'status'
                     },
+                    {
+                        data: 'file',
+                        name: 'file'
+                    },
+                    {
+                        data: 'note',
+                        name: 'note'
+                    },
+
                     {
                         data: 'control',
                         name: 'control',
@@ -187,7 +187,7 @@
             let email = $(this).data('email');
             let phone = $(this).data('phone');
             let specialization = $(this).data('specialization');
-            let active = $(this).data('active');
+            let is_trainee = $(this).data('is_trainee');
             let group_id = $(this).data('group_id');
             let country_id = $(this).data('country_id');
             let address = $(this).data('address');
@@ -207,14 +207,15 @@
             $('#edit_wallet').val(wallet_id).trigger('change')
             $('#edit_birth').val(birth_date)
             $('#edit_identity_id').val(identity_number)
-            if (active && active === 1) {
+            if (is_trainee && is_trainee === 1) {
                 $('#edit_status').prop('checked', true)
             } else {
                 $('#edit_status').prop('checked', false)
             }
+            debugger
             // $('.editImage .custom-file-container__image-preview').css('background-image', 'url(' + 'data:image/png;base64,' + img + ')');
             //
-            let action = "{{ route('dashboard.core.technician.update', 'id') }}";
+            let action = "{{ route('dashboard.core.trainee.update', 'id') }}";
             action = action.replace('id', id)
             $('#edit_tech_form').attr('action', action);
 
@@ -222,20 +223,22 @@
         })
 
         $("body").on('change', '#customSwitchtech', function() {
-            let active = $(this).is(':checked');
+            let is_trainee = $(this).is(':checked');
             let id = $(this).attr('data-id');
 
             $.ajax({
-                url: '{{ route('dashboard.core.technician.change_status') }}',
+                url: '{{ route('dashboard.core.trainee.change_status') }}',
                 type: 'get',
+
                 data: {
                     id: id,
-                    active: active
+                    is_trainee: is_trainee
                 },
+
                 success: function(data) {
                     swal({
                         title: "{{ __('dash.successful_operation') }}",
-                        text: "{{ __('dash.request_executed_successfully') }}",
+                        text: "{{ __('api.trainee_upgrade') }}",
                         type: 'success',
                         padding: '2em'
                     })

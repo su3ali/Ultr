@@ -839,5 +839,17 @@ return [
     'appointment settings' => 'إعدادات المواعيد',
     'zone' => 'المنطقة (الزون)',
     'technical_data' => 'بيانات الفني',
+    'training_management' => 'إدارة التدريب',
+    'number_of_trainees' => 'عدد المتدربين',
+    'trainees' => 'المتدربيّن',
+    'move_to_tech' => 'متدرب / فني',
+    'edit_trainee' => 'تعديل بيانات المتدرب',
+
+    'create_trainee' => 'إنشاء متدرب',
+    'add_trainee' => 'إضافة متدرب',
+    'trainee_name' => 'إسم المتدرب',
+    'upgrade_trainee' => 'الترقية الي فني',
+
+    'rate_trainee' => ' تقييم المتدرب',
 
 ];

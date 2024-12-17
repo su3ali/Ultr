@@ -289,7 +289,6 @@ class Appointment
         }, $shiftGroupsIds));
         $category_id = Service::where('id', $service_id)->first()->category_id;
         $region_id = $this->region_id;
-
         $ShiftGroupsInRegion = Group::whereIn('id', $shiftGroupsIds)
             ->whereHas('regions', function ($qu) use ($region_id) {
                 $qu->where('region_id', $region_id);

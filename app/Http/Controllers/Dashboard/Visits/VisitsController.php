@@ -289,9 +289,14 @@ class VisitsController extends Controller
             $visit->where('is_active', 1)->get();
 
             return DataTables::of($visit)
+
                 ->addColumn('booking_id', function ($row) {
                     return $row->booking?->id;
                 })
+                ->addColumn('phone', function ($row) {
+                    return $row->booking?->customer?->phone;
+                })
+
                 ->addColumn('date', function ($row) {
                     return $row->booking?->date;
                 })
@@ -326,6 +331,7 @@ class VisitsController extends Controller
                 })
                 ->rawColumns([
                     'booking_id',
+                    'phone',
                     'date',
                     'group_name',
                     'start_time',

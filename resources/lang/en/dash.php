@@ -560,5 +560,7 @@ return [
     'appointment settings' => 'Appointment Settings',
     'zone' => 'zone',
     'technical_data' => 'technical_data',
+    'training_management' => 'Training Management',
+    'number_of_trainees' => 'Number of Trainees',
 
 ];
