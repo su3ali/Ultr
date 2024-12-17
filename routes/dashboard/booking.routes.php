@@ -1,7 +1,12 @@
 <?php
 
 Route::resource('bookings', 'Bookings\BookingController');
+
+Route::get('customer.bookings/{customer_id}', 'Bookings\BookingController@customerBookings')->name('customer.bookings');
+
 Route::resource('booking_statuses', 'Bookings\BookingStatusController');
+
+
 Route::get('booking_statuses/change_status/change', 'Bookings\BookingStatusController@change_status')->name('booking_statuses.change_status');
 
 Route::resource('booking_setting', 'Bookings\BookingSettingController');

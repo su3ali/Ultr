@@ -6,43 +6,6 @@
             white-space: unset !important;
 
         }
-
-        .customer-link {
-            text-decoration: none;
-            color: #2B68A6;
-            /* Blue color for visibility */
-            font-weight: bold;
-            cursor: pointer;
-            /* Changes cursor to a pointer */
-            display: inline-flex;
-            align-items: center;
-            transition: all 0.3s ease;
-            /* Smooth transition for hover effect */
-        }
-
-        .customer-link:hover {
-            color: #2B68A6;
-            /* Darker blue on hover */
-            text-decoration: underline;
-            /* Underline on hover */
-        }
-
-        .customer-link i {
-            font-size: 0.8em;
-            /* Optional smaller icon */
-        }
-
-        /* Optional color variations */
-        .customer-link.active {
-            color: #28a745;
-            /* Green for active state */
-        }
-
-        .customer-link.disabled {
-            color: #6c757d;
-            /* Gray for disabled state */
-            cursor: not-allowed;
-        }
     </style>
 @endpush
 
@@ -79,7 +42,7 @@
                             <ol class="breadcrumb mb-0 py-2">
                                 <li class="breadcrumb-item"><a
                                         href="{{ route('dashboard.home') }}">{{ __('dash.home') }}</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">الحجوزات</li>
+                                <li class="breadcrumb-item active" aria-current="page">حجوزات العميل</li>
                             </ol>
                         </nav>
 
@@ -101,28 +64,13 @@
                 <div class="widget-content widget-content-area br-6">
                     <div class="col-md-12 text-right mb-3">
 
-                        {{--                        <a href="{{route('dashboard.bookings.create')}}" id="" class="btn btn-primary card-tools"> --}}
-                        {{--                            {{__('dash.add_new')}} --}}
-                        {{--                        </a> --}}
 
                     </div>
                     <div class="table-responsive">
 
 
-                        <ul class="nav nav-tabs  mb-3 mt-3" id="simpletab" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link @if ($type == 'service') active @endif" id="service-tab"
-                                    href="{{ url('admin/bookings?type=service') }}" role="tab" aria-controls="service"
-                                    aria-selected="true">حجوزات خدمات</a>
-                            </li>
 
-                            <li class="nav-item">
-                                <a class="nav-link @if ($type == 'package') active @endif" id="package-tab"
-                                    href="{{ url('admin/bookings?type=package') }}" role="tab" aria-controls="package"
-                                    aria-selected="false">حجوزات باقات</a>
-                            </li>
-                        </ul>
-                        <div class="col-md-12  mb-3">
+                        {{-- <div class="col-md-12  mb-3">
                             <div class="row">
                                 <div class="col-md-1">
                                     <label for="inputEmail4">{{ __('dash.date') }}</label>
@@ -157,7 +105,9 @@
 
                             </div>
 
-                        </div>
+                        </div> --}}
+
+
                         <div class="tab-content" id="simpletabContent">
                             <div class="tab-pane fade @if ($type == 'service') show active @endif " id="service"
                                 role="tabpanel" aria-labelledby="service-tab">
@@ -187,6 +137,10 @@
 @push('script')
     <script type="text/javascript">
         $(document).ready(function() {
+            var customerId = '{{ $customer_id ?? '' }}'; // Use Blade syntax to get customer ID
+            var ajaxUrl = '{{ route('dashboard.customer.bookings', ['customer_id' => '__customer_id__']) }}';
+            ajaxUrl = ajaxUrl.replace('__customer_id__', customerId); // Replace placeholder with actual customer ID
+
             var table = $('#{{ $dataTabel }}').DataTable({
                 dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
                     "<'table-responsive'tr>" +
@@ -229,7 +183,8 @@
                 processing: true,
                 responsive: true,
                 serverSide: true,
-                ajax: '{{ url('admin/bookings?type=' . $type) }}',
+                ajax: ajaxUrl, // Use the dynamically generated URL for AJAX
+
                 columns: [{
                         data: 'id',
                         name: 'id'
@@ -243,8 +198,6 @@
                     {
                         data: 'customer',
                         name: 'customer'
-
-
                     },
                     {
                         data: 'customer_phone',

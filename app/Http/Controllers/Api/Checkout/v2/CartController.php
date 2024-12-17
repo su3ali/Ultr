@@ -13,6 +13,7 @@ use App\Models\CategoryGroup;
 use App\Models\ContractPackage;
 use App\Models\ContractPackagesUser;
 use App\Models\Group;
+use App\Models\GroupRegion;
 use App\Models\Icon;
 use App\Models\Service;
 use App\Models\Shift;
@@ -156,8 +157,6 @@ class CartController extends Controller
                 $time24 = Carbon::parse($cart_time)->format('H:i');
                 $cart_time = $time24;
 
-                // dd($cart_time);
-
                 if ($cart_time) {
                     $shift = Shift::find($request->shift_id);
                 } else {
@@ -170,12 +169,23 @@ class CartController extends Controller
                     return false;
                 }
 
-                $shiftGroupsIds = Shift::where('id', $shift->id)->pluck('group_id')->toArray();
-                $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
-                    return array_map('intval', json_decode($jsonString, true));
-                }, $shiftGroupsIds));
+                $shiftGroupsIds = Shift::where('id', $shift->id)
+                    ->pluck('group_id')
+                    ->flatMap(fn($jsonString) => array_map('intval', json_decode($jsonString, true)))
+                    ->toArray();
 
-                // dd($shift);
+                $shiftRegionId = GroupRegion::where('group_id', $shiftGroupsIds[0])->pluck('region_id')->first();
+
+                // dd($shiftRegionId);
+
+                if ($shiftRegionId != $request->region_id) {
+                    return self::apiResponse(400, __('api.time_out_your_region'), $this->body);
+                }
+
+                $shiftGroupsIds = GroupRegion::whereIn('group_id', $shiftGroupsIds)
+                    ->where('region_id', $request->region_id)
+                    ->pluck('group_id')
+                    ->toArray();
 
                 // Retrieve all group IDs in the specified region and category
                 $allGroupIdsInRegionCategory = Group::GroupInRegionCategory($request->region_id, [$categoryId])
@@ -305,11 +315,46 @@ class CartController extends Controller
                             'notes' => $request->notes ? array_key_exists($key, $request->notes) ? $request->notes[$key] : '' : '',
                         ]);
                     }
+
+                    activity()
+                        ->causedBy(auth()->user()) // Log the user who caused the action
+                        ->withProperties([
+                            'url' => url()->current(),
+                            'user_id' => auth()->user()->id,
+                            'user_name' => auth()->user()->first_name,
+                            'shiftRegionId' => $shiftRegionId ?? '',
+                            'region_id' => $address->region_id ?? '',
+                            'time' => $cart->time ?? '',
+                            'date' => $cart->date ?? '',
+                            'assignedVisitIds' => $assignedVisitIds ?? null,
+                            'shiftGroupsIds' => $shiftGroupsIds ?? null,
+                            'service_id' => $cart->service_id ?? '',
+
+                        ])
+                        ->log('  processing the Update Cart V2  endpoint successfully');
+
                     return self::apiResponse(200, __('api.date and time for reservations updated successfully'), $this->body);
                 }
             }
             return self::apiResponse(400, __('api.time_not_available'), $this->body);
         } catch (\Exception $e) {
+
+            activity()
+                ->causedBy(auth()->user()) // Log the user who caused the action
+                ->withProperties([
+                    'url' => url()->current(),
+                    'user_id' => auth()->user()->id,
+                    'user_name' => auth()->user()->first_name,
+                    'shiftRegionId' => $shiftRegionId ?? '',
+                    'region_id' => $address->region_id ?? '',
+                    'time' => $cart->time ?? '',
+                    'date' => $cart->date ?? '',
+                    'assignedVisitIds' => $assignedVisitIds ?? null,
+                    'shiftGroupsIds' => $shiftGroupsIds ?? null,
+                    'service_id' => $cart->service_id ?? '',
+
+                ])
+                ->log('Exception while processing the Update Cart V2  endpoint Fail');
 
             return response()->json(['error' => $e->getMessage()], 500);
         }
