@@ -74,6 +74,7 @@
                                 <th>رقم الطلب</th>
                                 <th>رقم الحجز</th>
                                 <th>{{ __('dash.customer_name') }}</th>
+                                <th>{{ __('dash.phone') }}</th>
                                 <th>{{ __('dash.service') }}</th>
                                 <th>{{ __('dash.quantity') }}</th>
                                 <th>{{ __('dash.price_value') }}</th>
@@ -94,7 +95,6 @@
     </div>
     {{--    @include('dashboard.orders.edit') --}}
     @include('dashboard.orders.partial.show_bookings')
-
 @endsection
 
 @push('script')
@@ -147,6 +147,10 @@
                     {
                         data: 'user',
                         name: 'user'
+                    },
+                    {
+                        data: 'phone',
+                        name: 'phone'
                     },
                     {
                         data: 'service',

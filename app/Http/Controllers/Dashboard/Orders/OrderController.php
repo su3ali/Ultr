@@ -210,6 +210,10 @@ class OrderController extends Controller
                 ->addColumn('user', function ($row) {
                     return $row->user?->first_name . ' ' . $row->user?->last_name;
                 })
+
+                ->addColumn('phone', function ($row) {
+                    return $row->user?->phone;
+                })
                 ->addColumn('service', function ($row) {
                     $services = $row->services->unique('id');
                     $html = '';
@@ -401,6 +405,9 @@ class OrderController extends Controller
                 ->addColumn('user', function ($row) {
                     return $row->user?->first_name . ' ' . $row->user?->last_name;
                 })
+                ->addColumn('phone', function ($row) {
+                    return $row->user?->phone;
+                })
                 ->addColumn('service', function ($row) {
                     $services = $row->services->unique();
                     $html = '';
@@ -499,6 +506,7 @@ class OrderController extends Controller
                 ->rawColumns([
                     'booking_id',
                     'user',
+                    'phone',
                     'service',
                     'quantity',
                     'payment_method',
@@ -531,6 +539,9 @@ class OrderController extends Controller
                 })
                 ->addColumn('user', function ($row) {
                     return $row->user?->first_name . ' ' . $row->user?->last_name;
+                })
+                ->addColumn('phone', function ($row) {
+                    return $row->user?->phone;
                 })
                 ->addColumn('service', function ($row) {
                     $qu = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
@@ -743,6 +754,9 @@ class OrderController extends Controller
                 ->addColumn('user', function ($row) {
                     return $row->user?->first_name . ' ' . $row->user?->last_name;
                 })
+                ->addColumn('phone', function ($row) {
+                    return $row->user?->phone;
+                })
                 ->addColumn('service', function ($row) {
                     $qu = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
                     $services_ids = array_unique($qu);
@@ -789,6 +803,7 @@ class OrderController extends Controller
                 ->rawColumns([
                     'booking_id',
                     'user',
+                    'phone',
                     'service',
                     'quantity',
                     'status',

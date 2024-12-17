@@ -12,6 +12,7 @@ use App\Models\ContractPackage;
 use App\Models\ContractPackagesUser;
 use App\Models\CustomerWallet;
 use App\Models\Group;
+use App\Models\GroupRegion;
 use App\Models\Order;
 use App\Models\OrderService;
 use App\Models\Service;
@@ -29,6 +30,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Validator;
 
 class CheckoutController extends Controller
 {
@@ -148,8 +150,15 @@ class CheckoutController extends Controller
             $rules = [
                 'user_address_id' => 'required|exists:user_addresses,id',
                 'shift_id' => 'required|exists:shifts,id',
+
             ];
-            $request->validate($rules, $request->all());
+
+            $validator = Validator::make($request->all(), $rules);
+
+            if ($validator->fails()) {
+                return self::apiResponse(400, 'Validation failed', $validator->errors());
+            }
+
             $user = auth()->user('sanctum');
             $carts = Cart::query()->where('user_id', $user->id)->get();
             $parent_payment_method = null;
@@ -191,8 +200,13 @@ class CheckoutController extends Controller
             }
 
             // dd($shift);
-            $regionId = UserAddresses::where('user_id', $request->user_address_id)->pluck('region_id')->toArray();
-            // dd($services);
+
+            $regionId = UserAddresses::where('user_id', auth()->user()->id)->pluck('region_id')->toArray();
+            if (empty($regionId)) {
+
+                return self::apiResponse(400, __('api.address_not_found'), $this->body);
+            }
+            $region = UserAddresses::where('user_id', auth()->user()->id)->pluck('region_id')->first();
 
             $remaining_days = Carbon::now()->diffInDays(Carbon::parse($carts->first()->date)) + 1;
             $page_number = floor($remaining_days / 14);
@@ -229,6 +243,10 @@ class CheckoutController extends Controller
                 return array_map('intval', json_decode($jsonString, true));
             }, $shiftGroupsIds));
 
+            $shiftGroupsIds = GroupRegion::whereIn('group_id', $shiftGroupsIds)->where('region_id', $region)
+
+                ->pluck('group_id')->toArray();
+
             $category_ids = $carts->pluck('category_id')->toArray();
             $category_ids = array_unique($category_ids);
 
@@ -263,8 +281,6 @@ class CheckoutController extends Controller
                 $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
                     $qu->where('region_id', $address->region_id);
                 })->whereIn('id', $shiftGroupsIds);
-
-                // dd($shiftGroupsIds);
 
                 if ($group->get()->isEmpty()) {
                     DB::rollback();
@@ -301,6 +317,9 @@ class CheckoutController extends Controller
                     'region_id' => $address->region_id ?? '',
                     'cart_time' => $cart->time ?? '',
                     'cart_date' => $cart->date ?? '',
+                    'takenGroupsIds' => $takenGroupsIds ?? null,
+                    'assign_to_id' => $assign_to_id ?? null,
+                    'shiftGroupsIds' => $shiftGroupsIds ?? null,
                     'total' => $total ?? '',
                     'service_id' => $cart->service_id ?? '',
 
@@ -309,6 +328,7 @@ class CheckoutController extends Controller
 
             return self::apiResponse(200, __('api.test_checkout'), $this->body);
         } catch (\Exception $e) {
+            return $e;
             // Log the exception with additional context
             activity()
                 ->causedBy(auth()->user()) // Log the user who caused the action
@@ -319,11 +339,15 @@ class CheckoutController extends Controller
                     'url' => url()->current(),
                     'user_id' => auth()->user()->id,
                     'user_name' => auth()->user()->first_name,
+                    'takenGroupsIds' => $takenGroupsIds ?? null,
+                    'shiftGroupsIds' => $shiftGroupsIds ?? null,
+                    'assign_to_id' => $assign_to_id ?? null,
 
                 ])
                 ->log('Exception while processing the test checkout endpoint');
 
             return response()->json(['error' => 'Failed .'], 500);
+
         }
 
     }
