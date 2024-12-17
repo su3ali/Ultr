@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Dashboard\Visits;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
-use App\Models\Banner;
-use App\Models\BannerImage;
 use App\Models\Booking;
 use App\Models\BookingSetting;
 use App\Models\ContractPackage;
@@ -15,7 +13,6 @@ use App\Models\Technician;
 use App\Models\Visit;
 use App\Models\VisitsStatus;
 use App\Notifications\SendPushNotification;
-use App\Traits\imageTrait;
 use App\Traits\NotificationTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -27,84 +24,186 @@ class VisitsController extends Controller
 {
     use NotificationTrait;
 
-    protected function index()
+    protected function index(Request $request)
     {
-        if (request()->ajax()) {
-            $visit = Visit::query();
+        // Get the region IDs the user has access to
+        $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
-            if (request()->page) {
-                $now = Carbon::now('Asia/Riyadh')->toDateString();
-                $visit->where('visits_status_id', '!=', 6)->whereHas('booking', function ($qu) use ($now) {
-                    $qu->whereDate('date', '=', $now);
+        // Check if it's an AJAX request (DataTables)
+        if ($request->ajax()) {
+            // Start query
+            $visit = Visit::query()->whereHas('booking.address', function ($query) use ($regionIds) {
+                $query->whereIn('region_id', $regionIds);
+            });
+
+            // Check if the 'status' filter is applied
+            if ($request->has('status') && $request->status !== 'all') {
+                $visit->where('visits_status_id', $request->status);
+            }
+
+            // Only active visits
+            $visit->where('is_active', 1)->orderBy('created_at', 'desc');
+
+            // Apply search filter
+            if ($request->filled('search.value')) {
+                $search = $request->input('search.value');
+                $visit->where(function ($query) use ($search) {
+                    $query->where('id', 'LIKE', "%$search%")
+                        ->orWhereHas('booking', function ($query) use ($search) {
+                            $query->where('id', 'LIKE', "%$search%")
+                                ->orWhere('date', 'LIKE', "%$search%");
+                        })
+                        ->orWhereHas('group', function ($query) use ($search) {
+                            $query->where('name_ar', 'LIKE', "%$search%");
+                        })
+                        ->orWhere('start_time', 'LIKE', "%$search%")
+                        ->orWhere('end_time', 'LIKE', "%$search%")
+                        ->orWhere('duration', 'LIKE', "%$search%");
                 });
             }
-            if (request()->status) {
 
-                $visit->where('visits_status_id', request()->status);
-            }
+            // Get total records before pagination
+            $totalRecords = $visit->count(); // Get total records matching the filters
 
-            $visit->where('is_active', 1)->get();
+            // Apply pagination
+            $visits = $visit->skip($request->input('start', 0)) // Skip the records for current page
+                ->take($request->input('length', 10)) // Limit records per page
+                ->get();
 
-
-
-            return DataTables::of($visit)
-                ->addColumn('booking_id', function ($row) {
-                    return $row->booking?->id;
-                })
-                ->addColumn('date', function ($row) {
-                    return $row->booking?->date;
-                })
-                ->addColumn('group_name', function ($row) {
-                    return $row->group?->name;
-                })
-                ->addColumn('start_time', function ($row) {
-                    return \Carbon\Carbon::parse($row->start_time)->timezone('Asia/Riyadh')->format('g:i A');
-                })
-                ->addColumn('end_time', function ($row) {
-                    return \Carbon\Carbon::parse($row->end_time)->timezone('Asia/Riyadh')->format('g:i A');
-                })
-                ->addColumn('duration', function ($row) {
-                    return $row->duration;
-                })
-                ->addColumn('status', function ($row) {
-                    return $row->status->name;
-                })
-                ->addColumn('control', function ($row) {
-
-                    $html = '
-                    <a href="#" class="mr-2 btn btn-outline-primary btn-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
-
-                                <a href="' . route('dashboard.visits.show', $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+            // Return DataTables response in the required format
+            return response()->json([
+                'draw' => $request->input('draw'),
+                'recordsTotal' => $totalRecords, // Total records in the database
+                'recordsFiltered' => $totalRecords, // Total filtered records
+                'data' => $visits->map(function ($row) {
+                    return [
+                        'id' => $row->id,
+                        'booking_id' => $row->booking?->id,
+                        'date' => $row->booking?->date,
+                        'group_name' => $row->group?->name,
+                        'start_time' => \Carbon\Carbon::parse($row->start_time)->timezone('Asia/Riyadh')->format('g:i A'),
+                        'end_time' => \Carbon\Carbon::parse($row->end_time)->timezone('Asia/Riyadh')->format('g:i A'),
+                        'duration' => $row->duration,
+                        'status' => $row->status->name,
+                        'control' => '
+                        <a href="' . route('dashboard.visits.show', $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
                             <i class="far fa-eye fa-2x"></i>
-
-                    </a>
-                                ';
-
-                    return $html;
-                })
-                ->rawColumns([
-                    'booking_id',
-                    'date',
-                    'group_name',
-                    'start_time',
-                    'end_time',
-                    'duration',
-                    'status',
-                    'control',
-                ])
-                ->make(true);
+                        </a>',
+                    ];
+                }),
+            ]);
         }
-        $statuses = VisitsStatus::all()->pluck('name', 'id');
 
+        // For non-AJAX requests (for initial page load)
+        $statuses = VisitsStatus::all()->pluck('name', 'id');
         return view('dashboard.visits.index', compact('statuses'));
     }
 
+    // protected function index(Request $request)
+    // {
+
+    //     // Get the region IDs the user has access to
+    //     $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
+    //     // Get pagination data sent by DataTables
+    //     $start = $request->input('start', 0); // Start index
+    //     $length = $request->input('length', 10); // Page size
+    //     if ($request->ajax()) {
+    //         // Start query with accessible regions
+    //         $visit = Visit::query()
+    //             ->whereHas('booking.address', function ($query) use ($regionIds) {
+    //                 $query->whereIn('region_id', $regionIds);
+    //             })
+    //             ->where('is_active', 1) // Only active visits
+    //             ->orderBy('created_at', 'desc');
+
+    //         // Apply 'status' filter if provided
+    //         if ($request->has('status') && $request->status !== 'all') {
+    //             $visit->where('visits_status_id', $request->status);
+    //         }
+
+    //         if ($length == -1) {
+    //             $visits = $visit->get(); // Get all records without pagination
+    //         } else {
+    //             // Get paginated results
+    //             $visit = $visit->skip($start)->take($length)->get();
+    //         }
+
+    //         // Use DataTables to handle the query and response
+    //         return DataTables::of($visit)
+    //             ->addColumn('booking_id', function ($row) {
+    //                 return $row->booking?->id;
+    //             })
+    //             ->addColumn('date', function ($row) {
+    //                 return $row->booking?->date;
+    //             })
+    //             ->addColumn('group_name', function ($row) {
+    //                 return $row->group?->name;
+    //             })
+    //             ->addColumn('start_time', function ($row) {
+    //                 return \Carbon\Carbon::parse($row->start_time)
+    //                     ->timezone('Asia/Riyadh')
+    //                     ->format('g:i A');
+    //             })
+    //             ->addColumn('end_time', function ($row) {
+    //                 return \Carbon\Carbon::parse($row->end_time)
+    //                     ->timezone('Asia/Riyadh')
+    //                     ->format('g:i A');
+    //             })
+    //             ->addColumn('duration', function ($row) {
+    //                 return $row->duration;
+    //             })
+    //             ->addColumn('status', function ($row) {
+    //                 return $row->status->name;
+    //             })
+    //             ->addColumn('payment_method', function ($row) {
+    //                 return match ($row->transaction?->payment_method) {
+    //                     'cache', 'cash' => 'شبكة',
+    //                     'wallet' => 'محفظة',
+    //                     default => 'فيزا',
+    //                 };
+    //             })
+    //             ->addColumn('control', function ($row) {
+    //                 return '
+    //                 <a href="' . route('dashboard.visits.show', $row->id) . '"
+    //                    class="mr-2 btn btn-outline-primary btn-sm">
+    //                     <i class="far fa-eye fa-2x"></i>
+    //                 </a>';
+    //             })
+    //             ->filter(function ($query) use ($request) {
+    //                 if ($request->filled('search.value')) {
+    //                     $search = $request->input('search.value');
+    //                     $query->where(function ($q) use ($search) {
+    //                         $q->where('id', 'LIKE', "%$search%")
+    //                             ->orWhereHas('booking', function ($query) use ($search) {
+    //                                 $query->where('id', 'LIKE', "%$search%")
+    //                                     ->orWhere('date', 'LIKE', "%$search%");
+    //                             })
+    //                             ->orWhereHas('group', function ($query) use ($search) {
+    //                                 $query->where('name_ar', 'LIKE', "%$search%");
+    //                             })
+    //                             ->orWhere('start_time', 'LIKE', "%$search%")
+    //                             ->orWhere('end_time', 'LIKE', "%$search%")
+    //                             ->orWhere('duration', 'LIKE', "%$search%");
+    //                     });
+    //                 }
+    //             })
+    //             ->rawColumns(['control']) // Allow raw HTML for 'control' column
+    //             ->make(true); // Generate the response
+    //     }
+
+    //     // For non-AJAX requests (e.g., initial page load)
+    //     $statuses = VisitsStatus::all()->pluck('name', 'id');
+    //     return view('dashboard.visits.index', compact('statuses'));
+    // }
+
     protected function visitsToday()
     {
-        if (request()->ajax()) {
-            $visit = Visit::query();
+        $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
+        if (request()->ajax()) {
+            $visit = Visit::query()->whereHas('booking.address', function ($query) use ($regionIds) {
+                $query->whereIn('region_id', $regionIds);
+            });
 
             $now = Carbon::now('Asia/Riyadh')->toDateString();
 
@@ -113,15 +212,12 @@ class VisitsController extends Controller
                 $qu->whereDate('date', '=', $now);
             });
 
-
             if (request()->status) {
 
                 $visit->where('visits_status_id', request()->status);
             }
 
             $visit->where('is_active', 1)->whereNotIn('visits_status_id', [5, 6])->get();
-
-
 
             return DataTables::of($visit)
                 ->addColumn('booking_id', function ($row) {
@@ -181,11 +277,9 @@ class VisitsController extends Controller
         if (request()->ajax()) {
             $visit = Visit::query();
 
-
             $now = Carbon::now('Asia/Riyadh')->toDateString();
 
             $visit->whereDate('end_date', '=', $now);
-
 
             if (request()->status) {
 
@@ -193,8 +287,6 @@ class VisitsController extends Controller
             }
 
             $visit->where('is_active', 1)->get();
-
-
 
             return DataTables::of($visit)
                 ->addColumn('booking_id', function ($row) {
@@ -249,7 +341,6 @@ class VisitsController extends Controller
         return view('dashboard.visits.finished_visits_today', compact('statuses'));
     }
 
-
     protected function store(Request $request)
     {
         $rules = [
@@ -302,7 +393,6 @@ class VisitsController extends Controller
             $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
             $FcmTokenArray = $techFcmArray->merge($adminFcmArray)->toArray();
 
-
             $notification = [
                 'device_token' => $FcmTokenArray,
                 'title' => $title,
@@ -313,7 +403,6 @@ class VisitsController extends Controller
 
             $this->pushNotification($notification);
         }
-
 
         session()->flash('success');
         return redirect()->back();
@@ -335,23 +424,23 @@ class VisitsController extends Controller
     {
         $visit = Visit::find($id);
         $visit->update([
-            'is_active' => 0
+            'is_active' => 0,
         ]);
 
         $booking = Booking::where('id', $visit->booking_id)->first();
         $booking->update([
-            'is_active' => 0
+            'is_active' => 0,
         ]);
         $visits = Visit::where('booking_id', $booking->id)->get();
         foreach ($visits as $visit) {
             $visit->update([
-                'is_active' => 0
+                'is_active' => 0,
             ]);
         }
 
         return [
             'success' => true,
-            'msg' => __("dash.deleted_success")
+            'msg' => __("dash.deleted_success"),
         ];
     }
 
@@ -371,7 +460,7 @@ class VisitsController extends Controller
 
         if ($visit->visits_status_id == 1) {
             $visit->update([
-                'assign_to_id' => $request->assign_to_id
+                'assign_to_id' => $request->assign_to_id,
             ]);
             /* $this->store($request); */
         } else if ($visit->visits_status_id == 6) {
@@ -410,8 +499,6 @@ class VisitsController extends Controller
         return redirect()->back();
     }
 
-
-
     public function getLocation(Request $request)
     {
         $visits = Visit::where('id', $request->id)->first();
@@ -428,7 +515,6 @@ class VisitsController extends Controller
 
         return response()->json($locations);
     }
-
 
     public function updateStatus(Request $request)
     {

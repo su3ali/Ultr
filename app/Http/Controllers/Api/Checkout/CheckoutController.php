@@ -7,7 +7,9 @@ use App\Models\Admin;
 use App\Models\Booking;
 use App\Models\BookingSetting;
 use App\Models\Cart;
-use App\Models\Contract;
+use App\Models\CategoryGroup;
+use App\Models\ContractPackage;
+use App\Models\ContractPackagesUser;
 use App\Models\CustomerWallet;
 use App\Models\Group;
 use App\Models\Order;
@@ -16,9 +18,6 @@ use App\Models\Service;
 use App\Models\Technician;
 use App\Models\Transaction;
 use App\Models\UserAddresses;
-use App\Models\CategoryGroup;
-use App\Models\ContractPackage;
-use App\Models\ContractPackagesUser;
 use App\Models\Visit;
 use App\Notifications\SendPushNotification;
 use App\Services\Appointment;
@@ -29,7 +28,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
-
 
 class CheckoutController extends Controller
 {
@@ -53,12 +51,12 @@ class CheckoutController extends Controller
             $countInBooking = Booking::whereHas('visit', function ($q) {
                 $q->whereNotIn('visits_status_id', [5, 6]);
             })->whereHas(
-                    'address.region',
-                    function ($q) use ($regionId) {
+                'address.region',
+                function ($q) use ($regionId) {
 
-                        $q->where('id', $regionId);
-                    }
-                )->where([['category_id', '=', $cart->category_id], ['date', '=', $cart->date], ['time', '=', $cart->time]])
+                    $q->where('id', $regionId);
+                }
+            )->where([['category_id', '=', $cart->category_id], ['date', '=', $cart->date], ['time', '=', $cart->time]])
                 ->count();
 
             if (($countInBooking == $countGroup)) {
@@ -90,7 +88,6 @@ class CheckoutController extends Controller
         if (!$carts->first()) {
             return self::apiResponse(400, t_('Cart is empty'), []);
         }
-
 
         if ($carts->first()->type == 'package') {
             $total = $carts->first()->price;
@@ -213,7 +210,7 @@ class CheckoutController extends Controller
             if ($bookSetting) {
                 foreach (Service::with('BookingSetting')->whereIn('id', $carts->pluck('service_id')->toArray())->get() as $service) {
                     $serviceMinutes = $service->BookingSetting->service_duration
-                        * $carts->where('service_id', $service->id)->first()->quantity;
+                     * $carts->where('service_id', $service->id)->first()->quantity;
                     $minutes += $serviceMinutes;
                 }
             }
@@ -282,8 +279,6 @@ class CheckoutController extends Controller
         $validated['visits_status_id'] = 1;
         $visitInsert = Visit::query()->create($validated);
 
-
-
         $allTechn = Technician::where('group_id', $assign_to_id)->whereNotNull('fcm_token')->get();
 
         if (count($allTechn) > 0) {
@@ -301,7 +296,6 @@ class CheckoutController extends Controller
             $techFcmArray = $allTechn->pluck('fcm_token');
             $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
             $FcmTokenArray = $techFcmArray->merge($adminFcmArray)->toArray();
-
 
             $notification = [
                 'device_token' => $FcmTokenArray,
@@ -350,7 +344,7 @@ class CheckoutController extends Controller
         }
 
         $user->update([
-            'point' => $user->point - $request->wallet_discounts ?? 0
+            'point' => $user->point - $request->wallet_discounts ?? 0,
         ]);
 
         $this->wallet($user, $total);
@@ -379,7 +373,6 @@ class CheckoutController extends Controller
         //     'status_id' => 1,
         //     'notes' => $request->notes,
         // ]);
-
 
         if ($request->payment_method == 'wallet') {
             $transaction = Transaction::create([
@@ -412,7 +405,7 @@ class CheckoutController extends Controller
             //  Order::where('id', $order->id)->update(array('partial_amount' => 0));
         }
         $user->update([
-            'point' => $user->point - $request->wallet_discounts ?? 0
+            'point' => $user->point - $request->wallet_discounts ?? 0,
         ]);
 
         $this->wallet($user, $total);
@@ -435,53 +428,88 @@ class CheckoutController extends Controller
             $point = $wallet;
         }
         $user->update([
-            'point' => $user->point + $point ?? 0
+            'point' => $user->point + $point ?? 0,
         ]);
     }
 
     protected function paid(Request $request)
     {
-        $rules = [
-            'order_id' => 'required|exists:orders,id',
-            'payment_method' => 'required|in:cache,visa,wallet',
-            //   'amount' => 'required|numeric',
-            'transaction_id' => 'nullable',
-            'wallet_discounts' => 'nullable|numeric',
-        ];
-        $request->validate($rules, $request->all());
-        $user = auth()->user('sanctum');
 
-        $trans = Transaction::where('order_id', $request->order_id)->get();
-        if ($trans->isEmpty()) {
-            Transaction::create([
-                'order_id' => $request->order_id,
-                'transaction_number' => $request->transaction_id,
-                'payment_result' => 'success',
-                'payment_method' => $request->payment_method,
-                //     'amount' => $request->amount,
+        try {
+
+            $rules = [
+                'order_id' => 'required|exists:orders,id',
+                'payment_method' => 'required|in:cache,visa,wallet',
+                //   'amount' => 'required|numeric',
+                'transaction_id' => 'nullable',
+                'wallet_discounts' => 'nullable|numeric',
+            ];
+            $request->validate($rules, $request->all());
+            $user = auth()->user('sanctum');
+
+            $trans = Transaction::where('order_id', $request->order_id)->get();
+            if ($trans->isEmpty()) {
+                Transaction::create([
+                    'order_id' => $request->order_id,
+                    'transaction_number' => $request->transaction_id,
+                    'payment_result' => 'success',
+                    'payment_method' => $request->payment_method,
+                    //     'amount' => $request->amount,
+                ]);
+            } else {
+                Transaction::where('order_id', $request->order_id)->update([
+                    //   'order_id' => $request->order_id,
+                    'transaction_number' => $request->transaction_id,
+                    'payment_result' => 'success',
+                    'payment_method' => $request->payment_method,
+                    //     'amount' => $request->amount,
+                ]);
+            }
+
+            $order = Order::where('id', $request->order_id)->first();
+
+            $order->update([
+                //         'payment_status' => 'paid',
+                'partial_amount' => 0,
             ]);
-        } else {
-            Transaction::where('order_id', $request->order_id)->update([
-                //   'order_id' => $request->order_id,
-                'transaction_number' => $request->transaction_id,
-                'payment_result' => 'success',
-                'payment_method' => $request->payment_method,
-                //     'amount' => $request->amount,
+
+            $user->update([
+                'point' => $user->point - $request->wallet_discounts ?? 0,
             ]);
+
+            activity()
+                ->causedBy(auth()->user())
+                ->withProperties(
+                    json_decode(json_encode([
+                        'url' => url()->current(),
+                        'user_id' => auth()->id(),
+                        'user_name' => auth()->user()->first_name ?? 'N/A',
+                        'order_id' => $request->order_id,
+                        'payment_method' => $request->payment_method,
+                        'transaction_id' => $trans->first()->id ?? 'N/A',
+                    ]), JSON_PRETTY_PRINT)
+                )
+                ->log('Order Payment Completed');
+            return self::apiResponse(200, __('api.paid successfully'), $this->body);
+
+        } catch (\Exception $e) {
+            // Log the exception with additional context
+            activity()
+                ->causedBy(auth()->user()) // Log the user who caused the action
+                ->withProperties([
+                    'exception_message' => $e->getMessage(),
+                    'exception_file' => $e->getFile(),
+                    'exception_line' => $e->getLine(),
+                    'url' => url()->current(),
+                    'user_id' => auth()->user()->id,
+                    'user_name' => auth()->user()->first_name ?? '',
+                    'order_id' => $request->order_id,
+                    'payment_method' => $request->payment_method,
+
+                ])
+                ->log('Exception while processing the paid endpoint');
+            return response()->json(['error' => $e->getMessage()], 500);
+
         }
-
-
-        $order = Order::where('id', $request->order_id)->first();
-
-        $order->update([
-            //         'payment_status' => 'paid',
-            'partial_amount' => 0,
-        ]);
-
-        $user->update([
-            'point' => $user->point - $request->wallet_discounts ?? 0,
-        ]);
-
-        return self::apiResponse(200, __('api.paid successfully'), $this->body);
     }
 }

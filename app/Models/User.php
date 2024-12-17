@@ -25,16 +25,17 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'phone_verified_at' => 'datetime',
     ];
+    // User has many Orders
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'user_id', 'id');
+    }
 
     public function city()
     {
         return $this->hasOne(City::class, 'id', 'city_id');
     }
 
-    public function orders()
-    {
-        return $this->hasMany(Order::class, 'user_id');
-    }
     public function bookings()
     {
         return $this->hasMany(Booking::class, 'user_id');
@@ -52,4 +53,5 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserAddresses::class, 'user_id')->where('is_default', 1);
     }
+
 }

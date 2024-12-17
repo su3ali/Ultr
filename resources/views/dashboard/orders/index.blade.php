@@ -84,6 +84,7 @@
                                 <th>رقم الطلب</th>
                                 <th>رقم الحجز</th>
                                 <th>{{ __('dash.customer_name') }}</th>
+                                <th>{{ __('dash.phone') }}</th>
                                 <th>{{ __('dash.service') }}</th>
                                 <th>{{ __('dash.quantity') }}</th>
                                 <th>{{ __('dash.price_value') }}</th>
@@ -110,9 +111,15 @@
     <script type="text/javascript">
         $(document).ready(function() {
             var table = $('#html5-extension').DataTable({
-                dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-6 d-flex justify-content-md-start justify-content-center'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
+                dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
                     "<'table-responsive'tr>" +
-                    "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count  mb-sm-0 mb-3'i><'dt--pagination'p>>",
+                    "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
+
+                lengthMenu: [
+                    [10, 25, 50, 100, 200, 500],
+                    [10, 25, 50, 100, 200, 500, ] // Dropdown options
+                ],
+                pageLength: 10, // Default rows per page
                 order: [
                     [0, 'desc']
                 ],
@@ -123,29 +130,46 @@
                     buttons: [{
                             extend: 'copy',
                             className: 'btn btn-sm',
-                            text: 'نسخ'
+                            text: 'نسخ',
+
+
+
                         },
                         {
                             extend: 'csv',
                             className: 'btn btn-sm',
-                            text: 'تصدير إلى CSV'
+                            text: 'تصدير إلى CSV',
+
                         },
                         {
                             extend: 'excel',
                             className: 'btn btn-sm',
-                            text: 'تصدير إلى Excel'
+                            text: 'تصدير إلى Excel',
+
+
                         },
                         {
                             extend: 'print',
                             className: 'btn btn-sm',
-                            text: 'طباعة'
+                            text: 'طباعة',
+
                         }
                     ]
                 },
                 processing: true,
-                responsive:true,
-                serverSide: false,
-                ajax: '{{ route('dashboard.orders.index') }}',
+                responsive: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('dashboard.orders.index') }}',
+                    data: function(d) {
+
+                        d.start = d.start; // Ensures correct offset
+                        d.length = d.length; // Ensures correct page size
+
+
+                    }
+                },
+                pagingType: 'full_numbers',
                 columns: [{
                         data: 'id',
                         name: 'id'
@@ -157,6 +181,10 @@
                     {
                         data: 'user',
                         name: 'user'
+                    },
+                    {
+                        data: 'phone',
+                        name: 'phone'
                     },
                     {
                         data: 'service',
@@ -188,8 +216,13 @@
                         orderable: false,
                         searchable: false
                     },
+                ],
 
-                ]
+
+
+            });
+            $('input[type="search"]').on('input', function() {
+                table.ajax.reload();
             });
 
             function updateTableData() {
@@ -202,40 +235,53 @@
 
                 // Update table data
                 table.ajax.url(url).load();
-
             }
+
+
+
             $('.status_filter').change(function() {
                 updateTableData();
             });
+
+            // Trigger table reload when search input changes
+            $('input[type="search"]').on('input', function() {
+                table.ajax.reload();
+            });
+
         });
 
-/*         {{-- $(document).on('click', '#edit-order', function () { --}}
-        {{--    let id = $(this).data('id'); --}}
-        {{--    let user_id = $(this).data('user_id'); --}}
-        {{--    let category_id = $(this).data('category_id'); --}}
-        {{--    let service_id = $(this).data('service_id'); --}}
-        {{--    let price = $(this).data('price'); --}}
-        {{--    let payment_method = $(this).data('payment_method'); --}}
-        {{--    let notes = $(this).data('notes'); --}}
-        {{--    $('#edit_customer_name').val(user_id).trigger('change') --}}
-        {{--    $('#edit_category_id').val(category_id).trigger('change') --}}
-        {{--    $('#edit_service_id').val(service_id).trigger('change') --}}
-        {{--    $('#edit_price').val(price) --}}
-        {{--    $('#edit_notes').html(notes) --}}
-
-        {{--    if (payment_method === 'visa'){ --}}
-        {{--        $('#edit_payment_method_visa').prop('checked', true) --}}
-        {{--        $('#edit_payment_method_cache').prop('checked', false) --}}
-        {{--    }else { --}}
-        {{--        $('#edit_payment_method_visa').prop('checked', false) --}}
-        {{--        $('#edit_payment_method_cache').prop('checked', true) --}}
-        {{--    } --}}
-        {{--    let action = "{{route('dashboard.orders.update', 'id')}}"; --}}
-        {{--    action = action.replace('id', id) --}}
-        {{--    $('#edit_order_form').attr('action', action); --}}
 
 
-        {{-- }) --}} */
+
+
+
+        /*         {{-- $(document).on('click', '#edit-order', function () { --}}
+                {{--    let id = $(this).data('id'); --}}
+                {{--    let user_id = $(this).data('user_id'); --}}
+                {{--    let category_id = $(this).data('category_id'); --}}
+                {{--    let service_id = $(this).data('service_id'); --}}
+                {{--    let price = $(this).data('price'); --}}
+                {{--    let payment_method = $(this).data('payment_method'); --}}
+                {{--    let notes = $(this).data('notes'); --}}
+                {{--    $('#edit_customer_name').val(user_id).trigger('change') --}}
+                {{--    $('#edit_category_id').val(category_id).trigger('change') --}}
+                {{--    $('#edit_service_id').val(service_id).trigger('change') --}}
+                {{--    $('#edit_price').val(price) --}}
+                {{--    $('#edit_notes').html(notes) --}}
+
+                {{--    if (payment_method === 'visa'){ --}}
+                {{--        $('#edit_payment_method_visa').prop('checked', true) --}}
+                {{--        $('#edit_payment_method_cache').prop('checked', false) --}}
+                {{--    }else { --}}
+                {{--        $('#edit_payment_method_visa').prop('checked', false) --}}
+                {{--        $('#edit_payment_method_cache').prop('checked', true) --}}
+                {{--    } --}}
+                {{--    let action = "{{route('dashboard.orders.update', 'id')}}"; --}}
+                {{--    action = action.replace('id', id) --}}
+                {{--    $('#edit_order_form').attr('action', action); --}}
+
+
+                {{-- }) --}} */
 
         $("body").on('change', '#customSwitchtech', function() {
             let active = $(this).is(':checked');

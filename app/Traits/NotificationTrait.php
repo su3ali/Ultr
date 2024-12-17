@@ -42,11 +42,7 @@ trait NotificationTrait
         try {
             $report = $messaging->sendMulticast($message, $device_token);
             Log::info('Successful sends: ' . $report->successes()->count() . ' Failed sends: ' . $report->failures()->count());
-/*             if ($report->hasFailures()) {
-                foreach ($report->failures()->getItems() as $failure) {
-                    Log::info($failure->error()->getMessage());
-                }
-            } */
+
         } catch (MessagingException $e) {
             Log::info($e);
         } catch (MessagingErrors\NotFound $e) {
@@ -65,59 +61,30 @@ trait NotificationTrait
 
     }
 
-/*     public function sendAllNotification($notification)
-    {
-
-        $factory = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
-        $messaging = $factory->createMessaging();
-
-        $data = [
-            'id' => random_int(1, 9999),
-            'title' => $notification['title'],
-            'body' => $notification['message'],
-            'type' => $notification['type'],
-            'code' => $notification['code'],
-
-        ];
-
-        $message = CloudMessage::fromArray([
-            'topic' => 'ultra_customers',
-            'notification' => [
-                'title' => $notification['title'],
-                'body' => $notification['message'],
-            ],
-            'data' => $data,
-        ])->withAndroidConfig(AndroidConfig::new()->withHighPriority())
-            ->withApnsConfig(ApnsConfig::new()->withImmediatePriority());
-
-        try {
-            $messaging->send($message);
-        } catch (MessagingException $e) {
-            Log::info($e);
-        }
-    } */
-
     public function pushNotificationBackground($notification)
     {
         $factory = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
         $messaging = $factory->createMessaging();
 
-        $device_token = $notification['device_token'];
+        $device_token = $notification['device_token']->filter()->toArray();
 
         $data = [
             'data' => json_encode($notification['data']),
         ];
 
         if ($notification['fromFunc'] == 'latlong') {
-
-            $message = CloudMessage::withTarget('token', $device_token[0])
-                ->withData($data);
-            try {
-                $messaging->send($message);
-            } catch (MessagingException $e) {
-                Log::info($e);
-            } catch (MessagingErrors\NotFound $e) {
-                Log::info('message: ' . $e->getMessage() . ' errors: ' . $e->errors() . ' token: ' . $e->token());
+            if($device_token[0]){
+                $message = CloudMessage::withTarget('token', $device_token[0])
+                    ->withData($data);
+                try {
+                    $messaging->send($message);
+                } catch (MessagingException $e) {
+                    Log::info($e);
+                } catch (MessagingErrors\NotFound $e) {
+                    Log::info('message: ' . $e->getMessage() . ' errors: ' . $e->errors() . ' token: ' . $e->token());
+                }
+            }else{
+                Log::info('error: not fcm token');
             }
         } else {
             $statusList = [

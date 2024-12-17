@@ -4,13 +4,9 @@ namespace App\Http\Controllers\Dashboard\Cars;
 
 use App\Http\Controllers\Controller;
 use App\Models\CarType;
-use App\Models\Category;
-use App\Models\Group;
 use App\Traits\imageTrait;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
-use Illuminate\Support\Facades\File;
-
 
 class CarTypeController extends Controller
 {
@@ -31,12 +27,12 @@ class CarTypeController extends Controller
 
                     $html = '
 
-                                <button type="button" id="add-work-exp" class="btn btn-sm btn-primary card-tools edit" data-id="'.$row->id.'"  data-name_ar="'.$row->name_ar.'"
-                                 data-name_en="'.$row->name_en.'"  data-toggle="modal" data-target="#editModel">
+                                <button type="button" id="add-work-exp" class="btn btn-sm btn-primary card-tools edit" data-id="' . $row->id . '"  data-name_ar="' . $row->name_ar . '"
+                                 data-name_en="' . $row->name_en . '"  data-toggle="modal" data-target="#editModel">
                             <i class="far fa-edit fa-2x"></i>
                        </button>
 
-                                <a data-href="'.route('dashboard.car_type.destroy', $row->id).'" data-id="'.$row->id.'" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
+                                <a data-href="' . route('dashboard.car_type.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
                             <i class="far fa-trash-alt fa-2x"></i>
                     </a>
                                 ';
@@ -66,7 +62,7 @@ class CarTypeController extends Controller
             'name_en' => 'required|String|min:3',
         ]);
 
-        $data=$request->except('_token');
+        $data = $request->except('_token');
 
         $car_type = CarType::updateOrCreate($data);
         session()->flash('success');
@@ -85,7 +81,7 @@ class CarTypeController extends Controller
             'name_ar' => 'required',
             'name_en' => 'required',
         ]);
-        $data=$request->except('_token');
+        $data = $request->except('_token');
 
         $car_type = CarType::find($id);
 
@@ -101,7 +97,7 @@ class CarTypeController extends Controller
         $car_type->delete();
         return [
             'success' => true,
-            'msg' => __("dash.deleted_success")
+            'msg' => __("dash.deleted_success"),
         ];
     }
 

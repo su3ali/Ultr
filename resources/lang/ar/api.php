@@ -43,5 +43,14 @@ return [
     'Your order price didnt reach the minimum value for the coupon !' => 'سعر طلبك لم يصل إلى الحد الأدنى لقيمة القسيمة!',
     'Invalid Code !' => 'الرمز غير صحيح !',
     'This coupon con not be used to any of these services !' => 'لا يمكن استخدام هذا الكوبون لأي من هذه الخدمات !',
-    'This Time is not available' => 'عذرا هذا الوقت غير متاح'
+    'This Time is not available' => 'عذرا هذا الوقت غير متاح',
+    'time_not_available' => 'عذراً ! ،هذا الوقت لم يعد متاح ، الرجاء اختيار موعد آخر',
+    'Invalid user address' => 'عنوان المستخدم غير صالح',
+    'Something went wrong, please try again later' => 'حدث خطأ ما، يرجى المحاولة مرة أخرى لاحقًا',
+    'test_checkout' => 'يمكنك اكمال الطلب الوقت متاح ',
+    'payment created successfully' => '  تم تخزين سجل عملية الدفع بنجاح ',
+    'Invalid data provided' => 'تم إدخال بيانات غير صحيحة',
+    'time_out_your_region' => 'الموعد المختار خارج منطقتك  ، الرجاء اختيار موعد آخر  ',
+    'address_not_found' => 'الرجاء إضافة عنوانك',
+
 ];

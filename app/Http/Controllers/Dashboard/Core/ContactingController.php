@@ -3,18 +3,13 @@
 namespace App\Http\Controllers\Dashboard\Core;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\Category;
 use App\Models\Contacting;
-use App\Models\Icon;
 use App\Models\OrderContract;
-use App\Models\Service;
-use App\Models\ServiceImages;
 use App\Traits\imageTrait;
 use Illuminate\Http\Request;
-use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\File;
-
+use Yajra\DataTables\DataTables;
 
 class ContactingController extends Controller
 {
@@ -67,7 +62,7 @@ class ContactingController extends Controller
     public function create()
     {
         $categories = category::whereNull('parent_id')->where('active', 1)->get()->pluck('title', 'id');
-        return view('dashboard.core.contact.create',compact('categories'));
+        return view('dashboard.core.contact.create', compact('categories'));
     }
 
     public function store(Request $request)
@@ -82,8 +77,7 @@ class ContactingController extends Controller
 
         ]);
 
-        $data = $request->except(['_token','image']);
-
+        $data = $request->except(['_token', 'image']);
 
         if ($request->has('image')) {
             $image = $this->storeImages($request->image, 'contact');
@@ -91,7 +85,6 @@ class ContactingController extends Controller
         }
 
         Contacting::query()->create($data);
-
 
         session()->flash('success');
         return redirect()->route('dashboard.core.contact.index');
@@ -102,7 +95,7 @@ class ContactingController extends Controller
         $contact = Contacting::where('id', $id)->first();
         $categories = category::whereNull('parent_id')->where('active', 1)->get()->pluck('title', 'id');
 
-        return view('dashboard.core.contact.edit', compact('contact','categories'));
+        return view('dashboard.core.contact.edit', compact('contact', 'categories'));
     }
 
     public function update(Request $request, $id)
@@ -119,7 +112,7 @@ class ContactingController extends Controller
         ]);
         $contact = Contacting::find($id);
 
-        $data = $request->except(['_token','image']);
+        $data = $request->except(['_token', 'image']);
         if ($request->has('image')) {
             if (File::exists(public_path($contact->image))) {
                 File::delete(public_path($contact->image));
@@ -142,7 +135,7 @@ class ContactingController extends Controller
         $contact->delete();
         return [
             'success' => true,
-            'msg' => __("dash.deleted_success")
+            'msg' => __("dash.deleted_success"),
         ];
     }
 
@@ -160,11 +153,15 @@ class ContactingController extends Controller
                     return $row->contract?->title;
                 })
                 ->addColumn('user_name', function ($row) {
-                    return $row->user?->first_name .' '. $row->user?->last_name;
+                    return $row->user?->first_name . ' ' . $row->user?->last_name;
                 })
 
                 ->addColumn('phone', function ($row) {
                     return $row->user?->phone;
+                })
+
+                ->addColumn('created_at', function ($row) {
+                    return $row->user?->created_at->format('Y-m-d') ?? '';
                 })
                 ->addColumn('notes', function ($row) {
                     return $row->notes;
@@ -185,6 +182,7 @@ class ContactingController extends Controller
                     'service_contract',
                     'user_name',
                     'phone',
+                    'created_at',
                     'notes',
                     'controll',
                 ])
@@ -194,7 +192,6 @@ class ContactingController extends Controller
         return view('dashboard.core.contact.order_contract');
     }
 
-
     public function order_contract_destroy($id)
     {
         $contact = OrderContract::find($id);
@@ -202,7 +199,7 @@ class ContactingController extends Controller
         $contact->delete();
         return [
             'success' => true,
-            'msg' => __("dash.deleted_success")
+            'msg' => __("dash.deleted_success"),
         ];
     }
 

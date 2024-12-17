@@ -1,0 +1,148 @@
+.btn:hover,
+.btn:focus {
+    color: #3b3f5c;
+    background-color: #f1f2f3;
+    border-color: #d3d3d3;
+    -webkit-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    -moz-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 5px 0 #e0e6ed, 0 2px 10px 0 #e0e6ed;
+    -webkit-transform: translateY(-3px);
+    transform: translateY(-3px);
+}
+
+.table>thead>tr>th {
+    white-space: pre-wrap !important;
+}
+
+.form-control {
+    padding: 10px;
+    /* Add padding for better touch target */
+    border-radius: 5px;
+    /* Round corners for a modern look */
+}
+
+.form-group {
+    margin-bottom: 15px;
+    /* Add some space between fields */
+}
+
+.custom-swal-small .swal-modal {
+    width: auto !important;
+    /* Auto width based on content */
+    max-width: 200px;
+    /* Maximum width if needed */
+    padding: 15px;
+    /* Adjust padding for smaller window */
+}
+
+.custom-swal-small .swal-title,
+.custom-swal-small .swal-text {
+    font-size: 14px;
+    /* Adjust text size for smaller window */
+}
+
+.custom-swal-center .swal-footer {
+    display: flex;
+    justify-content: center;
+    /* Center the button horizontally */
+}
+
+
+
+.custom-swal .swal-footer {
+    display: flex;
+    justify-content: center;
+    /* Center the buttons on one line */
+    padding-top: 10px;
+    /* Add some padding above the buttons */
+}
+
+.custom-swal .swal-button--cancel,
+.custom-swal .swal-button--confirm {
+    margin: 0 10px;
+    /* Add margin between the buttons */
+    padding: 10px 20px;
+    /* Add padding inside the buttons */
+    width: auto;
+    /* Allow buttons to have auto width */
+}
+
+.custom-swal .swal-button--confirm {
+    background-color: #d9534f;
+    /* Red color for danger */
+    color: white;
+}
+
+.custom-swal .swal-button--cancel {
+    background-color: #f8f9fa;
+    /* Neutral background color */
+    color: #dc3545;
+    /* Red color for the text */
+    border: 1px solid #dc3545;
+    /* Add border */
+}
+
+/* Ensure buttons look good on hover */
+.custom-swal .swal-button--confirm:hover,
+.custom-swal .swal-button--cancel:hover {
+    opacity: 0.9;
+}
+
+/* RTL adjustments */
+body {
+    direction: rtl;
+}
+
+.breadcrumb {
+    justify-content: flex-end;
+}
+
+.btn {
+    float: left;
+}
+
+/* Custom switch toggle styling */
+.custom-switch {
+    position: relative;
+    display: inline-block;
+    width: 55px;
+    height: 25px;
+}
+
+.custom-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #dc3545;
+    transition: .4s;
+    border-radius: 25px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 5px;
+    bottom: 2.5px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: #28a745;
+}
+
+input:checked+.slider:before {
+    transform: translateX(28px);
+}

@@ -19,6 +19,7 @@ class AdminRequest extends FormRequest
             'phone' => 'required|numeric|unique:admins,phone',
             'password' => ['required', 'confirmed', Password::min(4)],
             'roles' => 'required|array',
+            'regions' => 'required|array',
             'active' => 'nullable',
         ];
         if (str_contains(url()->current(), request()->route('id'))) {

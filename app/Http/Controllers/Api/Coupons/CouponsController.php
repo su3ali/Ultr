@@ -4,12 +4,10 @@ namespace App\Http\Controllers\Api\Coupons;
 
 use App\Bll\CouponCheck;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Checkout\UserAddressResource;
 use App\Http\Resources\Coupons\CouponsResource;
 use App\Models\Cart;
 use App\Models\Coupon;
 use App\Models\CouponUser;
-use App\Models\UserAddresses;
 use App\Support\Api\ApiResponse;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -34,6 +32,7 @@ class CouponsController extends Controller
 
     protected function submit(Request $request)
     {
+
         $code = $request->code;
         $user = auth()->user('sanctum');
 
@@ -49,19 +48,19 @@ class CouponsController extends Controller
                 ->where('user_id', auth()->user()->id)->get();
             $check = new CouponCheck();
             $match_response = $check->check_coupon_services_match($coupon, $total, $carts);
-            if($match_response['error']){
+            if ($match_response['error']) {
                 return self::apiResponse(400, __('api.This coupon con not be used to any of these services !'), $this->body);
             }
             $discount = $match_response['discount'];
             $res = $check->check_avail($coupon, $coupon_user, $total);
             if (key_exists('success', $res)) {
-                CouponUser::query()->create([
-                    'user_id' => auth()->user()->id,
-                    'coupon_id' => $coupon->id
-                ]);
+                // CouponUser::query()->create([
+                //     'user_id' => auth()->user()->id,
+                //     'coupon_id' => $coupon->id,
+                // ]);
                 foreach ($carts as $cart) {
                     $cart->update([
-                        'coupon_id' => $coupon->id
+                        'coupon_id' => $coupon->id,
                     ]);
                 }
                 $coupon->times_used++;
@@ -96,7 +95,7 @@ class CouponsController extends Controller
             $coupon->save();
             foreach ($carts as $cart) {
                 $cart->update([
-                    'coupon_id' => null
+                    'coupon_id' => null,
                 ]);
             }
             $coupon_value = $coupon->type == 'percentage' ? ($coupon->value / 100) * $total : $coupon->value;
