@@ -22,6 +22,7 @@ class RoleController extends Controller
 
     protected function formData(?Model $model = null): array
     {
+
         return [
             'permissions' => Permission::whereGuardName('dashboard')->get(),
         ];
@@ -29,14 +30,14 @@ class RoleController extends Controller
 
     protected function rules()
     {
-        if(\Route::is('dashboard.core.administration.roles.store')) {
+        if (\Route::is('dashboard.core.administration.roles.store')) {
             $rules = [
-                'name'        => 'required|string|max:191|not_in:user,super|unique:roles,name,'.request()->route('id'),
+                'name' => 'required|string|max:191|not_in:user,super|unique:roles,name,' . request()->route('id'),
                 'permissions' => 'required|array',
             ];
-        }else{
+        } else {
             $rules = [
-                'name'        => 'nullable|string|max:191|not_in:user,super|unique:roles,name,'.request()->route('id'),
+                'name' => 'nullable|string|max:191|not_in:user,super|unique:roles,name,' . request()->route('id'),
                 'permissions' => 'required|array',
             ];
         }
@@ -57,7 +58,7 @@ class RoleController extends Controller
         $permissions = array_keys($validated['permissions']);
         Arr::pull($validated, 'permissions');
         $model->syncPermissions($permissions);
-        if (!in_array($model->name, ['admin', 'super'])){
+        if (!in_array($model->name, ['admin', 'super'])) {
             $model->update($validated);
         }
     }

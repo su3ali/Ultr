@@ -116,6 +116,8 @@ class DashboardRolesSeeder extends Seeder
             ['name' => 'delete_technicians', 'name_en' => 'delete technicians', 'name_ar' => 'حذف الفنيين'],
             ['name' => 'view_technicians', 'name_en' => 'view technicians', 'name_ar' => 'عرض الفنيين'],
 
+            //TODO::Trinees
+
             ['name' => 'trainees', 'name_en' => 'trainees', 'name_ar' => 'المتدربين'],
             ['name' => 'create_trainees', 'name_en' => 'create trainees', 'name_ar' => 'إنشاء المتدربين'],
             ['name' => 'update_trainees', 'name_en' => 'update trainees', 'name_ar' => 'تعديل المتدربين'],
