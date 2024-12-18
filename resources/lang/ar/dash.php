@@ -851,5 +851,6 @@ return [
     'upgrade_trainee' => 'الترقية الي فني',
 
     'rate_trainee' => ' تقييم المتدرب',
+    'choose_file' => 'ارفق صورة هنا',
 
 ];
