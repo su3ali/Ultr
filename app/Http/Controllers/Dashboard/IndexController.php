@@ -22,7 +22,10 @@ class IndexController extends Controller
             $query->whereIn('region_id', $regionIds);
         })
             ->count();
-        $technicians = Technician::count();
+        $technicians = Technician::where('is_trainee', Technician::TECHNICIAN)->count();
+
+        $total_trainees = Technician::where('is_trainee', Technician::TRAINEE)->count();
+
         $tech_visits = Visit::where('is_active', 1)->count();
 
         $now = Carbon::now('Asia/Riyadh')->toDateString();
@@ -136,7 +139,7 @@ class IndexController extends Controller
         $finished_visits_today = Visit::query()->whereHas('booking.address', function ($query) use ($regionIds) {
             $query->whereIn('region_id', $regionIds);
         })->whereDate('end_date', '=', $now)->count();
-        return view('dashboard.home', compact('canceled_orders', 'canceled_orders_today', 'tech_visits_today', 'finished_visits_today', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers', 'client_orders', 'technicians', 'tech_visits'));
+        return view('dashboard.home', compact('canceled_orders', 'canceled_orders_today', 'tech_visits_today', 'finished_visits_today', 'total_trainees', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers', 'client_orders', 'technicians', 'tech_visits'));
     }
     private function __chartOptions($title)
     {

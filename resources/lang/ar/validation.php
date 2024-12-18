@@ -10,7 +10,7 @@ return [
     | the validator class. Some of these rules have multiple versions such
     | as the size rules. Feel free to tweak each of these messages.
     |
- */
+     */
     'accepted' => 'يجب قبول :attribute',
     'active_url' => ':attribute لا يُمثّل رابطًا صحيحًا',
     'after' => 'يجب على :attribute أن يكون تاريخًا لاحقًا للتاريخ :date.',
@@ -141,6 +141,7 @@ return [
         'available' => 'مُتاح',
         'size' => 'الحجم',
         'category_id' => 'القسم',
-        'city_id' => 'المدينة'
+        'city_id' => 'المدينة',
+        'identity_id' => 'رقم الهوية',
     ],
 ];
