@@ -408,7 +408,7 @@
                 </li>
             @endcan
 
-            @can('view_technicians')
+            @can('view_trainees')
                 <li class="menu">
                     <a href="#trainees" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                         <div class="">
