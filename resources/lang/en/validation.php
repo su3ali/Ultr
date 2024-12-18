@@ -11,7 +11,7 @@ return [
     | the validator class. Some of these rules have multiple versions such
     | as the size rules. Feel free to tweak each of these messages here.
     |
-    */
+     */
 
     'accepted' => 'The :attribute must be accepted.',
     'active_url' => 'The :attribute is not a valid URL.',
@@ -125,7 +125,7 @@ return [
     | convention "attribute.rule" to name the lines. This makes it quick to
     | specify a specific custom language line for a given attribute rule.
     |
-    */
+     */
 
     'custom' => [
         'attribute-name' => [
@@ -142,8 +142,42 @@ return [
     | with something more reader friendly such as "E-Mail Address" instead
     | of "email". This simply helps us make our message more expressive.
     |
-    */
+     */
 
-    'attributes' => [],
+    'attributes' => [
+        'name' => 'name',
+        'username' => 'username',
+        'email' => 'email',
+        'first_name' => 'first name',
+        'last_name' => 'last_name',
+        'password' => 'password',
+        'password_confirmation' => 'confirm password',
+        'city' => 'city',
+        'country' => 'country',
+        'address' => 'residential address',
+        'phone' => 'phone',
+        'mobile' => 'mobile',
+        'age' => 'age',
+        'sex' => 'sex',
+        'gender' => 'gender',
+        'day' => 'today',
+        'month' => 'month',
+        'year' => 'year',
+        'hour' => 'hour',
+        'minute' => 'minute',
+        'second' => 'second',
+        'title' => 'title',
+        'content' => 'content',
+        'description' => 'description',
+        'excerpt' => 'summary',
+        'date' => 'date',
+        'time' => 'time',
+        'available' => 'available',
+        'size' => 'size',
+        'category_id' => 'section',
+        'city_id' => 'city',
+        'identity_id' => 'identity number',
+
+    ],
 
 ];

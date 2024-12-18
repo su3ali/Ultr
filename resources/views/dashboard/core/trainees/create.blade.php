@@ -201,6 +201,24 @@
                             </select>
                         </div>
 
+                        <!-- training_start_date   -->
+                        <div class="col-md-6 col-sm-12">
+                            <label for="training_start_date"
+                                class="form-label">{{ __('dash.training_start_date') }}</label>
+                            <input type="date" name="training_start_date" class="form-control"
+                                id="training_start_date" required>
+                        </div>
+
+                        <!-- training_end_date  -->
+                        <div class="col-md-6 col-sm-12">
+                            <label for="training_end_date"
+                                class="form-label">{{ __('dash.training_end_date') }}</label>
+                            <input type="date" name="training_end_date" class="form-control"
+                                id="training_end_date" required>
+                        </div>
+
+
+
                         <!-- image  -->
                         <div class="col-md-6 col-sm-12">
                             <label for="upload_file" class="form-label fw-bold">{{ __('dash.upload') }}</label>

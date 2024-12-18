@@ -852,5 +852,7 @@ return [
 
     'rate_trainee' => ' تقييم المتدرب',
     'choose_file' => 'ارفق صورة هنا',
+    'training_start_date' => 'تاريخ بداية التدريب',
+    'training_end_date' => 'تاريخ نهاية التدريب',
 
 ];
