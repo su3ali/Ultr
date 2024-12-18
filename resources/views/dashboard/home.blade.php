@@ -328,7 +328,8 @@
                             </div>
                         </a>
                     </div>
-                    @can('view_trainees')
+
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_trainees'))
                         <!-- Training Management Widget -->
                         <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                             <a href="{{ route('dashboard.core.trainee.index') }}" class="widget-link">
@@ -361,7 +362,9 @@
                                 </div>
                             </a>
                         </div>
-                    @endcan
+                    @endif
+
+
 
 
 
