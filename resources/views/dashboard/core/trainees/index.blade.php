@@ -59,11 +59,10 @@
                                 <th>{{ __('dash.name') }}</th>
                                 <th>{{ __('dash.rate') }}</th>
                                 <th>{{ __('dash.upgrade_trainee') }}</th>
-
                                 <th>المرفق</th>
-
+                                <th>{{ __('dash.training_start_date') }}</th>
+                                <th>{{ __('dash.training_end_date') }}</th>
                                 <th>{{ __('dash.note') }}</th>
-
                                 <th class="no-content">{{ __('dash.actions') }}</th>
                             </tr>
                         </thead>
@@ -148,6 +147,15 @@
                         data: 'file',
                         name: 'file'
                     },
+                    {
+                        data: 'start_date',
+                        name: 'start_date'
+                    },
+                    {
+                        data: 'end_date',
+                        name: 'end_date'
+                    },
+
                     {
                         data: 'note',
                         name: 'note'

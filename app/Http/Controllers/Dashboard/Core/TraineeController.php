@@ -80,6 +80,8 @@ class TraineeController extends Controller
                          <i class="fas fa-file-pdf"></i> عرض المرفق
                             </a>'
                         : 'لم يتم اضافة مرفق',
+                        'start_date' => $trainee->training_start_date ?? '',
+                        'end_date' => $trainee->training_end_date ?? '',
 
                         'note' => '<a href="#">' . optional($rateTrainee)->note . '</a>',
                         'status' => '
@@ -161,8 +163,10 @@ class TraineeController extends Controller
             'password' => ['required', 'confirmed', Password::min(4)],
             'spec_id' => 'required|exists:specializations,id',
             'country_id' => 'required',
-            'identity_id' => 'required|Numeric',
+            'identity_id' => 'required|Numeric|unique:technicians,identity_id',
             'birth_date' => 'nullable|Date',
+            'training_start_date' => 'required|Date',
+            'training_end_date' => 'required|Date',
             'wallet_id' => 'required',
             'address' => 'nullable|String',
             'group_id' => 'nullable',
