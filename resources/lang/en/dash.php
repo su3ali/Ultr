@@ -562,5 +562,6 @@ return [
     'technical_data' => 'technical_data',
     'training_management' => 'Training Management',
     'number_of_trainees' => 'Number of Trainees',
+    'choose_file' => 'Attach a Image here',
 
 ];
