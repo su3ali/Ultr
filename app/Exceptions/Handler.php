@@ -38,4 +38,27 @@ class Handler extends ExceptionHandler
             //
         });
     }
+
+    public function render($request, Throwable $exception)
+    {
+        // Handle specific HTTP exceptions
+        if ($exception instanceof \Symfony\Component\HttpKernel\Exception\HttpException) {
+            $status = $exception->getStatusCode();
+
+            // Render the appropriate error page if it exists
+            if (view()->exists("errors.{$status}")) {
+                return response()->view("errors.{$status}", [], $status);
+            }
+
+            // Fallback to a default error view
+            return response()->view('errors.default', ['status' => $status], $status);
+        }
+
+        // Log the exception for debugging purposes
+        \Log::error($exception->getMessage(), ['exception' => $exception]);
+
+        // Default exception handling
+        return parent::render($request, $exception);
+    }
+
 }
