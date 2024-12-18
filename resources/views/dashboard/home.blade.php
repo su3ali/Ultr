@@ -328,6 +328,42 @@
                             </div>
                         </a>
                     </div>
+                    @can('view_trainees')
+                        <!-- Training Management Widget -->
+                        <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
+                            <a href="{{ route('dashboard.core.trainee.index') }}" class="widget-link">
+                                <div class="widget widget-one_hybrid widget-engagement">
+                                    <div class="widget-heading p-4 rounded-lg bg-lightblue shadow-sm">
+                                        <div class="d-flex align-items-center">
+                                            <div class="w-icon bg-primary text-white rounded-circle p-3 shadow-sm me-4">
+                                                <!-- Number of Trainees Icon -->
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    class="feather feather-users">
+                                                    <path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2"></path>
+                                                    <circle cx="9" cy="7" r="4"></circle>
+                                                    <path d="M23 21v-2a4 4 0 00-3-3.87"></path>
+                                                    <circle cx="19" cy="7" r="4"></circle>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p class="w-value fs-2 fw-bold text-dark mb-1">
+                                                    {{ $total_trainees }}
+                                                </p>
+                                                <h5 class="text-muted mb-0">{{ __('dash.number_of_trainees') }}</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="widget-footer p-4 text-center bg-lightblue">
+                                        <p class="text-muted mb-0"> {{ __('dash.training_management') }} </p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endcan
+
+
 
                 </div>
             </div>

@@ -277,7 +277,8 @@ class CartController extends Controller
                             'region_id' => $request->region_id,
                             'date' => $request->date[$key],
                             'time' => Carbon::parse($request->time[$key])->timezone('Asia/Riyadh')->toTimeString(),
-                            'notes' => $request->notes ? array_key_exists($key, $request->notes) ? $request->notes[$key] : '' : '',
+                            'notes' => isset($request->notes[$key]) ? $request->notes[$key] : '',
+                            // 'notes' => $request->notes ? array_key_exists($key, $request->notes) ? $request->notes[$key] : '' : '',
                         ]);
                     }
                     return self::apiResponse(200, __('api.date and time for reservations updated successfully'), $this->body);
@@ -309,11 +310,17 @@ class CartController extends Controller
 
                         error_log($cart->id);
 
+                        // $cart->update([
+                        //     'date' => $request->date[$key],
+                        //     'time' => Carbon::parse($request->time[$key])->timezone('Asia/Riyadh')->toTimeString(),
+                        //     'notes' => $request->notes ? array_key_exists($key, $request->notes) ? $request->notes[$key] : '' : '',
+                        // ]);
                         $cart->update([
-                            'date' => $request->date[$key],
-                            'time' => Carbon::parse($request->time[$key])->timezone('Asia/Riyadh')->toTimeString(),
-                            'notes' => $request->notes ? array_key_exists($key, $request->notes) ? $request->notes[$key] : '' : '',
+                            'date' => $request->date[$key] ?? null, // Use null if the date is not set
+                            'time' => Carbon::parse($request->time[$key] ?? '00:00')->timezone('Asia/Riyadh')->toTimeString(), // Use a default time if not set
+                            'notes' => isset($request->notes[$key]) ? $request->notes[$key] : '', // Safely check if notes exists for this key
                         ]);
+
                     }
 
                     activity()

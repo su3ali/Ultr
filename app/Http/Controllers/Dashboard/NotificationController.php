@@ -118,7 +118,7 @@ class NotificationController extends Controller
             }
         }
 
-        session()->flash('success');
+        session()->flash('success', __('api.send_notifications'));
         return redirect()->back();
     }
 }

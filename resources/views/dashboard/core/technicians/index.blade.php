@@ -114,7 +114,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('dashboard.core.technician.index') }}',
+                    url: '{{ route('dashboard.core.trainee.index') }}',
                     data: function(d) {
                         // Add filter data to the DataTable request
                         d.group_id = $('#group_filter').val();

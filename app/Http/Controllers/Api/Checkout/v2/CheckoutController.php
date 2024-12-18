@@ -141,6 +141,7 @@ class CheckoutController extends Controller
     //         return response()->json(['error' => 'Failed .'], 500);
     //     }
     // }
+
     protected function checkTimeDate(Request $request)
     {
 
@@ -211,6 +212,7 @@ class CheckoutController extends Controller
             $page_number = floor($remaining_days / 14);
             $time = new Appointment($regionId, $services, null, $page_number);
             $times = $time->getAvailableTimesFromDate();
+            // dd($times);
             if ($times) {
 
                 $days = array_column($times, 'day');
