@@ -46,10 +46,10 @@
                             </div>
 
                             <div class="form-row align-items-center mb-4">
-                                <div class="form-group col-md-6">
+                                <div class="form-group col-md-12 col-sm-12">
                                     <label for="upload_file" class="form-label fw-bold">{{ __('dash.upload') }}</label>
                                     <div class="custom-file">
-                                        <input type="file" class="custom-file-input shadow-sm" id="upload_file"
+                                        <input type="file" class="custom-file-input shadow-sm w-100" id="upload_file"
                                             name="upload_file" accept="image/*">
                                         <label class="custom-file-label" for="upload_file"
                                             id="upload_label">{{ __('dash.choose_file') }}</label>
@@ -61,6 +61,9 @@
                                     </div>
                                 @enderror
                             </div>
+
+
+
 
 
 
@@ -111,7 +114,6 @@
     </script>
 
     <style>
-        /* General Styling */
         .form-label {
             font-weight: bold;
             font-size: 1rem;
@@ -164,6 +166,20 @@
             box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
             color: #495057;
             background-color: #e9ecef;
+        }
+
+        /* Error Styling */
+        .alert.alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            padding: 0.75rem 1rem;
+        }
+
+        /* Additional styling for icons */
+        .bi-exclamation-circle {
+            margin-right: 5px;
         }
 
         /* Error Styling */

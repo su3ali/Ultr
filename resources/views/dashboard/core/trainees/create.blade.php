@@ -28,7 +28,6 @@
         margin-bottom: 0.1rem;
     }
 
-    /* General Styling */
     .form-label {
         font-weight: bold;
         font-size: 1rem;
