@@ -820,9 +820,9 @@ class CheckoutController extends Controller
 
     private function wallet($user, $total)
     {
+        // dd("*");
 
         $walletSetting = CustomerWallet::query()->first();
-
         $wallet = ($total * $walletSetting->order_percentage) / 100;
 
         if ($wallet > $walletSetting->refund_amount) {
@@ -830,6 +830,7 @@ class CheckoutController extends Controller
         } else {
             $point = $wallet;
         }
+
         $user->update([
             'point' => $user->point + $point ?? 0,
         ]);
