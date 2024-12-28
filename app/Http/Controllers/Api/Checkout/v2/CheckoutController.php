@@ -199,19 +199,33 @@ class CheckoutController extends Controller
                 return false;
             }
 
-            $regionId = UserAddresses::where('user_id', auth()->user()->id)->pluck('region_id')->toArray();
+            // $regionId = UserAddresses::where('user_id', auth()->user()->id)->pluck('region_id')->toArray();
+
+            $regionId = UserAddresses::where('user_id', auth()->user()->id)
+                ->orderBy('id', 'desc')
+                ->pluck('region_id')
+                ->first();
+
+            $regionId = [$regionId];
+
             if (empty($regionId)) {
 
                 return self::apiResponse(400, __('api.address_not_found'), $this->body);
             }
-            $region = UserAddresses::where('user_id', auth()->user()->id)->pluck('region_id')->first();
+
+            // dd($regionId);
+            $region = UserAddresses::where('user_id', auth()->user()->id)
+                ->orderBy('id', 'desc')
+                ->pluck('region_id')
+                ->first();
 
             $remaining_days = Carbon::now()->diffInDays(Carbon::parse($carts->first()->date)) + 1;
             $page_number = floor($remaining_days / 14);
+            // dd($services);
             $time = new Appointment($regionId, $services, null, $page_number);
             $times = $time->getAvailableTimesFromDate();
-            // dd($times);
             if ($times) {
+                // dd($times);
 
                 $days = array_column($times, 'day');
                 if (!in_array($carts->first()->date, $days)) {
@@ -245,6 +259,8 @@ class CheckoutController extends Controller
             $shiftGroupsIds = GroupRegion::whereIn('group_id', $shiftGroupsIds)->where('region_id', $region)
 
                 ->pluck('group_id')->toArray();
+
+            // dd($shiftGroupsIds);
 
             $category_ids = $carts->pluck('category_id')->toArray();
             $category_ids = array_unique($category_ids);
@@ -281,7 +297,7 @@ class CheckoutController extends Controller
                     $qu->where('region_id', $address->region_id);
                 })->whereIn('id', $shiftGroupsIds);
 
-                // dd($address->region_id);
+                // dd($group->get());
 
                 if ($group->get()->isEmpty()) {
                     DB::rollback();
