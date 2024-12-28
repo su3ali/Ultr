@@ -236,7 +236,8 @@ class CheckoutController extends Controller
                 }
             }
 
-            $shiftGroupsIds = Shift::where('id', $shift->id)->pluck('group_id')->toArray();
+            $shiftGroupsIds = Shift::where('id', $shift->id)
+                ->where('is_active', 1)->pluck('group_id')->toArray();
             $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
                 return array_map('intval', json_decode($jsonString, true));
             }, $shiftGroupsIds));
@@ -504,8 +505,6 @@ class CheckoutController extends Controller
                 return false;
             }
 
-            // dd($shift);
-
             $remaining_days = Carbon::now()->diffInDays(Carbon::parse($cart->date)) + 1;
             $page_number = floor($remaining_days / 14);
             $time = new Appointment($address->region_id, $services, null, $page_number);
@@ -574,9 +573,7 @@ class CheckoutController extends Controller
                 $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
                     $qu->where('region_id', $address->region_id);
                 })->whereIn('id', $shiftGroupsIds);
-
-                // dd($shiftGroupsIds);
-
+                // dd($address->region_id);
                 if ($group->get()->isEmpty()) {
                     DB::rollback();
                     return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
