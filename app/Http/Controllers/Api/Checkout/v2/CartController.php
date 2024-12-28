@@ -131,6 +131,7 @@ class CartController extends Controller
         try {
 
             $cart = auth()->user()->carts->first();
+
             if ($cart) {
                 $rules = [
                     'category_ids' => 'required|array',
@@ -149,7 +150,6 @@ class CartController extends Controller
                 if ($validator->fails()) {
                     return self::apiResponse(400, 'Validation failed', $validator->errors());
                 }
-                // dd($cart);
 
                 $categoryId = $request['category_ids'][0];
                 $cart_time = $request['time'][0];
@@ -163,7 +163,6 @@ class CartController extends Controller
                     return self::apiResponse(400, __('api.cart empty'), $this->body);
 
                 }
-                // dd($shift);
 
                 if (empty($shift)) {
                     return false;
