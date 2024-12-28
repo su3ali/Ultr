@@ -31,6 +31,7 @@ class Appointment
 
     public function getAvailableTimesFromDate()
     {
+
         $servicesCollection = collect($this->services);
         $service_ids = $servicesCollection->pluck('id')->toArray();
 
@@ -42,9 +43,11 @@ class Appointment
             $times[$service_id]['amount'] = $amount;
             $times[$service_id]['days'] = []; // Initialize days for each service
 
-            $bookSetting = BookingSetting::whereHas('regions', function ($q) {
-                $q->where('region_id', $this->region_id);
-            })->where('service_id', $service_id)->first();
+            // $bookSetting = BookingSetting::whereHas('regions', function ($q) {
+            //     $q->where('region_id', $this->region_id);
+            // })->where('service_id', $service_id)->first();
+
+            $bookSetting = BookingSetting::where('service_id', $service_id)->first();
 
             if (!$bookSetting) {
                 continue;
@@ -282,14 +285,15 @@ class Appointment
     protected function isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId)
     {
         // dd($period->format('H:i:s'));
-        $shiftGroupsIds = Shift::where('id', $shiftId)->pluck('group_id')->toArray();
+        $shiftGroupsIds = Shift::where('id', $shiftId)
+            ->where('is_active', 1)->pluck('group_id')->toArray();
 
         $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
             return array_map('intval', json_decode($jsonString, true));
         }, $shiftGroupsIds));
         $category_id = Service::where('id', $service_id)->first()->category_id;
         $region_id = $this->region_id;
-        $ShiftGroupsInRegion = Group::whereIn('id', $shiftGroupsIds)
+        $ShiftGroupsInRegion = Group::where('active', 1)->whereIn('id', $shiftGroupsIds)
             ->whereHas('regions', function ($qu) use ($region_id) {
                 $qu->where('region_id', $region_id);
             })
@@ -338,7 +342,7 @@ class Appointment
 
         $availableShiftGroupsIds = array_diff($ShiftGroupsInRegion, $takenIds);
 
-        $availableShiftGroupsCount = Group::GroupInRegionCategory($this->region_id, [$category_id])
+        $availableShiftGroupsCount = Group::where('active', 1)->GroupInRegionCategory($this->region_id, [$category_id])
             ->whereIn('id', $availableShiftGroupsIds)
             ->count();
 

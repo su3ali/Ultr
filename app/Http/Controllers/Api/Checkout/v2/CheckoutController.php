@@ -199,21 +199,26 @@ class CheckoutController extends Controller
                 return false;
             }
 
-            // dd($shift);
+            $regionId = UserAddresses::where('id', $request->user_address_id)->pluck('region_id')->toArray();
 
-            $regionId = UserAddresses::where('user_id', auth()->user()->id)->pluck('region_id')->toArray();
             if (empty($regionId)) {
 
                 return self::apiResponse(400, __('api.address_not_found'), $this->body);
             }
-            $region = UserAddresses::where('user_id', auth()->user()->id)->pluck('region_id')->first();
+
+            // dd($regionId);
+            $region = UserAddresses::where('id', $request->user_address_id)
+                ->orderBy('id', 'desc')
+                ->pluck('region_id')
+                ->first();
 
             $remaining_days = Carbon::now()->diffInDays(Carbon::parse($carts->first()->date)) + 1;
             $page_number = floor($remaining_days / 14);
+            // dd($services);
             $time = new Appointment($regionId, $services, null, $page_number);
             $times = $time->getAvailableTimesFromDate();
-            // dd($times);
             if ($times) {
+                // dd($times);
 
                 $days = array_column($times, 'day');
                 if (!in_array($carts->first()->date, $days)) {
@@ -238,7 +243,8 @@ class CheckoutController extends Controller
                 }
             }
 
-            $shiftGroupsIds = Shift::where('id', $shift->id)->pluck('group_id')->toArray();
+            $shiftGroupsIds = Shift::where('id', $shift->id)
+                ->where('is_active', 1)->pluck('group_id')->toArray();
             $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
                 return array_map('intval', json_decode($jsonString, true));
             }, $shiftGroupsIds));
@@ -246,6 +252,8 @@ class CheckoutController extends Controller
             $shiftGroupsIds = GroupRegion::whereIn('group_id', $shiftGroupsIds)->where('region_id', $region)
 
                 ->pluck('group_id')->toArray();
+
+            // dd($shiftGroupsIds);
 
             $category_ids = $carts->pluck('category_id')->toArray();
             $category_ids = array_unique($category_ids);
@@ -281,6 +289,8 @@ class CheckoutController extends Controller
                 $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
                     $qu->where('region_id', $address->region_id);
                 })->whereIn('id', $shiftGroupsIds);
+
+                // dd($group->get());
 
                 if ($group->get()->isEmpty()) {
                     DB::rollback();
@@ -504,8 +514,6 @@ class CheckoutController extends Controller
                 return false;
             }
 
-            // dd($shift);
-
             $remaining_days = Carbon::now()->diffInDays(Carbon::parse($cart->date)) + 1;
             $page_number = floor($remaining_days / 14);
             $time = new Appointment($address->region_id, $services, null, $page_number);
@@ -574,9 +582,7 @@ class CheckoutController extends Controller
                 $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
                     $qu->where('region_id', $address->region_id);
                 })->whereIn('id', $shiftGroupsIds);
-
-                // dd($shiftGroupsIds);
-
+                // dd($address->region_id);
                 if ($group->get()->isEmpty()) {
                     DB::rollback();
                     return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);

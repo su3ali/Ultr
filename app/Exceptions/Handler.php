@@ -51,7 +51,7 @@ class Handler extends ExceptionHandler
             }
 
             // Fallback to a default error view
-            return response()->view('errors.default', ['status' => $status], $status);
+            return response()->view('errors.500', ['status' => $status], $status);
         }
 
         // Log the exception for debugging purposes
