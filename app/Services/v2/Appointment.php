@@ -31,6 +31,7 @@ class Appointment
 
     public function getAvailableTimesFromDate()
     {
+
         $servicesCollection = collect($this->services);
         $service_ids = $servicesCollection->pluck('id')->toArray();
 
@@ -42,9 +43,12 @@ class Appointment
             $times[$service_id]['amount'] = $amount;
             $times[$service_id]['days'] = []; // Initialize days for each service
 
-            $bookSetting = BookingSetting::whereHas('regions', function ($q) {
-                $q->where('region_id', $this->region_id);
-            })->where('service_id', $service_id)->first();
+            // $bookSetting = BookingSetting::whereHas('regions', function ($q) {
+            //     $q->where('region_id', $this->region_id);
+            // })->where('service_id', $service_id)->first();
+
+            $bookSetting = BookingSetting::
+                where('service_id', $service_id)->first();
 
             if (!$bookSetting) {
                 continue;
@@ -85,7 +89,6 @@ class Appointment
             $page_number = $this->page_number ?? 0;
             $start = $page_number * $page_size;
             $end = ($page_number + 1) * $page_size;
-
             for ($i = $start; $i < $end; $i++) {
                 $date = Carbon::now('Asia/Riyadh')->addDays($i)->format('Y-m-d');
                 if (in_array(Carbon::parse($date)->format('l'), $serviceDays)) {
@@ -103,6 +106,7 @@ class Appointment
                 $shifts = $this->getShiftsForDay($dayName);
 
                 if ($shifts->isEmpty()) {
+
                     continue;
                 }
 
