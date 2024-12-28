@@ -199,14 +199,7 @@ class CheckoutController extends Controller
                 return false;
             }
 
-            // $regionId = UserAddresses::where('user_id', auth()->user()->id)->pluck('region_id')->toArray();
-
-            $regionId = UserAddresses::where('user_id', auth()->user()->id)
-                ->orderBy('id', 'desc')
-                ->pluck('region_id')
-                ->first();
-
-            $regionId = [$regionId];
+            $regionId = UserAddresses::where('id', $request->user_address_id)->pluck('region_id')->toArray();
 
             if (empty($regionId)) {
 
@@ -214,7 +207,7 @@ class CheckoutController extends Controller
             }
 
             // dd($regionId);
-            $region = UserAddresses::where('user_id', auth()->user()->id)
+            $region = UserAddresses::where('id', $request->user_address_id)
                 ->orderBy('id', 'desc')
                 ->pluck('region_id')
                 ->first();
