@@ -199,8 +199,6 @@ class CheckoutController extends Controller
                 return false;
             }
 
-            // dd($shift);
-
             $regionId = UserAddresses::where('user_id', auth()->user()->id)->pluck('region_id')->toArray();
             if (empty($regionId)) {
 
@@ -281,6 +279,8 @@ class CheckoutController extends Controller
                 $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
                     $qu->where('region_id', $address->region_id);
                 })->whereIn('id', $shiftGroupsIds);
+
+                // dd($address->region_id);
 
                 if ($group->get()->isEmpty()) {
                     DB::rollback();
