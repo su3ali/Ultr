@@ -34,7 +34,19 @@
         </header>
     </div>
 @endsection
+<style>
+    .whatsapp-link {
+        color: #0074cc;
+        /* Default color */
+        text-decoration: none;
+        /* Remove underline */
+    }
 
+    .whatsapp-link:hover {
+        color: #25d366;
+        /* Color on hover (WhatsApp green) */
+    }
+</style>
 @section('content')
     <div class="layout-px-spacing">
 
