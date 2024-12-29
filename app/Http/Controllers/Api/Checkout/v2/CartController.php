@@ -131,6 +131,7 @@ class CartController extends Controller
         try {
 
             $cart = auth()->user()->carts->first();
+
             if ($cart) {
                 $rules = [
                     'category_ids' => 'required|array',
@@ -149,7 +150,6 @@ class CartController extends Controller
                 if ($validator->fails()) {
                     return self::apiResponse(400, 'Validation failed', $validator->errors());
                 }
-                // dd($cart);
 
                 $categoryId = $request['category_ids'][0];
                 $cart_time = $request['time'][0];
@@ -163,7 +163,6 @@ class CartController extends Controller
                     return self::apiResponse(400, __('api.cart empty'), $this->body);
 
                 }
-                // dd($shift);
 
                 if (empty($shift)) {
                     return false;
@@ -174,13 +173,13 @@ class CartController extends Controller
                     ->flatMap(fn($jsonString) => array_map('intval', json_decode($jsonString, true)))
                     ->toArray();
 
-                $shiftRegionId = GroupRegion::where('group_id', $shiftGroupsIds[0])->pluck('region_id')->first();
+                // $shiftRegionId = GroupRegion::where('group_id', $shiftGroupsIds[0])->pluck('region_id')->first();
 
                 // dd($shiftRegionId);
 
-                if ($shiftRegionId != $request->region_id) {
-                    return self::apiResponse(400, __('api.time_out_your_region'), $this->body);
-                }
+                // if ($shiftRegionId != $request->region_id) {
+                //     return self::apiResponse(400, __('api.time_out_your_region'), $this->body);
+                // }
 
                 $shiftGroupsIds = GroupRegion::whereIn('group_id', $shiftGroupsIds)
                     ->where('region_id', $request->region_id)

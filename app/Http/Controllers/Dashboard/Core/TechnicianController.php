@@ -72,7 +72,7 @@ class TechnicianController extends Controller
 
                         'name' => '<a href="#" >' . $row->name . '</a>',
 
-                        't_image' => $row->image
+                        't_image' => $row->image && !is_null($row->image)
                         ? '<img class="img-fluid" style="width: 85px;" src="' . asset($row->image) . '"/>'
                         : 'لم يتم اضافة صورة',
 
