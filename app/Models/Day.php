@@ -25,4 +25,9 @@ class Day extends Model
         return app()->getLocale() === 'ar' ? $this->name_ar : $this->name;
     }
 
+    public function technicians()
+    {
+        return $this->belongsToMany(Technician::class, 'technician_working_days')->withTimestamps();
+    }
+
 }

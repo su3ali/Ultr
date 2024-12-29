@@ -565,5 +565,6 @@ return [
     'choose_file' => 'Attach a Image here',
     'training_start_date' => 'Training start date',
     'training_end_date' => 'Training end date',
-
+    'working_days' => 'Working days',
+    'update' => 'updated successfully',
 ];

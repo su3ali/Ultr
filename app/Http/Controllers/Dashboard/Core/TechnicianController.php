@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Dashboard\Core;
 
 use App\Http\Controllers\Controller;
+use App\Models\Day;
 use App\Models\Group;
 use App\Models\Specialization;
 use App\Models\Technician;
+use App\Models\TechnicianWorkingDay;
 use App\Models\Visit;
 use App\Traits\imageTrait;
 use Illuminate\Http\RedirectResponse;
@@ -21,17 +23,19 @@ class TechnicianController extends Controller
 
     public function index(Request $request)
     {
+
         // Cache groups and specializations if they don't change often
         $groups = cache()->remember('groups', 60, function () {
             return Group::all();
         });
+        $days = Day::where('is_active', 1)->pluck('name_ar', 'id');
 
         $specs = cache()->remember('specs', 60, function () {
             return Specialization::all();
         });
 
         if ($request->ajax()) {
-            $techniciansQuery = Technician::query()->with(['group', 'specialization']); // Eager load related data
+            $techniciansQuery = Technician::query()->with(['group', 'specialization', 'workingDays']); // Eager load related data
 
             // Apply filters
             if ($request->has('group_id') && $request->group_id !== 'all') {
@@ -98,6 +102,7 @@ class TechnicianController extends Controller
                                 data-group_id="' . $row->group_id . '"
                                 data-country_id="' . $row->country_id . '"
                                 data-address="' . $row->address . '"
+                                data-day_id="' . $row->workingDays . '"
                                 data-wallet_id="' . $row->wallet_id . '"
                                 data-birth_date="' . $row->birth_date . '"
                                 data-identity_number="' . $row->identity_id . '"
@@ -127,7 +132,7 @@ class TechnicianController extends Controller
             "مصر" => "7",
         ];
 
-        return view('dashboard.core.technicians.index', compact('groups', 'specs', 'nationalities'));
+        return view('dashboard.core.technicians.index', compact('groups', 'specs', 'days', 'nationalities', 'days'));
 
     }
 
@@ -151,6 +156,7 @@ class TechnicianController extends Controller
     {
 
         $rules = [
+            'day_id' => 'required|array|exists:days,id',
             'name' => 'required|String|min:3',
             'email' => 'required|Email|unique:technicians,email',
             'phone' => 'required|unique:technicians,phone',
@@ -182,7 +188,23 @@ class TechnicianController extends Controller
             $request->image->move(storage_path('app/public/images/technicians/'), $filename);
             $validated['image'] = 'storage/images/technicians' . '/' . $filename;
         }
-        Technician::query()->create($validated);
+        $days = $validated['day_id'];
+        unset($validated['day_id']);
+
+        $technician = Technician::query()->create($validated);
+
+        $workingDays = [];
+        foreach ($days as $day) {
+            $workingDays[] = [
+                'technician_id' => $technician->id,
+                'day_id' => $day,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        TechnicianWorkingDay::insert($workingDays);
+
         session()->flash('success');
         return redirect()->back();
     }
@@ -190,6 +212,7 @@ class TechnicianController extends Controller
     {
         $tech = Technician::query()->where('id', $id)->first();
         $rules = [
+            'day_id' => 'required|array|exists:days,id',
             'name' => 'required|String|min:3',
             'email' => 'required|Email|unique:technicians,email,' . $id,
             'phone' => 'required|unique:technicians,phone,' . $id,
@@ -223,8 +246,38 @@ class TechnicianController extends Controller
             $request->image->move(storage_path('app/public/images/technicians/'), $filename);
             $validated['image'] = 'storage/images/technicians' . '/' . $filename;
         }
+
+        $newDays = $validated['day_id'];
+
+        unset($validated['day_id']);
+
         $tech->update($validated);
-        session()->flash('success');
+
+        $currentWorkingDays = $tech->workingDays()->pluck('day_id')->toArray();
+
+        $daysToAdd = array_diff($newDays, $currentWorkingDays);
+
+        $daysToRemove = array_diff($currentWorkingDays, $newDays);
+
+        if (!empty($daysToRemove)) {
+            $tech->workingDays()->whereIn('day_id', $daysToRemove)->delete();
+        }
+
+        if (!empty($daysToAdd)) {
+            $workingDays = [];
+            foreach ($daysToAdd as $day) {
+                $workingDays[] = [
+                    'technician_id' => $tech->id,
+                    'day_id' => $day,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            TechnicianWorkingDay::insert($workingDays);
+        }
+        $tech->update($validated);
+        session()->flash('success', __('dash.update'));
+
         return redirect()->back();
     }
 
@@ -237,7 +290,7 @@ class TechnicianController extends Controller
         $tech->delete();
         return [
             'success' => true,
-            'msg' => __("dash.deleted_success"),
+            'msg' => __("dash.deleted_successfully"),
         ];
     }
     protected function changeStatus(Request $request)
@@ -249,6 +302,6 @@ class TechnicianController extends Controller
             error_log(2);
             Technician::query()->where('id', $request->id)->update(['active' => 0]);
         }
-        return response('success');
+        return response('success', __('dash.updated_success'));
     }
 }

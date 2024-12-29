@@ -291,6 +291,7 @@ class Appointment
         $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
             return array_map('intval', json_decode($jsonString, true));
         }, $shiftGroupsIds));
+
         $category_id = Service::where('id', $service_id)->first()->category_id;
         $region_id = $this->region_id;
         $ShiftGroupsInRegion = Group::where('active', 1)->whereIn('id', $shiftGroupsIds)

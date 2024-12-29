@@ -102,8 +102,8 @@
                     "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
 
                 lengthMenu: [
-                    [10, 25, 50, 100, 200, 500],
-                    [10, 25, 50, 100, 200, 500, ] // Dropdown options
+                    [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000],
+                    [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
                 ],
                 pageLength: 10, // Default rows per page
                 order: [
