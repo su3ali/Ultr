@@ -187,7 +187,7 @@
 
                             <div class="form-group col-md-6">
                                 <label for="edit_day_id">{{ __('dash.working_days') }}</label>
-                                <select id="edit_day_id" name="day_id[]" class="form-control" multiple>
+                                <select id="edit_day_id" name="day_id[]"  class="form-control" multiple>
                                     <option selected disabled>{{ __('dash.choose') }}</option>
                                     @foreach ($days as $id => $name_ar)
                                         <option value="{{ $id }}">{{ $name_ar }}</option>

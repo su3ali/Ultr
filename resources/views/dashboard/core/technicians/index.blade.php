@@ -203,6 +203,11 @@
             let identity_number = $(this).data('identity_number');
             let image = $(this).data('image');
 
+            console.log('Day ID:', day_id);
+            debugger;
+
+
+
             $('#tech_id').val(id);
             $('#edit_day_id').val(group_id).trigger('day_id');
             $('#edit_name').val(name);
