@@ -17,7 +17,6 @@ yarn-error.log
 /.idea
 /.vscode
 /password.text
-/.env
 /password.text
 password.text
 .env

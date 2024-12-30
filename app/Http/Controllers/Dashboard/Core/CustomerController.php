@@ -102,7 +102,9 @@ class CustomerController extends Controller
                         'id' => $user->id,
                         'name' => $user->first_name . ' ' . $user->last_name,
                         'city_name' => $user->city?->title ?? 'N/A',
-                        'phone' => $user->phone ?? 'N/A',
+                        'phone' => $user->phone
+                        ? '<a href="https://api.whatsapp.com/send?phone=' . $user->phone . '" target="_blank" class="whatsapp-link">' . $user->phone . '</a>'
+                        : 'N/A',
                         'status' => '<label class="switch s-outline s-outline-info mb-4 mr-2">
                                         <input type="checkbox" id="customSwitch4" data-id="' . $user->id . '" ' . ($user->active ? 'checked' : '') . '>
                                         <span class="slider round"></span>
