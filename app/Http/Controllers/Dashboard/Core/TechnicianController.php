@@ -102,7 +102,9 @@ class TechnicianController extends Controller
                                 data-group_id="' . $row->group_id . '"
                                 data-country_id="' . $row->country_id . '"
                                 data-address="' . $row->address . '"
-                                data-day_id="' . $row->workingDays . '"
+
+                                data-day_id="' . json_encode(\App\Models\TechnicianWorkingDay::where('technician_id', $row->id)->pluck('day_id')->toArray()) . '"
+
                                 data-wallet_id="' . $row->wallet_id . '"
                                 data-birth_date="' . $row->birth_date . '"
                                 data-identity_number="' . $row->identity_id . '"
@@ -212,7 +214,7 @@ class TechnicianController extends Controller
     {
         $tech = Technician::query()->where('id', $id)->first();
         $rules = [
-            'day_id' => 'required|array|exists:days,id',
+            'day_id' => 'nullable|array|exists:days,id',
             'name' => 'required|String|min:3',
             'email' => 'required|Email|unique:technicians,email,' . $id,
             'phone' => 'required|unique:technicians,phone,' . $id,
@@ -231,12 +233,11 @@ class TechnicianController extends Controller
         $validated = Validator::make($request->all(), $rules, ['user_name.regex' => 'يجب أن لا يحتوي اسم المستخدم على أي مسافات']);
         if ($validated->fails()) {;
             return redirect()->to(route('dashboard.core.technician.index'))->withErrors($validated->errors());}
+
         $validated = $validated->validated();
-        if ($validated['active'] && $validated['active'] == 'on') {
-            $validated['active'] = 1;
-        } else {
-            $validated['active'] = 0;
-        }
+
+        $validated['active'] = (isset($validated['active']) && $validated['active'] == 'on') ? 1 : 0;
+
         if ($request->hasFile('image')) {
             if (File::exists(public_path($tech->image))) {
                 File::delete(public_path($tech->image));
@@ -247,34 +248,37 @@ class TechnicianController extends Controller
             $validated['image'] = 'storage/images/technicians' . '/' . $filename;
         }
 
-        $newDays = $validated['day_id'];
+        if ($request->day_id) {
+            $newDays = $validated['day_id'];
 
-        unset($validated['day_id']);
+            unset($validated['day_id']);
 
-        $tech->update($validated);
+            $tech->update($validated);
 
-        $currentWorkingDays = $tech->workingDays()->pluck('day_id')->toArray();
+            $currentWorkingDays = $tech->workingDays()->pluck('day_id')->toArray();
 
-        $daysToAdd = array_diff($newDays, $currentWorkingDays);
+            $daysToAdd = array_diff($newDays, $currentWorkingDays);
 
-        $daysToRemove = array_diff($currentWorkingDays, $newDays);
+            $daysToRemove = array_diff($currentWorkingDays, $newDays);
 
-        if (!empty($daysToRemove)) {
-            $tech->workingDays()->whereIn('day_id', $daysToRemove)->delete();
-        }
-
-        if (!empty($daysToAdd)) {
-            $workingDays = [];
-            foreach ($daysToAdd as $day) {
-                $workingDays[] = [
-                    'technician_id' => $tech->id,
-                    'day_id' => $day,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+            if (!empty($daysToRemove)) {
+                $tech->workingDays()->whereIn('day_id', $daysToRemove)->delete();
             }
-            TechnicianWorkingDay::insert($workingDays);
+
+            if (!empty($daysToAdd)) {
+                $workingDays = [];
+                foreach ($daysToAdd as $day) {
+                    $workingDays[] = [
+                        'technician_id' => $tech->id,
+                        'day_id' => $day,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+                TechnicianWorkingDay::insert($workingDays);
+            }
         }
+
         $tech->update($validated);
         session()->flash('success', __('dash.update'));
 
