@@ -87,39 +87,39 @@
     <script type="text/javascript">
         $(document).ready(function() {
             $('#html5-extension').DataTable({
-                dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-6 d-flex justify-content-md-start justify-content-center'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
-                    "<'table-responsive'tr>" +
-                    "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count  mb-sm-0 mb-3'i><'dt--pagination'p>>",
+                dom: "<'dt--top-section d-flex justify-content-between align-items-center'<'col-sm-12 col-md-4 d-flex justify-content-start'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-end'f>>" +
+                    "<'table-responsive'tr>" + // Table rows
+                    "<'dt--bottom-section d-flex justify-content-between'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'p>>" +
+                    "<'dt--pages-count text-center mt-2'i>", // Entry count at the bottom-center
+
+                buttons: [{
+                        extend: 'copy',
+                        className: 'btn btn-sm',
+                        text: '<i class="fas fa-copy"></i> نسخ' // Adding a copy icon
+                    },
+                    {
+                        extend: 'csv',
+                        className: 'btn btn-sm',
+                        text: '<i class="fas fa-file-csv"></i> تصدير إلى CSV' // Adding a CSV icon
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-sm',
+                        text: '<i class="fas fa-file-excel"></i> تصدير إلى Excel' // Adding an Excel icon
+                    },
+                    {
+                        extend: 'print',
+                        className: 'btn btn-sm',
+                        text: '<i class="fas fa-print"></i> طباعة' // Adding a print icon
+                    }
+                ],
+
                 order: [
                     [0, 'desc']
                 ],
-                "language": {
-                    "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
+                language: {
+                    url: "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
                 },
-                buttons: {
-                    buttons: [{
-                            extend: 'copy',
-                            className: 'btn btn-sm',
-                            text: 'نسخ'
-                        },
-                        {
-                            extend: 'csv',
-                            className: 'btn btn-sm',
-                            text: 'تصدير إلى CSV'
-                        },
-                        {
-                            extend: 'excel',
-                            className: 'btn btn-sm',
-                            text: 'تصدير إلى Excel'
-                        },
-                        {
-                            extend: 'print',
-                            className: 'btn btn-sm',
-                            text: 'طباعة'
-                        }
-                    ]
-                },
-                charset: 'UTF-8',
                 processing: true,
                 serverSide: true,
                 ajax: '{{ route('dashboard.core.customer.index') }}',
@@ -148,11 +148,17 @@
                         name: 'controll',
                         orderable: false,
                         searchable: false
-                    },
-
+                    }
+                ],
+                pageLength: 10,
+                lengthMenu: [
+                    [10, 100, 500, 1000, 5000, 10000, 20000],
+                    [10, 100, 500, 1000, 5000, 10000, 20000]
                 ]
             });
         });
+
+
 
 
         $("body").on('change', '#customSwitch4', function() {
@@ -172,9 +178,9 @@
                         text: "{{ __('dash.request_executed_successfully') }}",
                         type: 'success',
                         padding: '2em'
-                    })
+                    });
                 }
             });
-        })
+        });
     </script>
 @endpush
