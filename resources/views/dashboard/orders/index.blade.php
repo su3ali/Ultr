@@ -116,46 +116,39 @@
                     "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
 
                 lengthMenu: [
-                    [10, 25, 50, 100, 200, 500],
-                    [10, 25, 50, 100, 200, 500, ] // Dropdown options
+                    [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000],
+                    [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000]
                 ],
-                pageLength: 10, // Default rows per page
+                pageLength: 10,
                 order: [
                     [0, 'desc']
                 ],
                 "language": {
                     "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
                 },
-                buttons: {
-                    buttons: [{
-                            extend: 'copy',
-                            className: 'btn btn-sm',
-                            text: 'نسخ',
 
+                buttons: [{
+                        extend: 'copy',
+                        className: 'btn btn-sm',
+                        text: '<i class="fas fa-copy"></i> نسخ' // Adding a copy icon
+                    },
+                    {
+                        extend: 'csv',
+                        className: 'btn btn-sm',
+                        text: '<i class="fas fa-file-csv"></i> تصدير إلى CSV' // Adding a CSV icon
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-sm',
+                        text: '<i class="fas fa-file-excel"></i> تصدير إلى Excel' // Adding an Excel icon
+                    },
+                    {
+                        extend: 'print',
+                        className: 'btn btn-sm',
+                        text: '<i class="fas fa-print"></i> طباعة' // Adding a print icon
+                    }
+                ],
 
-
-                        },
-                        {
-                            extend: 'csv',
-                            className: 'btn btn-sm',
-                            text: 'تصدير إلى CSV',
-
-                        },
-                        {
-                            extend: 'excel',
-                            className: 'btn btn-sm',
-                            text: 'تصدير إلى Excel',
-
-
-                        },
-                        {
-                            extend: 'print',
-                            className: 'btn btn-sm',
-                            text: 'طباعة',
-
-                        }
-                    ]
-                },
                 processing: true,
                 responsive: true,
                 serverSide: true,

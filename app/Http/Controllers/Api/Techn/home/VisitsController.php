@@ -287,10 +287,16 @@ class VisitsController extends Controller
                 } else {
                     $point = $wallet;
                 }
-                $newPoint = ((round($user->point - $point)) < 0 ? 0 : round($user->point - $point)) ?? 0;
+                // $newPoint = ((round($user->point - $point)) < 0 ? 0 : round($user->point - $point)) ?? 0;
+                // $user->update([
+                //     'point' => $newPoint,
+                // ]);
+
+                $newPoint = max(0, round($user->point - $point));
                 $user->update([
                     'point' => $newPoint,
                 ]);
+
                 $user->update([
                     'order_cancel' => 1,
                 ]);

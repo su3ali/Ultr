@@ -11,7 +11,6 @@ use App\Models\User;
 use App\Models\Visit;
 use App\Models\VisitsStatus;
 use App\Support\Api\ApiResponse;
-use Illuminate\Http\Request;
 
 class BookingsController extends Controller
 {
@@ -21,13 +20,15 @@ class BookingsController extends Controller
     {
         $this->middleware('localization');
     }
-    protected function myBookings(){
+    protected function myBookings()
+    {
         $user = User::with('bookings.booking_status', 'bookings.service.BookingSetting')->where('id', auth('sanctum')->user()->id)->first();
-        $this->body['bookings'] = BookingResource::collection($user->bookings()->orderBy('id','DESC')->get());
+        $this->body['bookings'] = BookingResource::collection($user->bookings()->orderBy('id', 'DESC')->get());
         $this->body['all_statuses'] = StatusResource::collection(VisitsStatus::all());
         return self::apiResponse(200, null, $this->body);
     }
-    protected function bookingDetails($id){
+    protected function bookingDetails($id)
+    {
         $visit_id = Booking::query()->with('visit')->find($id)->visit?->id;
         $order = Visit::whereHas('booking', function ($q) {
             $q->whereHas('customer')->whereHas('address');
@@ -35,11 +36,11 @@ class BookingsController extends Controller
         })->with('booking', function ($q) {
             $q->with(['service' => function ($q) {
                 $q->with('category');
-            },'customer','address']);
+            }, 'customer', 'address']);
 
         })->with('status')->where('id', $visit_id)->first();
         $this->body['visit'] = VisitsResource::make($order);
-       
+
         return self::apiResponse(200, null, $this->body);
     }
     // protected function bookingDetails($id){
