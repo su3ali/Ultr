@@ -305,13 +305,15 @@ class Appointment
         $dayName = Carbon::parse($day)->format('l');
         $dayId = collect($this->daysOfWeek)->firstWhere('name', $dayName)['id'];
 
+        // dd($shiftGroupsIds);
+
         $techIds_not_work = []; // Array to store group IDs of technicians not working on the given day
         $techIdsOnThisDay = [];
 
-        $shiftGroupsIds = [26, 22];
-
         // Retrieve all technicians associated with the shift groups
         $technicians = Technician::whereIn('group_id', $shiftGroupsIds)->with('workingDays')->get();
+
+        // dd($technicians);
 
         foreach ($technicians as $tech) {
             if ($tech->workingDays->isNotEmpty()) {
