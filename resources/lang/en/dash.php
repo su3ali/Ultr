@@ -568,4 +568,5 @@ return [
     'working_days' => 'Working days',
     'update' => 'updated successfully',
     'payment_method' => 'payment method',
+    'cancelled_by' => 'Cancelled By',
 ];

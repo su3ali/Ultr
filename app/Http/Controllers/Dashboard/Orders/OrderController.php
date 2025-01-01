@@ -421,7 +421,7 @@ class OrderController extends Controller
             ->whereHas('userAddress', function ($query) use ($regionIds) {
                 $query->whereIn('region_id', $regionIds);
             })
-            ->with(['user', 'status', 'bookings.visit.status', 'services.category', 'userAddress']);
+            ->with(['user', 'status', 'bookings.visit.status', 'bookings.visit', 'services.category', 'userAddress']);
 
         // Count total records before applying pagination
         $totalOrders = $ordersQuery->count();
@@ -467,6 +467,15 @@ class OrderController extends Controller
                 ->addColumn('quantity', function ($row) {
                     $qu = OrderService::where('order_id', $row->id)->get()->pluck('quantity')->toArray();
                     return array_sum($qu);
+                })
+                ->addColumn('cancelled_by', function ($row) {
+                    // Get the first booking
+                    $firstBooking = $row->bookings->first();
+
+                    // Check if the first booking has a visit and a cancellation reason
+                    $cancelReason = $firstBooking?->visit?->cancelReason;
+
+                    return $cancelReason?->is_for_tech === 1 ? "الفني" : "العميل";
                 })
                 ->addColumn('status', function ($row) {
                     return $row->status?->name;
@@ -515,6 +524,7 @@ class OrderController extends Controller
                     'phone',
                     'service',
                     'quantity',
+                    'cancelled_by',
                     'status',
                     'region',
                     'created_at',

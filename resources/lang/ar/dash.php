@@ -857,5 +857,6 @@ return [
     'working_days' => 'ايام العمل',
     'update' => 'تم التحديث بنجاح',
     'payment_method' => 'طريقة الدفع',
+    'cancelled_by' => 'ملغي من قبل',
 
 ];
