@@ -35,6 +35,16 @@ use Illuminate\Support\Facades\Validator;
 class CheckoutController extends Controller
 {
 
+    public $daysOfWeek = [
+        ['id' => 1, 'name' => 'Saturday'],
+        ['id' => 2, 'name' => 'Sunday'],
+        ['id' => 3, 'name' => 'Monday'],
+        ['id' => 4, 'name' => 'Tuesday'],
+        ['id' => 5, 'name' => 'Wednesday'],
+        ['id' => 6, 'name' => 'Thursday'],
+        ['id' => 7, 'name' => 'Friday'],
+    ];
+
     use ApiResponse, imageTrait, NotificationTrait;
 
     public function __construct()
@@ -338,7 +348,6 @@ class CheckoutController extends Controller
 
             return self::apiResponse(200, __('api.test_checkout'), $this->body);
         } catch (\Exception $e) {
-            return $e;
             // Log the exception with additional context
             activity()
                 ->causedBy(auth()->user()) // Log the user who caused the action
@@ -503,6 +512,7 @@ class CheckoutController extends Controller
             }
             if ($cart) {
                 $shift = Shift::find($request->shift_id);
+
             } else {
                 DB::rollback();
                 return self::apiResponse(400, __('api.cart empty'), $this->body);
@@ -538,6 +548,7 @@ class CheckoutController extends Controller
 
                     if (!in_array(date("g:i A", strtotime($cart->time)), $times_values) && $cart->date == $time['day']) {
                         DB::rollback();
+
                         return self::apiResponse(400, __('api.This Time is not available'), $this->body);
                     }
                 }
@@ -579,9 +590,42 @@ class CheckoutController extends Controller
 
                 $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
 
+                $dayName = Carbon::parse($cart->date)->format('l');
+                $dayId = collect($this->daysOfWeek)->firstWhere('name', $dayName)['id'];
+
+                //
+                $techIds_not_work = []; // Array to store group IDs of technicians not working on the given day
+                $techIdsOnThisDay = [];
+
+                // Retrieve all technicians associated with the shift groups
+                $technicians = Technician::whereIn('group_id', $shiftGroupsIds)->with('workingDays')->get();
+
+                // dd($technicians);
+
+                foreach ($technicians as $tech) {
+                    if ($tech->workingDays->isNotEmpty()) {
+
+                        // Extract the day IDs from the technician's working days
+                        $workingDays = $tech->workingDays->pluck('day_id')->toArray();
+
+                        // Check if the dayId is in the workingDays array
+                        $exists = in_array($dayId, $workingDays);
+
+                        if ($exists) {
+                            $techIdsOnThisDay[] = $tech->group_id;
+                        }
+                    } else {
+
+                        // If the technician has no working days, consider them as not working
+                        $techIds_not_work[] = $tech->group_id;
+                    }
+                }
+
+                //
+
                 $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
                     $qu->where('region_id', $address->region_id);
-                })->whereIn('id', $shiftGroupsIds);
+                })->whereIn('id', $techIdsOnThisDay);
                 // dd($address->region_id);
                 if ($group->get()->isEmpty()) {
                     DB::rollback();
@@ -591,7 +635,7 @@ class CheckoutController extends Controller
                 $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time) * $cart->quantity)->format('H:i:s'))
                     ->where('end_time', '>', $cart->time)
                     ->activeVisits()->whereIn('booking_id', $booking_id)
-                    ->whereIn('assign_to_id', $shiftGroupsIds)->pluck('assign_to_id');
+                    ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id');
                 // dd($takenGroupsIds);
                 if ($takenGroupsIds->isNotEmpty()) {
                     $assign_to_id = $group->whereNotIn('id', $takenGroupsIds)->inRandomOrder()?->first()?->id;
