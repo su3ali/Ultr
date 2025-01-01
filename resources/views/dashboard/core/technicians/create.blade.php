@@ -144,6 +144,17 @@
 
                             </div>
                             <div class="form-group col-md-6">
+                                <label for="day_id">{{ __('dash.working_days') }}</label>
+                                <select name="day_id[]" id="day_id" class="form-control" multiple required>
+                                    <option value="" disabled selected hidden>{{ __('dash.select_day') }}
+                                    </option>
+                                    @foreach ($days as $id => $name_ar)
+                                        <option value="{{ $id }}">{{ $name_ar }}</option>
+                                    @endforeach
+
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
                                 <label for="status"></label>
                                 <label class="switch s-outline s-outline-info  mb-4 mx-4 mt-3 d-block w-50">
                                     <label class="mx-5" for="status">{{ __('dash.status') }}</label>

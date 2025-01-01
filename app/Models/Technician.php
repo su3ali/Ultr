@@ -44,4 +44,9 @@ class Technician extends Authenticatable
         return $this->hasMany(RateTrainee::class, 'trainee_id', 'id');
     }
 
+    public function workingDays()
+    {
+        return $this->hasMany(TechnicianWorkingDay::class, 'technician_id', 'id');
+    }
+
 }

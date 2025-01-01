@@ -9,6 +9,7 @@ use App\Models\Group;
 use App\Models\GroupRegion;
 use App\Models\Service;
 use App\Models\Shift;
+use App\Models\Technician;
 use App\Models\Visit;
 use Carbon\Carbon;
 use Carbon\CarbonInterval;
@@ -20,6 +21,15 @@ class Appointment
     public $package_id;
     public $page_number;
     public $unavailableTimeSlots = [];
+    public $daysOfWeek = [
+        ['id' => 1, 'name' => 'Saturday'],
+        ['id' => 2, 'name' => 'Sunday'],
+        ['id' => 3, 'name' => 'Monday'],
+        ['id' => 4, 'name' => 'Tuesday'],
+        ['id' => 5, 'name' => 'Wednesday'],
+        ['id' => 6, 'name' => 'Thursday'],
+        ['id' => 7, 'name' => 'Friday'],
+    ];
 
     public function __construct($region_id, $services, $package_id, $page_number)
     {
@@ -284,16 +294,55 @@ class Appointment
 
     protected function isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId)
     {
-        // dd($period->format('H:i:s'));
         $shiftGroupsIds = Shift::where('id', $shiftId)
             ->where('is_active', 1)->pluck('group_id')->toArray();
 
+        // Decode JSON strings into an array of group IDs
         $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
             return array_map('intval', json_decode($jsonString, true));
         }, $shiftGroupsIds));
+
+        $dayName = Carbon::parse($day)->format('l');
+        $dayId = collect($this->daysOfWeek)->firstWhere('name', $dayName)['id'];
+
+        // dd($shiftGroupsIds);
+
+        $techIds_not_work = []; // Array to store group IDs of technicians not working on the given day
+        $techIdsOnThisDay = [];
+
+        // Retrieve all technicians associated with the shift groups
+        $technicians = Technician::whereIn('group_id', $shiftGroupsIds)->with('workingDays')->get();
+
+        // dd($technicians);
+
+        foreach ($technicians as $tech) {
+            if ($tech->workingDays->isNotEmpty()) {
+
+                // Extract the day IDs from the technician's working days
+                $workingDays = $tech->workingDays->pluck('day_id')->toArray();
+
+                // Check if the dayId is in the workingDays array
+                $exists = in_array($dayId, $workingDays);
+
+                if ($exists) {
+                    $techIdsOnThisDay[] = $tech->group_id;
+                }
+            } else {
+
+                // If the technician has no working days, consider them as not working
+                $techIds_not_work[] = $tech->group_id;
+            }
+        }
+
+        // Get IDs of workers available on this day (technicians who are not in the 'not working' list)
+        // $techIdsOnThisDay = array_diff($shiftGroupsIds, $techIds_not_work);
+
+        // Dump the result to inspect available technicians
+        // dd($techIdsOnThisDay);
+
         $category_id = Service::where('id', $service_id)->first()->category_id;
         $region_id = $this->region_id;
-        $ShiftGroupsInRegion = Group::where('active', 1)->whereIn('id', $shiftGroupsIds)
+        $ShiftGroupsInRegion = Group::where('active', 1)->whereIn('id', $techIdsOnThisDay)
             ->whereHas('regions', function ($qu) use ($region_id) {
                 $qu->where('region_id', $region_id);
             })

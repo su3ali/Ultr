@@ -167,7 +167,10 @@ class BookingController extends Controller
 
                 </a>',
 
-                        'customer_phone' => $row->customer?->phone ?? 'N/A',
+                        'customer_phone' => $row->customer?->phone
+                        ? '<a href="https://api.whatsapp.com/send?phone=' . $row->customer->phone . '" target="_blank" class="whatsapp-link">' . $row->customer->phone . '</a>'
+                        : 'N/A',
+
                         'service' => \request()->query('type') == 'package'
                         ? $row->package?->name
                         : $row->order->services->where('category_id', $row->category_id)->map(function ($service) {

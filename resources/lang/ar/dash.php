@@ -854,5 +854,9 @@ return [
     'choose_file' => 'ارفق صورة هنا',
     'training_start_date' => 'تاريخ بداية التدريب',
     'training_end_date' => 'تاريخ نهاية التدريب',
+    'working_days' => 'ايام العمل',
+    'update' => 'تم التحديث بنجاح',
+    'payment_method' => 'طريقة الدفع',
+    'cancelled_by' => 'ملغي من قبل',
 
 ];

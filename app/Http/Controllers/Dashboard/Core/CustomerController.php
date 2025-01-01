@@ -9,56 +9,6 @@ use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
-    // public function index()
-    // {
-    //     $user = User::select('id', 'first_name', 'last_name', 'active', 'city_id', 'phone')
-    //         ->with('city')
-    //         ->get();
-    //     if (request()->ajax()) {
-
-    //         // $user = User::with('city')->get();
-    //         return DataTables::of($user)
-    //             ->addColumn('name', function ($user) {
-    //                 $name = $user->first_name . ' ' . $user->last_name;
-    //                 return $name;
-    //             })
-    //             ->addColumn('city_name', function ($user) {
-
-    //                 return $user->city?->title;
-    //             })
-    //             ->addColumn('status', function ($user) {
-    //                 $checked = '';
-    //                 if ($user->active == 1) {
-    //                     $checked = 'checked';
-    //                 }
-    //                 return '<label class="switch s-outline s-outline-info  mb-4 mr-2">
-    //                     <input type="checkbox" id="customSwitch4" data-id="' . $user->id . '" ' . $checked . '>
-    //                     <span class="slider round"></span>
-    //                     </label>';
-    //             })
-    //             ->addColumn('controll', function ($user) {
-
-    //                 $html = '
-    //                 <a href="' . route('dashboard.core.address.index', 'id=' . $user->id) . '" class="mr-2 btn btn-outline-primary btn-sm"><i class="far fa-address-book fa-2x"></i> </a>
-    //                 <a href="' . route('dashboard.core.customer.edit', $user->id) . '" class="mr-2 btn btn-outline-warning btn-sm"><i class="far fa-edit fa-2x"></i> </a>
-
-    //                             <a data-href="' . route('dashboard.core.customer.destroy', $user->id) . '" data-id="' . $user->id . '" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
-    //                         <i class="far fa-trash-alt fa-2x"></i>
-    //                 </a>
-    //                             ';
-
-    //                 return $html;
-    //             })
-    //             ->rawColumns([
-    //                 'name',
-    //                 'status',
-    //                 'controll',
-    //             ])
-    //             ->make(true);
-    //     }
-
-    //     return view('dashboard.core.customers.index');
-    // }
 
     public function index(Request $request)
     {
@@ -103,7 +53,7 @@ class CustomerController extends Controller
                         'name' => $user->first_name . ' ' . $user->last_name,
                         'city_name' => $user->city?->title ?? 'N/A',
                         'phone' => $user->phone
-                        ? '<a href="https://api.whatsapp.com/send?phone=' . $user->phone . '" target="_blank" class="whatsapp-link">' . $user->phone . '</a>'
+                        ? '<a href="https://api.whatsapp.com/send?phone=' . $user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $user->phone . '</a>'
                         : 'N/A',
                         'status' => '<label class="switch s-outline s-outline-info mb-4 mr-2">
                                         <input type="checkbox" id="customSwitch4" data-id="' . $user->id . '" ' . ($user->active ? 'checked' : '') . '>

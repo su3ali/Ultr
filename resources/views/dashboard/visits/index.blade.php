@@ -74,6 +74,7 @@
                                 <th>رقم الطلب</th>
                                 <th>رقم الحجز</th>
                                 <th>موعد الحجز</th>
+                                <th>{{ __('dash.zone') }}</th>
                                 <th>الفريق</th>
                                 <th>وقت البدء</th>
                                 <th>وقت الانتهاء</th>
@@ -102,8 +103,8 @@
                     "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
 
                 lengthMenu: [
-                    [10, 25, 50, 100, 200, 500],
-                    [10, 25, 50, 100, 200, 500, ] // Dropdown options
+                    [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000],
+                    [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
                 ],
                 pageLength: 10, // Default rows per page
                 order: [
@@ -155,6 +156,11 @@
                         data: 'date',
                         name: 'date'
                     },
+                    {
+                        data: 'region_name',
+                        name: 'region_name'
+                    },
+
                     {
                         data: 'group_name',
                         name: 'group_name'

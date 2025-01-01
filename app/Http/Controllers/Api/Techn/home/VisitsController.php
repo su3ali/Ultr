@@ -196,6 +196,21 @@ class VisitsController extends Controller
 
             $model->update($data);
 
+            if ($request->status_id == 2 && $model->booking->order->userAddress) {
+                $userAddress = $model->booking->order->userAddress;
+
+                // Check if latitude and longitude are zero before updating
+                if ($model->lat == 0 && $model->long == 0) {
+                    $dataToUpdate = [
+                        'lat' => $userAddress->lat ?? 0,
+                        'long' => $userAddress->long ?? 0,
+                    ];
+
+                    // Combine the data updates into one call
+                    $model->update(array_merge($data, $dataToUpdate));
+                }
+            }
+
             // if (in_array($request->status_id, [5,6])){
             //     if($model->booking->type =='service') {
             //         $order = $model->booking->order;
@@ -287,10 +302,16 @@ class VisitsController extends Controller
                 } else {
                     $point = $wallet;
                 }
-                $newPoint = ((round($user->point - $point)) < 0 ? 0 : round($user->point - $point)) ?? 0;
+                // $newPoint = ((round($user->point - $point)) < 0 ? 0 : round($user->point - $point)) ?? 0;
+                // $user->update([
+                //     'point' => $newPoint,
+                // ]);
+
+                $newPoint = max(0, round($user->point - $point));
                 $user->update([
                     'point' => $newPoint,
                 ]);
+
                 $user->update([
                     'order_cancel' => 1,
                 ]);

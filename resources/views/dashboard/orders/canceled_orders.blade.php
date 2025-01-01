@@ -37,6 +37,20 @@
     {{--    @include('dashboard.orders.create') --}}
 @endsection
 
+<style>
+    .whatsapp-link {
+        color: #0074cc;
+        /* Default color */
+        text-decoration: none;
+        /* Remove underline */
+    }
+
+    .whatsapp-link:hover {
+        color: #25d366;
+        /* Color on hover (WhatsApp green) */
+    }
+</style>
+
 @section('content')
     <div class="layout-px-spacing">
 
@@ -54,8 +68,11 @@
                                 <th>{{ __('dash.phone') }}</th>
                                 <th>{{ __('dash.service') }}</th>
                                 <th>{{ __('dash.quantity') }}</th>
+                                <th>{{ __('dash.cancelled_by') }}</th>
+                                cancelled_by
                                 <th>{{ __('dash.price_value') }}</th>
                                 <th>{{ __('dash.status') }}</th>
+                                <th>{{ __('dash.zone') }}</th>
                                 <th>تاريخ إنشاء الطلب</th>
                                 <th>تاريخ إلغاء الطلب</th>
                                 <th class="no-content">{{ __('dash.actions') }}</th>
@@ -77,34 +94,45 @@
     <script type="text/javascript">
         $(document).ready(function() {
             var table = $('#html5-extension').DataTable({
-                dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-6 d-flex justify-content-md-start justify-content-center'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
-                    "<'table-responsive'tr>" +
-                    "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count  mb-sm-0 mb-3'i><'dt--pagination'p>>",
+                dom: "<'dt--top-section d-flex justify-content-between align-items-center'<'col-sm-12 col-md-4 d-flex justify-content-start'l>" +
+                    "<'col-sm-12 col-md-4 d-flex justify-content-center'B>" + // Buttons are centered
+                    "<'col-sm-12 col-md-4 d-flex justify-content-end'f>>" + // Search input on the right
+                    "<'table-responsive'tr>" + // Table rows
+                    "<'dt--bottom-section d-flex justify-content-between'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'p>>" +
+                    // Pagination at the bottom
+                    "<'dt--pages-count text-center mt-2'i>", // Entry count in the center
+
+
                 order: [
                     [0, 'desc']
                 ],
-                "language": {
+                pageLength: 10,
+                lengthMenu: [
+                    [10, 30, 100, 200],
+                    [10, 30, 100, 200]
+                ],
+                language: {
                     "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
                 },
                 buttons: [{
                         extend: 'copy',
                         className: 'btn btn-sm',
-                        text: 'نسخ'
+                        text: '<i class="fas fa-copy"></i> نسخ'
                     },
                     {
                         extend: 'csv',
                         className: 'btn btn-sm',
-                        text: 'تصدير إلى CSV'
+                        text: '<i class="fas fa-file-csv"></i> تصدير إلى CSV'
                     },
                     {
                         extend: 'excel',
                         className: 'btn btn-sm',
-                        text: 'تصدير إلى Excel'
+                        text: '<i class="fas fa-file-excel"></i> تصدير إلى Excel'
                     },
                     {
                         extend: 'print',
                         className: 'btn btn-sm',
-                        text: 'طباعة'
+                        text: '<i class="fas fa-print"></i> طباعة'
                     }
                 ],
                 processing: true,
@@ -112,14 +140,11 @@
                 ajax: {
                     url: '{{ route('dashboard.order.canceledOrders') }}',
                     data: function(d) {
-                        // Pass custom parameters for pagination
-                        d.start = d.start || 0; // Start index
-                        d.length = d.length || 10; // Page size
-
-                        // Handle any additional filters if needed
+                        d.start = d.start || 0;
+                        d.length = d.length || 10;
                         var status_filter = $('.status_filter').val();
                         if (status_filter && status_filter !== 'all') {
-                            d.status = status_filter; // Send status filter if available
+                            d.status = status_filter;
                         }
                     }
                 },
@@ -147,6 +172,12 @@
                         data: 'quantity',
                         name: 'quantity'
                     },
+
+                    {
+                        data: 'cancelled_by',
+                        name: 'cancelled_by'
+                    },
+
                     {
                         data: 'total',
                         name: 'total'
@@ -155,6 +186,11 @@
                         data: 'status',
                         name: 'status'
                     },
+                    {
+                        data: 'region',
+                        name: 'region'
+                    },
+
                     {
                         data: 'created_at',
                         name: 'created_at'
@@ -168,77 +204,22 @@
                         name: 'control',
                         orderable: false,
                         searchable: false
-                    },
+                    }
                 ]
             });
 
-            // Function to update table data based on filters
             function updateTableData() {
                 var status_filter = $('.status_filter').val();
                 var url = '{{ route('dashboard.order.canceledOrders') }}';
-
                 if (status_filter && status_filter !== 'all') {
                     url += '?status=' + status_filter;
                 }
-
-                // Update table data
                 table.ajax.url(url).load();
             }
 
-            // Update data when status filter changes
             $('.status_filter').change(function() {
                 updateTableData();
             });
         });
-
-        {{-- $(document).on('click', '#edit-order', function () { --}}
-        {{--    let id = $(this).data('id'); --}}
-        {{--    let user_id = $(this).data('user_id'); --}}
-        {{--    let category_id = $(this).data('category_id'); --}}
-        {{--    let service_id = $(this).data('service_id'); --}}
-        {{--    let price = $(this).data('price'); --}}
-        {{--    let payment_method = $(this).data('payment_method'); --}}
-        {{--    let notes = $(this).data('notes'); --}}
-        {{--    $('#edit_customer_name').val(user_id).trigger('change') --}}
-        {{--    $('#edit_category_id').val(category_id).trigger('change') --}}
-        {{--    $('#edit_service_id').val(service_id).trigger('change') --}}
-        {{--    $('#edit_price').val(price) --}}
-        {{--    $('#edit_notes').html(notes) --}}
-
-        {{--    if (payment_method === 'visa'){ --}}
-        {{--        $('#edit_payment_method_visa').prop('checked', true) --}}
-        {{--        $('#edit_payment_method_cache').prop('checked', false) --}}
-        {{--    }else { --}}
-        {{--        $('#edit_payment_method_visa').prop('checked', false) --}}
-        {{--        $('#edit_payment_method_cache').prop('checked', true) --}}
-        {{--    } --}}
-        {{--    let action = "{{route('dashboard.orders.update', 'id')}}"; --}}
-        {{--    action = action.replace('id', id) --}}
-        {{--    $('#edit_order_form').attr('action', action); --}}
-
-
-        {{-- }) --}}
-
-        $("body").on('change', '#customSwitchtech', function() {
-            let active = $(this).is(':checked');
-            let id = $(this).attr('data-id');
-
-            $.ajax({
-                url: '{{ route('dashboard.core.technician.change_status') }}',
-                type: 'get',
-                data: {
-                    id: id,
-                    active: active
-                },
-                success: function(data) {
-                    swal({
-                        title: "{{ __('dash.successful_operation') }}",
-                        text: "{{ __('dash.request_executed_successfully') }}",
-                        type: 'success',
-                        padding: '2em'
-                    })
-                }
-            });
-        })
     </script>
 @endpush
