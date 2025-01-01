@@ -190,6 +190,7 @@ class HomeController extends Controller
 
     protected function getAllRegions()
     {
+
         $regions = Region::where('active', 1)->get();
         $this->body['regions'] = RegionResource::collection($regions);
         return self::apiResponse(200, __('api.successfully'), $this->body);
@@ -234,5 +235,50 @@ class HomeController extends Controller
         return self::apiResponse(200, __('api.added successfully'), $this->body);
 
     }
+
+    // Get Region id From lat , long
+    // public function isPointInPolygon($lat, $lng, $polygon)
+    // {
+    //     $inside = false;
+    //     $j = count($polygon) - 1;
+
+    //     for ($i = 0; $i < count($polygon); $i++) {
+    //         $xi = $polygon[$i]['lat'];
+    //         $yi = $polygon[$i]['lng'];
+    //         $xj = $polygon[$j]['lat'];
+    //         $yj = $polygon[$j]['lng'];
+
+    //         if (($yi > $lng) != ($yj > $lng) &&
+    //             ($lat < ($xj - $xi) * ($lng - $yi) / ($yj - $yi) + $xi)) {
+    //             $inside = !$inside;
+    //         }
+    //         $j = $i;
+    //     }
+
+    //     return $inside;
+    // }
+
+    // public function findRegion(Request $request)
+    // {
+    //     $lat = $request->input('lat');
+    //     $lng = $request->input('lng');
+
+    //     // Fetch regions (this could also be from a database)
+    //     $regions = json_decode(file_get_contents(storage_path('regions.json')), true);
+
+    //     foreach ($regions as $region) {
+    //         if (isPointInPolygon($lat, $lng, $region['polygon_coordinates'])) {
+    //             return response()->json([
+    //                 'status' => 'success',
+    //                 'region' => $region,
+    //             ]);
+    //         }
+    //     }
+
+    //     return response()->json([
+    //         'status' => 'fail',
+    //         'message' => 'No matching region found.',
+    //     ]);
+    // }
 
 }
