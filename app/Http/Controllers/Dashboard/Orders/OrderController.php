@@ -336,6 +336,16 @@ class OrderController extends Controller
 
                     return array_sum($qu);
                 })
+
+                ->addColumn('cancelled_by', function ($row) {
+                    // Get the first booking
+                    $firstBooking = $row->bookings->first();
+
+                    // Check if the first booking has a visit and a cancellation reason
+                    $cancelReason = $firstBooking?->visit?->cancelReason;
+
+                    return $cancelReason?->is_for_tech === 1 ? "الفني" : "العميل";
+                })
                 ->addColumn('payment_method', function ($row) {
                     $payment_method = $row->transaction?->payment_method;
                     if ($payment_method == "cache" || $payment_method == "cash") {
@@ -393,6 +403,7 @@ class OrderController extends Controller
                     'user',
                     'service',
                     'quantity',
+                    'cancelled_by',
                     'payment_method',
                     'region',
                     'status',

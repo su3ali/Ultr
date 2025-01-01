@@ -55,6 +55,7 @@
                                 <th>{{ __('dash.phone') }}</th>
                                 <th>{{ __('dash.service') }}</th>
                                 <th>{{ __('dash.quantity') }}</th>
+                                <th>{{ __('dash.cancelled_by') }}</th>
                                 <th>{{ __('dash.price_value') }}</th>
                                 <th>طريقة الدفع</th>
                                 <th>{{ __('dash.zone') }}</th>
@@ -146,6 +147,11 @@
                         data: 'quantity',
                         name: 'quantity'
                     },
+                    {
+                        data: 'cancelled_by',
+                        name: 'cancelled_by'
+                    },
+
                     {
                         data: 'total',
                         name: 'total'
