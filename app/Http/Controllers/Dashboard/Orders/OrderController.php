@@ -401,6 +401,7 @@ class OrderController extends Controller
                 ->rawColumns([
                     'booking_id',
                     'user',
+                    'phone',
                     'service',
                     'quantity',
                     'cancelled_by',
