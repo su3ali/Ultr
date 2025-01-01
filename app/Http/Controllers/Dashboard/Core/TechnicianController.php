@@ -88,7 +88,7 @@ class TechnicianController extends Controller
                         : 'N/A',
 
                         'group' => $row->group?->name,
-
+                        'region' => $row->group?->region?->first()?->title ?? '',
                         'status' => '
                             <label class="switch s-outline s-outline-info mb-4 mr-2">
                                 <input type="checkbox" id="customSwitchtech" data-id="' . $row->id . '" ' . ($row->active ? 'checked' : '') . '>

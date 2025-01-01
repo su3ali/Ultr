@@ -73,6 +73,7 @@
                                 <th>التخصص</th>
                                 <th>{{ __('dash.phone') }}</th>
                                 <th>{{ __('dash.group') }}</th>
+                                <th>{{ __('dash.zone') }}</th>
                                 <th>{{ __('dash.status') }}</th>
                                 <th class="no-content">{{ __('dash.actions') }}</th>
                             </tr>
@@ -169,6 +170,13 @@
                         data: 'group',
                         name: 'group'
                     },
+
+                    {
+                        data: 'region',
+                        name: 'region'
+                    },
+
+
                     {
                         data: 'status',
                         name: 'status'
