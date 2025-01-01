@@ -57,6 +57,7 @@
                                 <th>{{ __('dash.quantity') }}</th>
                                 <th>{{ __('dash.price_value') }}</th>
                                 <th>طريقة الدفع</th>
+                                <th>{{ __('dash.zone') }}</th>
                                 <th>{{ __('dash.status') }}</th>
                                 <th>تاريخ إنشاء الطلب</th>
                                 <th>تاريخ إلغاء الطلب</th>
@@ -153,6 +154,12 @@
                         data: 'payment_method',
                         name: 'payment_method'
                     },
+                    {
+                        data: 'region',
+                        name: 'region'
+                    },
+
+
                     {
                         data: 'status',
                         name: 'status'

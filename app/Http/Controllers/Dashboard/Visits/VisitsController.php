@@ -26,6 +26,7 @@ class VisitsController extends Controller
 
     protected function index(Request $request)
     {
+
         // Get the region IDs the user has access to
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
@@ -142,6 +143,9 @@ class VisitsController extends Controller
                 ->addColumn('duration', function ($row) {
                     return $row->duration;
                 })
+                ->addColumn('region', function ($row) {
+                    return $row->userAddress->name;
+                })
                 ->addColumn('status', function ($row) {
                     return $row->status->name;
                 })
@@ -166,6 +170,7 @@ class VisitsController extends Controller
                     'start_time',
                     'end_time',
                     'duration',
+                    'region',
                     'status',
                     'control',
                 ])

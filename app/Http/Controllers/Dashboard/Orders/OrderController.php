@@ -347,6 +347,10 @@ class OrderController extends Controller
                     }
 
                 })
+
+                ->addColumn('region', function ($row) {
+                    return $row->userAddress->name;
+                })
                 ->addColumn('status', function ($row) {
 
                     return $row->status?->name;
@@ -390,6 +394,7 @@ class OrderController extends Controller
                     'service',
                     'quantity',
                     'payment_method',
+                    'region',
                     'status',
                     'created_at',
                     'updated_at',
