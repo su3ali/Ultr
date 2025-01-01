@@ -80,6 +80,7 @@
                                 <th>وقت البدء</th>
                                 <th>وقت الانتهاء</th>
                                 <th>المده</th>
+                                <th>{{ __('dash.zone') }}</th>
                                 <th>الحاله</th>
                                 <th class="no-content">{{ __('dash.actions') }}</th>
                             </tr>
@@ -167,6 +168,11 @@
                         data: 'duration',
                         name: 'duration'
                     },
+                    {
+                        data: 'region',
+                        name: 'region'
+                    },
+
                     {
                         data: 'status',
                         name: 'status'

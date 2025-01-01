@@ -69,7 +69,6 @@
                                 <th>{{ __('dash.service') }}</th>
                                 <th>{{ __('dash.quantity') }}</th>
                                 <th>{{ __('dash.cancelled_by') }}</th>
-                                cancelled_by
                                 <th>{{ __('dash.price_value') }}</th>
                                 <th>{{ __('dash.status') }}</th>
                                 <th>{{ __('dash.zone') }}</th>

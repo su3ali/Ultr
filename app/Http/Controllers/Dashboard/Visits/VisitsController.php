@@ -81,7 +81,7 @@ class VisitsController extends Controller
                         'id' => $row->id,
                         'booking_id' => $row->booking?->id,
                         'date' => $row->booking?->date,
-                        'region_name' => '',
+                        'region_name' => optional($row->booking?->address)->region->title ?? '',
                         'group_name' => $row->group?->name,
                         'start_time' => \Carbon\Carbon::parse($row->start_time)->timezone('Asia/Riyadh')->format('g:i A'),
                         'end_time' => \Carbon\Carbon::parse($row->end_time)->timezone('Asia/Riyadh')->format('g:i A'),
@@ -144,8 +144,9 @@ class VisitsController extends Controller
                     return $row->duration;
                 })
                 ->addColumn('region', function ($row) {
-                    return $row->userAddress->name ?? '';
+                    return optional($row->booking?->address)->region->title ?? '';
                 })
+
                 ->addColumn('status', function ($row) {
                     return $row->status->name;
                 })
@@ -221,6 +222,10 @@ class VisitsController extends Controller
                 ->addColumn('duration', function ($row) {
                     return $row->duration;
                 })
+
+                ->addColumn('region', function ($row) {
+                    return optional($row->booking?->address)->region->title ?? '';
+                })
                 ->addColumn('status', function ($row) {
                     return $row->status->name;
                 })
@@ -246,6 +251,7 @@ class VisitsController extends Controller
                     'start_time',
                     'end_time',
                     'duration',
+                    'region',
                     'status',
                     'control',
                 ])
