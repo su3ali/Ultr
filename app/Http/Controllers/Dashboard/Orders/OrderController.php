@@ -122,7 +122,7 @@ class OrderController extends Controller
                     };
                 })
                 ->addColumn('region', function ($row) {
-                    return $row->userAddress->name;
+                    return '';
                 })
                 ->addColumn('status', function ($row) {
                     return $row->bookings?->first()?->visit?->status->name_ar;
@@ -231,7 +231,7 @@ class OrderController extends Controller
 
                 })
                 ->addColumn('region', function ($row) {
-                    return $row->userAddress->name;
+                    return '';
                 })
                 ->addColumn('status', function ($row) {
                     return $row->bookings?->first()?->visit?->status->name_ar;
@@ -359,7 +359,7 @@ class OrderController extends Controller
                 })
 
                 ->addColumn('region', function ($row) {
-                    return $row->userAddress->name;
+                    return '';
                 })
                 ->addColumn('status', function ($row) {
 
@@ -494,7 +494,7 @@ class OrderController extends Controller
                 })
 
                 ->addColumn('region', function ($row) {
-                    return $row->userAddress->name;
+                    return '';
                 })
 
                 ->addColumn('created_at', function ($row) {

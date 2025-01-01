@@ -81,7 +81,7 @@ class VisitsController extends Controller
                         'id' => $row->id,
                         'booking_id' => $row->booking?->id,
                         'date' => $row->booking?->date,
-                        'region_name' => optional($row->booking->address)->name,
+                        'region_name' => '',
                         'group_name' => $row->group?->name,
                         'start_time' => \Carbon\Carbon::parse($row->start_time)->timezone('Asia/Riyadh')->format('g:i A'),
                         'end_time' => \Carbon\Carbon::parse($row->end_time)->timezone('Asia/Riyadh')->format('g:i A'),
