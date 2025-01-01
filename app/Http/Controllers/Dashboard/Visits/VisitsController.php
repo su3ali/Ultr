@@ -132,7 +132,7 @@ class VisitsController extends Controller
                     return $row->booking?->date;
                 })
                 ->addColumn('group_name', function ($row) {
-                    return $row->group?->name;
+                    return $row->group?->name ?? '';
                 })
                 ->addColumn('start_time', function ($row) {
                     return \Carbon\Carbon::parse($row->start_time)->timezone('Asia/Riyadh')->format('g:i A');
@@ -144,7 +144,7 @@ class VisitsController extends Controller
                     return $row->duration;
                 })
                 ->addColumn('region', function ($row) {
-                    return $row->userAddress->name;
+                    return $row->userAddress->name ?? '';
                 })
                 ->addColumn('status', function ($row) {
                     return $row->status->name;
