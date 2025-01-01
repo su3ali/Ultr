@@ -47,6 +47,23 @@ class NotificationController extends Controller
             'message' => 'required',
             'type' => 'required',
         ]);
+
+        $message = preg_replace('/&nbsp;|&#160;/', ' ', $request->message);
+
+        // Convert <p> and </p> to new lines
+        $message = preg_replace('/<\/?p>/i', "\n", $message);
+
+        // Convert <br> and <br /> to new lines
+        $message = preg_replace('/<br\s*\/?>/i', "\n", $message);
+
+        // Remove all other HTML tags
+        $message = strip_tags($message, "\n");
+
+        // Collapse multiple newlines into a single one
+        $message = preg_replace('/\n+/', "\n", $message);
+
+        // Trim any leading or trailing newlines
+        $message = trim($message);
         if ($request->type == 'customer') {
             if ($request->subject_id == 'all') {
                 $FcmTokenArray = User::whereNotNull('fcm_token')->get()->pluck('fcm_token')->toArray();
@@ -73,7 +90,7 @@ class NotificationController extends Controller
                 foreach ($allTechn as $tech) {
                     Notification::send(
                         $tech,
-                        new SendPushNotification($request->title, $request->message)
+                        new SendPushNotification($request->title, $message)
                     );
                 }
             } else {
@@ -82,7 +99,7 @@ class NotificationController extends Controller
 
                 Notification::send(
                     $technician,
-                    new SendPushNotification($request->title, $request->message)
+                    new SendPushNotification($request->title, $message)
                 );
             }
 
@@ -93,7 +110,7 @@ class NotificationController extends Controller
             return redirect()->back()->withErrors(['fcm_token' => 'لا يمكن ارسال الاشعارت لعدم توفر رمز الجهاز']);
         }
 
-        $message = str_replace('&nbsp;', ' ', strip_tags($request->message));
+        // $message = str_replace('&nbsp;', ' ', strip_tags($request->message));
 
         $count = count($FcmTokenArray);
         if ($count > 500) {
