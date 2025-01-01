@@ -567,4 +567,5 @@ return [
     'training_end_date' => 'Training end date',
     'working_days' => 'Working days',
     'update' => 'updated successfully',
+    'payment_method' => 'payment method',
 ];

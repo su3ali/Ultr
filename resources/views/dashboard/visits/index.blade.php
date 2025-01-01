@@ -74,6 +74,7 @@
                                 <th>رقم الطلب</th>
                                 <th>رقم الحجز</th>
                                 <th>موعد الحجز</th>
+                                <th> المنطقة</th>
                                 <th>الفريق</th>
                                 <th>وقت البدء</th>
                                 <th>وقت الانتهاء</th>
@@ -155,6 +156,11 @@
                         data: 'date',
                         name: 'date'
                     },
+                    {
+                        data: 'region_name',
+                        name: 'region_name'
+                    },
+
                     {
                         data: 'group_name',
                         name: 'group_name'

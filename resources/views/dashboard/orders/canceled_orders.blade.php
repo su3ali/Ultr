@@ -37,6 +37,20 @@
     {{--    @include('dashboard.orders.create') --}}
 @endsection
 
+<style>
+    .whatsapp-link {
+        color: #0074cc;
+        /* Default color */
+        text-decoration: none;
+        /* Remove underline */
+    }
+
+    .whatsapp-link:hover {
+        color: #25d366;
+        /* Color on hover (WhatsApp green) */
+    }
+</style>
+
 @section('content')
     <div class="layout-px-spacing">
 
@@ -56,6 +70,7 @@
                                 <th>{{ __('dash.quantity') }}</th>
                                 <th>{{ __('dash.price_value') }}</th>
                                 <th>{{ __('dash.status') }}</th>
+                                <th>{{ __('dash.zone') }}</th>
                                 <th>تاريخ إنشاء الطلب</th>
                                 <th>تاريخ إلغاء الطلب</th>
                                 <th class="no-content">{{ __('dash.actions') }}</th>
@@ -163,6 +178,11 @@
                         data: 'status',
                         name: 'status'
                     },
+                    {
+                        data: 'region',
+                        name: 'region'
+                    },
+
                     {
                         data: 'created_at',
                         name: 'created_at'

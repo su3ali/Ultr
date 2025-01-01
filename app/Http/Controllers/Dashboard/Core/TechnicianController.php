@@ -81,7 +81,12 @@ class TechnicianController extends Controller
                         : 'لم يتم اضافة صورة',
 
                         'spec' => $row->specialization?->name,
-                        'phone' => $row->phone,
+                        'phone' => $row->phone
+                        ? '<a href="https://api.whatsapp.com/send?phone=' .
+                        (preg_match('/^05/', $row->phone) ? '966' . substr($row->phone, 1) : $row->phone) .
+                        '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->phone . '</a>'
+                        : 'N/A',
+
                         'group' => $row->group?->name,
 
                         'status' => '

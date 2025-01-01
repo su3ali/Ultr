@@ -856,5 +856,6 @@ return [
     'training_end_date' => 'تاريخ نهاية التدريب',
     'working_days' => 'ايام العمل',
     'update' => 'تم التحديث بنجاح',
+    'payment_method' => 'طريقة الدفع',
 
 ];
