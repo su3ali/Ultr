@@ -236,26 +236,30 @@ class HomeController extends Controller
 
     }
 
-    // Get Region id From lat , long
+    // Get Region id From lat, long
     public function isPointInPolygon($lat, $long, $polygon)
     {
         $inside = false;
-        $j = count($polygon) - 1;
+        $n = count($polygon);
+        $j = $n - 1; // Last vertex is the previous one to the first one
 
-        for ($i = 0; $i < count($polygon); $i++) {
+        for ($i = 0; $i < $n; $i++) {
             $xi = $polygon[$i]['lat'];
             $yi = $polygon[$i]['lng'];
             $xj = $polygon[$j]['lat'];
             $yj = $polygon[$j]['lng'];
 
-            if (($yi > $long) != ($yj > $long) &&
-                ($lat < ($xj - $xi) * ($long - $yi) / ($yj - $yi) + $xi)) {
+            $intersect = (($yi > $long) != ($yj > $long)) &&
+                ($lat < ($xj - $xi) * ($long - $yi) / ($yj - $yi) + $xi);
+            if ($intersect) {
                 $inside = !$inside;
             }
-            $j = $i;
+
+            $j = $i; // Save the current point as the "previous" point for next iteration
         }
 
         return $inside;
+
     }
 
     public function findRegion(Request $request)
@@ -279,6 +283,7 @@ class HomeController extends Controller
         }
 
         $updatedAddresses = [];
+        $updatedAddressIds = []; // Array to store the IDs of updated addresses
 
         foreach ($addresses as $address) {
             $regionMatched = false; // Flag to check if region was matched for the address
@@ -286,17 +291,20 @@ class HomeController extends Controller
             foreach ($regions as $region) {
                 $polygon = json_decode($region->polygon_coordinates, true);
 
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    continue; // Skip invalid JSON
+                if (json_last_error() !== JSON_ERROR_NONE || empty($polygon)) {
+                    continue; // Skip invalid or empty polygons
                 }
 
                 // Check if the address point is in the current region
-                if ($this->isPointInPolygon($address->latitude, $address->longitude, $polygon)) {
+                if ($this->isPointInPolygon($address->lat, $address->long, $polygon)) {
                     // Update region_id if the address matches the region
-                    $address->region_id = $region->id;
-                    $address->save(); // Save the updated address
+                    if ($address->region_id !== $region->id) {
+                        $address->region_id = $region->id;
+                        $address->save(); // Save the updated address
 
-                    $updatedAddresses[] = $address->id; // Store updated address IDs
+                        $updatedAddressIds[] = $address->id; // Store updated address IDs
+                    }
+
                     $regionMatched = true; // Set flag to true since a match was found
                     break; // Exit the region loop after a match
                 }
@@ -306,6 +314,8 @@ class HomeController extends Controller
             if (!$regionMatched) {
                 continue; // Skip updating this address
             }
+
+            $updatedAddresses[] = $address->id; // Add the address ID to updatedAddresses list
         }
 
         if (empty($updatedAddresses)) {
@@ -318,48 +328,8 @@ class HomeController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Region IDs updated for matched addresses.',
-            'updated_addresses' => $updatedAddresses, // Return updated address IDs
+            'updated_addresses' => $updatedAddressIds, // Return updated address IDs
         ]);
     }
-
-    // public function findRegion(Request $request)
-    // {
-    //     $lat = $request->input('lat');
-    //     $long = $request->input('lng');
-    //     $address = UserAddresses::find(6677); // Example address ID
-
-    //     if (!$address) {
-    //         return response()->json([
-    //             'status' => 'fail',
-    //             'message' => 'Address not found.',
-    //         ]);
-    //     }
-
-    //     // Fetch regions and iterate
-    //     $regions = Region::all(['id', 'polygon_coordinates']);
-
-    //     foreach ($regions as $region) {
-    //         $polygon = json_decode($region->polygon_coordinates, true);
-
-    //         if (json_last_error() !== JSON_ERROR_NONE) {
-    //             continue; // Skip invalid JSON
-    //         }
-
-    //         // Check if the point is in the current region
-    //         if ($this->isPointInPolygon(24.6897479, 46.6827561, $polygon)) {
-
-    //             return response()->json([
-    //                 'status' => 'success',
-    //                 'region_id' => $region->id,
-    //                 'message' => 'Matching region found.',
-    //             ]);
-    //         }
-    //     }
-
-    //     return response()->json([
-    //         'status' => 'fail',
-    //         'message' => 'No matching region found.',
-    //     ]);
-    // }
 
 }
