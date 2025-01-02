@@ -25,8 +25,6 @@ use App\Support\Api\ApiResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-
 
 class HomeController extends Controller
 {
@@ -385,6 +383,55 @@ class HomeController extends Controller
         return $inside;
     }
 
+    // public function findRegion(Request $request)
+    // {
+    //     $addresses = UserAddresses::all();
+    //     if ($addresses->isEmpty()) {
+    //         return response()->json(['status' => 'fail', 'message' => 'No addresses found.']);
+    //     }
+
+    //     $regions = Region::all(['id', 'polygon_coordinates']);
+    //     if ($regions->isEmpty()) {
+    //         return response()->json(['status' => 'fail', 'message' => 'No regions found.']);
+    //     }
+
+    //     $updatedAddressIds = [];
+
+    //     foreach ($addresses as $address) {
+    //         foreach ($regions as $region) {
+    //             $polygon = json_decode($region->polygon_coordinates, true);
+
+    //             if (json_last_error() !== JSON_ERROR_NONE || empty($polygon)) {
+    //                 continue;
+    //             }
+
+    //             // Add 1 km buffer to the region's polygon
+    //             $bufferedPolygon = $this->addBufferToPolygon($polygon);
+
+    //             if ($this->isPointInPolygon($address->lat, $address->long, $bufferedPolygon)) {
+    //                 if ($address->region_id !== $region->id) {
+    //                     $address->region_id = $region->id;
+    //                     $address->save();
+    //                     $updatedAddressIds[] = $address->id;
+    //                 }
+    //                 break; // Stop checking other regions after a match
+    //             }
+    //         }
+    //     }
+
+    //     if (empty($updatedAddressIds)) {
+    //         return response()->json([
+    //             'status' => 'fail',
+    //             'message' => 'No matching region found for any address.',
+    //         ]);
+    //     }
+
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'message' => 'Region IDs updated for matched addresses.',
+    //         'updated_addresses' => $updatedAddressIds,
+    //     ]);
+    // }
     public function findRegion(Request $request)
     {
         $addresses = UserAddresses::all();
@@ -407,8 +454,8 @@ class HomeController extends Controller
                     continue;
                 }
 
-                // Add 1 km buffer to the region's polygon
-                $bufferedPolygon = $this->addBufferToPolygon($polygon);
+                // Add 3 km buffer to the region's polygon
+                $bufferedPolygon = $this->addBufferToPolygon($polygon, 3); // Updated bufferDistance to 3 km
 
                 if ($this->isPointInPolygon($address->lat, $address->long, $bufferedPolygon)) {
                     if ($address->region_id !== $region->id) {
