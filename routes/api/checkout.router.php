@@ -2,8 +2,8 @@
 
 use App\Http\Controllers\Api\Checkout\CartController;
 use App\Http\Controllers\Api\Checkout\CheckoutController;
-use App\Http\Controllers\Api\Checkout\v2\CheckoutController  as CheckoutControllerV2 ;
 use App\Http\Controllers\Api\Checkout\v2\CartController as CartControllerV2;
+use App\Http\Controllers\Api\Techn\home\VisitsController;
 
 Route::prefix('carts')->group(function () {
     Route::post('add_to_cart', [CartController::class, 'add_to_cart']);
@@ -42,6 +42,11 @@ Route::prefix('checkout')->group(function () {
     Route::post('/', [CheckoutController::class, 'checkout']);
 
     Route::post('paid', [CheckoutController::class, 'paid']);
+});
+
+Route::prefix('techn')->group(function () {
+
+    Route::post('paid', [VisitsController::class, 'paidfromTech']);
 });
 
 Route::prefix('v2/checkout')->group(function () {

@@ -11,12 +11,14 @@ use App\Models\Group;
 use App\Models\Order;
 use App\Models\Technician;
 use App\Models\TechnicianWallet;
+use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Visit;
 use App\Support\Api\ApiResponse;
 use App\Traits\NotificationTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
 class VisitsController extends Controller
@@ -381,6 +383,55 @@ class VisitsController extends Controller
         ]);
 
         return self::apiResponse(200, __('api.successfully'), $this->body);
+    }
+
+    // when Tech Change payment To Mada (Shabka)
+    protected function paidfromTech(Request $request)
+    {
+        $rules = [
+            'order_id' => 'required|exists:orders,id',
+            'payment_method' => 'required|in:cache,visa,wallet,mada',
+        ];
+
+        $validated = $request->validate($rules);
+
+        try {
+            DB::beginTransaction();
+
+            $transaction = Transaction::where('order_id', $validated['order_id'])->first();
+
+            if (!$transaction) {
+                Transaction::create([
+                    'order_id' => $validated['order_id'],
+                    'payment_result' => 'success',
+                    'payment_method' => $validated['payment_method'],
+                ]);
+            } else {
+                $transaction->update([
+                    'payment_result' => 'success',
+                    'payment_method' => $validated['payment_method'],
+                ]);
+            }
+
+            $order = Order::findOrFail($validated['order_id']);
+
+            $order->update([
+                'partial_amount' => 0,
+            ]);
+
+            DB::commit();
+
+            return self::apiResponse(200, __('api.successfully'), $this->body);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error in paidfromTech', [
+                'error' => $e->getMessage(),
+                'request' => $request->all(),
+            ]);
+
+            return self::apiResponse(500, __('api.error_occurred'), []);
+        }
     }
 
     protected function change_order_cancel(Request $request)

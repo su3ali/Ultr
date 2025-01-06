@@ -187,8 +187,9 @@ class BookingController extends Controller
                         'date' => $row->date ?? 'N/A',
                         'quantity' => $row->quantity ?? 'N/A',
                         'payment_method' => match ($row->visit?->booking?->order?->transaction?->payment_method ?? 'N/A') {
-                            'cache', 'cash' => '<i class="fas fa-money-bill-wave text-success" title="Cash Payment (Cash or Physical Money)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> شبكة', // Green with hover animation for cash
+                            'cache', 'cash' => '<i class="fas fa-money-bill-wave text-success" title="Cash Payment (Cash or Physical Money)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> نقدا', // Green with hover animation for cash
                             'wallet' => '<i class="fas fa-wallet text-primary" title="Wallet Payment (e.g., Digital Wallet)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> محفظة', // Blue with hover animation for wallet
+                            'mada' => '<i class="fas fa-wifi text-success" title="Mada Payment (Saudi Payment Network)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> مدى', // Terminal icon for Mada payment system
                             default => '<i class="fas fa-credit-card text-warning" title="Credit Card Payment (Visa, MasterCard, etc.)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> فيزا', // Yellow with hover animation for credit card
                         },
 

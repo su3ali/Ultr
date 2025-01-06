@@ -858,5 +858,9 @@ return [
     'update' => 'تم التحديث بنجاح',
     'payment_method' => 'طريقة الدفع',
     'cancelled_by' => 'ملغي من قبل',
+    'clients_have_orders' => 'عدد العملاء الذين قاموا بالطلب',
+    'clients_have_orders_management' => 'إدارة العملاء الذين لديهم طلبات',
+    'orders_numbers' => 'عدد الطلبات',
+    'clients_orders' => ' العملاء الذين لديهم طلبات',
 
 ];
