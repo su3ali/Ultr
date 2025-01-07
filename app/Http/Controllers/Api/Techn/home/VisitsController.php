@@ -453,12 +453,6 @@ class VisitsController extends Controller
             // Rollback any changes in case of an error
             DB::rollBack();
 
-            // Log the error for debugging and monitoring
-            Log::error('Error in paidfromTech', [
-                'error' => $e->getMessage(),
-                'request' => $request->all(),
-            ]);
-
             // Return an error response
             return self::apiResponse(500, __('api.error_occurred'), []);
         }
