@@ -44,13 +44,9 @@ Route::prefix('checkout')->group(function () {
     Route::post('paid', [CheckoutController::class, 'paid']);
 });
 
-Route::prefix('techn')->group(function () {
-
-    Route::post('paid', [VisitsController::class, 'paidfromTech']);
-});
-
 Route::prefix('v2/checkout')->group(function () {
 
     Route::post('/', [CheckoutControllerV2::class, 'checkout']);
 
 });
+

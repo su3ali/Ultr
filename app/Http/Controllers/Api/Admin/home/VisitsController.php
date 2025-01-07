@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Api\Admin\home;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\home\VisitsResource;
 use App\Models\Order;
+use App\Models\Transaction;
 use App\Models\Visit;
 use App\Support\Api\ApiResponse;
 use Carbon\Carbon;
-
 
 class VisitsController extends Controller
 {
@@ -61,7 +61,6 @@ class VisitsController extends Controller
         return self::apiResponse(200, null, $this->body);
     }
 
-
     protected function orderDetails($id)
     {
         Order::findOrFail($id);
@@ -75,4 +74,6 @@ class VisitsController extends Controller
         $this->body['visits'] = VisitsResource::make($order);
         return self::apiResponse(200, null, $this->body);
     }
+
+  
 }

@@ -385,55 +385,6 @@ class VisitsController extends Controller
         return self::apiResponse(200, __('api.successfully'), $this->body);
     }
 
-    // when Tech Change payment To Mada (Shabka)
-    protected function paidfromTech(Request $request)
-    {
-        $rules = [
-            'order_id' => 'required|exists:orders,id',
-            'payment_method' => 'required|in:cache,visa,wallet,mada',
-        ];
-
-        $validated = $request->validate($rules);
-
-        try {
-            DB::beginTransaction();
-
-            $transaction = Transaction::where('order_id', $validated['order_id'])->first();
-
-            if (!$transaction) {
-                Transaction::create([
-                    'order_id' => $validated['order_id'],
-                    'payment_result' => 'success',
-                    'payment_method' => $validated['payment_method'],
-                ]);
-            } else {
-                $transaction->update([
-                    'payment_result' => 'success',
-                    'payment_method' => $validated['payment_method'],
-                ]);
-            }
-
-            $order = Order::findOrFail($validated['order_id']);
-
-            $order->update([
-                'partial_amount' => 0,
-            ]);
-
-            DB::commit();
-
-            return self::apiResponse(200, __('api.successfully'), $this->body);
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('Error in paidfromTech', [
-                'error' => $e->getMessage(),
-                'request' => $request->all(),
-            ]);
-
-            return self::apiResponse(500, __('api.error_occurred'), []);
-        }
-    }
-
     protected function change_order_cancel(Request $request)
     {
         $rules = [
@@ -449,4 +400,68 @@ class VisitsController extends Controller
 
         return self::apiResponse(200, __('api.successfully'), $this->body);
     }
+
+    // when Tech Change payment To Mada (Shabka)
+    protected function paidfromTech(Request $request)
+    {
+
+        // Define validation rules
+        $rules = [
+            'order_id' => 'required|exists:orders,id', // Ensure the order exists
+            'payment_method' => 'required|in:cache,visa,wallet,mada', // Validate payment method
+        ];
+
+        // Validate the incoming request
+        $validated = $request->validate($rules);
+
+        try {
+            // Begin a database transaction
+            DB::beginTransaction();
+
+            // Check if a transaction already exists for the given order ID
+            $transaction = Transaction::where('order_id', $validated['order_id'])->first();
+
+            if (!$transaction) {
+                // Create a new transaction if none exists
+                Transaction::create([
+                    'order_id' => $validated['order_id'],
+                    'payment_result' => 'success',
+                    'payment_method' => $validated['payment_method'],
+                ]);
+            } else {
+                // Update the existing transaction
+                $transaction->update([
+                    'payment_result' => 'success',
+                    'payment_method' => $validated['payment_method'],
+                ]);
+            }
+
+            // Retrieve the order and ensure it exists (additional safeguard)
+            $order = Order::findOrFail($validated['order_id']);
+
+            // Update the order details
+            $order->update([
+                'partial_amount' => 0,
+            ]);
+
+            // Commit the transaction to save changes
+            DB::commit();
+
+            // Return a successful API response
+            return self::apiResponse(200, __('api.successfully'), $this->body);
+        } catch (\Exception $e) {
+            // Rollback any changes in case of an error
+            DB::rollBack();
+
+            // Log the error for debugging and monitoring
+            Log::error('Error in paidfromTech', [
+                'error' => $e->getMessage(),
+                'request' => $request->all(),
+            ]);
+
+            // Return an error response
+            return self::apiResponse(500, __('api.error_occurred'), []);
+        }
+    }
+
 }
