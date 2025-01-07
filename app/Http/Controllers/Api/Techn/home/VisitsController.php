@@ -452,9 +452,10 @@ class VisitsController extends Controller
         } catch (\Exception $e) {
             // Rollback any changes in case of an error
             DB::rollBack();
+            $message = $e->getMessage();
 
             // Return an error response
-            return self::apiResponse(500, __('api.error_occurred'), []);
+            return self::apiResponse(500, $message, []);
         }
     }
 
