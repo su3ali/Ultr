@@ -77,6 +77,64 @@ class CustomerController extends Controller
         // Render the initial view for non-AJAX requests
         return view('dashboard.core.customers.index');
     }
+    // just  clints have orders on system
+    public function withOrders(Request $request)
+    {
+
+        // Check if the request is an AJAX request
+        if ($request->ajax()) {
+            $clientsWithOrders = User::whereHas('orders') // Filters users who have at least one order
+                ->select('id', 'first_name', 'last_name', 'active', 'city_id', 'phone')
+                ->with('city')
+                ->withCount('orders')
+                ->orderByDesc('orders_count');
+
+            if ($request->filled('search.value')) {
+                $search = $request->input('search.value');
+                $clientsWithOrders->where(function ($query) use ($search) {
+                    $query->where('id', 'LIKE', "%$search%")
+                        ->orWhere('first_name', 'LIKE', "%$search%")
+                        ->orWhere('last_name', 'LIKE', "%$search%")
+                        ->orWhere('phone', 'LIKE', "%$search%")
+                        ->orWhereHas('city', function ($cityQuery) use ($search) {
+                            $cityQuery->where('title_ar', 'LIKE', "%$search%");
+                        });
+                });
+            }
+
+            // Get total records before pagination
+            $totalRecords = $clientsWithOrders->count();
+
+            // Apply pagination
+            $users = $clientsWithOrders
+                ->orderBy('created_at', 'desc')
+                ->skip($request->input('start', 0)) // Skip records based on DataTables pagination
+                ->take($request->input('length', 10)) // Take the number of records specified
+                ->get();
+
+            // Prepare DataTables response
+            return response()->json([
+                'draw' => $request->input('draw'),
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $totalRecords,
+                'data' => $users->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'region' => 'N/A',
+                        'phone' => $user->phone
+                        ? '<a href="https://api.whatsapp.com/send?phone=' . $user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $user->phone . '</a>'
+                        : 'N/A',
+                        'orders_numbers' => $user->orders->count(),
+
+                    ];
+                }),
+            ]);
+        }
+
+        // Render the initial view for non-AJAX requests
+        return view('dashboard.core.customers.have-orders');
+    }
 
     public function create()
     {

@@ -20,7 +20,7 @@ use App\Models\Transaction;
 use App\Models\UserAddresses;
 use App\Models\Visit;
 use App\Notifications\SendPushNotification;
-use App\Services\Appointment;
+use App\Services\v2\Appointment;
 use App\Support\Api\ApiResponse;
 use App\Traits\imageTrait;
 use App\Traits\NotificationTrait;
@@ -150,6 +150,7 @@ class CheckoutController extends Controller
 
     private function saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method)
     {
+
         $totalAfterDiscount = $total - $request->coupon;
         $order = Order::create([
             'user_id' => $user->id,
@@ -185,16 +186,22 @@ class CheckoutController extends Controller
         $times = $time->getAvailableTimesFromDate();
         if ($times) {
             $days = array_column($times, 'day');
+
             if (!in_array($cart->date, $days)) {
                 DB::rollback();
                 return self::apiResponse(400, __('api.This Time is not available'), $this->body);
             }
             foreach ($times as $time) {
-                if (!in_array(Carbon::parse($cart->time)->format('g:i A'), $time['times']) && $cart->date == $time['day']) {
+
+                $timeList = array_column($time['times'], 'time');
+
+                if (!in_array(Carbon::parse($cart->time)->format('g:i A'), $timeList) && $cart->date == $time['day']) {
+
                     DB::rollback();
                     return self::apiResponse(400, __('api.This Time is not available'), $this->body);
                 }
             }
+
         }
 
         $category_ids = $carts->pluck('category_id')->toArray();

@@ -569,4 +569,8 @@ return [
     'update' => 'updated successfully',
     'payment_method' => 'payment method',
     'cancelled_by' => 'Cancelled By',
+    'clients_have_orders' => 'Number of customers who ordered',
+    'clients_have_orders_management' => 'Manage customers who have orders',
+    'orders_numbers' => 'number of orders',
+    'clients_orders' => 'Clients with orders',
 ];

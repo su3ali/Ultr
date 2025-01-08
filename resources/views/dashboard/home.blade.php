@@ -365,6 +365,43 @@
                     @endif
 
 
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_clients_with_orders'))
+                        <!-- Clients Have Orders Widget -->
+                        <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
+                            <a href="{{ route('dashboard.core.customer.orders') }}" class="widget-link">
+                                <div class="widget widget-one_hybrid widget-engagement">
+                                    <div class="widget-heading p-4 rounded-lg bg-lightblue shadow-sm">
+                                        <div class="d-flex align-items-center">
+                                            <div class="w-icon bg-primary text-white rounded-circle p-3 shadow-sm me-4">
+                                                <!-- Clients Have Orders Icon (Package) -->
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    class="feather feather-package">
+                                                    <path d="M12 2v5M3 7l9 5 9-5M3 17l9 5 9-5V7M12 2l9 5-9 5-9-5z"></path>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p class="w-value fs-2 fw-bold text-dark mb-1">
+                                                    {{ $customersHaveOrders }}
+                                                </p>
+                                                <h5 class="text-muted mb-0">{{ __('dash.clients_have_orders') }}</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="widget-footer p-4 text-center bg-lightblue">
+                                        <p class="text-muted mb-0"> {{ __('dash.clients_have_orders_management') }} </p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endif
+
+
+
+
+
+
 
 
 
@@ -431,6 +468,8 @@
                 </div>
 
             </div>
+
+
 
 
 
