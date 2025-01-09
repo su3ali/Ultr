@@ -58,6 +58,8 @@ route_group('core', function () {
     Route::get('customer/change_status', 'CustomerController@change_status')->name('customer.change_status');
     Route::resource('customer', 'CustomerController');
 
+    Route::get('customers/orders', 'CustomerController@withOrders')->name('customer.orders');
+
     Route::get('address/change_status', 'AddressController@change_status')->name('address.change_status');
     Route::get('address/getCity', 'AddressController@getCityBycountry')->name('address.getCity');
     Route::get('address/getRegion', 'AddressController@getRegionByCity')->name('address.getRegion');

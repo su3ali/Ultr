@@ -18,6 +18,8 @@ class IndexController extends Controller
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
         $customers = User::count();
 
+        $customersHaveOrders = User::has('orders')->count();
+
         $client_orders = Order::where('is_active', 1)->whereHas('userAddress', function ($query) use ($regionIds) {
             $query->whereIn('region_id', $regionIds);
         })
@@ -139,7 +141,7 @@ class IndexController extends Controller
         $finished_visits_today = Visit::query()->whereHas('booking.address', function ($query) use ($regionIds) {
             $query->whereIn('region_id', $regionIds);
         })->whereDate('end_date', '=', $now)->count();
-        return view('dashboard.home', compact('canceled_orders', 'canceled_orders_today', 'tech_visits_today', 'finished_visits_today', 'total_trainees', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers', 'client_orders', 'technicians', 'tech_visits'));
+        return view('dashboard.home', compact('canceled_orders', 'customersHaveOrders', 'canceled_orders_today', 'tech_visits_today', 'finished_visits_today', 'total_trainees', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers', 'client_orders', 'technicians', 'tech_visits'));
     }
     private function __chartOptions($title)
     {

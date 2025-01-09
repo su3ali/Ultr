@@ -11,12 +11,14 @@ use App\Models\Group;
 use App\Models\Order;
 use App\Models\Technician;
 use App\Models\TechnicianWallet;
+use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Visit;
 use App\Support\Api\ApiResponse;
 use App\Traits\NotificationTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
 class VisitsController extends Controller
@@ -38,12 +40,15 @@ class VisitsController extends Controller
             return self::apiResponse(200, null, $this->body);
         }
         $orders = Visit::whereHas('booking', function ($q) {
-            $q->whereHas('customer')->whereHas('address');
+            $q->where('date', '>=', Carbon::now('Asia/Riyadh')->format('Y-m-d'))
+                ->whereHas('customer')
+                ->whereHas('address');
         })->with('booking', function ($q) {
             $q->with(['service' => function ($q) {
                 $q->with('category');
             }, 'customer', 'address']);
-        })->with('status')->whereIn('visits_status_id', [1, 2, 3, 4])->whereIn('assign_to_id', $groupIds)
+        })->with('status')->whereIn('visits_status_id', [1, 2, 3, 4])
+            ->whereIn('assign_to_id', $groupIds)
             ->orderBy('created_at', 'desc')->get();
 
         $this->body['visits'] = VisitsResource::collection($orders);
@@ -52,22 +57,32 @@ class VisitsController extends Controller
 
     protected function myPreviousOrders()
     {
-        $groupIds = Group::where('technician_id', auth('sanctum')->user()->id)->pluck('id')->toArray();
-        $groups = Group::where('technician_id', auth('sanctum')->user()->id)->first();
-        if (!$groups) {
-            $this->body['visits'] = [];
+        try {
+            $groupIds = Group::where('technician_id', auth('sanctum')->user()->id)->pluck('id')->toArray();
+            $groups = Group::where('technician_id', auth('sanctum')->user()->id)->first();
+            if (!$groups) {
+                $this->body['visits'] = [];
+                return self::apiResponse(200, null, $this->body);
+            }
+
+            $cacheKey = 'myPreviousOrders_' . auth('sanctum')->user()->id;
+            $orders = cache()->remember($cacheKey, 300, function () use ($groupIds) {
+                return Visit::whereHas('booking', function ($q) {
+                    $q->whereHas('customer')->whereHas('address');
+                })->with('booking', function ($q) {
+                    $q->with(['service' => function ($q) {
+                        $q->with('category');
+                    }, 'customer', 'address']);
+                })->with('status')->whereIn('visits_status_id', [5, 6])
+                    ->whereIn('assign_to_id', $groupIds)->orderBy('created_at', 'desc')->take(24)->get();
+            });
+
+            $this->body['visits'] = VisitsResource::collection($orders);
             return self::apiResponse(200, null, $this->body);
+        } catch (\Exception $e) {
+            return self::apiResponse(500, __('api.Something went wrong, please try again later'), $this->body);
+
         }
-        $orders = Visit::whereHas('booking', function ($q) {
-            $q->whereHas('customer')->whereHas('address');
-        })->with('booking', function ($q) {
-            $q->with(['service' => function ($q) {
-                $q->with('category');
-            }, 'customer', 'address']);
-        })->with('status')->whereIn('visits_status_id', [5, 6])
-            ->whereIn('assign_to_id', $groupIds)->orderBy('created_at', 'desc')->get();
-        $this->body['visits'] = VisitsResource::collection($orders);
-        return self::apiResponse(200, null, $this->body);
     }
 
     protected function myOrdersByDateNow()
@@ -398,4 +413,63 @@ class VisitsController extends Controller
 
         return self::apiResponse(200, __('api.successfully'), $this->body);
     }
+
+    // when Tech Change payment To Mada (Shabka)
+    protected function paidfromTech(Request $request)
+    {
+
+        // Define validation rules
+        $rules = [
+            'order_id' => 'required|exists:orders,id', // Ensure the order exists
+            'payment_method' => 'required|in:cache,visa,wallet,mada', // Validate payment method
+        ];
+
+        // Validate the incoming request
+        $validated = $request->validate($rules);
+
+        try {
+            // Begin a database transaction
+            DB::beginTransaction();
+
+            // Check if a transaction already exists for the given order ID
+            $transaction = Transaction::where('order_id', $validated['order_id'])->first();
+
+            if (!$transaction) {
+                // Create a new transaction if none exists
+                Transaction::create([
+                    'order_id' => $validated['order_id'],
+                    'payment_result' => 'success',
+                    'payment_method' => $validated['payment_method'],
+                ]);
+            } else {
+                // Update the existing transaction
+                $transaction->update([
+                    'payment_result' => 'success',
+                    'payment_method' => $validated['payment_method'],
+                ]);
+            }
+
+            // Retrieve the order and ensure it exists (additional safeguard)
+            $order = Order::findOrFail($validated['order_id']);
+
+            // Update the order details
+            $order->update([
+                'partial_amount' => 0,
+            ]);
+
+            // Commit the transaction to save changes
+            DB::commit();
+
+            // Return a successful API response
+            return self::apiResponse(200, __('api.successfully'), $this->body);
+        } catch (\Exception $e) {
+            // Rollback any changes in case of an error
+            DB::rollBack();
+            $message = $e->getMessage();
+
+            // Return an error response
+            return self::apiResponse(500, $message, []);
+        }
+    }
+
 }

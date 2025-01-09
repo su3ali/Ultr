@@ -72,6 +72,8 @@ class DashboardRolesSeeder extends Seeder
             ['name' => 'create_admins', 'name_en' => 'create admins', 'name_ar' => 'إنشاء مستخدمين'],
             ['name' => 'update_admins', 'name_en' => 'update admins', 'name_ar' => 'تعديل المستخدمين'],
             ['name' => 'delete_admins', 'name_en' => 'delete admins', 'name_ar' => 'حذف المستخدمين'],
+            ['name' => 'view_clients_with_orders', 'name_en' => 'view clients have orders', 'name_ar' => 'عرض العملاء الذين لديهم طلبات'],
+
             ['name' => 'view_roles', 'name_en' => 'view roles', 'name_ar' => 'عرض الصلاحيات'],
             ['name' => 'create_roles', 'name_en' => 'create roles', 'name_ar' => 'إنشاء صلاحيات'],
             ['name' => 'update_roles', 'name_en' => 'update roles', 'name_ar' => 'تعديل الصلاحيات'],
