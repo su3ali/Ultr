@@ -72,7 +72,6 @@ class SupplierController extends Controller
      */
     public function store(Request $request)
     {
-        return $request->all();
         $validated = $request->validate([
             'name_ar'        => [
                 'required',
