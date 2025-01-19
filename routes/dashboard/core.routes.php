@@ -73,4 +73,9 @@ route_group('core', function () {
     Route::resource('contact', 'ContactingController');
     Route::get('order_contract', 'ContactingController@order_contract')->name('order_contract.index');
     Route::delete('order_contract/{id}/delete', 'ContactingController@order_contract_destroy')->name('order_contract.destroy');
+
+    Route::resource('suppliers', SupplierController::class);
+
+    Route::post('suppliers/{id}/restore', [SupplierController::class, 'restore'])->name('dashboard.core.suppliers.restore');
+
 });

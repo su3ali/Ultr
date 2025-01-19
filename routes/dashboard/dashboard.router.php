@@ -36,4 +36,6 @@ Route::group(['middleware' => ['auth:dashboard']], static function () {
     require __DIR__ . '/reports.routes.php';
     require __DIR__ . '/cars.routes.php';
     require __DIR__ . '/appointment.routes.php';
+    require __DIR__ . '/suppliers.routes.php';
+
 });

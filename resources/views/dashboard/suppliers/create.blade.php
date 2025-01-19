@@ -63,7 +63,7 @@
                                 <select id="spec" class="select2 form-control pt-1" name="spec_id">
                                     <option selected disabled>{{ __('dash.choose') }}</option>
                                     @foreach ($specs as $spec)
-                                    <option value="{{ $spec->id }}">{{ $spec->name }}</option>
+                                        <option value="{{ $spec->id }}">{{ $spec->name }}</option>
                                     @endforeach
                                 </select>
 
@@ -75,7 +75,7 @@
                                 <label for="inputEmail4">{{ __('dash.nationality') }}</label>
                                 <select required id="" class="select2 form-control pt-1" name="country_id">
                                     @foreach ($nationalities as $key => $nationality)
-                                    <option value="{{ $nationality }}">{{ $key }}</option>
+                                        <option value="{{ $nationality }}">{{ $key }}</option>
                                     @endforeach
                                 </select>
 
@@ -83,16 +83,16 @@
 
                             <div class="form-group col-md-6">
                                 <label for="inputEmail4">{{ __('dash.identity_number') }}</label>
-                                <input required type="text" name="identity_id" class="form-control" id=""
-                                    placeholder="{{ __('dash.identity_number') }}">
+                                <input required type="text" name="identity_id" class="form-control"
+                                    id="" placeholder="{{ __('dash.identity_number') }}">
                             </div>
                         </div>
                         <div class="form-row mb-3">
                             <div class="form-group col-md-6">
 
                                 <label for="birth">{{ __('dash.birth_date') }}</label>
-                                <input required id="birth" name="birth_date" type="date" class="form-control datepicker"
-                                    data-date-format="dd/mm/yyyy">
+                                <input required id="birth" name="birth_date" type="date"
+                                    class="form-control datepicker" data-date-format="dd/mm/yyyy">
 
                             </div>
 
@@ -101,9 +101,9 @@
                                 <label for="wallet">{{ __('dash.wallet') }}</label>
                                 <select required id="wallet" class="select2 form-control pt-1" name="wallet_id">
                                     <option disabled>{{ __('dash.choose') }}</option>
-                                    {{-- @foreach ($categories as $category) --}}
+                                    {{--                                    @foreach ($categories as $category) --}}
                                     <option value="1">wallet</option>
-                                    {{-- @endforeach --}}
+                                    {{--                                    @endforeach --}}
                                 </select>
 
                             </div>
@@ -116,8 +116,9 @@
                                 <div style="display: flex">
                                     <label class="custom-file-container__custom-file">
                                         <input required type="file"
-                                            class="custom-file-container__custom-file__custom-file-input" name="image">
-                                        {{-- <input type="hidden" name="MAX_FILE_SIZE" value="10485760" /> --}}
+                                            class="custom-file-container__custom-file__custom-file-input"
+                                            name="image">
+                                        {{-- <input type="hidden" name="MAX_FILE_SIZE" value="10485760"/> --}}
                                         <span class="custom-file-container__custom-file__custom-file-control"></span>
                                     </label>
 
@@ -137,7 +138,7 @@
                                 <select id="group" class="select2 form-control pt-1" name="group_id">
                                     <option selected disabled>{{ __('dash.choose') }}</option>
                                     @foreach ($groups as $group)
-                                    <option value="{{ $group->id }}">{{ $group->name }}</option>
+                                        <option value="{{ $group->id }}">{{ $group->name }}</option>
                                     @endforeach
                                 </select>
 
@@ -148,7 +149,7 @@
                                     <option value="" disabled selected hidden>{{ __('dash.select_day') }}
                                     </option>
                                     @foreach ($days as $id => $name_ar)
-                                    <option value="{{ $id }}">{{ $name_ar }}</option>
+                                        <option value="{{ $id }}">{{ $name_ar }}</option>
                                     @endforeach
 
                                 </select>
@@ -180,7 +181,7 @@
 
 
 @push('script')
-<script>
-    let secondUpload = new FileUploadWithPreview('mySecondImage')
-</script>
+    <script>
+        let secondUpload = new FileUploadWithPreview('mySecondImage')
+    </script>
 @endpush
