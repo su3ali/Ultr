@@ -2,11 +2,7 @@
 
 use App\Http\Controllers\Api\Checkout\CartController;
 use App\Http\Controllers\Api\Checkout\CheckoutController;
-<<<<<<< HEAD
-use App\Http\Controllers\Api\Checkout\CheckoutController as CheckoutControllerV2 ;
-=======
 use App\Http\Controllers\Api\Checkout\v2\CheckoutController as CheckoutControllerV2 ;
->>>>>>> 54bd9cb1f8db60cd685483c2dd4085bcbfc8f4cd
 use App\Http\Controllers\Api\Checkout\v2\CartController as CartControllerV2;
 use App\Http\Controllers\Api\Techn\home\VisitsController;
 
