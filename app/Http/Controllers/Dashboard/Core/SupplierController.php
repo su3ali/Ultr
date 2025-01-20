@@ -34,28 +34,42 @@ class SupplierController extends Controller
 
             // Add control buttons column
                 ->addColumn('control', function ($row) {
-                    return '
-                    <button type="button" id="edit-supplier" class="btn btn-primary btn-sm card-tools edit"
-                        data-id="' . $row->id . '"
-                        data-name="' . $row->name . '"
-                        data-email="' . $row->email . '"
-                        data-phone="' . $row->phone . '"
-                        data-name_ar="' . $row->name_ar . '"
-                        data-name_en="' . $row->name_en . '"
-                        data-address="' . $row->address . '"
-                        data-tax_number="' . $row->tax_number . '"
-                        data-toggle="modal" data-target="#editSupplierModal">
-                        <i class="far fa-edit fa-2x"></i>
-                    </button>
+                    $buttons = '';
 
-                    <a id="delete_supplier_form"
-                       data-table_id="suppliers-table"
-                       data-href="' . route('dashboard.core.suppliers.destroy', $row->id) . '"
-                       data-id="' . $row->id . '"
-                       class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_supplier_form">
-                        <i class="far fa-trash-alt fa-2x"></i>
-                    </a>';
+                    // Check if the user has permission to edit
+                    if (auth()->user()->can('update_suppliers') || auth()->user()->hasRole('admin')) {
+                        $buttons .= '
+                        <button type="button" id="edit-supplier" class="btn btn-primary btn-sm card-tools edit"
+                            data-id="' . $row->id . '"
+                            data-name="' . $row->name . '"
+                            data-email="' . $row->email . '"
+                            data-phone="' . $row->phone . '"
+                            data-name_ar="' . $row->name_ar . '"
+                            data-name_en="' . $row->name_en . '"
+                            data-address="' . $row->address . '"
+                            data-tax_number="' . $row->tax_number . '"
+                            data-toggle="modal" data-target="#editSupplierModal">
+                            <i class="far fa-edit fa-2x"></i>
+                        </button>
+                    ';
+                    }
+
+                    // Check if the user has permission to delete
+                    if (auth()->user()->can('delete_suppliers') || auth()->user()->hasRole('admin')) {
+                        $buttons .= '
+                        <a id="delete_supplier_form"
+                           data-table_id="suppliers-table"
+                           data-href="' . route('dashboard.core.suppliers.destroy', $row->id) . '"
+                           data-id="' . $row->id . '"
+                           class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_supplier_form">
+                            <i class="far fa-trash-alt fa-2x"></i>
+                        </a>
+                    ';
+                    }
+
+                    return $buttons;
                 })
+
             // Mark raw HTML columns
                 ->rawColumns([
                     'supplier_name',
