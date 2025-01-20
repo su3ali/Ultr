@@ -866,78 +866,92 @@ $name = 'name_' . app()->getLocale();
 
                                         {{-- Start Supplier --}}
 
+                                        @if(isset($permissions[72]) || isset($permissions[73]) ||
+                                        isset($permissions[74]) || isset($permissions[75]))
                                         <div class="card component-card_2 col-md-12 px-0">
                                             <div class="form-group h-50 mb-0 px-3 pt-2"
                                                 style="background-color: #0072ff42;">
                                                 <label
                                                     class="new-control new-checkbox new-checkbox-text checkbox-success">
                                                     <input type="checkbox" class="new-control-input check-all-supplier">
-                                                    <span class="new-control-indicator"></span><span
-                                                        class="new-chk-content text-primary"><b>الموردين</b></span>
+                                                    <span class="new-control-indicator"></span>
+                                                    <span class="new-chk-content text-primary"><b>الموردين</b></span>
                                                 </label>
                                             </div>
                                             <div class="card-body">
                                                 <div class="row">
+                                                    @if(isset($permissions[72]))
                                                     <div class="n-chk col-md-3 form-row">
                                                         <label
                                                             class="new-control new-checkbox new-checkbox-text checkbox-success">
                                                             <input type="checkbox"
                                                                 name="permissions[{{ $permissions[72]->id }}]"
                                                                 class="new-control-input perm-check perm-check-supplier"
-                                                                {{ isset($model) ? (in_array($permissions[72]->id,
+                                                                {{ isset($model) && in_array($permissions[72]->id,
                                                             $model->permissions->pluck('id')->toArray()) ? 'checked' :
-                                                            '') : '' }}>
-                                                            <span class="new-control-indicator"></span><span
-                                                                class="new-chk-content"><b>{{ $permissions[72]->$name
+                                                            '' }}>
+                                                            <span class="new-control-indicator"></span>
+                                                            <span class="new-chk-content"><b>{{ $permissions[72]->$name
                                                                     }}</b></span>
                                                         </label>
                                                     </div>
+                                                    @endif
+
+                                                    @if(isset($permissions[73]))
                                                     <div class="n-chk col-md-3 form-row">
                                                         <label
                                                             class="new-control new-checkbox new-checkbox-text checkbox-success">
                                                             <input type="checkbox"
                                                                 name="permissions[{{ $permissions[73]->id }}]"
                                                                 class="new-control-input perm-check perm-check-supplier"
-                                                                {{ isset($model) ? (in_array($permissions[73]->id,
+                                                                {{ isset($model) && in_array($permissions[73]->id,
                                                             $model->permissions->pluck('id')->toArray()) ? 'checked' :
-                                                            '') : '' }}>
-                                                            <span class="new-control-indicator"></span><span
-                                                                class="new-chk-content"><b>{{ $permissions[73]->$name
+                                                            '' }}>
+                                                            <span class="new-control-indicator"></span>
+                                                            <span class="new-chk-content"><b>{{ $permissions[73]->$name
                                                                     }}</b></span>
                                                         </label>
                                                     </div>
+                                                    @endif
+
+                                                    @if(isset($permissions[74]))
                                                     <div class="n-chk col-md-3 form-row">
                                                         <label
                                                             class="new-control new-checkbox new-checkbox-text checkbox-success">
                                                             <input type="checkbox"
                                                                 name="permissions[{{ $permissions[74]->id }}]"
                                                                 class="new-control-input perm-check perm-check-supplier"
-                                                                {{ isset($model) ? (in_array($permissions[74]->id,
+                                                                {{ isset($model) && in_array($permissions[74]->id,
                                                             $model->permissions->pluck('id')->toArray()) ? 'checked' :
-                                                            '') : '' }}>
-                                                            <span class="new-control-indicator"></span><span
-                                                                class="new-chk-content"><b>{{ $permissions[74]->$name
+                                                            '' }}>
+                                                            <span class="new-control-indicator"></span>
+                                                            <span class="new-chk-content"><b>{{ $permissions[74]->$name
                                                                     }}</b></span>
                                                         </label>
                                                     </div>
+                                                    @endif
+
+                                                    @if(isset($permissions[75]))
                                                     <div class="n-chk col-md-3 form-row">
                                                         <label
                                                             class="new-control new-checkbox new-checkbox-text checkbox-success">
                                                             <input type="checkbox"
                                                                 name="permissions[{{ $permissions[75]->id }}]"
                                                                 class="new-control-input perm-check perm-check-supplier"
-                                                                {{ isset($model) ? (in_array($permissions[75]->id,
+                                                                {{ isset($model) && in_array($permissions[75]->id,
                                                             $model->permissions->pluck('id')->toArray()) ? 'checked' :
-                                                            '') : '' }}>
-                                                            <span class="new-control-indicator"></span><span
-                                                                class="new-chk-content"><b>{{ $permissions[75]->$name
+                                                            '' }}>
+                                                            <span class="new-control-indicator"></span>
+                                                            <span class="new-chk-content"><b>{{ $permissions[75]->$name
                                                                     }}</b></span>
                                                         </label>
                                                     </div>
-
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>
+                                        @endif
+
 
                                         {{-- End Supplier --}}
 
