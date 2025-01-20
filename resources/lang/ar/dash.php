@@ -870,5 +870,18 @@ return [
     'delete_supplier'                       => 'حذف مورد',
     'supplier_deleted_successfully'         => 'تم حذف المورد بنجاح',
     'supplier_updated_successfully'         => 'تم تحديث المورد بنجاح',
+    'Supplier management'                   => 'إدارة الموردين',
+    'cars'                                  => 'المركبات',
+    'booking status'                        => 'حالة الحجز',
+    'bookings'                              => 'الحجوزات',
+    'user management'                       => 'إدارة المستخدمين',
+    'notification management'               => 'إدارة الإشعارات',
+    'coupons management'                    => 'إدارة الكوبونات',
+    'rating management'                     => 'إدارة التقييمات',
+    'appointments'                          => 'المواعيد',
+    'shifts'                                => 'المناوبات',
+    'working_days'                          => 'أيام العمل ',
+    'permissions'                           => 'الصلاحيات',
+    'icons'                                 => 'الأيقونات',
 
 ];

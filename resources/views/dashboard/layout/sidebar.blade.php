@@ -157,7 +157,7 @@
                 <a href="#booking" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
                         <div class="icon-container">
-                            <i data-feather="book"></i><span class="icon-name"> الحجوزات </span>
+                            <i data-feather="book"></i><span class="icon-name"> {{ __('dash.bookings') }}</span>
                         </div>
                     </div>
                     <div>
@@ -171,15 +171,15 @@
                 <ul class="collapse submenu list-unstyled" id="booking" data-parent="#accordionExample">
                     @can('view_bookings')
                     <li>
-                        <a href="{{ url('admin/bookings?type=service') }}"> الحجوزات </a>
+                        <a href="{{ url('admin/bookings?type=service') }}"> {{ __('dash.bookings') }} </a>
                     </li>
                     @endcan
                     @can('update_bookings')
                     <li>
-                        <a href="{{ route('dashboard.booking_statuses.index') }}"> حالات الحجز </a>
+                        <a href="{{ route('dashboard.booking_statuses.index') }}"> {{ __('dash.bookings') }} </a>
                     </li>
                     <li>
-                        <a href="{{ route('dashboard.booking_setting.index') }}"> المواعيد </a>
+                        <a href="{{ route('dashboard.booking_setting.index') }}"> {{ __('dash.appointments') }} </a>
                     </li>
                     @endcan
                 </ul>
@@ -209,10 +209,10 @@
 
                     {{-- @can('update_bookings') --}}
                     <li>
-                        <a href="{{ route('dashboard.days_statuses.index') }}"> أيام العمل </a>
+                        <a href="{{ route('dashboard.days_statuses.index') }}"> {{ __('dash.working_days') }} </a>
                     </li>
                     <li>
-                        <a href="{{ route('dashboard.shifts.index') }}"> الشفتات </a>
+                        <a href="{{ route('dashboard.shifts.index') }}"> {{ __('dash.shiftes') }} </a>
                     </li>
                     {{-- @endcan --}}
                 </ul>
@@ -233,7 +233,7 @@
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
-                        <span>إدارة المستخدمين</span>
+                        <span> {{ __('dash.user management') }}</span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -246,12 +246,13 @@
                 <ul class="collapse submenu list-unstyled" id="app" data-parent="#accordionExample">
                     @can('view_admins')
                     <li>
-                        <a href="{{ route('dashboard.core.administration.admins.index') }}"> المستخدمين </a>
+                        <a href="{{ route('dashboard.core.administration.admins.index') }}"> {{ __('dash.users') }} </a>
                     </li>
                     @endcan
                     @can('view_roles')
                     <li>
-                        <a href="{{ route('dashboard.core.administration.roles.index') }}"> الصلاحيات </a>
+                        <a href="{{ route('dashboard.core.administration.roles.index') }}"> {{ __('dash.permissions') }}
+                        </a>
                     </li>
                     @endcan
                 </ul>
@@ -316,7 +317,7 @@
                     </li>
 
                     <li>
-                        <a href="{{ route('dashboard.core.icon.index') }}"> الايقونات </a>
+                        <a href="{{ route('dashboard.core.icon.index') }}"> {{ __('dash.icons') }} </a>
                     </li>
                 </ul>
             </li>
@@ -327,7 +328,7 @@
                     <div class="">
                         <div class="icon-container">
                             <i data-feather="users"></i>
-                            <span class="icon-name">السيارات</span>
+                            <span class="icon-name"> {{ __('dash.cars') }}</span>
                         </div>
                     </div>
                     <div>
@@ -512,7 +513,7 @@
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
-                        <span>إدارة الموردين</span>
+                        <span> {{ __('dash.Supplier management') }}</span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -544,7 +545,7 @@
                             </polygon>
                         </svg>
 
-                        <span>إدارة التقييمات</span>
+                        <span> {{ __('dash.rating management') }} </span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -576,7 +577,7 @@
                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                         </svg>
-                        <span>إدارة الاشعارات</span>
+                        <span> {{ __('dash.notification management') }} </span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -607,7 +608,7 @@
                             <circle cx="17.5" cy="17.5" r="2.5"></circle>
                         </svg>
 
-                        <span>إدارة الكوبونات</span>
+                        <span> {{ __('dash.coupons management') }} </span>
                     </div>
                     <div>
                     </div>
