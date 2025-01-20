@@ -66,6 +66,14 @@
                                 </div>
                             </div>
 
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="note">{{ __('dash.note') }}</label>
+                                    <textarea required name="note" class="form-control" id="note" rows="3"
+                                        placeholder="{{ __('dash.note') }}"></textarea>
+                                </div>
+                            </div>
+
                             <div class="col-6">
                                 <div class="form-group">
                                     <label for="supplier_address">{{ __('dash.address') }}</label>
