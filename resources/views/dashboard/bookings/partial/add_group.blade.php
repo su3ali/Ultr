@@ -28,26 +28,26 @@
 
                                 </select>
                                 @error('group_id')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
 
                             </div>
                             <input type="hidden" name="visits_status_id" value="1">
-                            {{--                            <div class="form-group col-md-6"> --}}
+                            {{-- <div class="form-group col-md-6"> --}}
 
-                            {{--                                <label for="status">الحاله</label> --}}
-                            {{--                                <select id="status"  class="select2 form-control pt-1" --}}
-                            {{--                                        name="visits_status_id" required> --}}
-                            {{--                                    <option disabled selected>{{__('dash.choose')}}</option> --}}
-                            {{--                                    @foreach ($visitsStatuses as $key => $status) --}}
-                            {{--                                    <option value="{{$key}}">{{$status}}</option> --}}
-                            {{--                                    @endforeach --}}
-                            {{--                                </select> --}}
-                            {{--                                @error('visits_status_id') --}}
-                            {{--                                <div class="alert alert-danger">{{ $message }}</div> --}}
-                            {{--                                @enderror --}}
+                                {{-- <label for="status">الحاله</label> --}}
+                                {{-- <select id="status" class="select2 form-control pt-1" --}} {{--
+                                    name="visits_status_id" required> --}}
+                                    {{-- <option disabled selected>{{__('dash.choose')}}</option> --}}
+                                    {{-- @foreach ($visitsStatuses as $key => $status) --}}
+                                    {{-- <option value="{{$key}}">{{$status}}</option> --}}
+                                    {{-- @endforeach --}}
+                                    {{-- </select> --}}
+                                {{-- @error('visits_status_id') --}}
+                                {{-- <div class="alert alert-danger">{{ $message }}</div> --}}
+                                {{-- @enderror --}}
 
-                            {{--                            </div> --}}
+                                {{-- </div> --}}
 
                         </div>
 
@@ -57,17 +57,17 @@
                                 <label for="inputEmail4">سبب الالغاء</label>
                                 <textarea name="reason_cancel" class="ckeditor" cols="10" rows="5"></textarea>
                                 @error('reason_cancel')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
 
                             </div>
 
                             <div class="form-group notes col-md-12">
 
-                                <label for="inputEmail4">ملاحظات</label>
+                                <label for="inputEmail4">{{ __('dash.note') }}</label>
                                 <textarea name="note" class="ckeditor" cols="10" rows="5"></textarea>
                                 @error('notes')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
 
                             </div>
@@ -95,11 +95,11 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">تعديل فريق</h5>
+                <h5 class="modal-title" id="exampleModalLabel">{{ __('dash.edit_team') }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round" class="feather feather-x">
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" class="feather feather-x">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -119,33 +119,33 @@
                         <div class="form-row mb-2">
                             <div class="form-group col-md-6">
 
-                                <label for="group_ids">المجموعات</label>
+                                <label for="group_ids">{{ __('dash.groups') }}</label>
                                 <select id="edit_group_id" class="select2 form-control pt-1" name="assign_to_id"
                                     required>
                                     <option disabled selected>{{ __('dash.choose') }}</option>
 
                                 </select>
                                 @error('group_id')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
 
                             </div>
                             <input type="hidden" name="visits_status_id" value="1">
-                            {{--                            <div class="form-group col-md-6"> --}}
+                            {{-- <div class="form-group col-md-6"> --}}
 
-                            {{--                                <label for="status">الحاله</label> --}}
-                            {{--                                <select id="status"  class="select2 form-control pt-1" --}}
-                            {{--                                        name="visits_status_id" required> --}}
-                            {{--                                    <option disabled selected>{{__('dash.choose')}}</option> --}}
-                            {{--                                    @foreach ($visitsStatuses as $key => $status) --}}
-                            {{--                                    <option value="{{$key}}">{{$status}}</option> --}}
-                            {{--                                    @endforeach --}}
-                            {{--                                </select> --}}
-                            {{--                                @error('visits_status_id') --}}
-                            {{--                                <div class="alert alert-danger">{{ $message }}</div> --}}
-                            {{--                                @enderror --}}
+                                {{-- <label for="status">الحاله</label> --}}
+                                {{-- <select id="status" class="select2 form-control pt-1" --}} {{--
+                                    name="visits_status_id" required> --}}
+                                    {{-- <option disabled selected>{{__('dash.choose')}}</option> --}}
+                                    {{-- @foreach ($visitsStatuses as $key => $status) --}}
+                                    {{-- <option value="{{$key}}">{{$status}}</option> --}}
+                                    {{-- @endforeach --}}
+                                    {{-- </select> --}}
+                                {{-- @error('visits_status_id') --}}
+                                {{-- <div class="alert alert-danger">{{ $message }}</div> --}}
+                                {{-- @enderror --}}
 
-                            {{--                            </div> --}}
+                                {{-- </div> --}}
 
                         </div>
 
@@ -155,7 +155,7 @@
                                 <label for="inputEmail4">سبب الالغاء</label>
                                 <textarea name="reason_cancel" class="ckeditor" cols="10" rows="5"></textarea>
                                 @error('reason_cancel')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
 
                             </div>
@@ -165,7 +165,7 @@
                                 <label for="inputEmail4">ملاحظات</label>
                                 <textarea name="note" class="ckeditor" cols="10" rows="5"></textarea>
                                 @error('notes')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
 
                             </div>

@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">الحجوزات</h5>
+                <h5 class="modal-title" id="exampleModalLabel">{{ __('dash.bookings') }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -40,8 +40,8 @@
 
 
 @push('script')
-    <script type="text/javascript">
-        $(document).on('click', '#show-bookings', function() {
+<script type="text/javascript">
+    $(document).on('click', '#show-bookings', function() {
             /*         let bookings = $(this).data('bookings'); */
             let orderId = $(this).data('id');
             /*  console.log(bookings); */
@@ -88,5 +88,5 @@
                 ]
             });
         });
-    </script>
+</script>
 @endpush

@@ -13,7 +13,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form action="" method="post" class="form-horizontal" enctype="multipart/form-data" id="editTechModel"
+                <form action="" method="post" class="form-horizontal" enctype="multipart/form-data" id="edit_tech_form"
                     data-parsley-validate="">
                     @csrf
                     {!! method_field('PUT') !!}
@@ -78,7 +78,7 @@
                             </div>
                             <div class="form-group col-md-6">
 
-                                <label for="edit_spec">التخصص</label>
+                                <label for="edit_spec">{{ __('dash.specialization') }}</label>
                                 <select id="edit_spec" class="select2 form-control pt-1" name="spec_id">
                                     <option selected disabled>{{ __('dash.choose') }}</option>
                                     @foreach ($specs as $spec)

@@ -70,7 +70,7 @@
                             <th>#</th>
                             <th>{{ __('dash.name') }}</th>
                             <th>{{ __('dash.image') }}</th>
-                            <th>التخصص</th>
+                            <th>{{ __('dash.specialization') }}</th>
                             <th>{{ __('dash.phone') }}</th>
                             <th>{{ __('dash.group') }}</th>
                             <th>{{ __('dash.zone') }}</th>

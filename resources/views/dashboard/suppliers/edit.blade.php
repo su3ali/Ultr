@@ -13,8 +13,8 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form action="" method="post" class="form-horizontal" enctype="multipart/form-data"
-                    id="edit_tech_form" data-parsley-validate="">
+                <form action="" method="post" class="form-horizontal" enctype="multipart/form-data" id="edit_tech_form"
+                    data-parsley-validate="">
                     @csrf
                     {!! method_field('PUT') !!}
                     <div class="box-body">
@@ -25,7 +25,7 @@
                                 <input required type="text" name="name" class="form-control" id="edit_name"
                                     placeholder="{{ __('dash.name') }}">
                                 @error('name')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -34,7 +34,7 @@
                                 <input required type="text" name="user_name" class="form-control" id="edit_user_name"
                                     placeholder="اسم الفني المستخدم">
                                 @error('user_name')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -43,7 +43,7 @@
                                 <input type="email" name="email" class="form-control" id="edit_email"
                                     placeholder="{{ __('dash.email') }}">
                                 @error('email')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
@@ -54,7 +54,7 @@
                                 <input type="password" name="password" class="form-control" id="inputEmail4"
                                     placeholder="{{ __('dash.password') }}">
                                 @error('password')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="form-group col-md-6">
@@ -62,7 +62,7 @@
                                 <input type="password" name="password_confirmation" class="form-control"
                                     id="inputEmail4" placeholder="{{ __('dash.password_confirmation') }}">
                                 @error('password_confirmation')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
@@ -73,20 +73,20 @@
                                 <input required type="text" name="phone" class="form-control" id="edit_phone"
                                     placeholder="{{ __('dash.phone') }}">
                                 @error('phone')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="form-group col-md-6">
 
-                                <label for="edit_spec">التخصص</label>
+                                <label for="edit_spec">{{ __('dash.specialization') }}</label>
                                 <select id="edit_spec" class="select2 form-control pt-1" name="spec_id">
                                     <option selected disabled>{{ __('dash.choose') }}</option>
                                     @foreach ($specs as $spec)
-                                        <option value="{{ $spec->id }}">{{ $spec->name }}</option>
+                                    <option value="{{ $spec->id }}">{{ $spec->name }}</option>
                                     @endforeach
                                 </select>
                                 @error('specialization')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
 
                             </div>
@@ -98,11 +98,11 @@
                                 <select required id="edit_country_id" class="select2 form-control pt-1"
                                     name="country_id">
                                     @foreach ($nationalities as $key => $nationality)
-                                        <option value="{{ $nationality }}">{{ $key }}</option>
+                                    <option value="{{ $nationality }}">{{ $key }}</option>
                                     @endforeach
                                 </select>
                                 @error('country_id')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
 
                             </div>
@@ -112,7 +112,7 @@
                                 <input required type="text" name="identity_id" class="form-control"
                                     id="edit_identity_id" placeholder="{{ __('dash.identity_number') }}">
                                 @error('identity')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
@@ -123,7 +123,7 @@
                                 <input required id="edit_birth" name="birth_date" type="date"
                                     class="form-control datepicker" data-date-format="dd/mm/yyyy">
                                 @error('birth_date')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
 
                             </div>
@@ -133,12 +133,12 @@
                                 <label for="edit_wallet">{{ __('dash.wallet') }}</label>
                                 <select required id="edit_wallet" class="select2 form-control pt-1" name="wallet_id">
                                     <option disabled>{{ __('dash.choose') }}</option>
-                                    {{--                                    @foreach ($categories as $category) --}}
+                                    {{-- @foreach ($categories as $category) --}}
                                     <option value="1">wallet</option>
-                                    {{--                                    @endforeach --}}
+                                    {{-- @endforeach --}}
                                 </select>
                                 @error('nationality')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
 
                             </div>
@@ -150,10 +150,9 @@
                                         class="custom-file-container__image-clear" title="Clear Image">x</a></label>
                                 <div style="display: flex">
                                     <label class="custom-file-container__custom-file">
-                                        <input type="file"
-                                            class="custom-file-container__custom-file__custom-file-input"
+                                        <input type="file" class="custom-file-container__custom-file__custom-file-input"
                                             name="image">
-                                        {{-- <input type="hidden" name="MAX_FILE_SIZE" value="10485760"/> --}}
+                                        {{-- <input type="hidden" name="MAX_FILE_SIZE" value="10485760" /> --}}
                                         <span class="custom-file-container__custom-file__custom-file-control"></span>
                                     </label>
 
@@ -162,10 +161,10 @@
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="edit_address">{{ __('dash.address') }}</label>
-                                <textarea required type="text" name="address" class="form-control" id="edit_address" rows="3"
-                                    placeholder="{{ __('dash.identity_number') }}"></textarea>
+                                <textarea required type="text" name="address" class="form-control" id="edit_address"
+                                    rows="3" placeholder="{{ __('dash.identity_number') }}"></textarea>
                                 @error('image')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
@@ -176,11 +175,11 @@
                                 <select id="edit_group" class="select2 form-control pt-1" name="group_id">
                                     <option selected disabled>{{ __('dash.choose') }}</option>
                                     @foreach ($groups as $group)
-                                        <option value="{{ $group->id }}">{{ $group->name }}</option>
+                                    <option value="{{ $group->id }}">{{ $group->name }}</option>
                                     @endforeach
                                 </select>
                                 @error('group_id')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
 
                             </div>
@@ -190,11 +189,11 @@
                                 <select id="edit_day_id" name="day_id[]" class="form-control" multiple>
                                     <option selected disabled>{{ __('dash.choose') }}</option>
                                     @foreach ($days as $id => $name_ar)
-                                        <option value="{{ $id }}">{{ $name_ar }}</option>
+                                    <option value="{{ $id }}">{{ $name_ar }}</option>
                                     @endforeach
                                 </select>
                                 @error('day_id')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -208,7 +207,7 @@
                                     <span class="slider round"></span>
                                 </label>
                                 @error('status')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
 
                             </div>
@@ -230,7 +229,7 @@
 
 
 @push('script')
-    <script>
-        let myImage = new FileUploadWithPreview('myImage')
-    </script>
+<script>
+    let myImage = new FileUploadWithPreview('myImage')
+</script>
 @endpush

@@ -104,9 +104,8 @@
             <div class="modal-header bg-primary text-white d-flex justify-content-center">
                 <h5 class="modal-title" id="exampleModalLabel">{{ __('dash.create_trainee') }}</h5>
                 <button type="button" class="close text-white ml-auto" data-dismiss="modal" aria-label="Close">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="feather feather-x">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -140,8 +139,8 @@
                                 placeholder="{{ __('dash.password') }}" required>
                         </div>
                         <div class="col-md-6 col-sm-12">
-                            <label for="password_confirmation"
-                                class="form-label">{{ __('dash.password_confirmation') }}</label>
+                            <label for="password_confirmation" class="form-label">{{ __('dash.password_confirmation')
+                                }}</label>
                             <input type="password" name="password_confirmation" class="form-control"
                                 id="password_confirmation" placeholder="{{ __('dash.password_confirmation') }}"
                                 required>
@@ -156,17 +155,17 @@
 
                         <!-- Specialization -->
                         <div class="col-md-6 col-sm-12">
-                            <label for="specialization" class="form-label">التخصص</label>
+                            <label for="specialization" class="form-label">{{ __('dash.specialization') }}</label>
                             <select id="specialization" class="form-select select2" name="spec_id" disabled>
                                 @foreach ($specs as $index => $spec)
-                                    <option value="{{ $spec->id }}" {{ $loop->first ? 'selected' : '' }}>
-                                        {{ $spec->name }}
-                                    </option>
+                                <option value="{{ $spec->id }}" {{ $loop->first ? 'selected' : '' }}>
+                                    {{ $spec->name }}
+                                </option>
                                 @endforeach
                             </select>
                             <!-- Hidden input to submit value -->
                             @if ($specs->isNotEmpty())
-                                <input type="hidden" name="spec_id" value="{{ $specs->first()->id }}">
+                            <input type="hidden" name="spec_id" value="{{ $specs->first()->id }}">
                             @endif
                         </div>
 
@@ -176,7 +175,7 @@
                             <select id="country_id" class="form-select select2" name="country_id" required>
                                 <option selected disabled>{{ __('dash.choose') }}</option>
                                 @foreach ($nationalities as $key => $nationality)
-                                    <option value="{{ $nationality }}">{{ $key }}</option>
+                                <option value="{{ $nationality }}">{{ $key }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -203,18 +202,17 @@
 
                         <!-- training_start_date   -->
                         <div class="col-md-6 col-sm-12">
-                            <label for="training_start_date"
-                                class="form-label">{{ __('dash.training_start_date') }}</label>
-                            <input type="date" name="training_start_date" class="form-control"
-                                id="training_start_date" required>
+                            <label for="training_start_date" class="form-label">{{ __('dash.training_start_date')
+                                }}</label>
+                            <input type="date" name="training_start_date" class="form-control" id="training_start_date"
+                                required>
                         </div>
 
                         <!-- training_end_date  -->
                         <div class="col-md-6 col-sm-12">
-                            <label for="training_end_date"
-                                class="form-label">{{ __('dash.training_end_date') }}</label>
-                            <input type="date" name="training_end_date" class="form-control"
-                                id="training_end_date" required>
+                            <label for="training_end_date" class="form-label">{{ __('dash.training_end_date') }}</label>
+                            <input type="date" name="training_end_date" class="form-control" id="training_end_date"
+                                required>
                         </div>
 
 
@@ -223,10 +221,10 @@
                         <div class="col-md-6 col-sm-12">
                             <label for="upload_file" class="form-label fw-bold">{{ __('dash.upload') }}</label>
                             <div class="custom-file">
-                                <input type="file" class="custom-file-input shadow-sm" id="image"
-                                    name="image" accept="image/*">
-                                <label class="custom-file-label" for="image"
-                                    id="upload_label">{{ __('dash.choose_file') }}</label>
+                                <input type="file" class="custom-file-input shadow-sm" id="image" name="image"
+                                    accept="image/*">
+                                <label class="custom-file-label" for="image" id="upload_label">{{ __('dash.choose_file')
+                                    }}</label>
                             </div>
                         </div>
 
@@ -242,7 +240,7 @@
                             <select id="group" class="form-select select2" name="group_id" required>
                                 <option disabled selected>{{ __('dash.choose') }}</option>
                                 @foreach ($groups as $group)
-                                    <option value="{{ $group->id }}">{{ $group->name }}</option>
+                                <option value="{{ $group->id }}">{{ $group->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -251,8 +249,8 @@
                     <!-- Modal Footer -->
                     <div class="modal-footer mt-4">
                         <button type="submit" class="btn btn-primary">{{ __('dash.save') }}</button>
-                        <button type="button" class="btn btn-light border"
-                            data-dismiss="modal">{{ __('dash.close') }}</button>
+                        <button type="button" class="btn btn-light border" data-dismiss="modal">{{ __('dash.close')
+                            }}</button>
                     </div>
                 </form>
             </div>
@@ -261,7 +259,7 @@
 </div>
 
 @push('script')
-    <script>
-        let secondUpload = new FileUploadWithPreview('mySecondImage');
-    </script>
+<script>
+    let secondUpload = new FileUploadWithPreview('mySecondImage');
+</script>
 @endpush

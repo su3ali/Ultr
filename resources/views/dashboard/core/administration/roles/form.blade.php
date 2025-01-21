@@ -505,7 +505,8 @@ $name = 'name_' . app()->getLocale();
                                                     class="new-control new-checkbox new-checkbox-text checkbox-success">
                                                     <input type="checkbox" class="new-control-input check-all-bookings">
                                                     <span class="new-control-indicator"></span><span
-                                                        class="new-chk-content text-primary"><b>الحجوزات</b></span>
+                                                        class="new-chk-content text-primary"><b>{{ __('dash.bookings')
+                                                            }}</b></span>
                                                 </label>
                                             </div>
                                             <div class="card-body">
