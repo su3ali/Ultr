@@ -22,7 +22,7 @@
                         <ol class="breadcrumb mb-0 py-2">
                             <li class="breadcrumb-item"><a href="{{ route('dashboard.home') }}">{{ __('dash.home')
                                     }}</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">{{ __('dash.Customers') }}</li>
+                            <li class="breadcrumb-item active" aria-current="page">{{ __('dash.customers') }}</li>
                         </ol>
                     </nav>
 
@@ -66,7 +66,7 @@
                         <tr>
                             <th>#</th>
                             <th>{{ __('dash.name') }}</th>
-                            <th>{{ __('dash.city name') }}</th>
+                            <th>{{ __('dash.city') }}</th>
                             <th>{{ __('dash.phone') }}</th>
                             <th>{{ __('dash.status') }}</th>
                             <th class="no-content">{{ __('dash.actions') }}</th>

@@ -63,7 +63,7 @@
                                 <tr>
                                     <th>#</th>
                                     <th>{{ __('dash.name') }}</th>
-                                    <th>التخصص</th>
+                                    <th>{{ __('dash.specialization') }}</th>
                                     <th>{{ __('dash.phone') }}</th>
                                     <th>{{ __('dash.group') }}</th>
                                     <th>{{ __('dash.zone') }}</th>
@@ -101,6 +101,7 @@
                                     <th>{{ __('dash.end_time') }}</th>
                                     <th>{{ __('dash.duration') }}</th>
                                     <th>{{ __('dash.status') }}</th>
+
                                 </tr>
                             </thead>
                             <tbody>

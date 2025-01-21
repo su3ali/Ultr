@@ -52,7 +52,7 @@
 
 {{--    <div class="widget-content widget-content-area br-6">--}}
 {{--        <div class="col-md-12 text-left mb-3">--}}
-{{--            <h3>الحجوزات</h3>--}}
+{{--            <h3>{{ __('dash.bookings') }}</h3>--}}
 {{--        </div>--}}
 
 {{--        <div class="col-md-12 mb-3">--}}

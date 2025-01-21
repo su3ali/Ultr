@@ -1,204 +1,204 @@
 @extends('dashboard.layout.layout')
 
 @push('style')
-    <style>
-        .table>thead>tr>th {
-            white-space: unset !important;
+<style>
+    .table>thead>tr>th {
+        white-space: unset !important;
 
-        }
+    }
 
-        .customer-link {
-            text-decoration: none;
-            color: #2B68A6;
-            /* Blue color for visibility */
-            font-weight: bold;
-            cursor: pointer;
-            /* Changes cursor to a pointer */
-            display: inline-flex;
-            align-items: center;
-            transition: all 0.3s ease;
-            /* Smooth transition for hover effect */
-        }
+    .customer-link {
+        text-decoration: none;
+        color: #2B68A6;
+        /* Blue color for visibility */
+        font-weight: bold;
+        cursor: pointer;
+        /* Changes cursor to a pointer */
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.3s ease;
+        /* Smooth transition for hover effect */
+    }
 
-        .customer-link:hover {
-            color: #2B68A6;
-            /* Darker blue on hover */
-            text-decoration: underline;
-            /* Underline on hover */
-        }
+    .customer-link:hover {
+        color: #2B68A6;
+        /* Darker blue on hover */
+        text-decoration: underline;
+        /* Underline on hover */
+    }
 
-        .customer-link i {
-            font-size: 0.8em;
-            /* Optional smaller icon */
-        }
+    .customer-link i {
+        font-size: 0.8em;
+        /* Optional smaller icon */
+    }
 
-        /* Optional color variations */
-        .customer-link.active {
-            color: #28a745;
-            /* Green for active state */
-        }
+    /* Optional color variations */
+    .customer-link.active {
+        color: #28a745;
+        /* Green for active state */
+    }
 
-        .customer-link.disabled {
-            color: #6c757d;
-            /* Gray for disabled state */
-            cursor: not-allowed;
-        }
+    .customer-link.disabled {
+        color: #6c757d;
+        /* Gray for disabled state */
+        cursor: not-allowed;
+    }
 
-        .whatsapp-link {
-            color: #0074cc;
-            /* Default color */
-            text-decoration: none;
-            /* Remove underline */
-        }
+    .whatsapp-link {
+        color: #0074cc;
+        /* Default color */
+        text-decoration: none;
+        /* Remove underline */
+    }
 
-        .whatsapp-link:hover {
-            color: #25d366;
-            /* Color on hover (WhatsApp green) */
-        }
-    </style>
+    .whatsapp-link:hover {
+        color: #25d366;
+        /* Color on hover (WhatsApp green) */
+    }
+</style>
 @endpush
 
 
 @php
 
-    $dataTabel = 'dataTable-service';
-    $type = 'service';
-    if (request()->query('type') && request()->query('type') == 'package') {
-        $dataTabel = 'dataTable-package';
-        $type = 'package';
-    }
+$dataTabel = 'dataTable-service';
+$type = 'service';
+if (request()->query('type') && request()->query('type') == 'package') {
+$dataTabel = 'dataTable-package';
+$type = 'package';
+}
 @endphp
 
 @section('sub-header')
-    <div class="sub-header-container">
-        <header class="header navbar navbar-expand-sm">
+<div class="sub-header-container">
+    <header class="header navbar navbar-expand-sm">
 
-            <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    class="feather feather-menu">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-            </a>
+        <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="feather feather-menu">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </a>
 
-            <ul class="navbar-nav flex-row">
-                <li>
-                    <div class="page-header">
+        <ul class="navbar-nav flex-row">
+            <li>
+                <div class="page-header">
 
-                        <nav class="breadcrumb-one" aria-label="breadcrumb">
-                            <ol class="breadcrumb mb-0 py-2">
-                                <li class="breadcrumb-item"><a
-                                        href="{{ route('dashboard.home') }}">{{ __('dash.home') }}</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">الحجوزات</li>
-                            </ol>
-                        </nav>
+                    <nav class="breadcrumb-one" aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0 py-2">
+                            <li class="breadcrumb-item"><a href="{{ route('dashboard.home') }}">{{ __('dash.home')
+                                    }}</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">{{ __('dash.bookings') }}</li>
+                        </ol>
+                    </nav>
 
-                    </div>
-                </li>
-            </ul>
+                </div>
+            </li>
+        </ul>
 
 
-        </header>
-    </div>
+    </header>
+</div>
 @endsection
 
 @section('content')
-    <div class="layout-px-spacing">
+<div class="layout-px-spacing">
 
-        <div class="layout-top-spacing">
+    <div class="layout-top-spacing">
 
-            <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
-                <div class="widget-content widget-content-area br-6">
-                    <div class="col-md-12 text-right mb-3">
+        <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
+            <div class="widget-content widget-content-area br-6">
+                <div class="col-md-12 text-right mb-3">
 
-                        {{--                        <a href="{{route('dashboard.bookings.create')}}" id="" class="btn btn-primary card-tools"> --}}
-                        {{--                            {{__('dash.add_new')}} --}}
-                        {{--                        </a> --}}
+                    {{-- <a href="{{route('dashboard.bookings.create')}}" id="" class="btn btn-primary card-tools"> --}}
+                        {{-- {{__('dash.add_new')}} --}}
+                        {{-- </a> --}}
+
+                </div>
+                <div class="table-responsive">
+
+
+                    <ul class="nav nav-tabs  mb-3 mt-3" id="simpletab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link @if ($type == 'service') active @endif" id="service-tab"
+                                href="{{ url('admin/bookings?type=service') }}" role="tab" aria-controls="service"
+                                aria-selected="true"> {{ __('dash.service_bookings') }}</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link @if ($type == 'package') active @endif" id="package-tab"
+                                href="{{ url('admin/bookings?type=package') }}" role="tab" aria-controls="package"
+                                aria-selected="false"> {{ __('dash.package_bookings') }}</a>
+                        </li>
+                    </ul>
+                    <div class="col-md-12  mb-3">
+                        <div class="row">
+                            <div class="col-md-1">
+                                <label for="inputEmail4">{{ __('dash.date') }}</label>
+                            </div>
+                            <label>{{ __('dash.from') }}</label>
+                            <div class="col-md-4">
+                                <input type="datetime-local" name="date" class="form-control date" step="1"
+                                    id="inputEmail4">
+                            </div>
+                            <label>{{ __('dash.to') }}</label>
+                            <div class="col-md-4">
+                                <input type="datetime-local" name="date2" class="form-control date2" step="1"
+                                    id="inputEmail42">
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+
+
+
+                            <div class="col-md-1">
+                                <label for="inputEmail4">{{ __('dash.status') }}</label>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="select2 status_filter form-control" name="status_filter">
+                                    <option value="all" selected>{{ __('dash.all') }}</option>
+                                    @foreach ($statuses as $id => $status)
+                                    <option value="{{ $id }}">{{ $status }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                        </div>
 
                     </div>
-                    <div class="table-responsive">
-
-
-                        <ul class="nav nav-tabs  mb-3 mt-3" id="simpletab" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link @if ($type == 'service') active @endif" id="service-tab"
-                                    href="{{ url('admin/bookings?type=service') }}" role="tab" aria-controls="service"
-                                    aria-selected="true">حجوزات خدمات</a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link @if ($type == 'package') active @endif" id="package-tab"
-                                    href="{{ url('admin/bookings?type=package') }}" role="tab" aria-controls="package"
-                                    aria-selected="false">حجوزات باقات</a>
-                            </li>
-                        </ul>
-                        <div class="col-md-12  mb-3">
-                            <div class="row">
-                                <div class="col-md-1">
-                                    <label for="inputEmail4">{{ __('dash.date') }}</label>
-                                </div>
-                                <label>من</label>
-                                <div class="col-md-4">
-                                    <input type="datetime-local" name="date" class="form-control date" step="1"
-                                        id="inputEmail4">
-                                </div>
-                                <label>إلى</label>
-                                <div class="col-md-4">
-                                    <input type="datetime-local" name="date2" class="form-control date2" step="1"
-                                        id="inputEmail42">
-                                </div>
-                            </div>
-                            <br>
-                            <div class="row">
-
-
-
-                                <div class="col-md-1">
-                                    <label for="inputEmail4">الحالة</label>
-                                </div>
-                                <div class="col-md-4">
-                                    <select class="select2 status_filter form-control" name="status_filter">
-                                        <option value="all" selected>الكل</option>
-                                        @foreach ($statuses as $id => $status)
-                                            <option value="{{ $id }}">{{ $status }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                            </div>
+                    <div class="tab-content" id="simpletabContent">
+                        <div class="tab-pane fade @if ($type == 'service') show active @endif " id="service"
+                            role="tabpanel" aria-labelledby="service-tab">
+                            @include('dashboard.bookings.partial.service')
 
                         </div>
-                        <div class="tab-content" id="simpletabContent">
-                            <div class="tab-pane fade @if ($type == 'service') show active @endif " id="service"
-                                role="tabpanel" aria-labelledby="service-tab">
-                                @include('dashboard.bookings.partial.service')
-
-                            </div>
-                            <div class="tab-pane fade @if ($type == 'package') show active @endif " id="package"
-                                role="tabpanel" aria-labelledby="package-tab">
-                                @include('dashboard.bookings.partial.contract')
-                            </div>
+                        <div class="tab-pane fade @if ($type == 'package') show active @endif " id="package"
+                            role="tabpanel" aria-labelledby="package-tab">
+                            @include('dashboard.bookings.partial.contract')
                         </div>
-
-
                     </div>
 
 
                 </div>
-            </div>
 
+
+            </div>
         </div>
 
     </div>
 
-    @include('dashboard.bookings.partial.add_group')
+</div>
+
+@include('dashboard.bookings.partial.add_group')
 @endsection
 
 @push('script')
-    <script type="text/javascript">
-        $(document).ready(function() {
+<script type="text/javascript">
+    $(document).ready(function() {
             var table = $('#{{ $dataTabel }}').DataTable({
                 dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
                     "<'table-responsive'tr>" +
@@ -432,5 +432,5 @@
                 }
             });
         });
-    </script>
+</script>
 @endpush

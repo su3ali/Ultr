@@ -51,14 +51,11 @@
 
 
                         <div class="col-md-1">
-                            <label for="inputEmail4">
-                                {{ __('dash.status') }}
-                            </label>
+                            <label for="inputEmail4">{{ __('dash.status') }}</label>
                         </div>
                         <div class="col-md-4">
                             <select class="select2 status_filter form-control" name="status_filter">
-                                <option value="all" selected> {{ __('dash.all') }}
-                                </option>
+                                <option value="all" selected>{{ __('dash.all') }}</option>
                                 @foreach ($statuses as $id => $status)
                                 <option value="{{ $id }}">{{ $status }}</option>
                                 @endforeach

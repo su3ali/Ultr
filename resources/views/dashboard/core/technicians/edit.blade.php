@@ -78,7 +78,7 @@
                             </div>
                             <div class="form-group col-md-6">
 
-                                <label for="edit_spec">التخصص</label>
+                                <label for="edit_spec">{{ __('dash.specialization') }}</label>
                                 <select id="edit_spec" class="select2 form-control pt-1" name="spec_id">
                                     <option selected disabled>{{ __('dash.choose') }}</option>
                                     @foreach ($specs as $spec)

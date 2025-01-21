@@ -60,14 +60,14 @@
                                     <!-- Title and Value -->
                                     <div>
                                         <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $customers }}</p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.Customers') }}</h5>
+                                        <h5 class="text-muted mb-0"> {{ __('dash.customers') }}</h5>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Hover Effect Container -->
                             <div class="widget-footer p-4 text-center">
-                                <p class="text-muted mb-0">{{ __('dash.Customers Management') }}</p>
+                                <p class="text-muted mb-0"> {{ __('dash.customers_Management') }}</p>
                             </div>
                         </div>
                     </a>
@@ -101,7 +101,7 @@
 
                             <!-- Hover Effect Container -->
                             <div class="widget-footer p-4 text-center">
-                                <p class="text-muted mb-0"> {{ __('dash.orders_managment') }}</p>
+                                <p class="text-muted mb-0"> {{ __('dash.manage_orders') }}</p>
                             </div>
                         </div>
                     </a>
@@ -126,15 +126,13 @@
                                     <div>
                                         <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $technicians }}</p>
                                         <h5 class="text-muted mb-0">{{ __('dash.technicians') }}</h5>
-
-
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Hover Effect Container -->
                             <div class="widget-footer p-4 text-center">
-                                <p class="text-muted mb-0">{{ __('dash.Management_technicians') }}</p>
+                                <p class="text-muted mb-0"> {{ __('dash.technicians_manage') }}</p>
                             </div>
                         </div>
                     </a>
@@ -166,7 +164,7 @@
 
                             <!-- Hover Effect Container -->
                             <div class="widget-footer p-4 text-center">
-                                <p class="text-muted mb-0"> إدارة طلبات الفنيين</p>
+                                <p class="text-muted mb-0"> {{ __('dash.manage_tech_orders') }}</p>
                             </div>
                         </div>
                     </a>
@@ -203,7 +201,7 @@
                                 </div>
                             </div>
                             <div class="widget-footer p-4 text-center bg-lightblue">
-                                <p class="text-muted mb-0">إدارة الطلبات الملغية</p>
+                                <p class="text-muted mb-0"> {{ __('dash.Manage_cancelled_orders') }}</p>
                             </div>
                         </div>
                     </a>
@@ -237,7 +235,7 @@
                                 </div>
                             </div>
                             <div class="widget-footer p-4 text-center bg-lightgreen">
-                                <p class="text-muted mb-0">إدارة الطلبات الملغية اليوم</p>
+                                <p class="text-muted mb-0"> {{ __('dash.canceled_orders_today') }}</p>
                             </div>
                         </div>
                     </a>
@@ -260,7 +258,7 @@
                                 </div>
                             </div>
                             <div class="widget-footer p-4 text-center bg-lightyellow">
-                                <p class="text-muted mb-0">إدارة طلبات العملاء اليوم</p>
+                                <p class="text-muted mb-0">{{ __('dash.Manage_customer_orders_today') }}</p>
                             </div>
                         </div>
                     </a>
@@ -292,7 +290,7 @@
                                 </div>
                             </div>
                             <div class="widget-footer p-4 text-center bg-lightblue">
-                                <p class="text-muted mb-0">إدارة الطلبات اليوم</p>
+                                <p class="text-muted mb-0"> {{ __('dash.Manage_orders_today') }} </p>
                             </div>
                         </div>
                     </a>
@@ -323,7 +321,8 @@
                                 </div>
                             </div>
                             <div class="widget-footer p-4 text-center bg-lightpink">
-                                <p class="text-muted mb-0">إدارة الطلبات المكتملة اليوم</p>
+                                <p class="text-muted mb-0"> {{
+                                    __('dash.Manage_completed_orders_today') }}</p>
                             </div>
                         </div>
                     </a>

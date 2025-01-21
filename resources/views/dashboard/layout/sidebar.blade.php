@@ -58,7 +58,8 @@
                         <a href="{{ route('dashboard.visits_statuses.index') }}"> {{ __('dash.orders_status') }}</a>
                     </li>
                     <li>
-                        <a href="{{ route('dashboard.reason_cancel.index') }}"> أسباب الإلغاء </a>
+                        <a href="{{ route('dashboard.reason_cancel.index') }}"> {{ __('dash.cancellation_reasons') }}
+                        </a>
                     </li>
                     @endcan
                 </ul>
@@ -157,7 +158,7 @@
                 <a href="#booking" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
                         <div class="icon-container">
-                            <i data-feather="book"></i><span class="icon-name"> {{ __('dash.bookings') }}</span>
+                            <i data-feather="book"></i><span class="icon-name"> {{ __('dash.bookings') }} </span>
                         </div>
                     </div>
                     <div>
@@ -176,10 +177,11 @@
                     @endcan
                     @can('update_bookings')
                     <li>
-                        <a href="{{ route('dashboard.booking_statuses.index') }}"> {{ __('dash.bookings') }} </a>
+                        <a href="{{ route('dashboard.booking_statuses.index') }}"> {{ __('dash.booking_statuses') }}
+                        </a>
                     </li>
                     <li>
-                        <a href="{{ route('dashboard.booking_setting.index') }}"> {{ __('dash.appointments') }} </a>
+                        <a href="{{ route('dashboard.booking_setting.index') }}"> {{ __('dash.booking_statuses')}} </a>
                     </li>
                     @endcan
                 </ul>
@@ -209,10 +211,11 @@
 
                     {{-- @can('update_bookings') --}}
                     <li>
-                        <a href="{{ route('dashboard.days_statuses.index') }}"> {{ __('dash.working_days') }} </a>
+                        <a href="{{ route('dashboard.days_statuses.index') }}"> {{ __('dash.working_days') }}
+                        </a>
                     </li>
                     <li>
-                        <a href="{{ route('dashboard.shifts.index') }}"> {{ __('dash.shiftes') }} </a>
+                        <a href="{{ route('dashboard.shifts.index') }}"> {{ __('dash.shifts') }} </a>
                     </li>
                     {{-- @endcan --}}
                 </ul>
@@ -233,7 +236,7 @@
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
-                        <span> {{ __('dash.user management') }}</span>
+                        <span> {{ __('dash.user_management') }}</span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -328,7 +331,7 @@
                     <div class="">
                         <div class="icon-container">
                             <i data-feather="users"></i>
-                            <span class="icon-name"> {{ __('dash.cars') }}</span>
+                            <span class="icon-name">{{ __('dash.cars') }}</span>
                         </div>
                     </div>
                     <div>
@@ -341,9 +344,9 @@
                 </a>
                 <ul class="collapse submenu list-unstyled" id="car" data-parent="#accordionExample">
                     <li>
-                        <a href="{{ route('dashboard.car_type.index') }}"> نوع السياره </a>
-                        <a href="{{ route('dashboard.car_model.index') }}"> موديل السياره </a>
-                        <a href="{{ route('dashboard.car_client.index') }}"> سيارات العملاء </a>
+                        <a href="{{ route('dashboard.car_type.index') }}"> {{ __('dash.car_type') }} </a>
+                        <a href="{{ route('dashboard.car_model.index') }}"> {{ __('dash.car_model') }} </a>
+                        <a href="{{ route('dashboard.car_client.index') }}"> {{ __('dash.car_clients') }}   </a>
                     </li>
 
                 </ul>
@@ -403,7 +406,7 @@
                         <a href="{{ route('dashboard.core.group.index') }}"> {{ __('dash.technicians_groups') }} </a>
                     </li>
                     <li>
-                        <a href="{{ route('dashboard.core.tech_specializations.index') }}"> تخصصات الفنيين </a>
+                        <a href="{{ route('dashboard.core.tech_specializations.index') }}">  {{ __('dash.tech_specializations') }}   </a>
                     </li>
                 </ul>
             </li>
@@ -447,7 +450,7 @@
                             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                         </svg>
 
-                        <span>{{ __('dash.Wallet Management') }}</span>
+                        <span>{{ __('dash.wallet_Manage') }}</span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -460,12 +463,12 @@
                 <ul class="collapse submenu list-unstyled" id="wallet" data-parent="#accordionExample">
                     <li>
                         <a href="{{ route('dashboard.core.customer_wallet.index') }}">
-                            {{ __('dash.customers wallet') }} </a>
+                            {{ __('dash.customers_wallet') }} </a>
                     </li>
 
                     <li>
                         <a href="{{ route('dashboard.core.technician_wallet.index') }}">
-                            {{ __('dash.technicians wallet') }} </a>
+                            {{ __('dash.technicians_wallet') }} </a>
                     </li>
 
                 </ul>
@@ -483,7 +486,7 @@
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
 
-                        <span>{{ __('dash.Customer Management') }}</span>
+                        <span>{{ __('dash.customers_Management') }}</span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -513,7 +516,7 @@
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
-                        <span> {{ __('dash.Supplier management') }}</span>
+                        <span> {{ __('dash.supplier_Manage') }}</span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -545,7 +548,7 @@
                             </polygon>
                         </svg>
 
-                        <span> {{ __('dash.rating management') }} </span>
+                        <span>{{ __('dash.rates_manage') }} </span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -557,11 +560,11 @@
                 </a>
                 <ul class="collapse submenu list-unstyled" id="rates" data-parent="#accordionExample">
                     <li>
-                        <a href="{{ route('dashboard.rates.RateTechnician') }}"> تقييمات فنيين </a>
+                        <a href="{{ route('dashboard.rates.RateTechnician') }}"> {{ __('dash.tech_ratings') }} </a>
                     </li>
 
                     <li>
-                        <a href="{{ route('dashboard.rates.RateService') }}"> تقييمات خدمات </a>
+                        <a href="{{ route('dashboard.rates.RateService') }}"> {{ __('dash.Service_Reviews') }} </a>
                     </li>
                 </ul>
             </li>
@@ -577,7 +580,7 @@
                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                         </svg>
-                        <span> {{ __('dash.notification management') }} </span>
+                        <span> {{ __('dash.manage_notifications') }}</span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -589,7 +592,8 @@
                 </a>
                 <ul class="collapse submenu list-unstyled" id="notification" data-parent="#accordionExample">
                     <li>
-                        <a href="{{ route('dashboard.notification.showNotification') }}">ارسال اشعارات </a>
+                        <a href="{{ route('dashboard.notification.showNotification') }}"> {{ __('dash.notifications') }}
+                        </a>
                     </li>
 
                 </ul>
@@ -608,7 +612,7 @@
                             <circle cx="17.5" cy="17.5" r="2.5"></circle>
                         </svg>
 
-                        <span> {{ __('dash.coupons management') }} </span>
+                        <span>{{ __('dash.coupon_manage') }} </span>
                     </div>
                     <div>
                     </div>
@@ -664,7 +668,7 @@
                 </a>
                 <ul class="collapse submenu list-unstyled" id="banners" data-parent="#accordionExample">
                     <li>
-                        <a href="{{ route('dashboard.banners.index') }}">البنرات</a>
+                        <a href="{{ route('dashboard.banners.index') }}"> {{ __('dash.banners') }}</a>
                     </li>
                 </ul>
             </li>
@@ -682,7 +686,7 @@
                             </path>
                         </svg>
 
-                        <span>{{ __('dash.System settings') }}</span>
+                        <span>{{ __('dash.system_settings') }}</span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -704,7 +708,8 @@
                         <a href="{{ route('dashboard.city.index') }}"> {{ __('dash.Cities') }} </a>
                     </li>
                     <li>
-                        <a href="{{ route('dashboard.core.measurements.index') }}"> وحدات القياس </a>
+                        <a href="{{ route('dashboard.core.measurements.index') }}"> {{ __('dash.measurements_units') }}
+                        </a>
                     </li>
                     <li>
                         <a href="{{ route('dashboard.faqs.index') }}">الأسئلة الشائعة</a>
@@ -723,7 +728,7 @@
                             <line x1="4" y1="22" x2="4" y2="15"></line>
                         </svg>
 
-                        <span>تقارير</span>
+                        <span>{{ __('dash.reports') }}</span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -735,23 +740,24 @@
                 </a>
                 <ul class="collapse submenu list-unstyled" id="reports" data-parent="#accordionExample">
                     <li>
-                        <a href="{{ route('dashboard.report.sales') }}"> تقرير المبيعات </a>
+                        <a href="{{ route('dashboard.report.sales') }}"> {{ __('dash.report_sales') }} </a>
                     </li>
 
                     <li>
-                        <a href="{{ route('dashboard.report.contractSales') }}"> تقرير مبيعات تقاول </a>
+                        <a href="{{ route('dashboard.report.contractSales') }}"> {{ __('dash.report_contractSales') }}
+                        </a>
                     </li>
 
                     <li>
-                        <a href="{{ route('dashboard.report.customers') }}"> تقرير العملاء </a>
+                        <a href="{{ route('dashboard.report.customers') }}"> {{ __('dash.report_customers') }} </a>
                     </li>
 
                     <li>
-                        <a href="{{ route('dashboard.report.technicians') }}"> تقرير الفنيين </a>
+                        <a href="{{ route('dashboard.report.technicians') }}"> {{ __('dash.technicians_reports') }} </a>
                     </li>
 
                     <li>
-                        <a href="{{ route('dashboard.report.services') }}"> تقرير الخدمات </a>
+                        <a href="{{ route('dashboard.report.services') }}"> {{ __('dash.report_services') }} </a>
                     </li>
 
                 </ul>
