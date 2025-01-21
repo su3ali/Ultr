@@ -13,7 +13,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form action="" method="post" class="form-horizontal" enctype="multipart/form-data" id="editTechModel"
+                <form action="" method="post" class="form-horizontal" enctype="multipart/form-data" id="edit_tech_form"
                     data-parsley-validate="">
                     @csrf
                     {!! method_field('PUT') !!}
