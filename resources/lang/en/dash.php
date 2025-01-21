@@ -18,7 +18,7 @@ return [
     'success_reset_code'                    => 'Reset successful.',
     'color'                                 => 'Color',
     'size'                                  => 'Size',
-    'bookings_today'                        => 'Bookings today.',
+    'bookings_today'                        => 'Bookings today',
 // Dashboard
     'main'                                  => 'Main',
     'super_admin'                           => 'Super Admin',
@@ -726,7 +726,7 @@ return [
     'region name'                           => 'Region Name',
     'Create Region'                         => 'Create Region',
     'Edit Region'                           => 'Edit Region',
-    'Customer Management'                   => 'Customer Management',
+    'Customers Management'                  => 'Customer Management',
     'Customers'                             => 'Customers',
     'user addresses'                        => 'User Addresses',
     'r.s'                                   => 'SAR',
@@ -810,6 +810,29 @@ return [
     'working_days'                          => 'Working days',
     'permissions'                           => 'Permissions',
     'icons'                                 => 'Icons',
+
+    'booking_number'                        => 'booking number',
+    'tech_name'                             => 'technician name',
+    'service_name'                          => 'service name',
+    'service_start_date'                    => 'service start date',
+    'service_end_date'                      => 'service end date',
+    'service_start_time'                    => 'service start time',
+    'service_end_time'                      => 'service end time',
+    'serive_duration'                       => 'duration of service',
+    'interval'                              => 'interval',
+    'duration'                              => 'Duration',
+    'order_number'                          => 'order number',
+    'tech_team'                             => 'technical team',
+    'team'                                  => 'team',
+    'booking_date'                          => 'booking date',
+    'specialization'                        => 'specialization',
+
+    'copy'                                  => 'copy',
+    'csv'                                   => 'Export to CSV',
+    'excel'                                 => 'Export to Excel',
+    'print'                                 => 'print',
+
+    'Management_technicians'                => 'Management of technicians',
 
 ]
 ;
