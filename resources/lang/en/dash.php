@@ -1033,5 +1033,8 @@ return [
     'Cities'                                => 'Cities',
     'banners'                               => 'Banners',
     'appointments'                          => 'Appointments',
+    'no_image'                              => 'No Image Added',
+    'save'                                  => 'Save',
+
 
 ];

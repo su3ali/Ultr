@@ -71,19 +71,14 @@
                 <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
                     <thead>
                         <tr>
-                            <th>#</th>
                             <th> {{ __('dash.order_number') }}</th>
                             <th> {{ __('dash.booking_number') }}</th>
                             <th> {{ __('dash.team') }}</th>
+                            <th> {{ __('dash.zone') }}</th>
+                            <th> {{ __('dash.date') }}</th>
                             <th> {{ __('dash.start_time') }}</th>
                             <th> {{ __('dash.end_time') }}</th>
                             <th> {{ __('dash.duration') }}</th>
-                            <th> {{ __('dash.status') }}</th>
-                            <th> {{ __('dash.order_number') }}</th>
-                            <th> {{ __('dash.customer_name') }}</th>
-                            <th> {{ __('dash.date') }}</th>
-                            <th> {{ __('dash.amount') }}</th>
-                            <th> {{ __('dash.payment_method') }}</th>
                             <th> {{ __('dash.status') }}</th>
                             <th class="no-content">{{ __('dash.actions') }}</th>
                         </tr>
@@ -149,6 +144,9 @@
                 serverSide: true,
                 ajax: '{{ route('dashboard.visits.index') }}',
 
+
+               
+
                 columns: [{
                         data: 'id',
                         name: 'id'
@@ -158,18 +156,18 @@
                         name: 'booking_id'
                     },
                     // {data: 'visite_id', name: 'visite_id'},
+                   
                     {
-                        data: 'date',
-                        name: 'date'
+                        data: 'group_name',
+                        name: 'group_name'
                     },
                     {
                         data: 'region_name',
                         name: 'region_name'
                     },
-
                     {
-                        data: 'group_name',
-                        name: 'group_name'
+                        data: 'date',
+                        name: 'date'
                     },
                     {
                         data: 'start_time',

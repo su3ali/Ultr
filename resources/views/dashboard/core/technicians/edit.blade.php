@@ -30,7 +30,7 @@
                             </div>
 
                             <div class="form-group col-md-4">
-                                <label for="edit_user_name">اسم الفني</label>
+                                <label for="edit_user_name"> {{ __('dash.phone') }}</label>
                                 <input required type="text" name="user_name" class="form-control" id="edit_user_name"
                                     placeholder="اسم الفني المستخدم">
                                 @error('user_name')
@@ -188,8 +188,10 @@
                                 <label for="edit_day_id">{{ __('dash.working_days') }}</label>
                                 <select id="edit_day_id" name="day_id[]" class="form-control" multiple>
                                     <option selected disabled>{{ __('dash.choose') }}</option>
-                                    @foreach ($days as $id => $name_ar)
-                                    <option value="{{ $id }}">{{ $name_ar }}</option>
+                                    @foreach ($days as $day)
+                                    <option value="{{ $day->id }}">
+                                        {{ app()->getLocale() == 'ar' ? $day->name_ar : $day->name}}
+                                    </option>
                                     @endforeach
                                 </select>
                                 @error('day_id')

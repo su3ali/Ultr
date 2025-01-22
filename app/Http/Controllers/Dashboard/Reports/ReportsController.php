@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Dashboard\Reports;
 
 use App\Http\Controllers\Controller;
@@ -23,9 +22,9 @@ class ReportsController extends Controller
     protected function sales(Request $request)
     {
         if (request()->ajax()) {
-            $date = $request->date;
-            $date2 = $request->date2;
-            $service = $request->service;
+            $date           = $request->date;
+            $date2          = $request->date2;
+            $service        = $request->service;
             $payment_method = $request->payment_method;
 
             // Start the query
@@ -70,20 +69,20 @@ class ReportsController extends Controller
             $orderQuery->chunk(100, function ($orders) use ($data) {
                 foreach ($orders as $row) {
                     $data->push([
-                        'order_number' => $row->id,
-                        'user_name' => $row->user?->first_name . ' ' . $row->user?->last_name,
-                        'created_at' => Carbon::parse($row->created_at)->timezone('Asia/Riyadh')->format('Y-m-d'),
+                        'order_number'   => $row->id,
+                        'user_name'      => $row->user?->first_name . ' ' . $row->user?->last_name,
+                        'created_at'     => Carbon::parse($row->created_at)->timezone('Asia/Riyadh')->format('Y-m-d'),
 
-                        'service' => $row->services->map(fn($item) => '<button class="btn-sm btn-primary">' . $item->title_ar . '</button>')->join(' '),
+                        'service'        => $row->services->map(fn($item) => '<button class="btn-sm btn-primary">' . $item->title_ar . '</button>')->join(' '),
                         'service_number' => $row->services->count(),
-                        'price' => number_format(($row->total / 115 * 100), 2),
+                        'price'          => number_format(($row->total / 115 * 100), 2),
                         'payment_method' => match ($row->transaction?->payment_method ?? '') {
-                            'cache', 'cash' => 'شبكة',
-                            'wallet' => 'محفظة',
-                            default => 'فيزا',
+                            'cache', 'cash' => __('api.payment_method_network'),
+                            'wallet'         => __('api.payment_method_wallet'),
+                            default          => __('api.payment_method_visa'),
                         },
-                        'total' => $row->total,
-                        'region' => $row->userAddress?->region?->title ?? '',
+                        'total'          => $row->total,
+                        'region'         => $row->userAddress?->region?->title ?? '',
                     ]);
                 }
             });
@@ -105,7 +104,7 @@ class ReportsController extends Controller
                     });
             })->sum('total');
 
-        $tax = $total * 0.15;
+        $tax      = $total * 0.15;
         $services = Service::all()->pluck('title', 'id');
 
         return view('dashboard.reports.sales', compact('total', 'tax', 'services'));
@@ -113,25 +112,25 @@ class ReportsController extends Controller
 
     protected function updateSummary(Request $request)
     {
-        $date = $request->date;
-        $date2 = $request->date2;
+        $date           = $request->date;
+        $date2          = $request->date2;
         $payment_method = $request->payment_method;
-        $service = $request->service;
-        $orderQuery = Order::query();
+        $service        = $request->service;
+        $orderQuery     = Order::query();
 
         if ($date) {
 
-            $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
+            $carbonDate    = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
             $formattedDate = $carbonDate->format('Y-m-d H:i:s');
             $orderQuery->where('created_at', '>=', $formattedDate);
         }
 
         if ($date2) {
 
-            $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
+            $carbonDate2    = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
             $formattedDate2 = $carbonDate2->format('Y-m-d H:i:s');
-            $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
-            $formattedDate = $carbonDate->format('Y-m-d H:i:s');
+            $carbonDate     = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
+            $formattedDate  = $carbonDate->format('Y-m-d H:i:s');
             $orderQuery->where([['created_at', '>=', $formattedDate], ['created_at', '<=', $formattedDate2]]);
         }
 
@@ -153,15 +152,15 @@ class ReportsController extends Controller
                 $q->where('payment_method', '!=', 'cache');
             });
         })->sum('total');
-        $total = ($total / 115 * 100);
-        $taxRate = 0.15; // 15% tax rate
-        $tax = $total * $taxRate;
+        $total    = ($total / 115 * 100);
+        $taxRate  = 0.15; // 15% tax rate
+        $tax      = $total * $taxRate;
         $taxTotal = $total + $tax;
 
         // Return the summary values as JSON
         return response()->json([
-            'total' => $total,
-            'tax' => $tax,
+            'total'    => $total,
+            'tax'      => $tax,
             'taxTotal' => $taxTotal,
         ]);
     }
@@ -170,11 +169,11 @@ class ReportsController extends Controller
     {
         if (request()->ajax()) {
             $order = Contract::query();
-            $date = $request->date;
+            $date  = $request->date;
             if ($date) {
-                $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
+                $carbonDate    = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
                 $formattedDate = $carbonDate->format('Y-m-d H:i:s');
-                $order = $order->where('created_at', '=', $formattedDate);
+                $order         = $order->where('created_at', '=', $formattedDate);
             }
 
             $order = $order->get();
@@ -266,7 +265,7 @@ class ReportsController extends Controller
                 return $row->group?->name;
             })->addColumn('service_count', function ($row) {
                 $booking_ids = Visit::where('assign_to_id', $row->group_id)->where('visits_status_id', 5)->pluck('booking_id')->toArray();
-                $order_ids = Booking::where('id', $booking_ids)->pluck('order_id')->toArray();
+                $order_ids   = Booking::where('id', $booking_ids)->pluck('order_id')->toArray();
 
                 $services_count = OrderService::whereIn('order_id', $order_ids)->count();
                 return $services_count;
@@ -277,20 +276,20 @@ class ReportsController extends Controller
                 return number_format($row->rates->pluck('rate')->avg(), '2');
             })
                 ->addColumn('late', function ($row) {
-                    $visits = Visit::where('assign_to_id', $row->group_id)->where('visits_status_id', 5)->get();
+                    $visits      = Visit::where('assign_to_id', $row->group_id)->where('visits_status_id', 5)->get();
                     $booking_ids = $visits->pluck('booking_id')->toArray();
-                    $order_ids = Booking::where('id', $booking_ids)->pluck('order_id')->toArray();
+                    $order_ids   = Booking::where('id', $booking_ids)->pluck('order_id')->toArray();
                     $service_ids = OrderService::whereIn('order_id', $order_ids)->pluck('service_id')->toArray();
                     if ($service_ids != []) {
-                        $service = BookingSetting::whereIn('service_id', $service_ids)->pluck('service_duration')->toArray();
+                        $service            = BookingSetting::whereIn('service_id', $service_ids)->pluck('service_duration')->toArray();
                         $SumServiceDuration = array_sum($service);
-                        $duration = 0;
+                        $duration           = 0;
                         foreach ($visits as $visit) {
                             $start_time = Carbon::parse($visit->start_time)->timezone('Asia/Riyadh')->format('H:i:s');
-                            $end_time = Carbon::parse($visit->end_time)->timezone('Asia/Riyadh')->format('H:i:s');
+                            $end_time   = Carbon::parse($visit->end_time)->timezone('Asia/Riyadh')->format('H:i:s');
                             $duration += Carbon::parse($end_time)->diffInMinutes(Carbon::parse($start_time));
                         }
-                        $sum = $SumServiceDuration - $duration;
+                        $sum   = $SumServiceDuration - $duration;
                         $total = $sum / count($service_ids);
                     }
 

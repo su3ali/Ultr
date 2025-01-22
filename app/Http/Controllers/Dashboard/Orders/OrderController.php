@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Dashboard\Orders;
 
 use App\Http\Controllers\Controller;
@@ -33,8 +32,8 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
-        // Get pagination data sent by DataTables
-        $start = $request->input('start', 0); // Start index
+                                                 // Get pagination data sent by DataTables
+        $start  = $request->input('start', 0);   // Start index
         $length = $request->input('length', 10); // Page size
 
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
@@ -105,7 +104,7 @@ class OrderController extends Controller
 
                 ->addColumn('service', function ($row) {
                     $services = $row->services->unique('id');
-                    $html = '';
+                    $html     = '';
                     foreach ($services as $service) {
                         $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
                     }
@@ -116,16 +115,22 @@ class OrderController extends Controller
                 })
                 ->addColumn('payment_method', function ($row) {
                     return match ($row->transaction?->payment_method) {
-                        'cache', 'cash' => 'شبكة',
-                        'wallet' => 'محفظة',
-                        default => 'فيزا',
+                        'cache', 'cash' => __('api.payment_method_network'),
+                        'wallet' => __('api.payment_method_wallet'),
+                        default  => __('api.payment_method_visa'),
                     };
                 })
                 ->addColumn('region', function ($row) {
                     return optional($row->userAddress?->region)->title ?? '';
                 })
                 ->addColumn('status', function ($row) {
-                    return $row->bookings?->first()?->visit?->status->name_ar;
+                                                  // Get the current locale
+                    $locale = app()->getLocale(); // Returns either 'ar' or 'en'
+
+                    // Return the corresponding translation based on the locale
+                    return $locale === 'ar'
+                    ? $row->bookings?->first()?->visit?->status->name_ar
+                    : $row->bookings?->first()?->visit?->status->name_en;
                 })
                 ->addColumn('created_at', function ($row) {
                     return Carbon::parse($row->created_at)->timezone('Asia/Riyadh')->format("Y-m-d");
@@ -208,7 +213,7 @@ class OrderController extends Controller
                 })
                 ->addColumn('service', function ($row) {
                     $services = $row->services->unique();
-                    $html = '';
+                    $html     = '';
                     foreach ($services as $service) {
                         $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
                     }
@@ -222,11 +227,11 @@ class OrderController extends Controller
                 ->addColumn('payment_method', function ($row) {
                     $payment_method = $row->transaction?->payment_method;
                     if ($payment_method == "cache" || $payment_method == "cash") {
-                        return "شبكة";
+                        return __('api.payment_method_network');
                     } else if ($payment_method == "wallet") {
-                        return "محفظة";
+                        return __('api.payment_method_wallet');
                     } else {
-                        return "فيزا";
+                        return __('api.payment_method_visa');
                     }
 
                 })
@@ -302,7 +307,7 @@ class OrderController extends Controller
 
         if (request()->ajax()) {
 
-            $now = Carbon::now('Asia/Riyadh')->toDateString();
+            $now    = Carbon::now('Asia/Riyadh')->toDateString();
             $orders = Order::where('status_id', 5)->where('is_active', 1)->where(function ($qu) use ($now) {
                 $qu->whereDate('created_at', $now)->orWhereDate('updated_at', $now);
             })->whereHas('userAddress', function ($query) use ($regionIds) {
@@ -322,10 +327,10 @@ class OrderController extends Controller
                     : 'N/A';
                 })
                 ->addColumn('service', function ($row) {
-                    $qu = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
+                    $qu           = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
                     $services_ids = array_unique($qu);
-                    $services = Service::whereIn('id', $services_ids)->get();
-                    $html = '';
+                    $services     = Service::whereIn('id', $services_ids)->get();
+                    $html         = '';
                     foreach ($services as $service) {
                         $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
                     }
@@ -350,13 +355,12 @@ class OrderController extends Controller
                 ->addColumn('payment_method', function ($row) {
                     $payment_method = $row->transaction?->payment_method;
                     if ($payment_method == "cache" || $payment_method == "cash") {
-                        return "شبكة";
+                        return __('api.payment_method_network');
                     } else if ($payment_method == "wallet") {
-                        return "محفظة";
+                        return __('api.payment_method_wallet');
                     } else {
-                        return "فيزا";
+                        return __('api.payment_method_visa');
                     }
-
                 })
 
                 ->addColumn('region', function ($row) {
@@ -423,8 +427,8 @@ class OrderController extends Controller
     {
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
-        // Get pagination data sent by DataTables
-        $start = $request->input('start', 0); // Start index
+                                                 // Get pagination data sent by DataTables
+        $start  = $request->input('start', 0);   // Start index
         $length = $request->input('length', 10); // Page size
 
         // Start building the query
@@ -468,10 +472,10 @@ class OrderController extends Controller
                     : 'N/A';
                 })
                 ->addColumn('service', function ($row) {
-                    $qu = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
+                    $qu           = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
                     $services_ids = array_unique($qu);
-                    $services = Service::whereIn('id', $services_ids)->get();
-                    $html = '';
+                    $services     = Service::whereIn('id', $services_ids)->get();
+                    $html         = '';
                     foreach ($services as $service) {
                         $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
                     }
@@ -545,7 +549,7 @@ class OrderController extends Controller
                     'control',
                 ])
                 ->with([
-                    'recordsTotal' => $totalOrders, // Total records count (without filtering)
+                    'recordsTotal'    => $totalOrders, // Total records count (without filtering)
                     'recordsFiltered' => $totalOrders, // Filtered count (same here, as no additional filters applied)
                 ])
                 ->make(true);
@@ -585,13 +589,13 @@ class OrderController extends Controller
     }
     protected function complaintDetails()
     {
-        $customerComplaint = CustomerComplaint::findOrFail(\request()->id);
+        $customerComplaint       = CustomerComplaint::findOrFail(\request()->id);
         $customerComplaintImages = CustomerComplaintImage::where('customer_complaints_id', $customerComplaint->id)->get();
-        $user = User::where('id', $customerComplaint->user_id)->first();
-        $order = Order::where('id', $customerComplaint->order_id)->first();
-        $category_ids = $order->services->pluck('category_id')->toArray();
-        $category_ids = array_unique($category_ids);
-        $categories = Category::whereIn('id', $category_ids)->get();
+        $user                    = User::where('id', $customerComplaint->user_id)->first();
+        $order                   = Order::where('id', $customerComplaint->order_id)->first();
+        $category_ids            = $order->services->pluck('category_id')->toArray();
+        $category_ids            = array_unique($category_ids);
+        $categories              = Category::whereIn('id', $category_ids)->get();
         return view('dashboard.orders.show_complaint', compact('categories', 'customerComplaint', 'customerComplaintImages', 'user', 'order'));
     }
     public function complaints()
@@ -652,9 +656,9 @@ class OrderController extends Controller
 
     public function create()
     {
-        $users = User::all();
+        $users      = User::all();
         $categories = Category::all();
-        $services = Service::all();
+        $services   = Service::all();
 
         $cities = City::where('active', 1)->get()->pluck('title', 'id');
 
@@ -664,45 +668,45 @@ class OrderController extends Controller
     protected function store(Request $request): Factory | \Illuminate\Contracts\View\View  | RedirectResponse | \Illuminate\Contracts\Foundation\Application
     {
         $rules = [
-            'user_id' => 'required|exists:users,id',
-            'service_id' => 'array|required|exists:services,id',
-            'service_id.*' => 'required',
-            'price' => 'required',
+            'user_id'        => 'required|exists:users,id',
+            'service_id'     => 'array|required|exists:services,id',
+            'service_id.*'   => 'required',
+            'price'          => 'required',
             'payment_method' => 'required|in:visa,cache',
-            'notes' => 'nullable|String',
-            'quantity' => 'array|required',
-            'quantity.*' => 'required',
-            'day' => 'array|required',
-            'day.*' => 'required',
-            'start_time' => 'array|required',
-            'start_time.*' => 'required',
-            'total' => 'required',
-            'all_quantity' => 'required',
+            'notes'          => 'nullable|String',
+            'quantity'       => 'array|required',
+            'quantity.*'     => 'required',
+            'day'            => 'array|required',
+            'day.*'          => 'required',
+            'start_time'     => 'array|required',
+            'start_time.*'   => 'required',
+            'total'          => 'required',
+            'all_quantity'   => 'required',
         ];
         $validated = Validator::make($request->all(), $rules);
         if ($validated->fails()) {
             return redirect()->back()->withErrors($validated->errors());
         }
         $data = [
-            'user_id' => $request->user_id,
-            'total' => $request->total,
-            'sub_total' => $request->total,
-            'discount' => 0,
-            'status_id' => 2,
-            'payment_method' => $request->payment_method,
-            'notes' => $request->notes,
-            'quantity' => $request->all_quantity,
+            'user_id'         => $request->user_id,
+            'total'           => $request->total,
+            'sub_total'       => $request->total,
+            'discount'        => 0,
+            'status_id'       => 2,
+            'payment_method'  => $request->payment_method,
+            'notes'           => $request->notes,
+            'quantity'        => $request->all_quantity,
             'user_address_id' => UserAddresses::where('user_id', $request->user_id)->where('is_default', 1)->first()->id ?? null,
         ];
 
         $order = Order::query()->create($data);
         foreach ($request->service_id as $key => $service_id) {
-            $service = Service::where('id', $request->service_id)->first('category_id');
+            $service       = Service::where('id', $request->service_id)->first('category_id');
             $order_service = [
-                'order_id' => $order->id,
-                'service_id' => $service_id,
-                'price' => $request->price[$key],
-                'quantity' => $request->quantity[$key],
+                'order_id'    => $order->id,
+                'service_id'  => $service_id,
+                'price'       => $request->price[$key],
+                'quantity'    => $request->quantity[$key],
                 'category_id' => $service->category_id,
             ];
 
@@ -711,32 +715,32 @@ class OrderController extends Controller
         //        $category_ids = Service::whereIn('id',$request->service_id)->get()->pluck('category_id');
         $category_ids = array_unique($request->category_id);
         foreach ($category_ids as $key => $category_id) {
-            $last = Booking::query()->latest()->first()?->id;
-            $num = $last ? $last + 1 : 1;
+            $last       = Booking::query()->latest()->first()?->id;
+            $num        = $last ? $last + 1 : 1;
             $booking_no = 'dash2023/' . $num;
-            $minutes = 0;
+            $minutes    = 0;
             foreach (Service::with('BookingSetting')->whereIn('id', $request->service_id)->get() as $service) {
                 $serviceMinutes = ($service->BookingSetting->service_duration)
                  * OrderService::where('service_id', $service->id)->where('order_id', $order->id)->first()->quantity;
                 $minutes += $serviceMinutes;
             }
             $orderService = OrderService::where('service_id', $service->id)->where('order_id', $order->id)->get()->pluck('quantity')->toArray();
-            $quantity = array_sum($orderService);
-            $booking = [
-                'booking_no' => $booking_no,
-                'user_id' => $request->user_id,
+            $quantity     = array_sum($orderService);
+            $booking      = [
+                'booking_no'        => $booking_no,
+                'user_id'           => $request->user_id,
                 //                'service_id' => $request->service_id[$key],
-                'order_id' => $order->id,
-                'user_address_id' => $order->user_address_id,
+                'order_id'          => $order->id,
+                'user_address_id'   => $order->user_address_id,
                 'booking_status_id' => 1,
-                'category_id' => $category_id,
+                'category_id'       => $category_id,
                 //            'group_id' => current($groups),
-                'notes' => $request->notes,
-                'quantity' => $quantity,
-                'date' => $request->day[$category_id],
-                'type' => 'service',
-                'time' => Carbon::createFromTimestamp($request->start_time[$category_id])->toTimeString(),
-                'end_time' => Carbon::createFromTimestamp($request->start_time[$category_id])->addMinutes($minutes)->toTimeString(),
+                'notes'             => $request->notes,
+                'quantity'          => $quantity,
+                'date'              => $request->day[$category_id],
+                'type'              => 'service',
+                'time'              => Carbon::createFromTimestamp($request->start_time[$category_id])->toTimeString(),
+                'end_time'          => Carbon::createFromTimestamp($request->start_time[$category_id])->addMinutes($minutes)->toTimeString(),
             ];
             Booking::query()->create($booking);
         }
@@ -747,10 +751,10 @@ class OrderController extends Controller
 
     public function edit($id)
     {
-        $order = Order::where('id', $id)->first();
-        $users = User::all();
+        $order      = Order::where('id', $id)->first();
+        $users      = User::all();
         $categories = Category::all();
-        $services = Service::all();
+        $services   = Service::all();
         return view('dashboard.core.services.edit', compact('order', 'users', 'services', 'categories'));
     }
 
@@ -758,12 +762,12 @@ class OrderController extends Controller
     {
         $order = Order::query()->where('id', $id)->first();
         $rules = [
-            'user_id' => 'required|exists:users,id',
-            'category_id' => 'required|exists:categories,id',
-            'service_id' => 'required|exists:services,id',
-            'price' => 'required|Numeric',
+            'user_id'        => 'required|exists:users,id',
+            'category_id'    => 'required|exists:categories,id',
+            'service_id'     => 'required|exists:services,id',
+            'price'          => 'required|Numeric',
             'payment_method' => 'required|in:visa,cache',
-            'notes' => 'nullable|String',
+            'notes'          => 'nullable|String',
         ];
         $validated = Validator::make($request->all(), $rules);
         if ($validated->fails()) {
@@ -798,7 +802,7 @@ class OrderController extends Controller
 
         return [
             'success' => true,
-            'msg' => __("dash.deleted_success"),
+            'msg'     => __("dash.deleted_success"),
         ];
     }
 
@@ -806,11 +810,11 @@ class OrderController extends Controller
     {
         $request->validate([
             'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
-            'email' => 'required|email|max:255|unique:users,email',
-            'phone' => 'required|numeric|unique:users,phone',
-            'password' => ['required', 'confirmed', Password::min(4)],
-            'city_id' => 'required|exists:cities,id',
+            'last_name'  => 'required|string|max:100',
+            'email'      => 'required|email|max:255|unique:users,email',
+            'phone'      => 'required|numeric|unique:users,phone',
+            'password'   => ['required', 'confirmed', Password::min(4)],
+            'city_id'    => 'required|exists:cities,id',
         ]);
 
         $data = $request->except('_token', 'password_confirmation');
@@ -820,8 +824,8 @@ class OrderController extends Controller
         session()->flash('success');
         return [
             'success' => true,
-            'data' => $customer,
-            'msg' => __("dash.operation_success"),
+            'data'    => $customer,
+            'msg'     => __("dash.operation_success"),
         ];
     }
 
@@ -830,7 +834,7 @@ class OrderController extends Controller
         $customers = [];
         if ($request->has('q')) {
 
-            $search = $request->q;
+            $search    = $request->q;
             $customers = User::where('email', 'LIKE', "%$search%")
                 ->orWhere('last_name', 'LIKE', "%$search%")
                 ->orWhere('first_name', 'LIKE', "%$search%")
@@ -867,8 +871,8 @@ class OrderController extends Controller
     {
 
         $rules = [
-            'date' => 'required|date',
-            'service_ids' => 'required|array',
+            'date'          => 'required|date',
+            'service_ids'   => 'required|array',
             'service_ids.*' => 'required|exists:services,id',
         ];
         $request->validate($rules, $request->all());
@@ -891,7 +895,7 @@ class OrderController extends Controller
             }
         }
         $finalAvailTimes = [];
-        $oldMemory = [];
+        $oldMemory       = [];
         foreach ($times as $time) {
             $allTimes = [];
             foreach ($time as $t) {
@@ -900,7 +904,7 @@ class OrderController extends Controller
             if (isset($oldMemory[0])) {
                 $finalAvailTimes = array_intersect($allTimes, $oldMemory);
             } else {
-                $oldMemory = $allTimes;
+                $oldMemory       = $allTimes;
                 $finalAvailTimes = $allTimes;
             }
         }
@@ -923,17 +927,17 @@ class OrderController extends Controller
 
     protected function orderDetail()
     {
-        $order = Order::with('bookings')->findOrFail(\request()->id);
-        $userPhone = User::where('id', $order->user_id)->first()->phone;
+        $order        = Order::with('bookings')->findOrFail(\request()->id);
+        $userPhone    = User::where('id', $order->user_id)->first()->phone;
         $category_ids = $order->services->pluck('category_id')->toArray();
         $category_ids = array_unique($category_ids);
-        $categories = Category::whereIn('id', $category_ids)->get();
+        $categories   = Category::whereIn('id', $category_ids)->get();
         return view('dashboard.orders.show', compact('userPhone', 'order', 'categories'));
     }
 
     public function getBookings($orderId)
     {
-        $order = Order::with('bookings.visit')->findOrFail($orderId);
+        $order    = Order::with('bookings.visit')->findOrFail($orderId);
         $bookings = $order->bookings;
 
         return DataTables::of($bookings)

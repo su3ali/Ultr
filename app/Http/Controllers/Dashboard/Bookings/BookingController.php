@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Dashboard\Bookings;
 
 use App\Http\Controllers\Controller;
@@ -31,8 +30,8 @@ class BookingController extends Controller
 
         if (request()->ajax()) {
 
-            $date = \request()->query('date');
-            $date2 = \request()->query('date2');
+            $date     = \request()->query('date');
+            $date2    = \request()->query('date2');
             $bookings = Booking::query()->whereHas('address', function ($query) use ($regionIds) {
                 $query->whereIn('region_id', $regionIds);
             })->with(['visit.group', 'visit.status', 'order.services.category', 'package', 'service.category.groups', 'customer', 'order.transaction'])
@@ -55,13 +54,13 @@ class BookingController extends Controller
             }
 
             if ($date) {
-                $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
+                $carbonDate    = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
                 $formattedDate = $carbonDate->format('Y-m-d');
                 $bookings->where('date', '>=', $formattedDate);
             }
 
             if ($date2) {
-                $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
+                $carbonDate2    = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
                 $formattedDate2 = $carbonDate2->format('Y-m-d');
                 $bookings->where('date', '<=', $formattedDate2);
             }
@@ -98,10 +97,10 @@ class BookingController extends Controller
                 ->get();
 
             return response()->json([
-                'draw' => $request->input('draw'),
-                'recordsTotal' => $bookings->count(), // Total count of bookings
-                'recordsFiltered' => $filteredRecords, // Adjust as per your filtering logic
-                'data' => $bookings->map(function ($row) use ($visits) {
+                'draw'            => $request->input('draw'),
+                'recordsTotal'    => $bookings->count(), // Total count of bookings
+                'recordsFiltered' => $filteredRecords,   // Adjust as per your filtering logic
+                'data'            => $bookings->map(function ($row) use ($visits) {
                     // Determine the service ID or package ID based on the 'type' query parameter
                     $data = \request()->query('type') == 'package' ? $row->package_id : $row->service_id;
 
@@ -109,7 +108,7 @@ class BookingController extends Controller
                     $html = '';
 
                     // Check if the row ID is not in the visits array
-                    if (!in_array($row->id, $visits)) {
+                    if (! in_array($row->id, $visits)) {
                         // If the row is not in visits, display the "Add Team" button
                         $html .= '
                         <button type="button" id="add-work-exp" class="btn btn-sm btn-primary card-tools edit"
@@ -158,43 +157,45 @@ class BookingController extends Controller
                     // Return the generated HTML
 
                     return [
-                        'id' => $row->id,
-                        'order' => $row->visit?->booking?->order?->id ?? 'N/A',
-                        'customer' => '<a href="' . route('dashboard.customer.bookings', ['customer_id' => $row->customer->id ?? '']) . '"
-                class="customer-link"
-                title="عرض حجوزات ' . ($row->customer?->first_name ?? '') . ' ' . ($row->customer?->last_name ?? '') . '">
-                    ' . ($row->customer?->first_name ?? '') . ' ' . ($row->customer?->last_name ?? '') . '
+                        'id'             => $row->id,
+                        'order'          => $row->visit?->booking?->order?->id ?? 'N/A',
+                        'customer'       => '<a href="' . route('dashboard.customer.bookings', ['customer_id' => $row->customer->id ?? '']) . '"
+                            class="customer-link"
+                            title="عرض حجوزات ' . ($row->customer?->first_name ?? '') . ' ' . ($row->customer?->last_name ?? '') . '">
+                                ' . ($row->customer?->first_name ?? '') . ' ' . ($row->customer?->last_name ?? '') . '
 
-                </a>',
+                            </a>',
 
                         'customer_phone' => $row->customer?->phone
                         ? '<a href="https://api.whatsapp.com/send?phone=' . $row->customer->phone . '" target="_blank" class="whatsapp-link">' . $row->customer->phone . '</a>'
                         : 'N/A',
 
-                        'service' => \request()->query('type') == 'package'
+                        'service'        => \request()->query('type') == 'package'
                         ? $row->package?->name
                         : $row->order->services->where('category_id', $row->category_id)->map(function ($service) {
                             return '<button class="btn-sm btn-primary">' . $service->title . '</button>';
                         })->join(' '),
-                        'time' => $row->time ? Carbon::parse($row->time)->timezone('Asia/Riyadh')->format('g:i A') : 'N/A',
+                        'time'           => $row->time ? Carbon::parse($row->time)->timezone('Asia/Riyadh')->format('g:i A') : 'N/A',
 
-                        'group' => $row->visit?->group?->name ?? 'N/A',
-                        'total' => isset($row->visit?->booking?->order?->total) && is_float($row->visit?->booking?->order?->total)
+                        'group'          => $row->visit?->group?->name ?? 'N/A',
+                        'total'          => isset($row->visit?->booking?->order?->total) && is_float($row->visit?->booking?->order?->total)
                         ? number_format($row->visit->booking->order->total, 2)
                         : 'N/A',
-                        'status' => $row->visit?->status?->name_ar ?? 'N/A',
-                        'new' => $row->visit?->status?->name_ar ?? 'N/A',
-                        'date' => $row->date ?? 'N/A',
-                        'quantity' => $row->quantity ?? 'N/A',
+                        'status'         => app()->getLocale() === 'ar'
+                        ? ($row->visit?->status?->name_ar ?? '')
+                        : ($row->visit?->status?->name_en ?? ''),
+                        'new'            => $row->visit?->status?->name_ar ?? 'N/A',
+                        'date'           => $row->date ?? 'N/A',
+                        'quantity'       => $row->quantity ?? 'N/A',
                         'payment_method' => match ($row->visit?->booking?->order?->transaction?->payment_method ?? 'N/A') {
-                            'cache', 'cash' => '<i class="fas fa-money-bill-wave text-success" title="Cash Payment (Cash or Physical Money)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> نقدا', // Green with hover animation for cash
-                            'wallet' => '<i class="fas fa-wallet text-primary" title="Wallet Payment (e.g., Digital Wallet)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> محفظة', // Blue with hover animation for wallet
-                            'mada' => '<i class="fas fa-wifi text-success" title="Mada Payment (Saudi Payment Network)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> مدى', // Terminal icon for Mada payment system
-                            default => '<i class="fas fa-credit-card text-warning" title="Credit Card Payment (Visa, MasterCard, etc.)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> فيزا', // Yellow with hover animation for credit card
+                            'cache', 'cash' => __('api.payment_method_cach'),
+                            'wallet'         => __('api.payment_method_wallet'),
+                            'mada'           => __('api.payment_method_network'),
+                            default          => __('api.payment_method_visa'),
                         },
 
-                        'notes' => $row->notes ?? 'N/A',
-                        'control' => $html ?? 'N/A',
+                        'notes'          => $row->notes ?? 'N/A',
+                        'control'        => $html ?? 'N/A',
                     ];
                 }),
             ]);
@@ -202,7 +203,7 @@ class BookingController extends Controller
         }
 
         $visitsStatuses = VisitsStatus::query()->get()->pluck('name', 'id');
-        $statuses = BookingStatus::get()->pluck('name', 'id');
+        $statuses       = BookingStatus::get()->pluck('name', 'id');
 
         return view('dashboard.bookings.index', compact('visitsStatuses', 'statuses'));
     }
@@ -214,8 +215,8 @@ class BookingController extends Controller
 
         if (request()->ajax()) {
 
-            $date = \request()->query('date');
-            $date2 = \request()->query('date2');
+            $date     = \request()->query('date');
+            $date2    = \request()->query('date2');
             $bookings = Booking::query()
                 ->where('user_id', $customer_id)->whereHas('address', function ($query) use ($regionIds) {
                 $query->whereIn('region_id', $regionIds);
@@ -239,13 +240,13 @@ class BookingController extends Controller
             }
 
             if ($date) {
-                $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
+                $carbonDate    = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
                 $formattedDate = $carbonDate->format('Y-m-d');
                 $bookings->where('date', '>=', $formattedDate);
             }
 
             if ($date2) {
-                $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
+                $carbonDate2    = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
                 $formattedDate2 = $carbonDate2->format('Y-m-d');
                 $bookings->where('date', '<=', $formattedDate2);
             }
@@ -282,10 +283,10 @@ class BookingController extends Controller
                 ->get();
 
             return response()->json([
-                'draw' => $request->input('draw'),
-                'recordsTotal' => $bookings->count(), // Total count of bookings
-                'recordsFiltered' => $filteredRecords, // Adjust as per your filtering logic
-                'data' => $bookings->map(function ($row) use ($visits) {
+                'draw'            => $request->input('draw'),
+                'recordsTotal'    => $bookings->count(), // Total count of bookings
+                'recordsFiltered' => $filteredRecords,   // Adjust as per your filtering logic
+                'data'            => $bookings->map(function ($row) use ($visits) {
                     // Determine the service ID or package ID based on the 'type' query parameter
                     $data = \request()->query('type') == 'package' ? $row->package_id : $row->service_id;
 
@@ -293,7 +294,7 @@ class BookingController extends Controller
                     $html = '';
 
                     // Check if the row ID is not in the visits array
-                    if (!in_array($row->id, $visits)) {
+                    if (! in_array($row->id, $visits)) {
                         // If the row is not in visits, display the "Add Team" button
                         $html .= '
                         <button type="button" id="add-work-exp" class="btn btn-sm btn-primary card-tools edit"
@@ -342,36 +343,36 @@ class BookingController extends Controller
                     // Return the generated HTML
 
                     return [
-                        'id' => $row->id,
-                        'order' => $row->visit?->booking?->order?->id ?? 'N/A',
-                        'customer' =>
+                        'id'             => $row->id,
+                        'order'          => $row->visit?->booking?->order?->id ?? 'N/A',
+                        'customer'       =>
                         ($row->customer?->first_name ?? '') . ' ' .
                         ($row->customer?->last_name ?? ''),
 
                         'customer_phone' => $row->customer?->phone ?? 'N/A',
-                        'service' => \request()->query('type') == 'package'
+                        'service'        => \request()->query('type') == 'package'
                         ? $row->package?->name
                         : $row->order->services->where('category_id', $row->category_id)->map(function ($service) {
                             return '<button class="btn-sm btn-primary">' . $service->title . '</button>';
                         })->join(' '),
-                        'time' => $row->time ? Carbon::parse($row->time)->timezone('Asia/Riyadh')->format('g:i A') : 'N/A',
+                        'time'           => $row->time ? Carbon::parse($row->time)->timezone('Asia/Riyadh')->format('g:i A') : 'N/A',
 
-                        'group' => $row->visit?->group?->name ?? 'N/A',
-                        'total' => isset($row->visit?->booking?->order?->total) && is_float($row->visit?->booking?->order?->total)
+                        'group'          => $row->visit?->group?->name ?? 'N/A',
+                        'total'          => isset($row->visit?->booking?->order?->total) && is_float($row->visit?->booking?->order?->total)
                         ? number_format($row->visit->booking->order->total, 2)
                         : 'N/A',
-                        'status' => $row->visit?->status?->name_ar ?? 'N/A',
-                        'new' => $row->visit?->status?->name_ar ?? 'N/A',
-                        'date' => $row->date ?? 'N/A',
-                        'quantity' => $row->quantity ?? 'N/A',
+                        'status'         => $row->visit?->status?->name_ar ?? 'N/A',
+                        'new'            => $row->visit?->status?->name_ar ?? 'N/A',
+                        'date'           => $row->date ?? 'N/A',
+                        'quantity'       => $row->quantity ?? 'N/A',
                         'payment_method' => match ($row->visit?->booking?->order?->transaction?->payment_method ?? 'N/A') {
-                            'cache', 'cash' => '<i class="fas fa-money-bill-wave text-success" title="Cash Payment (Cash or Physical Money)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> شبكة', // Green with hover animation for cash
-                            'wallet' => '<i class="fas fa-wallet text-primary" title="Wallet Payment (e.g., Digital Wallet)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> محفظة', // Blue with hover animation for wallet
-                            default => '<i class="fas fa-credit-card text-warning" title="Credit Card Payment (Visa, MasterCard, etc.)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> فيزا', // Yellow with hover animation for credit card
+                            'cache', 'cash' => '<i class="fas fa-money-bill-wave text-success" title="Cash Payment (Cash or Physical Money)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> شبكة',     // Green with hover animation for cash
+                            'wallet'         => '<i class="fas fa-wallet text-primary" title="Wallet Payment (e.g., Digital Wallet)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> محفظة',           // Blue with hover animation for wallet
+                            default          => '<i class="fas fa-credit-card text-warning" title="Credit Card Payment (Visa, MasterCard, etc.)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> فيزا', // Yellow with hover animation for credit card
                         },
 
-                        'notes' => $row->notes ?? 'N/A',
-                        'control' => $html ?? 'N/A',
+                        'notes'          => $row->notes ?? 'N/A',
+                        'control'        => $html ?? 'N/A',
                     ];
                 }),
             ]);
@@ -379,18 +380,18 @@ class BookingController extends Controller
         }
 
         $visitsStatuses = VisitsStatus::query()->get()->pluck('name', 'id');
-        $statuses = BookingStatus::get()->pluck('name', 'id');
+        $statuses       = BookingStatus::get()->pluck('name', 'id');
 
         return view('dashboard.bookings.customer-bookings', compact('visitsStatuses', 'statuses', 'customer_id'));
     }
 
     protected function create()
     {
-        $orders = Order::all();
+        $orders    = Order::all();
         $customers = User::all();
-        $services = Service::all();
-        $groups = Group::where('active', 1)->get();
-        $statuses = BookingStatus::all();
+        $services  = Service::all();
+        $groups    = Group::where('active', 1)->get();
+        $statuses  = BookingStatus::all();
         return view('dashboard.bookings.create', compact('orders', 'customers', 'services', 'groups', 'statuses'));
     }
 
@@ -400,21 +401,21 @@ class BookingController extends Controller
     protected function store(Request $request): RedirectResponse
     {
         $rules = [
-            'order_id' => 'required|exists:orders,id',
-            'user_id' => 'required|exists:users,id',
-            'service_id' => 'required|exists:services,id',
-            'group_id' => 'required|exists:groups,id',
+            'order_id'          => 'required|exists:orders,id',
+            'user_id'           => 'required|exists:users,id',
+            'service_id'        => 'required|exists:services,id',
+            'group_id'          => 'required|exists:groups,id',
             'booking_status_id' => 'required|exists:booking_statuses,id',
-            'notes' => 'nullable|String',
-            'date' => 'required|Date',
-            'time' => 'required|date_format:H:i',
+            'notes'             => 'nullable|String',
+            'date'              => 'required|Date',
+            'time'              => 'required|date_format:H:i',
         ];
         $validated = Validator::make($request->all(), $rules);
         if ($validated->fails()) {
             return redirect()->back()->withErrors($validated->errors());
         }
-        $validated = $validated->validated();
-        $last = Booking::query()->latest()->first()?->id;
+        $validated               = $validated->validated();
+        $last                    = Booking::query()->latest()->first()?->id;
         $validated['booking_no'] = 'dash2023/' . $last ? $last + 1 : 1;
         Booking::query()->create($validated);
         session()->flash('success');
@@ -423,29 +424,29 @@ class BookingController extends Controller
 
     protected function edit($id)
     {
-        $booking = Booking::query()->where('id', $id)->first();
-        $orders = Order::all();
+        $booking   = Booking::query()->where('id', $id)->first();
+        $orders    = Order::all();
         $customers = User::all();
-        $services = Service::all();
-        $groups = Group::where('active', 1)->get();
-        $statuses = BookingStatus::all();
+        $services  = Service::all();
+        $groups    = Group::where('active', 1)->get();
+        $statuses  = BookingStatus::all();
         return view('dashboard.bookings.edit', compact('booking', 'orders', 'customers', 'services', 'groups', 'statuses'));
     }
 
     protected function update(Request $request, $id)
     {
-        $inputs = $request->only('order_id', 'user_id', 'service_id', 'group_id', 'date', 'notes', 'booking_status_id');
+        $inputs         = $request->only('order_id', 'user_id', 'service_id', 'group_id', 'date', 'notes', 'booking_status_id');
         $inputs['time'] = Carbon::parse($request->time)->timezone('Asia/Riyadh')->format('H:i');
-        $booking = Booking::query()->where('id', $id)->first();
-        $rules = [
-            'order_id' => 'required|exists:orders,id',
-            'user_id' => 'required|exists:users,id',
-            'service_id' => 'required|exists:services,id',
-            'group_id' => 'required|exists:groups,id',
+        $booking        = Booking::query()->where('id', $id)->first();
+        $rules          = [
+            'order_id'          => 'required|exists:orders,id',
+            'user_id'           => 'required|exists:users,id',
+            'service_id'        => 'required|exists:services,id',
+            'group_id'          => 'required|exists:groups,id',
             'booking_status_id' => 'required|exists:booking_statuses,id',
-            'notes' => 'nullable|String',
-            'date' => 'required|Date',
-            'time' => 'required|date_format:H:i',
+            'notes'             => 'nullable|String',
+            'date'              => 'required|Date',
+            'time'              => 'required|date_format:H:i',
         ];
         $validated = Validator::make($inputs, $rules);
         if ($validated->fails()) {
@@ -477,7 +478,7 @@ class BookingController extends Controller
         // $booking->delete();
         return [
             'success' => true,
-            'msg' => __("dash.deleted_success"),
+            'msg'     => __("dash.deleted_success"),
         ];
     }
 
@@ -512,10 +513,10 @@ class BookingController extends Controller
             })->get()->pluck('name', 'id')->toArray();
         } else {
             $category_id = $request->category_id;
-            $groupIds = CategoryGroup::where('category_id', $request->category_id)->pluck('group_id')->toArray();
-            $address = UserAddresses::where('id', $request->address_id)->first();
+            $groupIds    = CategoryGroup::where('category_id', $request->category_id)->pluck('group_id')->toArray();
+            $address     = UserAddresses::where('id', $request->address_id)->first();
 
-            $dayIndex = Carbon::parse()->timezone('Asia/Riyadh')->dayOfWeek;
+            $dayIndex      = Carbon::parse()->timezone('Asia/Riyadh')->dayOfWeek;
             $adjustedIndex = ($dayIndex == 5) ? 1 : ($dayIndex == 6 ? 7 : $dayIndex + 2);
             // Ensure $adjustedIndex is cast to a string
 
@@ -540,9 +541,9 @@ class BookingController extends Controller
             $end_time = $formated_start_time->addMinutes($duration * $request->quantity)->format('H:i:s');
 
             $takenIds = Visit::
-                where('start_time', '<', $end_time) // Visit starts before the passed end_time
+                where('start_time', '<', $end_time)   // Visit starts before the passed end_time
                 ->where('end_time', '>', $start_time) // Visit ends after the passed start_time
-                ->activeVisits() // Assuming this is a custom scope for active visits
+                ->activeVisits()                      // Assuming this is a custom scope for active visits
                 ->whereIn('booking_id', $booking_id)
                 ->whereIn('assign_to_id', $groupIds)
                 ->pluck('assign_to_id')

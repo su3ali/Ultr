@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Dashboard\Visits;
 
 use App\Http\Controllers\Controller;
@@ -63,31 +62,31 @@ class VisitsController extends Controller
                 });
             }
 
-            // Get total records before pagination
+                                             // Get total records before pagination
             $totalRecords = $visit->count(); // Get total records matching the filters
 
-            // Apply pagination
+                                                                // Apply pagination
             $visits = $visit->skip($request->input('start', 0)) // Skip the records for current page
-                ->take($request->input('length', 10)) // Limit records per page
+                ->take($request->input('length', 10))               // Limit records per page
                 ->get();
 
             // Return DataTables response in the required format
             return response()->json([
-                'draw' => $request->input('draw'),
-                'recordsTotal' => $totalRecords, // Total records in the database
+                'draw'            => $request->input('draw'),
+                'recordsTotal'    => $totalRecords, // Total records in the database
                 'recordsFiltered' => $totalRecords, // Total filtered records
-                'data' => $visits->map(function ($row) {
+                'data'            => $visits->map(function ($row) {
                     return [
-                        'id' => $row->id,
-                        'booking_id' => $row->booking?->id,
-                        'date' => $row->booking?->date,
+                        'id'          => $row->id,
+                        'booking_id'  => $row->booking?->id,
+                        'date'        => $row->booking?->date,
+                        'group_name'  => $row->group?->name,
                         'region_name' => optional($row->booking?->address)->region->title ?? '',
-                        'group_name' => $row->group?->name,
-                        'start_time' => \Carbon\Carbon::parse($row->start_time)->timezone('Asia/Riyadh')->format('g:i A'),
-                        'end_time' => \Carbon\Carbon::parse($row->end_time)->timezone('Asia/Riyadh')->format('g:i A'),
-                        'duration' => $row->duration,
-                        'status' => $row->status->name,
-                        'control' => '
+                        'start_time'  => \Carbon\Carbon::parse($row->start_time)->timezone('Asia/Riyadh')->format('g:i A'),
+                        'end_time'    => \Carbon\Carbon::parse($row->end_time)->timezone('Asia/Riyadh')->format('g:i A'),
+                        'duration'    => $row->duration,
+                        'status'      => $row->status->name,
+                        'control'     => '
                         <a href="' . route('dashboard.visits.show', $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
                             <i class="far fa-eye fa-2x"></i>
                         </a>',
@@ -265,9 +264,9 @@ class VisitsController extends Controller
     protected function store(Request $request)
     {
         $rules = [
-            'booking_id' => 'required|exists:bookings,id',
-            'assign_to_id' => 'required|exists:groups,id',
-            'note' => 'nullable',
+            'booking_id'       => 'required|exists:bookings,id',
+            'assign_to_id'     => 'required|exists:groups,id',
+            'note'             => 'nullable',
             'visits_status_id' => 'required|exists:visits_statuses,id',
         ];
         $validated = Validator::make($request->all(), $rules);
@@ -276,23 +275,23 @@ class VisitsController extends Controller
         }
         $validated = $validated->validated();
 
-        $booking = Booking::with('service.category')->where('id', $request->booking_id)->first();
+        $booking      = Booking::with('service.category')->where('id', $request->booking_id)->first();
         $semiBookings = Booking::query()->where('category_id', $booking->category_id)
             ->where('order_id', $booking->order_id)->get();
         $service_ids = $semiBookings->pluck('service_id')->toArray();
         if ($booking->type == 'contract') {
-            $package = ContractPackage::query()->where('id', $booking->package_id)->first();
+            $package         = ContractPackage::query()->where('id', $booking->package_id)->first();
             $bookingSettings = BookingSetting::query()->where('service_id', $package->service_id)->get();
         } else {
             $bookingSettings = BookingSetting::query()->whereIn('service_id', $service_ids)->get();
         }
 
-        $start_time = Carbon::parse($booking->time)->timezone('Asia/Riyadh');
-        $end_time = Carbon::parse($booking->end_time)->timezone('Asia/Riyadh');
-        $validated['start_time'] = $start_time;
-        $validated['end_time'] = $end_time;
-        $validated['duration'] = $end_time->diffInMinutes($start_time);
-        $validated['visite_id'] = rand(1111, 9999) . '_' . date('Ymd');
+        $start_time                    = Carbon::parse($booking->time)->timezone('Asia/Riyadh');
+        $end_time                      = Carbon::parse($booking->end_time)->timezone('Asia/Riyadh');
+        $validated['start_time']       = $start_time;
+        $validated['end_time']         = $end_time;
+        $validated['duration']         = $end_time->diffInMinutes($start_time);
+        $validated['visite_id']        = rand(1111, 9999) . '_' . date('Ymd');
         $validated['visits_status_id'] = 1;
         Visit::query()->create($validated);
 
@@ -300,7 +299,7 @@ class VisitsController extends Controller
 
         if (count($allTechn) > 0) {
 
-            $title = 'موعد زيارة جديد';
+            $title   = 'موعد زيارة جديد';
             $message = 'لديك موعد زياره جديد';
 
             foreach ($allTechn as $tech) {
@@ -310,16 +309,16 @@ class VisitsController extends Controller
                 );
             }
 
-            $techFcmArray = $allTechn->pluck('fcm_token');
+            $techFcmArray  = $allTechn->pluck('fcm_token');
             $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
             $FcmTokenArray = $techFcmArray->merge($adminFcmArray)->toArray();
 
             $notification = [
                 'device_token' => $FcmTokenArray,
-                'title' => $title,
-                'message' => $message,
-                'type' => 'technician',
-                'code' => 1,
+                'title'        => $title,
+                'message'      => $message,
+                'type'         => 'technician',
+                'code'         => 1,
             ];
 
             $this->pushNotification($notification);
@@ -331,10 +330,10 @@ class VisitsController extends Controller
 
     public function show($id)
     {
-        $visits = Visit::where('id', $id)->first();
-        $user = $visits->booking->customer;
+        $visits      = Visit::where('id', $id)->first();
+        $user        = $visits->booking->customer;
         $service_ids = OrderService::where('order_id', $visits->booking->order_id)->where('category_id', $visits->booking->category_id)->get()->pluck('service_id');
-        $services = Service::whereIn('id', $service_ids)->get()->pluck('title');
+        $services    = Service::whereIn('id', $service_ids)->get()->pluck('title');
 
         $visit_status = VisitsStatus::where('active', 1)->get();
 
@@ -361,7 +360,7 @@ class VisitsController extends Controller
 
         return [
             'success' => true,
-            'msg' => __("dash.deleted_success"),
+            'msg'     => __("dash.deleted_success"),
         ];
     }
 
@@ -369,9 +368,9 @@ class VisitsController extends Controller
     {
         $visit = Visit::query()->where('id', $id)->first();
         $rules = [
-            'booking_id' => 'required|exists:bookings,id',
-            'assign_to_id' => 'required|exists:groups,id',
-            'note' => 'nullable',
+            'booking_id'       => 'required|exists:bookings,id',
+            'assign_to_id'     => 'required|exists:groups,id',
+            'note'             => 'nullable',
             'visits_status_id' => 'required|exists:visits_statuses,id',
         ];
         $validated = Validator::make($request->all(), $rules);
@@ -389,7 +388,7 @@ class VisitsController extends Controller
 
             if (count($allTechn) > 0) {
 
-                $title = 'تغيير الفريق';
+                $title   = 'تغيير الفريق';
                 $message = 'سيتم تغيير الفريق بسبب الغاء الطلب لاسباب فنيه';
 
                 foreach ($allTechn as $tech) {
@@ -403,10 +402,10 @@ class VisitsController extends Controller
 
                 $notification = [
                     'device_token' => $FcmTokenArray,
-                    'title' => $title,
-                    'message' => $message,
-                    'type' => 'technician',
-                    'code' => 2,
+                    'title'        => $title,
+                    'message'      => $message,
+                    'type'         => 'technician',
+                    'code'         => 2,
                 ];
 
                 $this->pushNotification($notification);
@@ -424,9 +423,9 @@ class VisitsController extends Controller
     {
         $visits = Visit::where('id', $request->id)->first();
 
-        $latUser = $visits->booking?->address?->lat;
-        $longUser = $visits->booking?->address?->long;
-        $latTechn = $visits->lat ?? 0;
+        $latUser   = $visits->booking?->address?->lat;
+        $longUser  = $visits->booking?->address?->long;
+        $latTechn  = $visits->lat ?? 0;
         $longTechn = $visits->long ?? 0;
 
         $locations = [

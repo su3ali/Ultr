@@ -960,5 +960,6 @@ return [
     'order_number'                          => 'رقم الطلب',
     'duration'                              => 'المدة',
     'appointments'                          => 'المواعيد',
+    'no_image'                              => 'لم يتم اضافة صورة',
 
 ];
