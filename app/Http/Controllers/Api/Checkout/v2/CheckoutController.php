@@ -344,6 +344,9 @@ class CheckoutController extends Controller
                     'shiftGroupsIds' => $shiftGroupsIds ?? null,
                     'total'          => $total ?? '',
                     'service_id'     => $cart->service_id ?? '',
+                    'cart'           => $cart ?? '',
+                    'success'        => true,
+                    'status_code'    => 200,
 
                 ])
                 ->log('  processing the test checkout endpoint');
@@ -363,6 +366,9 @@ class CheckoutController extends Controller
                     'takenGroupsIds'    => $takenGroupsIds ?? null,
                     'shiftGroupsIds'    => $shiftGroupsIds ?? null,
                     'assign_to_id'      => $assign_to_id ?? null,
+                    'cart'              => $cart ?? '',
+                    'success'           => false,
+                    'status_code'       => 500,
 
                 ])
                 ->log('Exception while processing the test checkout endpoint');
@@ -491,6 +497,7 @@ class CheckoutController extends Controller
                     'url'               => url()->current(),
                     'user_id'           => auth()->user()->id,
                     'user_name'         => auth()->user()->first_name,
+                    'status_code'       => 500,
 
                 ])
                 ->log('Exception while processing the checkout endpoint');
