@@ -597,11 +597,13 @@ class OrderController extends Controller
     public function complaints()
     {
         $customerComplaint = CustomerComplaint::orderBy('created_at', 'desc')->get();
+        
 
         if (request()->ajax()) {
 
             return DataTables::of($customerComplaint)
                 ->addColumn('customer_name', function ($row) {
+                    
                     return $row->user?->first_name . ' ' . $row->user?->last_name;
                 })
                 ->addColumn('customer_phone', function ($row) {
