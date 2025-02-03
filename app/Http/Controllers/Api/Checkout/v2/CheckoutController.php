@@ -158,6 +158,7 @@ class CheckoutController extends Controller
     {
 
         try {
+         
 
             $rules = [
                 'user_address_id' => 'required|exists:user_addresses,id',
@@ -175,9 +176,12 @@ class CheckoutController extends Controller
             $carts                 = Cart::query()->where('user_id', $user->id)->get();
             $parent_payment_method = null;
 
-            if (! $carts->first()) {
+
+            if (! $carts->first() && ! $carts->first()?->time) {
                 return self::apiResponse(400, t_('Cart is empty'), []);
             }
+            
+            
 
             $services = [];
 
