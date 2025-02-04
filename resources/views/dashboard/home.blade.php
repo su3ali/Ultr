@@ -426,7 +426,7 @@
                             <th> {{ __('dash.booking_number') }}</th>
                             <th> {{ __('dash.customer_name') }}</th>
                             <th> {{ __('dash.phone') }}</th>
-                            <th> {{ __('dash.service') }}</th>
+                            <th> {{ __('dash.services') }}</th>
                             <th> {{ __('dash.date') }}</th>
                             <th> {{ __('dash.time') }}</th>
                             <th> {{ __('dash.status') }}</th>
@@ -452,15 +452,6 @@
                 <table id="html5-extension-order" class="table table-hover non-hover">
                     <thead>
                         <tr>
-
-                            <th> {{ __('dash.booking_number') }}</th>
-                            <th> {{ __('dash.customer_name') }}</th>
-                            <th> {{ __('dash.phone') }}</th>
-                            <th> {{ __('dash.service') }}</th>
-                            <th> {{ __('dash.date') }}</th>
-                            <th> {{ __('dash.time') }}</th>
-                            <th> {{ __('dash.status') }}</th>
-
                             <th>#</th>
                             <th> {{ __('dash.order_number') }}</th>
                             <th> {{ __('dash.customer_name') }}</th>
@@ -528,25 +519,28 @@
                     "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
                 },
                 buttons: {
-                    buttons: [{
+                    buttons: [
+                        {
                             extend: 'copy',
                             className: 'btn btn-sm',
-                            text: 'نسخ'
+                            text: '{{ __("dash.copy") }}'
+
+
                         },
                         {
                             extend: 'csv',
                             className: 'btn btn-sm',
-                            text: 'تصدير إلى CSV'
+                            text: '{{ __("dash.csv") }}'
                         },
                         {
                             extend: 'excel',
                             className: 'btn btn-sm',
-                            text: 'تصدير إلى Excel'
+                            text: '{{ __("dash.excel") }}'
                         },
                         {
                             extend: 'print',
                             className: 'btn btn-sm',
-                            text: 'طباعة'
+                            text: '{{ __("dash.print") }}'
                         }
                     ]
                 },
@@ -609,25 +603,28 @@
                     "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
                 },
                 buttons: {
-                    buttons: [{
+                    buttons: [
+                        {
                             extend: 'copy',
                             className: 'btn btn-sm',
-                            text: 'نسخ'
+                            text: '{{ __("dash.copy") }}'
+
+
                         },
                         {
                             extend: 'csv',
                             className: 'btn btn-sm',
-                            text: 'تصدير إلى CSV'
+                            text: '{{ __("dash.csv") }}'
                         },
                         {
                             extend: 'excel',
                             className: 'btn btn-sm',
-                            text: 'تصدير إلى Excel'
+                            text: '{{ __("dash.excel") }}'
                         },
                         {
                             extend: 'print',
                             className: 'btn btn-sm',
-                            text: 'طباعة'
+                            text: '{{ __("dash.print") }}'
                         }
                     ]
                 },
@@ -689,25 +686,28 @@
                     "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
                 },
                 buttons: {
-                    buttons: [{
+                    buttons: [
+                        {
                             extend: 'copy',
                             className: 'btn btn-sm',
-                            text: 'نسخ'
+                            text: '{{ __("dash.copy") }}'
+
+
                         },
                         {
                             extend: 'csv',
                             className: 'btn btn-sm',
-                            text: 'تصدير إلى CSV'
+                            text: '{{ __("dash.csv") }}'
                         },
                         {
                             extend: 'excel',
                             className: 'btn btn-sm',
-                            text: 'تصدير إلى Excel'
+                            text: '{{ __("dash.excel") }}'
                         },
                         {
                             extend: 'print',
                             className: 'btn btn-sm',
-                            text: 'طباعة'
+                            text: '{{ __("dash.print") }}'
                         }
                     ]
                 },

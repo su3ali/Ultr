@@ -111,26 +111,30 @@
                 language: {
                     "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
                 },
-                buttons: [{
-                        extend: 'copy',
-                        className: 'btn btn-sm',
-                        text: '<i class="fas fa-copy"></i> نسخ' // Adding a copy icon
-                    },
+                buttons: [
                     {
-                        extend: 'csv',
-                        className: 'btn btn-sm',
-                        text: '<i class="fas fa-file-csv"></i> تصدير إلى CSV' // Adding a CSV icon
-                    },
-                    {
-                        extend: 'excel',
-                        className: 'btn btn-sm',
-                        text: '<i class="fas fa-file-excel"></i> تصدير إلى Excel' // Adding an Excel icon
-                    },
-                    {
-                        extend: 'print',
-                        className: 'btn btn-sm',
-                        text: '<i class="fas fa-print"></i> طباعة' // Adding a print icon
-                    }
+                            extend: 'copy',
+                            className: 'btn btn-sm',
+                            text: '{{ __("dash.copy") }}'
+
+
+                        },
+                        {
+                            extend: 'csv',
+                            className: 'btn btn-sm',
+                            text: '{{ __("dash.csv") }}'
+                        },
+                        {
+                            extend: 'excel',
+                            className: 'btn btn-sm',
+                            text: '{{ __("dash.excel") }}'
+                        },
+                        {
+                            extend: 'print',
+                            className: 'btn btn-sm',
+                            text: '{{ __("dash.print") }}'
+                        }
+                    
                 ],
                 processing: true,
                 serverSide: true,

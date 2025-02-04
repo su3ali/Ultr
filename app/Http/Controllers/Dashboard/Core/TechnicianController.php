@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Dashboard\Core;
 
 use App\Http\Controllers\Controller;
@@ -28,7 +27,7 @@ class TechnicianController extends Controller
         $groups = cache()->remember('groups', 60, function () {
             return Group::all();
         });
-        $days = Day::where('is_active', 1)->pluck('name_ar', 'id');
+        $days = Day::where('is_active', 1)->get(['id', 'name_ar', 'name']);
 
         $specs = cache()->remember('specs', 60, function () {
             return Specialization::all();
@@ -67,29 +66,31 @@ class TechnicianController extends Controller
 
             // Return DataTables response
             return response()->json([
-                'draw' => $request->input('draw'),
-                'recordsTotal' => Technician::count(), // Total count of technicians (unfiltered)
+                'draw'            => $request->input('draw'),
+                'recordsTotal'    => Technician::count(), // Total count of technicians (unfiltered)
                 'recordsFiltered' => $filteredRecords,
-                'data' => $technicians->map(function ($row) {
+                'data'            => $technicians->map(function ($row) {
                     return [
-                        'id' => '<a href="' . route('dashboard.core.technician.details', ['id' => $row->id]) . '">' . $row->id . '</a>',
+                        'id'      => '<a href="' . route('dashboard.core.technician.details', ['id' => $row->id]) . '">' . $row->id . '</a>',
 
-                        'name' => '<a href="#" >' . $row->name . '</a>',
+                        'name'    => '<a href="#" >' . $row->name . '</a>',
 
-                        't_image' => $row->image && !is_null($row->image)
+                        't_image' => $row->image && ! is_null($row->image)
                         ? '<img class="img-fluid" style="width: 85px;" src="' . asset($row->image) . '"/>'
-                        : 'لم يتم اضافة صورة',
+                        : __('dash.no_image'),
 
-                        'spec' => $row->specialization?->name,
-                        'phone' => $row->phone
+                        'spec'    => app()->getLocale() === 'ar'
+                        ? $row->specialization?->name_ar
+                        : $row->specialization?->name_en,
+                        'phone'   => $row->phone
                         ? '<a href="https://api.whatsapp.com/send?phone=' .
                         (preg_match('/^05/', $row->phone) ? '966' . substr($row->phone, 1) : $row->phone) .
                         '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->phone . '</a>'
                         : 'N/A',
 
-                        'group' => $row->group?->name,
-                        'region' => $row->group?->region?->first()?->title ?? '',
-                        'status' => '
+                        'group'   => $row->group?->name,
+                        'region'  => $row->group?->region?->first()?->title ?? '',
+                        'status'  => '
                             <label class="switch s-outline s-outline-info mb-4 mr-2">
                                 <input type="checkbox" id="customSwitchtech" data-id="' . $row->id . '" ' . ($row->active ? 'checked' : '') . '>
                                 <span class="slider round"></span>
@@ -130,13 +131,13 @@ class TechnicianController extends Controller
 
         }
         $nationalities = [
-            "فلبين" => "1",
+            "فلبين"     => "1",
             "اندونيسيا" => "2",
-            "الهند" => "3",
-            "تايلند" => "4",
-            "ماليزيا" => "5",
-            "باكستان" => "6",
-            "مصر" => "7",
+            "الهند"     => "3",
+            "تايلند"    => "4",
+            "ماليزيا"   => "5",
+            "باكستان"   => "6",
+            "مصر"       => "7",
         ];
 
         return view('dashboard.core.technicians.index', compact('groups', 'specs', 'days', 'nationalities', 'days'));
@@ -145,9 +146,9 @@ class TechnicianController extends Controller
 
     public function showTechnicianDetails($id)
     {
-        // Fetch technician details
+                                                                                      // Fetch technician details
         $technician = Technician::with(['group', 'specialization'])->findOrFail($id); // Eager load related data
-        $visits = Visit::where('assign_to_id', $technician->id)
+        $visits     = Visit::where('assign_to_id', $technician->id)
             ->orderBy('created_at', 'desc') // Order by created_at in descending order
             ->paginate(10);
 
@@ -163,21 +164,21 @@ class TechnicianController extends Controller
     {
 
         $rules = [
-            'day_id' => 'required|array|exists:days,id',
-            'name' => 'required|String|min:3',
-            'email' => 'required|Email|unique:technicians,email',
-            'phone' => 'required|unique:technicians,phone',
-            'user_name' => ['required', 'regex:/^[^\s]+$/', 'unique:technicians,user_name'],
-            'password' => ['required', 'confirmed', Password::min(4)],
-            'spec_id' => 'required|exists:specializations,id',
-            'country_id' => 'required',
+            'day_id'      => 'required|array|exists:days,id',
+            'name'        => 'required|String|min:3',
+            'email'       => 'required|Email|unique:technicians,email',
+            'phone'       => 'required|unique:technicians,phone',
+            'user_name'   => ['required', 'regex:/^[^\s]+$/', 'unique:technicians,user_name'],
+            'password'    => ['required', 'confirmed', Password::min(4)],
+            'spec_id'     => 'required|exists:specializations,id',
+            'country_id'  => 'required',
             'identity_id' => 'required|Numeric',
-            'birth_date' => 'required|Date',
-            'wallet_id' => 'required',
-            'address' => 'required|String',
-            'group_id' => 'nullable',
-            'image' => 'required|image|mimes:jpeg,jpg,png,gif',
-            'active' => 'nullable|in:on,off',
+            'birth_date'  => 'required|Date',
+            'wallet_id'   => 'required',
+            'address'     => 'required|String',
+            'group_id'    => 'nullable',
+            'image'       => 'required|image|mimes:jpeg,jpg,png,gif',
+            'active'      => 'nullable|in:on,off',
         ];
         $validated = Validator::make($request->all(), $rules, ['user_name.regex' => 'يجب أن لا يحتوي اسم المستخدم على أي مسافات']);
         if ($validated->fails()) {
@@ -190,7 +191,7 @@ class TechnicianController extends Controller
             $validated['active'] = 0;
         }
         if ($request->hasFile('image')) {
-            $image = $request->file('image');
+            $image    = $request->file('image');
             $filename = time() . '.' . $image->getClientOriginalExtension();
             $request->image->move(storage_path('app/public/images/technicians/'), $filename);
             $validated['image'] = 'storage/images/technicians' . '/' . $filename;
@@ -204,9 +205,9 @@ class TechnicianController extends Controller
         foreach ($days as $day) {
             $workingDays[] = [
                 'technician_id' => $technician->id,
-                'day_id' => $day,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'day_id'        => $day,
+                'created_at'    => now(),
+                'updated_at'    => now(),
             ];
         }
 
@@ -217,23 +218,23 @@ class TechnicianController extends Controller
     }
     protected function update(Request $request, $id)
     {
-        $tech = Technician::query()->where('id', $id)->first();
+        $tech  = Technician::query()->where('id', $id)->first();
         $rules = [
-            'day_id' => 'nullable|array|exists:days,id',
-            'name' => 'required|String|min:3',
-            'email' => 'required|Email|unique:technicians,email,' . $id,
-            'phone' => 'required|unique:technicians,phone,' . $id,
-            'user_name' => ['required', 'regex:/^[^\s]+$/', 'unique:technicians,user_name,' . $id],
-            'spec_id' => 'required|exists:specializations,id',
-            'country_id' => 'required',
+            'day_id'      => 'nullable|array|exists:days,id',
+            'name'        => 'required|String|min:3',
+            'email'       => 'required|Email|unique:technicians,email,' . $id,
+            'phone'       => 'required|unique:technicians,phone,' . $id,
+            'user_name'   => ['required', 'regex:/^[^\s]+$/', 'unique:technicians,user_name,' . $id],
+            'spec_id'     => 'required|exists:specializations,id',
+            'country_id'  => 'required',
             'identity_id' => 'required|Numeric',
-            'birth_date' => 'required|Date',
-            'wallet_id' => 'required',
-            'address' => 'required|String',
-            'group_id' => 'nullable',
-            'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
-            'active' => 'nullable|in:on,off',
-            'password' => ['nullable', 'confirmed', Password::min(4)],
+            'birth_date'  => 'required|Date',
+            'wallet_id'   => 'required',
+            'address'     => 'required|String',
+            'group_id'    => 'nullable',
+            'image'       => 'nullable|image|mimes:jpeg,jpg,png,gif',
+            'active'      => 'nullable|in:on,off',
+            'password'    => ['nullable', 'confirmed', Password::min(4)],
         ];
         $validated = Validator::make($request->all(), $rules, ['user_name.regex' => 'يجب أن لا يحتوي اسم المستخدم على أي مسافات']);
         if ($validated->fails()) {;
@@ -247,7 +248,7 @@ class TechnicianController extends Controller
             if (File::exists(public_path($tech->image))) {
                 File::delete(public_path($tech->image));
             }
-            $image = $request->file('image');
+            $image    = $request->file('image');
             $filename = time() . '.' . $image->getClientOriginalExtension();
             $request->image->move(storage_path('app/public/images/technicians/'), $filename);
             $validated['image'] = 'storage/images/technicians' . '/' . $filename;
@@ -266,18 +267,18 @@ class TechnicianController extends Controller
 
             $daysToRemove = array_diff($currentWorkingDays, $newDays);
 
-            if (!empty($daysToRemove)) {
+            if (! empty($daysToRemove)) {
                 $tech->workingDays()->whereIn('day_id', $daysToRemove)->delete();
             }
 
-            if (!empty($daysToAdd)) {
+            if (! empty($daysToAdd)) {
                 $workingDays = [];
                 foreach ($daysToAdd as $day) {
                     $workingDays[] = [
                         'technician_id' => $tech->id,
-                        'day_id' => $day,
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                        'day_id'        => $day,
+                        'created_at'    => now(),
+                        'updated_at'    => now(),
                     ];
                 }
                 TechnicianWorkingDay::insert($workingDays);
@@ -299,7 +300,7 @@ class TechnicianController extends Controller
         $tech->delete();
         return [
             'success' => true,
-            'msg' => __("dash.deleted_successfully"),
+            'msg'     => __("dash.deleted_successfully"),
         ];
     }
     protected function changeStatus(Request $request)

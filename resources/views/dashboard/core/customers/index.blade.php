@@ -92,26 +92,29 @@
                     "<'dt--bottom-section d-flex justify-content-between'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'p>>" +
                     "<'dt--pages-count text-center mt-2'i>", // Entry count at the bottom-center
 
-                buttons: [{
-                        extend: 'copy',
-                        className: 'btn btn-sm',
-                        text: '<i class="fas fa-copy"></i> نسخ' // Adding a copy icon
-                    },
+                buttons: [
                     {
-                        extend: 'csv',
-                        className: 'btn btn-sm',
-                        text: '<i class="fas fa-file-csv"></i> تصدير إلى CSV' // Adding a CSV icon
-                    },
-                    {
-                        extend: 'excel',
-                        className: 'btn btn-sm',
-                        text: '<i class="fas fa-file-excel"></i> تصدير إلى Excel' // Adding an Excel icon
-                    },
-                    {
-                        extend: 'print',
-                        className: 'btn btn-sm',
-                        text: '<i class="fas fa-print"></i> طباعة' // Adding a print icon
-                    }
+                            extend: 'copy',
+                            className: 'btn btn-sm',
+                            text: '{{ __("dash.copy") }}'
+
+
+                        },
+                        {
+                            extend: 'csv',
+                            className: 'btn btn-sm',
+                            text: '{{ __("dash.csv") }}'
+                        },
+                        {
+                            extend: 'excel',
+                            className: 'btn btn-sm',
+                            text: '{{ __("dash.excel") }}'
+                        },
+                        {
+                            extend: 'print',
+                            className: 'btn btn-sm',
+                            text: '{{ __("dash.print") }}'
+                        }
                 ],
 
                 order: [

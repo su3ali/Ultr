@@ -72,13 +72,13 @@
                 <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
                     <thead>
                         <tr>
-                            <th> {{ __('dash.order_number') }}</th>
-                            <th> {{ __('dash.booking_number') }}</th>
-                            <th> {{ __('dash.booking_date') }}</th>
-                            <th> {{ __('dash.team') }}</th>
-                            <th> {{ __('dash.start_time') }}</th>
-                            <th> {{ __('dash.end_time') }}</th>
-                            <th> {{ __('dash.duration') }}</th>
+                            <th>{{ __('dash.order_number') }}</th>
+                            <th>{{ __('dash.booking_number') }}</th>
+                            <th>{{ __('dash.booking_date') }}</th>
+                            <th>{{ __('dash.team') }}</th>
+                            <th>{{ __('dash.start_time') }}</th>
+                            <th>{{ __('dash.end_time') }}</th>
+                            <th>{{ __('dash.duration') }}</th>
                             <th>{{ __('dash.zone') }}</th>
                             <th>{{ __('dash.status') }}</th>
                             <th class="no-content">{{ __('dash.actions') }}</th>

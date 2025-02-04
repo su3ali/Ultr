@@ -16,11 +16,11 @@
                 <table id="bookings-table" class="table table-hover non-hover" style="width:100%">
                     <thead>
                         <tr>
-                            <th>رقم الحجز</th>
-                            <th>اسم الفني</th>
-                            <th>التاريخ</th>
-                            <th>الوقت</th>
-                            <th>الحالة</th>
+                            <th> {{ __('dash.booking_number') }}</th>
+                            <th>{{ __('dash.tech_name') }}</th>
+                            <th>{{ __('dash.date') }}</th>
+                            <th>{{ __('dash.time') }}</th>
+                            <th>{{ __('dash.status') }}</th>
                         </tr>
                     </thead>
                     <tbody>

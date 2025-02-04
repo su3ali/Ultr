@@ -147,12 +147,18 @@
                                 <select name="day_id[]" id="day_id" class="form-control" multiple required>
                                     <option value="" disabled selected hidden>{{ __('dash.select_day') }}
                                     </option>
-                                    @foreach ($days as $id => $name_ar)
-                                    <option value="{{ $id }}">{{ $name_ar }}</option>
+                                    @foreach ($days as $day)
+                                    <option value="{{ $day->id }}">
+                                        {{ app()->getLocale() == 'ar' ? $day->name_ar : $day->name}}
+                                    </option>
                                     @endforeach
 
                                 </select>
                             </div>
+
+
+
+
                             <div class="form-group col-md-6">
                                 <label for="status"></label>
                                 <label class="switch s-outline s-outline-info  mb-4 mx-4 mt-3 d-block w-50">

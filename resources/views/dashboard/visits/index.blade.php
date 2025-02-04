@@ -50,11 +50,11 @@
 
 
                         <div class="col-md-1">
-                            <label for="inputEmail4">الحالة</label>
+                            <label for="inputEmail4">{{ __('dash.status') }}</label>
                         </div>
                         <div class="col-md-4">
                             <select class="select2 status_filter form-control" name="status_filter">
-                                <option value="all" selected>الكل</option>
+                                <option value="all" selected>{{ __('dash.status') }}</option>
                                 @foreach ($statuses as $id => $status)
                                 <option value="{{ $id }}">{{ $status }}</option>
                                 @endforeach
@@ -71,19 +71,14 @@
                 <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
                     <thead>
                         <tr>
-                            <th>#</th>
                             <th> {{ __('dash.order_number') }}</th>
                             <th> {{ __('dash.booking_number') }}</th>
                             <th> {{ __('dash.team') }}</th>
+                            <th> {{ __('dash.zone') }}</th>
+                            <th> {{ __('dash.date') }}</th>
                             <th> {{ __('dash.start_time') }}</th>
                             <th> {{ __('dash.end_time') }}</th>
                             <th> {{ __('dash.duration') }}</th>
-                            <th> {{ __('dash.status') }}</th>
-                            <th> {{ __('dash.order_number') }}</th>
-                            <th> {{ __('dash.customer_name') }}</th>
-                            <th> {{ __('dash.date') }}</th>
-                            <th> {{ __('dash.amount') }}</th>
-                            <th> {{ __('dash.payment_method') }}</th>
                             <th> {{ __('dash.status') }}</th>
                             <th class="no-content">{{ __('dash.actions') }}</th>
                         </tr>
@@ -120,33 +115,37 @@
                     "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
                 },
                 buttons: {
-                    buttons: [{
+                    buttons: [
+                        {
                             extend: 'copy',
                             className: 'btn btn-sm',
-                            text: 'نسخ',
+                            text: '{{ __("dash.copy") }}'
 
 
                         },
                         {
                             extend: 'csv',
                             className: 'btn btn-sm',
-                            text: 'تصدير إلى CSV'
+                            text: '{{ __("dash.csv") }}'
                         },
                         {
                             extend: 'excel',
                             className: 'btn btn-sm',
-                            text: 'تصدير إلى Excel'
+                            text: '{{ __("dash.excel") }}'
                         },
                         {
                             extend: 'print',
                             className: 'btn btn-sm',
-                            text: 'طباعة'
+                            text: '{{ __("dash.print") }}'
                         }
                     ]
                 },
                 processing: true,
                 serverSide: true,
                 ajax: '{{ route('dashboard.visits.index') }}',
+
+
+               
 
                 columns: [{
                         data: 'id',
@@ -157,18 +156,18 @@
                         name: 'booking_id'
                     },
                     // {data: 'visite_id', name: 'visite_id'},
+                   
                     {
-                        data: 'date',
-                        name: 'date'
+                        data: 'group_name',
+                        name: 'group_name'
                     },
                     {
                         data: 'region_name',
                         name: 'region_name'
                     },
-
                     {
-                        data: 'group_name',
-                        name: 'group_name'
+                        data: 'date',
+                        name: 'date'
                     },
                     {
                         data: 'start_time',

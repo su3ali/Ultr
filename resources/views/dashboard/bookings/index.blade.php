@@ -293,9 +293,13 @@ $type = 'package';
                         name: 'status'
                     },
                     {
-                        data: 'payment_method',
-                        name: 'payment_method'
-                    },
+                    data: 'payment_method',
+                    name: 'payment_method',
+                    render: function(data, type, row, meta) {
+                        return data; // If 'data' contains HTML, it will render it properly in the table.
+                    }
+                },
+
                     {
                         data: 'notes',
                         name: 'notes'

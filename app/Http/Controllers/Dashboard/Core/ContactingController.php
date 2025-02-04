@@ -35,13 +35,13 @@ class ContactingController extends Controller
 
 
 
-<a href="' . route('dashboard.core.contact.edit', $row->id) . '"  id="edit-booking" class="btn btn-primary btn-sm card-tools edit" data-id="' . $row->id . '"
+                        <a href="' . route('dashboard.core.contact.edit', $row->id) . '"  id="edit-booking" class="btn btn-primary btn-sm card-tools edit" data-id="' . $row->id . '"
                          data-type="' . $row->type . '" >
                             <i class="far fa-edit fa-2x"></i>
                        </a>
 
 
-                                <a data-href="' . route('dashboard.core.contact.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
+                            <a data-href="' . route('dashboard.core.contact.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
                             <i class="far fa-trash-alt fa-2x"></i>
                     </a>
                                 ';
@@ -157,7 +157,9 @@ class ContactingController extends Controller
                 })
 
                 ->addColumn('phone', function ($row) {
-                    return $row->user?->phone;
+                    return $row->user?->phone
+                        ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->user->phone . '</a>'
+                        : 'N/A';
                 })
 
                 ->addColumn('created_at', function ($row) {

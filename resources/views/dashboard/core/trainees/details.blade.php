@@ -93,14 +93,14 @@
                         <table id="settings-table" class="table table-hover non-hover" style="width:100%">
                             <thead>
                                 <tr>
-                                    <th>رقم الطلب</th>
-                                    <th>رقم الحجز</th>
-                                    <th>موعد الحجز</th>
-                                    <th>الفريق</th>
-                                    <th>وقت البدء</th>
-                                    <th>وقت الانتهاء</th>
-                                    <th>المده</th>
-                                    <th>الحاله</th>
+                                    <th>{{ __('dash.order_number') }}</th>
+                                    <th>{{ __('dash.booking_number') }}</th>
+                                    <th>{{ __('dash.booking_date') }}</th>
+                                    <th>{{ __('dash.team') }}</th>
+                                    <th>{{ __('dash.start_time') }}</th>
+                                    <th>{{ __('dash.end_time') }}</th>
+                                    <th>{{ __('dash.duration') }}</th>
+                                    <th>{{ __('dash.status') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
