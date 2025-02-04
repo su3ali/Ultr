@@ -600,59 +600,57 @@ class OrderController extends Controller
     }
     public function complaints()
     {
-
         if (request()->ajax()) {
-            $customerComplaint = CustomerComplaint::orderBy('created_at', 'desc')->get();
-            
+                                                                  // Eager load the related user model to optimize database queries
+            $customerComplaints = CustomerComplaint::with('user') // Assuming 'user' is the relation name
+                ->orderBy('created_at', 'desc')
+                ->get();
 
-            return DataTables::of($customerComplaint)
+            return DataTables::of($customerComplaints)
                 ->addColumn('customer_name', function ($row) {
-                    return $row->user?->first_name . ' ' . $row->user?->last_name;
+                    return $row->user ? $row->user->first_name . ' ' . $row->user->last_name : 'N/A';
                 })
                 ->addColumn('customer_phone', function ($row) {
-                    return $row->user?->phone;
+                    $phone = $row->user ? $row->user->phone : 'N/A';
+                    // If the phone number is not 'N/A', format it as a WhatsApp clickable link
+                    if ($phone !== 'N/A') {
+                        return '<a href="https://wa.me/' . $phone . '" target="_blank" class="whatsapp-link" title="فتح الواتساب">
+                                    <span class="phone-number">' . $phone . '</span>
+                                    <i class="fab fa-whatsapp whatsapp-icon"></i>
+                                </a>';
+                    }
+                    return $phone;
                 })
+
                 ->addColumn('complaint_text', function ($row) {
-                    return $row->text;
+                    return $row->text ?? 'No text provided';
                 })
                 ->addColumn('complaint_images', function ($row) {
-                    return "images";
+                    // Assuming images are stored in an 'images' attribute or related table
+                    return $row->images ? implode(', ', $row->images) : 'No images';
                 })
                 ->addColumn('complaint_video', function ($row) {
-
-                    return "video";
+                    // Assuming video is stored in a 'video' attribute or related table
+                    return $row->video ? $row->video : 'No video';
                 })
                 ->addColumn('created_at', function ($row) {
-                    $date = Carbon::parse($row->created_at)->timezone('Asia/Riyadh');
-
-                    return $date->format("Y-m-d H:i:s");
+                    // Use the created_at timestamp directly, formatted to the desired timezone
+                    return $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d");
                 })
                 ->addColumn('control', function ($row) {
-
-                    $html = '';
-                    $html .= '
+                    // Generate control buttons inline
+                    $html = '
                     <a href="' . route('dashboard.order.complaintDetails', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                            <i class="far fa-eye fa-2x"></i>
-                        </a>
-
-
-                                ';
-
+                        <i class="far fa-eye fa-2x"></i>
+                    </a>
+                ';
                     return $html;
                 })
-                ->rawColumns([
-
-                    'customer_name',
-                    'customer_phone',
-                    'complaint_text',
-                    'complaint_images',
-                    'complaint_video',
-                    'created_at',
-                    'control',
-                ])
+                ->rawColumns(['customer_name', 'customer_phone', 'complaint_text', 'complaint_images', 'complaint_video', 'created_at', 'control'])
                 ->make(true);
         }
-        return view('dashboard.orders.complaints', );
+
+        return view('dashboard.orders.complaints');
     }
 
     public function create()
