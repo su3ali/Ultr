@@ -445,51 +445,51 @@ class Appointment
         return false;
     }
 
-    // private function filterUnavailableSlots($timeSlots, $day, $service_id)
-    // {
-
-    //     $availableSlots = [];
-
-    //     foreach ($timeSlots as $timeSlot) {
-
-    //         $isAvailable = true;
-
-    //         foreach ($this->unavailableTimeSlots as $unavailableSlot) {
-    //             $time                       = \Carbon\Carbon::parse($unavailableSlot['time'])->format('H:i');
-    //             $unavailableSlot_service_id = (int) $unavailableSlot['service_id'];
-    //             if (
-    //                 $unavailableSlot['date'] === $day &&
-    //                 $time === $timeSlot['time'] &&
-    //                 $unavailableSlot_service_id === $service_id &&
-    //                 $unavailableSlot['shift_id'] === $timeSlot['shift_id']
-    //             ) {
-    //                 $isAvailable = false;
-    //                 break;
-    //             }
-    //         }
-
-    //         if ($isAvailable) {
-    //             $availableSlots[] = $timeSlot;
-    //         }
-    //     }
-
-    //     return $availableSlots;
-    // }
-
-    // this is faster than the above function
     private function filterUnavailableSlots($timeSlots, $day, $service_id)
     {
-        $unavailableMap = [];
-        foreach ($this->unavailableTimeSlots as $slot) {
-            if ($slot['date'] === $day && (int) $slot['service_id'] === $service_id) {
-                $unavailableMap[\Carbon\Carbon::parse($slot['time'])->format('H:i') . '_' . $slot['shift_id']] = true;
+
+        $availableSlots = [];
+
+        foreach ($timeSlots as $timeSlot) {
+
+            $isAvailable = true;
+
+            foreach ($this->unavailableTimeSlots as $unavailableSlot) {
+                $time                       = \Carbon\Carbon::parse($unavailableSlot['time'])->format('H:i');
+                $unavailableSlot_service_id = (int) $unavailableSlot['service_id'];
+                if (
+                    $unavailableSlot['date'] === $day &&
+                    $time === $timeSlot['time'] &&
+                    $unavailableSlot_service_id === $service_id &&
+                    $unavailableSlot['shift_id'] === $timeSlot['shift_id']
+                ) {
+                    $isAvailable = false;
+                    break;
+                }
+            }
+
+            if ($isAvailable) {
+                $availableSlots[] = $timeSlot;
             }
         }
 
-        return array_values(array_filter($timeSlots, fn($slot) =>
-            ! isset($unavailableMap[$slot['time'] . '_' . $slot['shift_id']])
-        ));
+        return $availableSlots;
     }
+
+    // this is faster than the above function
+    // private function filterUnavailableSlots($timeSlots, $day, $service_id)
+    // {
+    //     $unavailableMap = [];
+    //     foreach ($this->unavailableTimeSlots as $slot) {
+    //         if ($slot['date'] === $day && (int) $slot['service_id'] === $service_id) {
+    //             $unavailableMap[\Carbon\Carbon::parse($slot['time'])->format('H:i') . '_' . $slot['shift_id']] = true;
+    //         }
+    //     }
+
+    //     return array_values(array_filter($timeSlots, fn($slot) =>
+    //         ! isset($unavailableMap[$slot['time'] . '_' . $slot['shift_id']])
+    //     ));
+    // }
 
     protected function getShiftsForDay($day)
     {
