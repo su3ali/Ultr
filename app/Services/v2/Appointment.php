@@ -381,12 +381,15 @@ class Appointment
                 ->where('end_time', '>', $periodStartTime);
         })
 
+
             ->activeVisits()
             ->whereIn('booking_id', $booking_ids)
             ->whereNotIn('visits_status_id', [5, 6])
             ->whereIn('assign_to_id', $shiftGroupsIds)
             ->pluck('start_time')
             ->toArray();
+            // dd($takenTimes);
+
 
         $availableShiftGroupsIds = array_diff($ShiftGroupsInRegion, $takenIds);
 
@@ -398,27 +401,12 @@ class Appointment
 
         $timesOnCarts = Cart::where('date', $day)->where('time', $periodStartTime)->get();
 
-        if ($availableShiftGroupsCount <= $timesOnCarts->count()) {
-            $time          = $timesOnCarts->first()?->time ?? null;
-            $formattedTime = $time ? Carbon::parse($time)->format('g:i A') : null;
-
-            $exists = collect($this->unavailableTimeSlots)->contains(function ($slot) use ($formattedTime, $day, $service_id) {
-
-                return $slot['time'] === $formattedTime && $slot['date'] === $day && $slot['service_id'] === $service_id;
-            });
-            if (! $exists && $formattedTime !== null) {
-                $this->unavailableTimeSlots[] = [
-                    'time'       => $formattedTime,
-                    'date'       => $day,
-                    'service_id' => $service_id,
-                    'shift_id'   => $shiftId,
-                ];
-            }
-
-        }
+       
 
         foreach ($takenTimes as $takenTime) {
+            // dd($takenTime);
             $takenTime = $takenTime ? Carbon::parse($takenTime)->format('g:i A') : null;
+            // dd($takenTime);
             if (empty($availableShiftGroupsIds) && $takenTime == $period->format('g:i A')) {
                 if ($takenTime) {
                     // Check if this date and time combination already exists in unavailableTimeSlots
@@ -436,6 +424,25 @@ class Appointment
                     }
                 }
             }
+        }
+
+         if ($availableShiftGroupsCount <= $timesOnCarts->count()) {
+            $time          = $timesOnCarts->first()?->time ?? null;
+            $formattedTime = $time ? Carbon::parse($time)->format('g:i A') : null;
+
+            $exists = collect($this->unavailableTimeSlots)->contains(function ($slot) use ($formattedTime, $day, $service_id) {
+
+                return $slot['time'] === $formattedTime && $slot['date'] === $day && $slot['service_id'] === $service_id;
+            });
+            if (! $exists && $formattedTime !== null) {
+                $this->unavailableTimeSlots[] = [
+                    'time'       => $formattedTime,
+                    'date'       => $day,
+                    'service_id' => $service_id,
+                    'shift_id'   => $shiftId,
+                ];
+            }
+
         }
 
         // dd($this->unavailableTimeSlots);
