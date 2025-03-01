@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Api\Techn\home;
 
 use App\Http\Controllers\Controller;
@@ -34,8 +33,8 @@ class VisitsController extends Controller
     protected function myCurrentOrders()
     {
         $groupIds = Group::where('technician_id', auth('sanctum')->user()->id)->pluck('id')->toArray();
-        $groups = Group::where('technician_id', auth('sanctum')->user()->id)->first();
-        if (!$groups) {
+        $groups   = Group::where('technician_id', auth('sanctum')->user()->id)->first();
+        if (! $groups) {
             $this->body['visits'] = [];
             return self::apiResponse(200, null, $this->body);
         }
@@ -59,14 +58,14 @@ class VisitsController extends Controller
     {
         try {
             $groupIds = Group::where('technician_id', auth('sanctum')->user()->id)->pluck('id')->toArray();
-            $groups = Group::where('technician_id', auth('sanctum')->user()->id)->first();
-            if (!$groups) {
+            $groups   = Group::where('technician_id', auth('sanctum')->user()->id)->first();
+            if (! $groups) {
                 $this->body['visits'] = [];
                 return self::apiResponse(200, null, $this->body);
             }
 
             $cacheKey = 'myPreviousOrders_' . auth('sanctum')->user()->id;
-            $orders = cache()->remember($cacheKey, 300, function () use ($groupIds) {
+            $orders   = cache()->remember($cacheKey, 300, function () use ($groupIds) {
                 return Visit::whereHas('booking', function ($q) {
                     $q->whereHas('customer')->whereHas('address');
                 })->with('booking', function ($q) {
@@ -88,20 +87,47 @@ class VisitsController extends Controller
     protected function myOrdersByDateNow()
     {
         $groupIds = Group::where('technician_id', auth('sanctum')->user()->id)->pluck('id')->toArray();
-        $groups = Group::where('technician_id', auth('sanctum')->user()->id)->first();
-        if (!$groups) {
+        $groups   = Group::where('technician_id', auth('sanctum')->user()->id)->first();
+        if (! $groups) {
             $this->body['visits'] = [];
             return self::apiResponse(200, null, $this->body);
         }
-        $orders = Visit::whereHas('booking', function ($q) {
+        // $orders = Visit::whereHas('booking', function ($q) {
 
-            $q->where('date', Carbon::now('Asia/Riyadh')->format('Y-m-d'))->whereHas('customer')->whereHas('address');
-        })->with('booking', function ($q) {
-            $q->with(['service' => function ($q) {
-                $q->with('category');
-            }, 'customer', 'address']);
-        })->with('status')->whereIn('visits_status_id', [1, 2, 3, 4])
-            ->whereIn('assign_to_id', $groupIds)->orderBy('created_at', 'desc')->get();
+        //     $q->where('date', Carbon::now('Asia/Riyadh')->format('Y-m-d'))->whereHas('customer')->whereHas('address');
+        // })->with('booking', function ($q) {
+        //     $q->with(['service' => function ($q) {
+        //         $q->with('category');
+        //     }, 'customer', 'address']);
+        // })->with('status')->whereIn('visits_status_id', [1, 2, 3, 4])
+        //     ->whereIn('assign_to_id', $groupIds)->orderBy('created_at', 'desc')->get();
+
+        // Fetching Orders for Today, Tomorrow, and Yesterday
+
+        $today     = Carbon::now('Asia/Riyadh')->format('Y-m-d');
+        $tomorrow  = Carbon::now('Asia/Riyadh')->addDay()->format('Y-m-d');
+        $yesterday = Carbon::now('Asia/Riyadh')->subDay()->format('Y-m-d');
+
+        $orders = Visit::whereHas('booking', function ($q) use ($today, $tomorrow, $yesterday) {
+            $q->whereIn('date', [$yesterday, $today, $tomorrow])
+                ->whereHas('customer')
+                ->whereHas('address');
+        })
+            ->with('booking', function ($q) {
+                $q->with([
+                    'service' => function ($q) {
+                        $q->with('category');
+                    },
+                    'customer',
+                    'address',
+                ]);
+            })
+            ->with('status')
+            ->whereIn('visits_status_id', [1, 2, 3, 4])
+            ->whereIn('assign_to_id', $groupIds)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         $this->body['visits'] = VisitsResource::collection($orders);
         return self::apiResponse(200, null, $this->body);
     }
@@ -124,13 +150,13 @@ class VisitsController extends Controller
     {
 
         $rules = [
-            'type' => 'required|in:visit,order,booking',
+            'type'             => 'required|in:visit,order,booking',
             'cancel_reason_id' => 'nullable|exists:reason_cancels,id',
-            'image' => 'nullable|mimes:jpeg,png,jpg,gif',
-            'note' => 'nullable|string|min:3|max:255',
+            'image'            => 'nullable|mimes:jpeg,png,jpg,gif',
+            'note'             => 'nullable|string|min:3|max:255',
         ];
         if ($request->type == 'visit') {
-            $rules['id'] = 'required|exists:visits,id';
+            $rules['id']        = 'required|exists:visits,id';
             $rules['status_id'] = 'required|exists:visits_statuses,id';
 
             $request->validate($rules, $request->all());
@@ -140,7 +166,7 @@ class VisitsController extends Controller
             $data = [
                 'visits_status_id' => $request->status_id,
                 'reason_cancel_id' => $request->cancel_reason_id,
-                'note' => $request->note,
+                'note'             => $request->note,
             ];
             $image = null;
             // if ($request->hasFile('image')) {
@@ -155,9 +181,9 @@ class VisitsController extends Controller
             // }
 
             if ($request->hasFile('image')) {
-                $image = $request->file('image');
+                $image            = $request->file('image');
                 $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
-                if (!in_array($image->getMimeType(), $allowedMimeTypes)) {
+                if (! in_array($image->getMimeType(), $allowedMimeTypes)) {
                     return response()->json([
                         'message' => 'Invalid image type. Allowed types are: JPEG, PNG, JPG, GIF.',
                     ], 422);
@@ -170,22 +196,22 @@ class VisitsController extends Controller
                 // Define the directory where the image will be stored
                 $directory = storage_path('app/public/images/visits/');
                 // Check if the directory exists, if not, create it
-                if (!File::exists($directory)) {
+                if (! File::exists($directory)) {
                     File::makeDirectory($directory, 0755, true);
                 }
                 $image->move($directory, $filename);
-                $imagePath = 'storage/images/visits/' . $filename;
+                $imagePath     = 'storage/images/visits/' . $filename;
                 $data['image'] = $imagePath;
             }
 
             if ($request->status_id == 3) {
                 $data['start_date'] = Carbon::now('Asia/Riyadh');
-                $order = $model->booking->order;
-                $visits_ids = [];
+                $order              = $model->booking->order;
+                $visits_ids         = [];
                 foreach ($order->bookings as $booking) {
                     $visits_ids[] = $booking->visit->id;
                 }
-                if (!in_array(3, $visits_ids)) {
+                if (! in_array(3, $visits_ids)) {
                     $order->status_id = 3;
                     $order->save();
                 }
@@ -193,8 +219,8 @@ class VisitsController extends Controller
 
             if ($request->status_id == 5) {
                 $data['end_date'] = Carbon::now('Asia/Riyadh');
-                $techWallet = TechnicianWallet::query()->first();
-                $serviceCost = $model->booking->order->services->where('category_id', $model->booking->category_id)->sum('price');
+                $techWallet       = TechnicianWallet::query()->first();
+                $serviceCost      = $model->booking->order->services->where('category_id', $model->booking->category_id)->sum('price');
                 if ($techWallet->point_type == 'rate') {
                     $money = $serviceCost * ($techWallet->price / 100);
                 } else {
@@ -217,7 +243,7 @@ class VisitsController extends Controller
                 // Check if latitude and longitude are zero before updating
                 if ($model->lat == 0 && $model->long == 0) {
                     $dataToUpdate = [
-                        'lat' => $userAddress->lat ?? 0,
+                        'lat'  => $userAddress->lat ?? 0,
                         'long' => $userAddress->long ?? 0,
                     ];
 
@@ -244,7 +270,7 @@ class VisitsController extends Controller
             // }
 
             if (in_array($request->status_id, [5, 6])) {
-                $order = $model->booking->order;
+                $order      = $model->booking->order;
                 $visits_ids = [];
                 foreach ($order->bookings as $booking) {
                     $visits_ids[] = $booking->visit->id;
@@ -257,7 +283,7 @@ class VisitsController extends Controller
             }
             if ($request->status_id == 6) {
                 $bookingId = Visit::where('id', $request->id)->first()->booking_id;
-                $order = Order::whereHas('bookings', function ($q) use ($bookingId) {
+                $order     = Order::whereHas('bookings', function ($q) use ($bookingId) {
                     $q->where('id', $bookingId);
                 })->first();
                 $total = $order->sub_total;
@@ -271,8 +297,8 @@ class VisitsController extends Controller
 
                 //refund
 
-                $yourDate = Carbon::parse($booking->Date)->timezone('Asia/Riyadh');
-                $currentDate = Carbon::now('Asia/Riyadh');
+                $yourDate       = Carbon::parse($booking->Date)->timezone('Asia/Riyadh');
+                $currentDate    = Carbon::now('Asia/Riyadh');
                 $daysDifference = $yourDate->diffInDays($currentDate);
                 if ($daysDifference >= 2) {
                     $user = User::where('id', $model->booking->user_id)->first();
@@ -295,13 +321,13 @@ class VisitsController extends Controller
             $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
             $FcmTokenArray = $adminFcmArray->merge([$user->fcm_token]);
 
-            $visit = VisitsResource::make($order);
+            $visit  = VisitsResource::make($order);
             $notify = [
-                'fromFunc' => 'changeStatus',
+                'fromFunc'     => 'changeStatus',
                 'device_token' => $FcmTokenArray,
-                'data' => [
+                'data'         => [
                     'order_details' => $visit,
-                    'type' => 'change status',
+                    'type'          => 'change status',
                 ],
             ];
 
@@ -342,7 +368,7 @@ class VisitsController extends Controller
     protected function sendLatLong(Request $request)
     {
         $rules = [
-            'lat' => 'required',
+            'lat'  => 'required',
             'long' => 'required',
         ];
 
@@ -350,29 +376,29 @@ class VisitsController extends Controller
 
         //  $techn = Technician::where('id',auth('sanctum')->user()->id)->first();
         $groups = Group::where('technician_id', auth('sanctum')->user()->id)->first();
-        $model = Visit::query()->where('assign_to_id', $groups->id)->where('visits_status_id', 2)->first();
+        $model  = Visit::query()->where('assign_to_id', $groups->id)->where('visits_status_id', 2)->first();
 
-        if (!$model) {
+        if (! $model) {
             return self::apiResponse(400, __('api.visit not found'), $this->body);
         }
 
         $model->update([
-            'lat' => $request->lat,
+            'lat'  => $request->lat,
             'long' => $request->long,
         ]);
 
         $user = User::where('id', $model->booking->user_id)->first('fcm_token');
 
         $notify = [
-            'fromFunc' => 'latlong',
+            'fromFunc'     => 'latlong',
             'device_token' => collect([$user->fcm_token]),
-            'data' => [
-                'visit_id' => $model->id,
+            'data'         => [
+                'visit_id'   => $model->id,
                 'booking_id' => $model->booking_id,
-                'order_id' => $model->booking?->order_id,
-                'lat' => $request->lat,
-                'long' => $request->long,
-                'type' => 'live location',
+                'order_id'   => $model->booking?->order_id,
+                'lat'        => $request->lat,
+                'long'       => $request->long,
+                'type'       => 'live location',
             ],
         ];
 
@@ -420,7 +446,7 @@ class VisitsController extends Controller
 
         // Define validation rules
         $rules = [
-            'order_id' => 'required|exists:orders,id', // Ensure the order exists
+            'order_id'       => 'required|exists:orders,id',          // Ensure the order exists
             'payment_method' => 'required|in:cache,visa,wallet,mada', // Validate payment method
         ];
 
@@ -434,10 +460,10 @@ class VisitsController extends Controller
             // Check if a transaction already exists for the given order ID
             $transaction = Transaction::where('order_id', $validated['order_id'])->first();
 
-            if (!$transaction) {
+            if (! $transaction) {
                 // Create a new transaction if none exists
                 Transaction::create([
-                    'order_id' => $validated['order_id'],
+                    'order_id'       => $validated['order_id'],
                     'payment_result' => 'success',
                     'payment_method' => $validated['payment_method'],
                 ]);
