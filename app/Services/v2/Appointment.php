@@ -381,15 +381,13 @@ class Appointment
                 ->where('end_time', '>', $periodStartTime);
         })
 
-
             ->activeVisits()
             ->whereIn('booking_id', $booking_ids)
             ->whereNotIn('visits_status_id', [5, 6])
             ->whereIn('assign_to_id', $shiftGroupsIds)
             ->pluck('start_time')
             ->toArray();
-            // dd($takenTimes);
-
+        // dd($takenTimes);
 
         $availableShiftGroupsIds = array_diff($ShiftGroupsInRegion, $takenIds);
 
@@ -400,8 +398,6 @@ class Appointment
         $formattedPeriod = Carbon::parse($period)->format('H:i:s');
 
         $timesOnCarts = Cart::where('date', $day)->where('time', $periodStartTime)->get();
-
-       
 
         foreach ($takenTimes as $takenTime) {
             // dd($takenTime);
@@ -426,7 +422,7 @@ class Appointment
             }
         }
 
-         if ($availableShiftGroupsCount <= $timesOnCarts->count()) {
+        if ($availableShiftGroupsCount <= $timesOnCarts->count()) {
             $time          = $timesOnCarts->first()?->time ?? null;
             $formattedTime = $time ? Carbon::parse($time)->format('g:i A') : null;
 
