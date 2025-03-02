@@ -158,7 +158,6 @@ class CheckoutController extends Controller
     {
 
         try {
-         
 
             $rules = [
                 'user_address_id' => 'required|exists:user_addresses,id',
@@ -176,12 +175,9 @@ class CheckoutController extends Controller
             $carts                 = Cart::query()->where('user_id', $user->id)->get();
             $parent_payment_method = null;
 
-
             if (! $carts->first() && ! $carts->first()?->time) {
                 return self::apiResponse(400, t_('Cart is empty'), []);
             }
-            
-            
 
             $services = [];
 
@@ -385,10 +381,11 @@ class CheckoutController extends Controller
 
     protected function checkout(Request $request)
     {
+
         try {
 
             $rules = [
-                'user_address_id'  => 'required',
+                'user_address_id'  => 'required|exists:user_addresses,id',
                 'car_user_id'      => 'required|exists:car_clients,id',
                 'payment_method'   => 'required|in:cache,visa,wallet,package',
                 'shift_id'         => 'required|exists:shifts,id',
@@ -491,6 +488,7 @@ class CheckoutController extends Controller
                 return $this->saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method);
             }
         } catch (\Exception $e) {
+
             // Log the exception with additional context
             activity()
                 ->causedBy(auth()->user()) // Log the user who caused the action
@@ -522,6 +520,7 @@ class CheckoutController extends Controller
 
     private function saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method)
     {
+
         DB::beginTransaction(); // Start the transaction
 
         try {
@@ -558,6 +557,7 @@ class CheckoutController extends Controller
             }
             if ($cart) {
                 $shift = Shift::find($request->shift_id);
+                // dd($shift);
 
             } else {
                 DB::rollback();
@@ -601,10 +601,12 @@ class CheckoutController extends Controller
             }
 
             $shiftGroupsIds = Shift::where('id', $shift->id)->pluck('group_id')->toArray();
+            // dd($shiftGroupsIds);
             $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
                 return array_map('intval', json_decode($jsonString, true));
             }, $shiftGroupsIds));
 
+            // dd($shiftGroupsIds);
             $category_ids = $carts->pluck('category_id')->toArray();
             $category_ids = array_unique($category_ids);
 
@@ -672,16 +674,31 @@ class CheckoutController extends Controller
                 $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
                     $qu->where('region_id', $address->region_id);
                 })->whereIn('id', $techIdsOnThisDay);
-                // dd($address->region_id);
+
                 if ($group->get()->isEmpty()) {
                     DB::rollback();
                     return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
                 }
+                // dd($cart->time);
 
-                $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time) * $cart->quantity)->format('H:i:s'))
-                    ->where('end_time', '>', $cart->time)
-                    ->activeVisits()->whereIn('booking_id', $booking_id)
-                    ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id');
+                if ($cart->time == '23:00:00') {
+                    $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()
+                            ->addMinutes(($bookSetting->service_duration) * $cart->quantity)
+                            ->format('H:i:s'))
+                        ->where('end_time', '>', $cart->time)
+                        ->activeVisits()->whereIn('booking_id', $booking_id)
+                        ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id');
+                    // dd($takenGroupsIds);
+                } else {
+
+                    $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()
+                            ->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time) * $cart->quantity)
+                            ->format('H:i:s'))
+                        ->where('end_time', '>', $cart->time)
+                        ->activeVisits()->whereIn('booking_id', $booking_id)
+                        ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id');
+                }
+
                 // dd($takenGroupsIds);
                 if ($takenGroupsIds->isNotEmpty()) {
                     $assign_to_id = $group->whereNotIn('id', $takenGroupsIds)->inRandomOrder()?->first()?->id;
