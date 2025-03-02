@@ -39,7 +39,7 @@ class Appointment
         $this->page_number = $page_number;
     }
 
-    public function getAvailableTimesFromDate()
+    public function getAvailableTimesFromDate($isOnCeckout = false)
     {
 
         $servicesCollection = collect($this->services);
@@ -136,7 +136,7 @@ class Appointment
                     }
 
                     foreach ($periods as $period) {
-                        $periodStatus = $this->isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId);
+                        $periodStatus = $this->isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId,$isOnCeckout);
 
                         if (! $periodStatus) {
                             $formattedTime = $period->format('H:i');
@@ -293,7 +293,7 @@ class Appointment
         return array_values($finalTimes);
     }
 
-    protected function isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId)
+    protected function isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId, $isOnCeckout)
     {
         $shiftGroupsIds = Shift::where('id', $shiftId)
             ->where('is_active', 1)->pluck('group_id')->toArray();
@@ -421,24 +421,46 @@ class Appointment
                 }
             }
         }
+        // dd($isOnCeckout);
 
-        if ($availableShiftGroupsCount <= $timesOnCarts->count()) {
-            $time          = $timesOnCarts->first()?->time ?? null;
-            $formattedTime = $time ? Carbon::parse($time)->format('g:i A') : null;
+        if ($isOnCeckout) {
+            if ($availableShiftGroupsCount > $timesOnCarts->count()) {
+                $time          = $timesOnCarts->first()?->time ?? null;
+                $formattedTime = $time ? Carbon::parse($time)->format('g:i A') : null;
 
-            $exists = collect($this->unavailableTimeSlots)->contains(function ($slot) use ($formattedTime, $day, $service_id) {
+                $exists = collect($this->unavailableTimeSlots)->contains(function ($slot) use ($formattedTime, $day, $service_id) {
 
-                return $slot['time'] === $formattedTime && $slot['date'] === $day && $slot['service_id'] === $service_id;
-            });
-            if (! $exists && $formattedTime !== null) {
-                $this->unavailableTimeSlots[] = [
-                    'time'       => $formattedTime,
-                    'date'       => $day,
-                    'service_id' => $service_id,
-                    'shift_id'   => $shiftId,
-                ];
+                    return $slot['time'] === $formattedTime && $slot['date'] === $day && $slot['service_id'] === $service_id;
+                });
+                if (! $exists && $formattedTime !== null) {
+                    $this->unavailableTimeSlots[] = [
+                        'time'       => $formattedTime,
+                        'date'       => $day,
+                        'service_id' => $service_id,
+                        'shift_id'   => $shiftId,
+                    ];
+                }
+
             }
+        } else {
+            if ($availableShiftGroupsCount >= $timesOnCarts->count()) {
+                $time          = $timesOnCarts->first()?->time ?? null;
+                $formattedTime = $time ? Carbon::parse($time)->format('g:i A') : null;
 
+                $exists = collect($this->unavailableTimeSlots)->contains(function ($slot) use ($formattedTime, $day, $service_id) {
+
+                    return $slot['time'] === $formattedTime && $slot['date'] === $day && $slot['service_id'] === $service_id;
+                });
+                if (! $exists && $formattedTime !== null) {
+                    $this->unavailableTimeSlots[] = [
+                        'time'       => $formattedTime,
+                        'date'       => $day,
+                        'service_id' => $service_id,
+                        'shift_id'   => $shiftId,
+                    ];
+                }
+
+            }
         }
 
         // dd($this->unavailableTimeSlots);

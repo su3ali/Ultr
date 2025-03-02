@@ -229,7 +229,7 @@ class CheckoutController extends Controller
             $page_number    = floor($remaining_days / 14);
             // dd($services);
             $time  = new Appointment($regionId, $services, null, $page_number);
-            $times = $time->getAvailableTimesFromDate();
+            $times = $time->getAvailableTimesFromDate(true);
             if ($times) {
                 // dd($times);
 
@@ -632,7 +632,7 @@ class CheckoutController extends Controller
             $remaining_days = Carbon::now()->diffInDays(Carbon::parse($cart->date)) + 1;
             $page_number    = floor($remaining_days / 14);
             $time           = new Appointment($address->region_id, $services, null, $page_number);
-            $times          = $time->getAvailableTimesFromDate();
+            $times          = $time->getAvailableTimesFromDate(true);
             if ($times) {
 
                 $days = array_column($times, 'day');
