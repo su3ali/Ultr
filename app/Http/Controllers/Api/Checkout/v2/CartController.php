@@ -174,7 +174,7 @@ class CartController extends Controller
 
                 // $shiftRegionId = GroupRegion::where('group_id', $shiftGroupsIds[0])->pluck('region_id')->first();
 
-                // dd($shiftRegionId);
+                // dd($shiftGroupsIds);
 
                 // if ($shiftRegionId != $request->region_id) {
                 //     return self::apiResponse(400, __('api.time_out_your_region'), $this->body);
@@ -235,9 +235,9 @@ class CartController extends Controller
                 ])->count();
 
                 $exists = in_array(auth()->user()->id, $cartsIds);
-                // dd(!$exists);
+                // dd($cartsCount);
 
-                if (! $exists && $availableGroupsCount <= $cartsCount) {
+                if (! $exists && $availableGroupsCount < $cartsCount) {
                     return self::apiResponse(
                         400,
                         __('api.time_not_available'),
