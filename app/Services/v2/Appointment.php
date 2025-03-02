@@ -41,6 +41,7 @@ class Appointment
 
     public function getAvailableTimesFromDate()
     {
+       
 
         $servicesCollection = collect($this->services);
         $service_ids = $servicesCollection->pluck('id')->toArray();
@@ -294,6 +295,7 @@ class Appointment
 
     protected function isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId)
     {
+       
         $shiftGroupsIds = Shift::where('id', $shiftId)
             ->where('is_active', 1)->pluck('group_id')->toArray();
 
@@ -301,6 +303,8 @@ class Appointment
         $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
             return array_map('intval', json_decode($jsonString, true));
         }, $shiftGroupsIds));
+
+        // dd($shiftGroupsIds);
 
         $dayName = Carbon::parse($day)->format('l');
         $dayId = collect($this->daysOfWeek)->firstWhere('name', $dayName)['id'];
@@ -349,6 +353,7 @@ class Appointment
             ->pluck('id')->toArray();
 
         // dd($ShiftGroupsInRegion);
+        // dd($region_id);
 
         // Fetch booking IDs for the given date
         $booking_ids = Booking::whereHas('category', function ($query) use ($category_id) {
@@ -374,7 +379,7 @@ class Appointment
             ->pluck('assign_to_id')
             ->toArray();
 
-        // dd($shiftGroupsIds);
+        // dd($ShiftGroupsInRegion);
 
         // Fetch the specific times that are unavailable within this period
         $takenTimes = Visit::where(function ($query) use ($periodStartTime, $periodEndTime) {
@@ -388,14 +393,15 @@ class Appointment
             ->whereIn('assign_to_id', $shiftGroupsIds)
             ->pluck('start_time')
             ->toArray();
-
         $availableShiftGroupsIds = array_diff($ShiftGroupsInRegion, $takenIds);
+        // dd($shiftId);
+        // dd($availableShiftGroupsIds);
 
         $availableShiftGroupsCount = Group::where('active', 1)->GroupInRegionCategory($this->region_id, [$category_id])
             ->whereIn('id', $availableShiftGroupsIds)
             ->count();
 
-        // dd($availableShiftGroupsIds);
+        // dd($availableShiftGroupsCount);
 
         foreach ($takenTimes as $takenTime) {
             $takenTime = $takenTime ? Carbon::parse($takenTime)->format('g:i A') : null;
@@ -421,6 +427,8 @@ class Appointment
         }
         // dd($this->unavailableTimeSlots);
         if (empty($availableShiftGroupsIds)) {
+            // dd($availableShiftGroupsIds);
+
             return true;
         }
         return false;
@@ -428,6 +436,7 @@ class Appointment
 
     private function filterUnavailableSlots($timeSlots, $day, $service_id)
     {
+     
         $availableSlots = [];
 
         foreach ($timeSlots as $timeSlot) {
@@ -449,6 +458,7 @@ class Appointment
                 $availableSlots[] = $timeSlot;
             }
         }
+        // dd($availableSlots);
 
         // Return the filtered available slots
         return $availableSlots;
