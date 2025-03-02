@@ -181,6 +181,7 @@ class OrderController extends Controller
 
     public function ordersToday()
     {
+
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
         if (request()->ajax()) {
@@ -190,6 +191,11 @@ class OrderController extends Controller
 
             $now = Carbon::now('Asia/Riyadh')->toDateString();
             $orders->whereDate('created_at', '=', $now);
+
+            // $now            = Carbon::now('Asia/Riyadh');
+            // $HoursLater = $now->copy()->addHours(3);
+
+            // $orders->whereBetween('created_at', [$now, $HoursLater]);
 
             if (request()->status) {
 

@@ -166,6 +166,7 @@ class CheckoutController extends Controller
             ];
 
             $validator = Validator::make($request->all(), $rules);
+            return self::apiResponse(200, __('api.test_checkout'), $this->body);
 
             if ($validator->fails()) {
                 return self::apiResponse(400, 'Validation failed', $validator->errors());
