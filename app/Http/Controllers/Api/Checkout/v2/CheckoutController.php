@@ -303,17 +303,62 @@ class CheckoutController extends Controller
                     $qu->where('region_id', $address->region_id);
                 })->whereIn('id', $shiftGroupsIds);
 
-                // dd($group->get());
+                //
+                $technicians = Technician::whereIn('group_id', $shiftGroupsIds)->with('workingDays')->get();
+
+                // dd($technicians);
+                $dayName = Carbon::parse($cart->date)->format('l');
+                $dayId   = collect($this->daysOfWeek)->firstWhere('name', $dayName)['id'];
+
+                foreach ($technicians as $tech) {
+                    if ($tech->workingDays->isNotEmpty()) {
+
+                        // Extract the day IDs from the technician's working days
+                        $workingDays = $tech->workingDays->pluck('day_id')->toArray();
+
+                        // Check if the dayId is in the workingDays array
+                        $exists = in_array($dayId, $workingDays);
+
+                        if ($exists) {
+                            $techIdsOnThisDay[] = $tech->group_id;
+                        }
+                    } else {
+
+                        // If the technician has no working days, consider them as not working
+                        $techIds_not_work[] = $tech->group_id;
+                    }
+                }
+
+                //
+
+                $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
+                    $qu->where('region_id', $address->region_id);
+                })->whereIn('id', $techIdsOnThisDay);
 
                 if ($group->get()->isEmpty()) {
                     DB::rollback();
                     return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
                 }
+                // dd($cart->time);
 
-                $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time) * $cart->quantity)->format('H:i:s'))
-                    ->where('end_time', '>', $cart->time)
-                    ->activeVisits()->whereIn('booking_id', $booking_id)
-                    ->whereIn('assign_to_id', $shiftGroupsIds)->pluck('assign_to_id');
+                if ($cart->time == '23:00:00') {
+                    $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()
+                            ->addMinutes(($bookSetting->service_duration) * $cart->quantity)
+                            ->format('H:i:s'))
+                        ->where('end_time', '>', $cart->time)
+                        ->activeVisits()->whereIn('booking_id', $booking_id)
+                        ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id');
+                    // dd($takenGroupsIds);
+                } else {
+
+                    $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()
+                            ->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time) * $cart->quantity)
+                            ->format('H:i:s'))
+                        ->where('end_time', '>', $cart->time)
+                        ->activeVisits()->whereIn('booking_id', $booking_id)
+                        ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id');
+                }
+
                 // dd($takenGroupsIds);
                 if ($takenGroupsIds->isNotEmpty()) {
                     $assign_to_id = $group->whereNotIn('id', $takenGroupsIds)->inRandomOrder()?->first()?->id;
@@ -329,6 +374,19 @@ class CheckoutController extends Controller
                         return self::apiResponse(400, __('api.This Time is not available'), $this->body);
                     }
                 }
+
+                // dd($group->get());
+
+                if ($group->get()->isEmpty()) {
+                    DB::rollback();
+                    return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+                }
+
+                $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time) * $cart->quantity)->format('H:i:s'))
+                    ->where('end_time', '>', $cart->time)
+                    ->activeVisits()->whereIn('booking_id', $booking_id)
+                    ->whereIn('assign_to_id', $shiftGroupsIds)->pluck('assign_to_id');
+                // dd($group);
 
             }
             activity()
