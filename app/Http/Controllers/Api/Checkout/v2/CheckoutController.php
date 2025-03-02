@@ -521,7 +521,6 @@ class CheckoutController extends Controller
 
     private function saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method)
     {
-      
 
         DB::beginTransaction(); // Start the transaction
 
@@ -577,33 +576,29 @@ class CheckoutController extends Controller
             $time           = new Appointment($address->region_id, $services, null, $page_number);
             $times          = $time->getAvailableTimesFromDate();
             if ($times) {
-                
 
                 $days = array_column($times, 'day');
-               
+
                 if (! in_array($cart->date, $days)) {
-                    dd($days);
+
                     DB::rollback();
                     return self::apiResponse(400, __('api.This Time is not available'), $this->body);
                 }
-              
-                
+
                 foreach ($times as $time) {
-                  
-                    $timeEntries  = $time['times']; // Access the array of time entries
-                   
+
+                    $timeEntries = $time['times']; // Access the array of time entries
+
                     $times_values = [];
                     foreach ($timeEntries as $entry) {
                         $times_values[] = $entry['time'];     // Access 'time'
                         $shiftId        = $entry['shift_id']; // Access 'shift_id' if needed
                                                               // You can now use $timeValue and $shiftId as needed
                     }
-                    
-                    // dd(in_array(date("g:i A", strtotime($cart->time)), $times_values) && $cart->date == $time['day']);
 
+                    // dd(in_array(date("g:i A", strtotime($cart->time)), $times_values) && $cart->date == $time['day']);
                     if (! in_array(date("g:i A", strtotime($cart->time)), $times_values) && $cart->date == $time['day']) {
                         DB::rollback();
-                        // dd($times_values);
 
                         return self::apiResponse(400, __('api.This Time is not available'), $this->body);
                     }
@@ -611,7 +606,7 @@ class CheckoutController extends Controller
             }
 
             $shiftGroupsIds = Shift::where('id', $shift->id)->pluck('group_id')->toArray();
-            // dd($shiftGroupsIds);
+
             $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
                 return array_map('intval', json_decode($jsonString, true));
             }, $shiftGroupsIds));
