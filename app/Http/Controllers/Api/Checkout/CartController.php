@@ -29,7 +29,7 @@ class CartController extends Controller
         $this->middleware('localization');
     }
 
-    protected function add_to_cart(Request $request): JsonResponse
+    protected function add_to_cart(Request $request)
     {
 
         try {

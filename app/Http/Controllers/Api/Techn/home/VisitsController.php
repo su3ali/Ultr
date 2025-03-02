@@ -103,7 +103,7 @@ class VisitsController extends Controller
         // })->with('status')->whereIn('visits_status_id', [1, 2, 3, 4])
         //     ->whereIn('assign_to_id', $groupIds)->orderBy('created_at', 'desc')->get();
 
-        // Fetching Orders for Today, Tomorrow, and Yesterday 
+        // Fetching Orders for Today, Tomorrow, and Yesterday
 
         $today     = Carbon::now('Asia/Riyadh')->format('Y-m-d');
         $tomorrow  = Carbon::now('Asia/Riyadh')->addDay()->format('Y-m-d');
