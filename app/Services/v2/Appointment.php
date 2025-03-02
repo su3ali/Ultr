@@ -387,17 +387,14 @@ class Appointment
             ->whereIn('assign_to_id', $shiftGroupsIds)
             ->pluck('start_time')
             ->toArray();
-       
 
         $availableShiftGroupsIds = array_diff($ShiftGroupsInRegion, $takenIds);
-
-      
 
         $availableShiftGroupsCount = Group::where('active', 1)->GroupInRegionCategory($this->region_id, [$category_id])
             ->whereIn('id', $availableShiftGroupsIds)
             ->count();
 
-            // dd($availableShiftGroupsCount);
+        // dd($availableShiftGroupsCount);
 
         $formattedPeriod = Carbon::parse($period)->format('H:i:s');
 
@@ -413,8 +410,6 @@ class Appointment
                         return $slot['time'] === $takenTime && $slot['date'] === $day && $slot['service_id'] === $service_id;
                     });
 
-               
-
                     if (! $exists) {
                         $this->unavailableTimeSlots[] = [
                             'time'       => $takenTime,
@@ -427,7 +422,7 @@ class Appointment
             }
         }
 
-        if ($availableShiftGroupsCount < $timesOnCarts->count()) {
+        if ($availableShiftGroupsCount <= $timesOnCarts->count()) {
             $time          = $timesOnCarts->first()?->time ?? null;
             $formattedTime = $time ? Carbon::parse($time)->format('g:i A') : null;
 
