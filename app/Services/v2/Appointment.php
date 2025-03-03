@@ -364,10 +364,6 @@ class Appointment
         $periodEndTime   = $period->copy()->addMinutes($duration * $amount)->format('H:i:s');
         $periodStartTime = $period->format('H:i:s');
 
-        if ($periodEndTime === '00:15:00') {
-            $periodEndTime = '23:45:00';
-        }
-
         // Fetch unavailable group IDs within the specific period
         $takenIds = Visit::where(function ($query) use ($periodStartTime, $periodEndTime) {
 
@@ -383,6 +379,9 @@ class Appointment
             ->toArray();
 
         // dd($periodEndTime);
+        if ($periodEndTime === '00:15:00') {
+            $periodEndTime = '23:45:00';
+        }
 
         // Fetch the specific times that are unavailable within this period
         $takenTimes = Visit::where(function ($query) use ($periodStartTime, $periodEndTime) {
@@ -397,7 +396,7 @@ class Appointment
             ->pluck('start_time')
             ->toArray();
 
-        // dd($takenTimes);
+        dd($takenTimes);
 
         $availableShiftGroupsIds = array_diff($ShiftGroupsInRegion, $takenIds);
 
@@ -432,7 +431,7 @@ class Appointment
                 }
             }
         }
-        // dd($takenTimes);
+        dd($takenTimes);
 
         if ($isOnCeckout) {
             if ($availableShiftGroupsCount > $timesOnCarts->count()) {
