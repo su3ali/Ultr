@@ -136,7 +136,7 @@ class Appointment
                     }
 
                     foreach ($periods as $period) {
-                        $periodStatus = $this->isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId,$isOnCeckout);
+                        $periodStatus = $this->isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId, $isOnCeckout);
 
                         if (! $periodStatus) {
                             $formattedTime = $period->format('H:i');
@@ -423,7 +423,7 @@ class Appointment
         }
         // dd($isOnCeckout);
 
-        if ($isOnCeckout) {
+        if (! $isOnCeckout) {
             if ($availableShiftGroupsCount > $timesOnCarts->count()) {
                 $time          = $timesOnCarts->first()?->time ?? null;
                 $formattedTime = $time ? Carbon::parse($time)->format('g:i A') : null;
