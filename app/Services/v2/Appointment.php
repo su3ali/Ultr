@@ -423,7 +423,7 @@ class Appointment
         }
         // dd($isOnCeckout);
 
-        if (! $isOnCeckout) {
+        if ($isOnCeckout) {
             if ($availableShiftGroupsCount > $timesOnCarts->count()) {
                 $time          = $timesOnCarts->first()?->time ?? null;
                 $formattedTime = $time ? Carbon::parse($time)->format('g:i A') : null;
