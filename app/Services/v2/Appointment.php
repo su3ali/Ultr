@@ -396,7 +396,7 @@ class Appointment
             ->pluck('start_time')
             ->toArray();
 
-        dd($takenTimes);
+        // dd($takenTimes);
 
         $availableShiftGroupsIds = array_diff($ShiftGroupsInRegion, $takenIds);
 
@@ -431,7 +431,7 @@ class Appointment
                 }
             }
         }
-        dd($takenTimes);
+        // dd($takenTimes);
 
         if ($isOnCeckout) {
             if ($availableShiftGroupsCount > $timesOnCarts->count()) {
