@@ -113,7 +113,7 @@ class Appointment
             // Process each date for the current service
             foreach ($dates as $day) {
                 $dayName = Carbon::parse($day)->timezone('Asia/Riyadh')->locale('en')->dayName;
-                $shifts  = $this->getShiftsForDay($dayName);
+                $shifts  = $this->getShiftsForDay($isOnCeckout ,$dayName);
 
                 if ($shifts->isEmpty()) {
                     continue;
@@ -347,11 +347,10 @@ class Appointment
 
             $user = auth()->user();
             $cart = Cart::where('user_id', $user->id)->first();
-          
-            if ($cart->region_id) {
+
+            if ($cart->region_id and $isOnCeckout === true) {
                 $region_id = [$cart->region_id];
 
-              
             } else {
                 $region_id = $this->region_id;
             }
@@ -544,8 +543,9 @@ class Appointment
     //     ));
     // }
 
-    protected function getShiftsForDay($day)
+    protected function getShiftsForDay( $isOnCeckout,$day)
     {
+        // dd($isOnCeckout);
         $servicesCollection = collect($this->services);
         $ids                = $servicesCollection->pluck('id');
         $service_ids        = $ids->toArray();
@@ -559,10 +559,9 @@ class Appointment
         $user = auth()->user();
         $cart = Cart::where('user_id', $user->id)->first();
 
-        if ($cart->region_id) {
+        if ($cart->region_id and $isOnCeckout === true) {
             $region_id = [$cart->region_id];
 
-          
         } else {
             $region_id = $this->region_id;
         }
@@ -599,7 +598,7 @@ class Appointment
 
     }
 
-    protected function adjustTimesForVisits(&$times, $service_id, $day, $amount, $bookSetting)
+    protected function adjustTimesForVisits(&$times, $service_id, $day, $amount, $bookSetting ,$isOnCeckout)
     {
         // Fetch the category ID of the service
         $category_id = Service::where('id', $service_id)->first()->category_id;
@@ -612,10 +611,9 @@ class Appointment
         $user = auth()->user();
         $cart = Cart::where('user_id', $user->id)->first();
 
-        if ($cart->region_id) {
+        if ($cart->region_id and $isOnCeckout === true) {
             $region_id = [$cart->region_id];
 
-          
         } else {
             $region_id = $this->region_id;
         }
