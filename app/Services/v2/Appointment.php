@@ -295,6 +295,7 @@ class Appointment
 
     protected function isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId, $isOnCeckout)
     {
+
         $shiftGroupsIds = Shift::where('id', $shiftId)
             ->where('is_active', 1)->pluck('group_id')->toArray();
 
@@ -356,10 +357,16 @@ class Appointment
             $query->where('category_id', $category_id);
         })->where('date', $day)->pluck('id')->toArray();
 
+        // dd($booking_ids);
+
         // Calculate the duration including buffering time
         $duration        = $bookSetting->service_duration + $bookSetting->buffering_time;
         $periodEndTime   = $period->copy()->addMinutes($duration * $amount)->format('H:i:s');
         $periodStartTime = $period->format('H:i:s');
+
+        if ($periodEndTime === '00:15:00') {
+            $periodEndTime = '23:45:00';
+        }
 
         // Fetch unavailable group IDs within the specific period
         $takenIds = Visit::where(function ($query) use ($periodStartTime, $periodEndTime) {
@@ -375,6 +382,8 @@ class Appointment
             ->pluck('assign_to_id')
             ->toArray();
 
+        // dd($periodEndTime);
+
         // Fetch the specific times that are unavailable within this period
         $takenTimes = Visit::where(function ($query) use ($periodStartTime, $periodEndTime) {
             $query->where('start_time', '<', $periodEndTime)
@@ -388,6 +397,8 @@ class Appointment
             ->pluck('start_time')
             ->toArray();
 
+        // dd($takenTimes);
+
         $availableShiftGroupsIds = array_diff($ShiftGroupsInRegion, $takenIds);
 
         $availableShiftGroupsCount = Group::where('active', 1)->GroupInRegionCategory($this->region_id, [$category_id])
@@ -400,7 +411,7 @@ class Appointment
 
         $timesOnCarts = Cart::where('date', $day)->where('time', $periodStartTime)->get();
         foreach ($takenTimes as $takenTime) {
-            // dd($takenTime);
+
             $takenTime = $takenTime ? Carbon::parse($takenTime)->format('g:i A') : null;
             // dd($availableShiftGroupsIds);
             if (empty($availableShiftGroupsIds) && $takenTime == $period->format('g:i A')) {
@@ -421,7 +432,7 @@ class Appointment
                 }
             }
         }
-        // dd($isOnCeckout);
+        // dd($takenTimes);
 
         if ($isOnCeckout) {
             if ($availableShiftGroupsCount > $timesOnCarts->count()) {
