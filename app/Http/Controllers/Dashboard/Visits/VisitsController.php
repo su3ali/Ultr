@@ -109,11 +109,24 @@ class VisitsController extends Controller
                 $query->whereIn('region_id', $regionIds);
             });
 
-            $now = Carbon::now('Asia/Riyadh')->toDateString();
+            // $now = Carbon::now('Asia/Riyadh')->toDateString();
 
-            // $visit->whereDate('start_date', '=', $now);
-            $visit->whereHas('booking', function ($qu) use ($now) {
-                $qu->whereDate('date', '=', $now);
+            // $visit->whereHas('booking', function ($qu) use ($now) {
+            //     $qu->whereDate('date', '=', $now);
+            // });
+
+            $now       = Carbon::now('Asia/Riyadh')->toDateString();
+            $tomorrow  = Carbon::tomorrow('Asia/Riyadh')->toDateString();
+            $startTime = Carbon::tomorrow('Asia/Riyadh')->startOfDay()->toTimeString();
+            $endTime   = Carbon::tomorrow('Asia/Riyadh')->startOfDay()->addHours(3)->toTimeString();
+
+            $visit->whereHas('booking', function ($qu) use ($now, $tomorrow, $startTime, $endTime) {
+                $qu->whereDate('date', '=', $now)
+                    ->orWhere(function ($q) use ($tomorrow, $startTime, $endTime) {
+                        $q->whereDate('date', '=', $tomorrow)
+                            ->whereTime('time', '>=', $startTime)
+                            ->whereTime('time', '<', $endTime);
+                    });
             });
 
             if (request()->status) {
@@ -184,18 +197,41 @@ class VisitsController extends Controller
     protected function finishedVisitsToday()
     {
         if (request()->ajax()) {
+            // $visit = Visit::query();
+
+            // $now = Carbon::now('Asia/Riyadh')->toDateString();
+
+            // $visit->whereDate('end_date', '=', $now);
+
+            // if (request()->status) {
+
+            //     $visit->where('visits_status_id', request()->status);
+            // }
+
+            // $visit->where('is_active', 1)->get();
+
+            //  visits for the current day as well as visits that end within the first 3 hours of the next day.
             $visit = Visit::query();
 
-            $now = Carbon::now('Asia/Riyadh')->toDateString();
+            $now       = Carbon::now('Asia/Riyadh')->toDateString();
+            $tomorrow  = Carbon::tomorrow('Asia/Riyadh')->toDateString();
+            $startTime = Carbon::tomorrow('Asia/Riyadh')->startOfDay()->toTimeString();
+            $endTime   = Carbon::tomorrow('Asia/Riyadh')->startOfDay()->addHours(3)->toTimeString();
 
-            $visit->whereDate('end_date', '=', $now);
+            $visit->where(function ($query) use ($now, $tomorrow, $startTime, $endTime) {
+                $query->whereDate('end_date', $now)
+                    ->orWhere(function ($q) use ($tomorrow, $startTime, $endTime) {
+                        $q->whereDate('end_date', $tomorrow)
+                            ->whereTime('end_date', '>=', $startTime)
+                            ->whereTime('end_date', '<', $endTime);
+                    });
+            });
 
-            if (request()->status) {
-
+            if (request()->has('status')) {
                 $visit->where('visits_status_id', request()->status);
             }
 
-            $visit->where('is_active', 1)->get();
+            $visits = $visit->where('is_active', 1)->get();
 
             return DataTables::of($visit)
 

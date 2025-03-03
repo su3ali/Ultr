@@ -185,17 +185,31 @@ class OrderController extends Controller
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
         if (request()->ajax()) {
-            $orders = Order::query()->whereHas('userAddress', function ($query) use ($regionIds) {
-                $query->whereIn('region_id', $regionIds);
-            })->with(['user', 'transaction', 'status', 'bookings.visit.status', 'services.category']);
+            // $orders = Order::query()->whereHas('userAddress', function ($query) use ($regionIds) {
+            //     $query->whereIn('region_id', $regionIds);
+            // })->with(['user', 'transaction', 'status', 'bookings.visit.status', 'services.category']);
 
-            $now = Carbon::now('Asia/Riyadh')->toDateString();
-            $orders->whereDate('created_at', '=', $now);
+            // $now = Carbon::now('Asia/Riyadh')->toDateString();
+            // $orders->whereDate('created_at', '=', $now);
 
-            // $now            = Carbon::now('Asia/Riyadh');
-            // $HoursLater = $now->copy()->addHours(3);
+            // Orders for the current day and also orders for the first 3 hours of the next day
+            $now       = Carbon::now('Asia/Riyadh')->toDateString();
+            $tomorrow  = Carbon::tomorrow('Asia/Riyadh')->toDateString();
+            $startTime = Carbon::tomorrow('Asia/Riyadh')->startOfDay();
+            $endTime   = $startTime->copy()->addHours(3);
 
-            // $orders->whereBetween('created_at', [$now, $HoursLater]);
+            $orders = Order::query()
+                ->whereHas('userAddress', function ($query) use ($regionIds) {
+                    $query->whereIn('region_id', $regionIds);
+                })
+                ->with(['user', 'transaction', 'status', 'bookings.visit.status', 'services.category'])
+                ->where(function ($query) use ($now, $tomorrow, $startTime, $endTime) {
+                    $query->whereDate('created_at', $now)
+                        ->orWhere(function ($subQuery) use ($tomorrow, $startTime, $endTime) {
+                            $subQuery->whereDate('created_at', $tomorrow)
+                                ->whereBetween('created_at', [$startTime, $endTime]);
+                        });
+                });
 
             if (request()->status) {
 
@@ -313,12 +327,40 @@ class OrderController extends Controller
 
         if (request()->ajax()) {
 
-            $now    = Carbon::now('Asia/Riyadh')->toDateString();
-            $orders = Order::where('status_id', 5)->where('is_active', 1)->where(function ($qu) use ($now) {
-                $qu->whereDate('created_at', $now)->orWhereDate('updated_at', $now);
-            })->whereHas('userAddress', function ($query) use ($regionIds) {
-                $query->whereIn('region_id', $regionIds);
-            });
+            // $now    = Carbon::now('Asia/Riyadh')->toDateString();
+            // $orders = Order::where('status_id', 5)->where('is_active', 1)->where(function ($qu) use ($now) {
+            //     $qu->whereDate('created_at', $now)->orWhereDate('updated_at', $now);
+            // })->whereHas('userAddress', function ($query) use ($regionIds) {
+            //     $query->whereIn('region_id', $regionIds);
+            // });
+
+
+            //  orders for the current day, as well as orders created or updated within the first 3 hours of the next day,
+            $now       = Carbon::now('Asia/Riyadh')->toDateString();
+            $tomorrow  = Carbon::tomorrow('Asia/Riyadh')->toDateString();
+            $startTime = Carbon::tomorrow('Asia/Riyadh')->startOfDay()->toTimeString();
+            $endTime   = Carbon::tomorrow('Asia/Riyadh')->startOfDay()->addHours(3)->toTimeString();
+
+            $orders = Order::where('status_id', 5)
+                ->where('is_active', 1)
+                ->where(function ($qu) use ($now, $tomorrow, $startTime, $endTime) {
+                    $qu->whereDate('created_at', $now)
+                        ->orWhereDate('updated_at', $now)
+                        ->orWhere(function ($q) use ($tomorrow, $startTime, $endTime) {
+                            $q->whereDate('created_at', $tomorrow)
+                                ->whereTime('created_at', '>=', $startTime)
+                                ->whereTime('created_at', '<', $endTime);
+                        })
+                        ->orWhere(function ($q) use ($tomorrow, $startTime, $endTime) {
+                            $q->whereDate('updated_at', $tomorrow)
+                                ->whereTime('updated_at', '>=', $startTime)
+                                ->whereTime('updated_at', '<', $endTime);
+                        });
+                })
+                ->whereHas('userAddress', function ($query) use ($regionIds) {
+                    $query->whereIn('region_id', $regionIds);
+                });
+
             return DataTables::of($orders)
                 ->addColumn('booking_id', function ($row) {
                     $booking = $row->bookings->first();
