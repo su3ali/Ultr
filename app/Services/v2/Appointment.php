@@ -379,9 +379,6 @@ class Appointment
             ->toArray();
 
         // dd($periodEndTime);
-        if ($periodEndTime === '00:15:00') {
-            $periodEndTime = '23:45:00';
-        }
 
         // Fetch the specific times that are unavailable within this period
         $takenTimes = Visit::where(function ($query) use ($periodStartTime, $periodEndTime) {
