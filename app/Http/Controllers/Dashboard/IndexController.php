@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Dashboard;
 
 use App\Charts\CommonChart;
@@ -30,9 +29,31 @@ class IndexController extends Controller
 
         $tech_visits = Visit::where('is_active', 1)->count();
 
-        $now = Carbon::now('Asia/Riyadh')->toDateString();
+        // $now = Carbon::now('Asia/Riyadh')->toDateString();
 
-        $client_orders_today = Order::whereDate('created_at', $now)
+        // $client_orders_today = Order::whereDate('created_at', $now)
+        //     ->where('status_id', '!=', 5)
+        //     ->where('is_active', 1)
+        //     ->whereHas('userAddress', function ($query) use ($regionIds) {
+        //         $query->whereIn('region_id', $regionIds);
+        //     })
+        //     ->count();
+
+        //
+        $now       = Carbon::now('Asia/Riyadh')->toDateString();
+        $tomorrow  = Carbon::tomorrow('Asia/Riyadh')->toDateString();
+        $startTime = Carbon::tomorrow('Asia/Riyadh')->startOfDay();
+        $endTime   = $startTime->copy()->addHours(3);
+
+        $client_orders_today = Order::where(function ($query) use ($now, $tomorrow, $startTime, $endTime, $regionIds) {
+            // الطلبات الخاصة باليوم الحالي
+            $query->whereDate('created_at', $now)
+                ->orWhere(function ($subQuery) use ($tomorrow, $startTime, $endTime) {
+                    // الطلبات من أول 3 ساعات من اليوم التالي
+                    $subQuery->whereDate('created_at', $tomorrow)
+                        ->whereBetween('created_at', [$startTime, $endTime]);
+                });
+        })
             ->where('status_id', '!=', 5)
             ->where('is_active', 1)
             ->whereHas('userAddress', function ($query) use ($regionIds) {
@@ -40,17 +61,41 @@ class IndexController extends Controller
             })
             ->count();
 
-        $tech_visits_today = Visit::whereHas('booking', function ($qu) use ($now) {
-            $qu->whereDate('date', '=', $now);
-        })->whereNotIn('visits_status_id', [5, 6])->where('is_active', 1)->whereHas('booking.address', function ($query) use ($regionIds) {
-            $query->whereIn('region_id', $regionIds);
+        // $tech_visits_today = Visit::whereHas('booking', function ($qu) use ($now) {
+        //     $qu->whereDate('date', '=', $now);
+        // })->whereNotIn('visits_status_id', [5, 6])->where('is_active', 1)->whereHas('booking.address', function ($query) use ($regionIds) {
+        //     $query->whereIn('region_id', $regionIds);
+        // })
+        //     ->count();
+
+        $now       = Carbon::now('Asia/Riyadh')->toDateString();
+        $tomorrow  = Carbon::tomorrow('Asia/Riyadh')->toDateString();
+        $startTime = Carbon::tomorrow('Asia/Riyadh')->startOfDay();
+        $endTime   = $startTime->copy()->addHours(3);
+
+        $tech_visits_today = Visit::where(function ($query) use ($now, $tomorrow, $startTime, $endTime) {
+            // الزيارات الخاصة باليوم الحالي
+            $query->whereHas('booking', function ($q) use ($now) {
+                $q->whereDate('date', '=', $now);
+            })
+                ->orWhereHas('booking', function ($q) use ($tomorrow, $startTime, $endTime) {
+                    // الزيارات لأول 3 ساعات من اليوم التالي
+                    $q->whereDate('date', '=', $tomorrow)
+                        ->whereTime('time', '>=', $startTime->toTimeString())
+                        ->whereTime('time', '<', $endTime->toTimeString());
+                });
         })
+            ->whereNotIn('visits_status_id', [5, 6])
+            ->where('is_active', 1)
+            ->whereHas('booking.address', function ($query) use ($regionIds) {
+                $query->whereIn('region_id', $regionIds);
+            })
             ->count();
 
-        $today = Carbon::now('Asia/Riyadh');
+        $today        = Carbon::now('Asia/Riyadh');
         $sevenDaysAgo = Carbon::now('Asia/Riyadh')->subDays(8);
 
-        $dateRange = [];
+        $dateRange   = [];
         $currentDate = clone $sevenDaysAgo;
 
         while ($currentDate <= $today) {
@@ -74,7 +119,7 @@ class IndexController extends Controller
 
         $dates = [];
         for ($i = 8 - 1; $i >= 0; $i--) {
-            $date = Carbon::now('Asia/Riyadh')->subDays($i)->format('Y-m-d');
+            $date    = Carbon::now('Asia/Riyadh')->subDays($i)->format('Y-m-d');
             $dates[] = $date;
 
             $labels[] = date('j M Y', strtotime($date));
@@ -90,10 +135,10 @@ class IndexController extends Controller
         ));
         $sells_chart_1->dataset(__('dash.orders'), 'line', $all_sell_values);
 
-        $today = Carbon::now('Asia/Riyadh');
+        $today    = Carbon::now('Asia/Riyadh');
         $monthAgo = Carbon::now('Asia/Riyadh')->subDays(31);
 
-        $dateRange = [];
+        $dateRange   = [];
         $currentDate = clone $monthAgo;
 
         while ($currentDate <= $today) {
@@ -117,7 +162,7 @@ class IndexController extends Controller
 
         $dates2 = [];
         for ($i = 31 - 1; $i >= 0; $i--) {
-            $date2 = Carbon::now('Asia/Riyadh')->subDays($i)->format('Y-m-d');
+            $date2    = Carbon::now('Asia/Riyadh')->subDays($i)->format('Y-m-d');
             $dates2[] = $date2;
 
             $labels2[] = date('j M Y', strtotime($date2));
@@ -146,17 +191,17 @@ class IndexController extends Controller
     private function __chartOptions($title)
     {
         return [
-            'yAxis' => [
+            'yAxis'  => [
                 'title' => [
                     'text' => $title,
                 ],
             ],
             'legend' => [
-                'align' => 'right',
+                'align'         => 'right',
                 'verticalAlign' => 'top',
-                'floating' => true,
-                'layout' => 'vertical',
-                'padding' => 20,
+                'floating'      => true,
+                'layout'        => 'vertical',
+                'padding'       => 20,
             ],
         ];
     }
