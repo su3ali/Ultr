@@ -39,6 +39,7 @@ class CheckoutController extends Controller
 
     protected function checkTimeDate(Request $request)
     {
+       
         $user     = auth()->user('sanctum');
         $carts    = Cart::query()->where('user_id', $user->id)->get();
         $regionId = UserAddresses::where('id', \request()->query('user_address_id'))->first()->region_id;
