@@ -21,6 +21,7 @@ class ReportsController extends Controller
 
     protected function sales(Request $request)
     {
+
         if (request()->ajax()) {
             $date           = $request->date;
             $date2          = $request->date2;
@@ -77,8 +78,9 @@ class ReportsController extends Controller
                         'service_number' => $row->services->count(),
                         'price'          => number_format(($row->total / 115 * 100), 2),
                         'payment_method' => match ($row->transaction?->payment_method ?? '') {
-                            'cache', 'cash' => __('api.payment_method_network'),
+                            'cache', 'cash' => __('api.payment_method_cach'),
                             'wallet'         => __('api.payment_method_wallet'),
+                            'mada'           => __('api.payment_method_network'),
                             default          => __('api.payment_method_visa'),
                         },
                         'total'          => $row->total,

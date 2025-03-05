@@ -32,6 +32,7 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
+
                                                  // Get pagination data sent by DataTables
         $start  = $request->input('start', 0);   // Start index
         $length = $request->input('length', 10); // Page size
@@ -115,8 +116,9 @@ class OrderController extends Controller
                 })
                 ->addColumn('payment_method', function ($row) {
                     return match ($row->transaction?->payment_method) {
-                        'cache', 'cash' => __('api.payment_method_network'),
+                        'cache', 'cash' => __('api.payment_method_cach'),
                         'wallet' => __('api.payment_method_wallet'),
+                        'mada'   => __('api.payment_method_network'),
                         default  => __('api.payment_method_visa'),
                     };
                 })
