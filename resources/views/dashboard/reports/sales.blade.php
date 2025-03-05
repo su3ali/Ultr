@@ -68,9 +68,11 @@
                             <select class="select2 payment_method form-control" name="payment_method">
                                 <option selected value="all">{{ __('dash.all') }}</option>
 
-                                <option value="cache">{{ __('api.payment_method_network') }}</option>
-                                <option value="wallet">{{ __('api.payment_method_visa') }}</option>
-                                <option value="visa">{{ __('api.payment_method_visa') }}</option>
+                                <option value="cache">{!! __('api.payment_method_cach') !!}</option>
+                                <option value="wallet">{!! __('api.payment_method_wallet') !!}</option>
+                                <option value="visa">{!! __('api.payment_method_visa') !!}</option>
+                                <option value="mada">{!! __('api.payment_method_network') !!}</option>
+
                             </select>
                         </div>
                         <div class="col-md-1">
