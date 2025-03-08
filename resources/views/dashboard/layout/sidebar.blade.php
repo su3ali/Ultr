@@ -153,6 +153,7 @@
                 </ul>
             </li>
             @endcan
+
             @can('view_bookings')
             <li class="menu">
                 <a href="#booking" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
@@ -187,6 +188,7 @@
                 </ul>
             </li>
             @endcan
+            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_admins'))
 
             {{-- Beginning of appointments --}}
 
@@ -220,11 +222,13 @@
                     {{-- @endcan --}}
                 </ul>
             </li>
+            @endif
 
             {{-- End of appointments --}}
 
 
 
+            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_admins'))
 
 
             <li class="menu">
@@ -246,6 +250,7 @@
                         </svg>
                     </div>
                 </a>
+
                 <ul class="collapse submenu list-unstyled" id="app" data-parent="#accordionExample">
                     @can('view_admins')
                     <li>
@@ -259,8 +264,9 @@
                     </li>
                     @endcan
                 </ul>
-            </li>
 
+            </li>
+            @endif
             @can('view_categories')
             <li class="menu">
                 <a href="#admin" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
@@ -326,6 +332,9 @@
             </li>
             @endcan
 
+
+            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_cars'))
+
             <li class="menu">
                 <a href="#car" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -346,11 +355,15 @@
                     <li>
                         <a href="{{ route('dashboard.car_type.index') }}"> {{ __('dash.car_type') }} </a>
                         <a href="{{ route('dashboard.car_model.index') }}"> {{ __('dash.car_model') }} </a>
-                        <a href="{{ route('dashboard.car_client.index') }}"> {{ __('dash.car_clients') }}   </a>
+                        <a href="{{ route('dashboard.car_client.index') }}"> {{ __('dash.car_clients') }} </a>
                     </li>
 
                 </ul>
             </li>
+            @endif
+
+
+            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_companys_services_management'))
 
             <li class="menu">
                 <a href="#contact" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
@@ -379,6 +392,8 @@
                 </ul>
             </li>
 
+            @endif
+
 
 
             @can('view_technicians')
@@ -406,13 +421,14 @@
                         <a href="{{ route('dashboard.core.group.index') }}"> {{ __('dash.technicians_groups') }} </a>
                     </li>
                     <li>
-                        <a href="{{ route('dashboard.core.tech_specializations.index') }}">  {{ __('dash.tech_specializations') }}   </a>
+                        <a href="{{ route('dashboard.core.tech_specializations.index') }}"> {{
+                            __('dash.tech_specializations') }} </a>
                     </li>
                 </ul>
             </li>
             @endcan
 
-            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_trainees'))
+            @if (auth()->user()->hasRole('admin') || auth()->user()->can('trainees'))
             <li class="menu">
                 <a href="#trainees" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -619,6 +635,8 @@
                 </a>
             </li>
             @endcan
+
+
             @can('view_regions')
             <li class="menu">
                 <a href="#regions" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
@@ -647,6 +665,8 @@
                 </ul>
             </li>
             @endcan
+
+
             @can('view_banners')
             <li class="menu">
                 <a href="#banners" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
@@ -673,6 +693,8 @@
                 </ul>
             </li>
             @endcan
+
+
             @can('view_setting')
             <li class="menu">
                 <a href="#setting" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
@@ -718,6 +740,8 @@
             </li>
             @endcan
 
+            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_reports'))
+
             <li class="menu">
                 <a href="#reports" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -762,6 +786,7 @@
 
                 </ul>
             </li>
+            @endif
 
             {{-- @can('view_setting') --}}
             {{-- <li class="menu"> --}}
