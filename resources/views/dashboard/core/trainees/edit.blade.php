@@ -13,8 +13,8 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form action="" method="post" class="form-horizontal" enctype="multipart/form-data"
-                    id="edit_tech_form" data-parsley-validate="">
+                <form action="" method="post" class="form-horizontal" enctype="multipart/form-data" id="edit_tech_form"
+                    data-parsley-validate="">
                     @csrf
                     {!! method_field('PUT') !!}
                     <div class="box-body">
@@ -22,10 +22,10 @@
                             <div class="form-group col-md-6">
                                 <label for="edit_name" class="form-label fw-bold">{{ __('dash.name') }}</label>
                                 <input type="hidden" id="tech_id" name="tech_id">
-                                <input required type="text" name="name" readonly class="form-control"
-                                    id="edit_name" placeholder="{{ __('dash.name') }}">
+                                <input required type="text" name="name" readonly class="form-control" id="edit_name"
+                                    placeholder="{{ __('dash.name') }}">
                                 @error('name')
-                                    <div class="alert alert-danger mt-2">{{ $message }}</div>
+                                <div class="alert alert-danger mt-2">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -37,11 +37,13 @@
                                     style="border-radius: 8px; border: 2px solid #ddd;">
                                     <option selected disabled>{{ __('dash.choose') }}</option>
                                     @foreach ($ratings as $rate)
-                                        <option value="{{ $rate }}">{{ $rate }}</option>
+                                    <option value="{{ $rate->id }}">
+                                        {{ app()->getLocale() == 'ar' ? $rate->name_ar : $rate->name_en }}
+                                    </option>
                                     @endforeach
                                 </select>
                                 @error('group_id')
-                                    <div class="alert alert-danger mt-2">{{ $message }}</div>
+                                <div class="alert alert-danger mt-2">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -51,23 +53,16 @@
                                     <div class="custom-file">
                                         <input type="file" class="custom-file-input shadow-sm w-100" id="upload_file"
                                             name="upload_file" accept="image/*">
-                                        <label class="custom-file-label" for="upload_file"
-                                            id="upload_label">{{ __('dash.choose_file') }}</label>
+                                        <label class="custom-file-label" for="upload_file" id="upload_label">{{
+                                            __('dash.choose_file') }}</label>
                                     </div>
                                 </div>
                                 @error('upload_file')
-                                    <div class="alert alert-danger mt-2 col-md-12">
-                                        <i class="bi bi-exclamation-circle"></i> {{ $message }}
-                                    </div>
+                                <div class="alert alert-danger mt-2 col-md-12">
+                                    <i class="bi bi-exclamation-circle"></i> {{ $message }}
+                                </div>
                                 @enderror
                             </div>
-
-
-
-
-
-
-
 
                         </div>
 
@@ -78,10 +73,10 @@
                                 <textarea class="form-control shadow-sm" id="edit_note" name="note" rows="4"
                                     style="border-radius: 8px; resize: vertical; border: 2px solid #ddd; transition: all 0.3s ease-in-out;"></textarea>
                                 @error('note')
-                                    <div class="alert alert-danger mt-2 px-3 py-2"
-                                        style="border-radius: 8px; font-size: 14px;">
-                                        <i class="bi bi-exclamation-circle"></i> {{ $message }}
-                                    </div>
+                                <div class="alert alert-danger mt-2 px-3 py-2"
+                                    style="border-radius: 8px; font-size: 14px;">
+                                    <i class="bi bi-exclamation-circle"></i> {{ $message }}
+                                </div>
                                 @enderror
                             </div>
                         </div>
@@ -104,96 +99,96 @@
 
 
 @push('script')
-    <script>
-        let myImage = new FileUploadWithPreview('myImage')
+<script>
+    let myImage = new FileUploadWithPreview('myImage')
 
         document.getElementById('upload_file').addEventListener('change', function() {
             var fileName = this.files[0] ? this.files[0].name : '{{ __('dash.choose_file') }}';
             document.getElementById('upload_label').textContent = fileName;
         });
-    </script>
+</script>
 
-    <style>
-        .form-label {
-            font-weight: bold;
-            font-size: 1rem;
-            color: #495057;
-        }
+<style>
+    .form-label {
+        font-weight: bold;
+        font-size: 1rem;
+        color: #495057;
+    }
 
-        .custom-file {
-            position: relative;
-            border: 2px dashed #d1d3e2;
-            border-radius: 8px;
-            padding: 10px;
-            transition: all 0.3s ease;
-        }
+    .custom-file {
+        position: relative;
+        border: 2px dashed #d1d3e2;
+        border-radius: 8px;
+        padding: 10px;
+        transition: all 0.3s ease;
+    }
 
-        .custom-file:hover {
-            border-color: #5a5c69;
-            background-color: #f8f9fc;
-        }
+    .custom-file:hover {
+        border-color: #5a5c69;
+        background-color: #f8f9fc;
+    }
 
-        .custom-file-input {
-            opacity: 0;
-            /* Hides the default input */
-            position: absolute;
-            z-index: 2;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
+    .custom-file-input {
+        opacity: 0;
+        /* Hides the default input */
+        position: absolute;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
 
-        .custom-file-label {
-            position: relative;
-            z-index: 1;
-            display: block;
-            width: 100%;
-            height: 100%;
-            padding: 0.75rem 1rem;
-            font-size: 0.9rem;
-            text-align: center;
-            color: #6c757d;
-            background-color: #fff;
-            border-radius: 8px;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-        }
+    .custom-file-label {
+        position: relative;
+        z-index: 1;
+        display: block;
+        width: 100%;
+        height: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        text-align: center;
+        color: #6c757d;
+        background-color: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
 
-        .custom-file-input:focus+.custom-file-label {
-            border: 2px solid #007bff;
-            outline: none;
-            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-            color: #495057;
-            background-color: #e9ecef;
-        }
+    .custom-file-input:focus+.custom-file-label {
+        border: 2px solid #007bff;
+        outline: none;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        color: #495057;
+        background-color: #e9ecef;
+    }
 
-        /* Error Styling */
-        .alert.alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            padding: 0.75rem 1rem;
-        }
+    /* Error Styling */
+    .alert.alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        padding: 0.75rem 1rem;
+    }
 
-        /* Additional styling for icons */
-        .bi-exclamation-circle {
-            margin-right: 5px;
-        }
+    /* Additional styling for icons */
+    .bi-exclamation-circle {
+        margin-right: 5px;
+    }
 
-        /* Error Styling */
-        .alert.alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            padding: 0.75rem 1rem;
-        }
+    /* Error Styling */
+    .alert.alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        padding: 0.75rem 1rem;
+    }
 
-        /* Additional styling for icons */
-        .bi-exclamation-circle {
-            margin-right: 5px;
-        }
-    </style>
+    /* Additional styling for icons */
+    .bi-exclamation-circle {
+        margin-right: 5px;
+    }
+</style>
 @endpush

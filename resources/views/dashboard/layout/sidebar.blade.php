@@ -229,8 +229,6 @@
 
 
             @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_admins'))
-
-
             <li class="menu">
                 <a href="#app" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -428,7 +426,7 @@
             </li>
             @endcan
 
-            @if (auth()->user()->hasRole('admin') || auth()->user()->can('trainees'))
+            @if (auth()->user()->hasRole('admin') || auth()->user()->can('create_trainees'))
             <li class="menu">
                 <a href="#trainees" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -740,7 +738,7 @@
             </li>
             @endcan
 
-            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_reports'))
+            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_financial_reports'))
 
             <li class="menu">
                 <a href="#reports" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">

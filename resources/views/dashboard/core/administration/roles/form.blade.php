@@ -1266,6 +1266,8 @@ $name = 'name_' . app()->getLocale();
                                                 </div>
                                             </div>
                                         </div>
+
+
                                         <div class="card component-card_2 col-md-12 px-0">
                                             <div class="form-group h-50 mb-0 px-3 pt-2"
                                                 style="background-color: #0072ff42;">
@@ -1295,6 +1297,80 @@ $name = 'name_' . app()->getLocale();
                                                 </div>
                                             </div>
                                         </div>
+
+
+                                        {{-- Start Financial reports --}}
+                                        <div class="card component-card_2 col-md-12 px-0">
+                                            <div class="form-group h-50 mb-0 px-3 pt-2"
+                                                style="background-color: #0072ff42;">
+                                                <label
+                                                    class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                    <input type="checkbox"
+                                                        class="new-control-input check-all-financial_reports">
+                                                    <span class="new-control-indicator"></span><span
+                                                        class="new-chk-content text-primary"><b> {{
+                                                            __('dash.financial_reports') }}</b></span>
+                                                </label>
+                                            </div>
+                                            <div class="card-body">
+                                                
+                                                <div class="row">
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[77]->id }}]"
+                                                                class="new-control-input perm-check perm-check-financial_reports"
+                                                                {{ isset($model) ? (in_array($permissions[77]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[77]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{-- End Financial reports --}}
+
+
+
+                                        {{-- Start customer complaints --}}
+                                        <div class="card component-card_2 col-md-12 px-0">
+                                            <div class="form-group h-50 mb-0 px-3 pt-2"
+                                                style="background-color: #0072ff42;">
+                                                <label
+                                                    class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                    <input type="checkbox"
+                                                        class="new-control-input check-all-customer_complaints">
+                                                    <span class="new-control-indicator"></span><span
+                                                        class="new-chk-content text-primary"><b> {{
+                                                            __('dash.view_customer_complaints') }}</b></span>
+                                                </label>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[78]->id }}]"
+                                                                class="new-control-input perm-check perm-check-customer_complaints"
+                                                                {{ isset($model) ? (in_array($permissions[78]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[78]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{-- End customer complaints --}}
+
+
 
 
 
@@ -1516,6 +1592,24 @@ $name = 'name_' . app()->getLocale();
             let matches = $("input.perm-check:checkbox:not(:checked)");
             checkViewAll(matches)
         });
+
+        $(".check-all-financial_reports").click(function() {
+            let boxes = $('.perm-check-financial_reports');
+            boxes.prop('checked', this.checked);
+            let matches = $("input.perm-check:checkbox:not(:checked)");
+            checkViewAll(matches)
+        });
+
+        $(".check-all-customer_complaints").click(function() {
+            let boxes = $('.perm-check-customer_complaints');
+            boxes.prop('checked', this.checked);
+            let matches = $("input.perm-check:checkbox:not(:checked)");
+            checkViewAll(matches)
+        });
+
+        
+
+        
 </script>
 
 <script>

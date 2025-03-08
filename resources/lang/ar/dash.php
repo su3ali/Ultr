@@ -58,6 +58,7 @@ return [
     'canceled_orders_today'                 => 'الطلبات الملغية اليوم',
     'canceled_orders'                       => 'الطلبات الملغية',
     'complaints'                            => 'الشكاوى',
+    'complaints_count'                      => 'عدد الشكاوى',
     'cancellation_reasons'                  => 'اسباب الإلغاء',
 
     'packages_management'                   => 'إدارة الباقات',
@@ -961,5 +962,8 @@ return [
     'duration'                              => 'المدة',
     'appointments'                          => 'المواعيد',
     'no_image'                              => 'لم يتم اضافة صورة',
+    'financial_reports'                     => 'التقارير المالية',
+    'view_financial_reports'                => 'عرض التقارير المالية',
+    'view_customer_complaints'              => 'عرض شكاوي العملاء',
 
 ];

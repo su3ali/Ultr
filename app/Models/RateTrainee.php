@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,6 +17,11 @@ class RateTrainee extends Model
     public function trainee()
     {
         return $this->hasOne(Technician::class, 'id', 'trainee_id');
+    }
+
+    public function rate()
+    {
+        return $this->belongsTo(Rate::class, 'rate_id');
     }
 
 }

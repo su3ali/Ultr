@@ -39,6 +39,7 @@
         <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
             <div class="row widget-statistic">
 
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_customers'))
                 <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                     <a href="{{ route('dashboard.core.customer.index') }}" class="widget-link">
                         <div class="widget widget-one_hybrid widget-followers">
@@ -72,6 +73,10 @@
                         </div>
                     </a>
                 </div>
+                @endif
+
+
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
 
                 <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                     <a href="{{ route('dashboard.orders.index') }}" class="widget-link">
@@ -106,6 +111,9 @@
                         </div>
                     </a>
                 </div>
+                @endif
+
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_technicians'))
 
                 <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                     <a href="{{ route('dashboard.core.technician.index') }}" class="widget-link">
@@ -137,6 +145,8 @@
                         </div>
                     </a>
                 </div>
+                @endif
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
 
                 <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                     <a href="{{ route('dashboard.visits.index') }}" class="widget-link">
@@ -169,6 +179,8 @@
                         </div>
                     </a>
                 </div>
+
+                @endif
             </div>
         </div>
 
@@ -176,6 +188,8 @@
 
         <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
             <div class="row widget-statistic">
+
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
 
                 <!-- Canceled Orders Widget -->
                 <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
@@ -206,7 +220,9 @@
                         </div>
                     </a>
                 </div>
+                @endif
 
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
 
                 <!-- Canceled Orders Today Widget -->
                 <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
@@ -240,7 +256,9 @@
                         </div>
                     </a>
                 </div>
+                @endif
 
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
 
                 <!-- Orders Today Widget -->
                 <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
@@ -263,6 +281,9 @@
                         </div>
                     </a>
                 </div>
+                @endif
+
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
 
                 <!-- Visits Today Widget -->
                 <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
@@ -295,8 +316,9 @@
                         </div>
                     </a>
                 </div>
+                @endif
 
-
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
                 <!-- Finished Visits Today Widget -->
                 <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                     <a href="{{ route('dashboard.visits.finishedVisitsToday') }}" class="widget-link">
@@ -327,8 +349,9 @@
                         </div>
                     </a>
                 </div>
+                @endif
 
-                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_trainees'))
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('create_trainees'))
                 <!-- Training Management Widget -->
                 <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                     <a href="{{ route('dashboard.core.trainee.index') }}" class="widget-link">
@@ -396,6 +419,33 @@
                 </div>
                 @endif
 
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_customer_complaints'))
+                <!-- customer complaints Widget -->
+                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
+                    <a href="{{ route('dashboard.order.complaints') }}" class="widget-link">
+                        <div class="widget widget-one_hybrid widget-engagement">
+                            <div class="widget-heading p-4 rounded-lg bg-lightblue shadow-sm">
+                                <div class="d-flex align-items-center">
+                                    <div class="w-icon bg-danger text-white rounded-circle p-3 shadow-sm me-4">
+                                        <i class="fas fa-exclamation-circle fa-2x"></i> <!-- أيقونة التحذير -->
+                                    </div>
+                                    <div>
+                                        <p class="w-value fs-2 fw-bold text-dark mb-1">
+                                            {{ $customer_complaints }}
+                                        </p>
+                                        <h5 class="text-muted mb-0">{{ __('dash.complaints_count') }}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="widget-footer p-4 text-center bg-lightblue">
+                                <p class="text-muted mb-0"> {{ __('dash.complaints') }} </p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                @endif
+
 
 
 
@@ -408,6 +458,7 @@
         </div>
 
 
+        @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_bookings'))
 
         <div class="col-xl-6 col-lg-12 col-sm-12  layout-spacing">
 
@@ -438,6 +489,9 @@
             </div>
 
         </div>
+        @endif
+
+        @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
 
         <div class="col-xl-6 col-lg-12 col-sm-12  layout-spacing">
 
@@ -467,13 +521,13 @@
             </div>
 
         </div>
-
+        @endif
 
 
 
 
     </div>
-
+    @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
     <!-- sales chart start -->
     <div class="row">
         <div class="col-sm-12">
@@ -488,6 +542,8 @@
             @endcomponent
         </div>
     </div>
+    <!-- sales chart end -->
+    @endif
 </div>
 @endsection
 
