@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Api\Checkout;
 
 use App\Http\Controllers\Controller;
@@ -40,52 +39,123 @@ class CheckoutController extends Controller
 
     protected function checkTimeDate(Request $request)
     {
-        $user = auth()->user('sanctum');
-        $carts = Cart::query()->where('user_id', $user->id)->get();
-        $regionId = UserAddresses::where('id', \request()->query('user_address_id'))->first()->region_id;
-        foreach ($carts as $cart) {
-            $groupIds = CategoryGroup::where('category_id', $cart->category_id)->pluck('group_id')->toArray();
-            $countGroup = Group::where('active', 1)->whereHas('regions', function ($qu) use ($regionId) {
-                $qu->where('region_id', $regionId);
-            })->whereIn('id', $groupIds)->count();
-            $countInBooking = Booking::whereHas('visit', function ($q) {
-                $q->whereNotIn('visits_status_id', [5, 6]);
-            })->whereHas(
-                'address.region',
-                function ($q) use ($regionId) {
+        try {
 
-                    $q->where('id', $regionId);
-                }
-            )->where([['category_id', '=', $cart->category_id], ['date', '=', $cart->date], ['time', '=', $cart->time]])
-                ->count();
+            $validator = Validator::make($request->all(), [
+                'user_address_id' => 'required|exists:user_addresses,id',
+                'shift_id'        => 'required|exists:shifts,id',
+            ]);
 
-            if (($countInBooking == $countGroup)) {
-                return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+            if ($validator->fails()) {
+                return self::apiResponse(400, 'Validation failed', $validator->errors());
             }
+
+            $user  = auth()->user('sanctum');
+            $carts = Cart::query()->where('user_id', $user->id)->get();
+
+            if ($carts->first() && $carts->first()->time != null) {
+                $shift = Shift::find($request->shift_id);
+
+            } else {
+                return self::apiResponse(400, __('api.time_not_available'), $this->body);
+
+            }
+
+            if (empty($shift)) {
+                return false;
+            }
+
+            $shiftGroupsIds = Shift::where('id', $shift->id)->pluck('group_id')->toArray();
+            $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
+                return array_map('intval', json_decode($jsonString, true));
+            }, $shiftGroupsIds));
+
+            $regionId = UserAddresses::where('id', \request()->query('user_address_id'))->first()->region_id;
+            foreach ($carts as $cart) {
+
+                $groupIds   = CategoryGroup::where('category_id', $cart->category_id)->pluck('group_id')->toArray();
+                $countGroup = Group::where('active', 1)->whereHas('regions', function ($qu) use ($regionId) {
+                    $qu->where('region_id', $regionId);
+                })->whereIn('id', $shiftGroupsIds)->count();
+
+                $countInBooking = Booking::whereHas('visit', function ($q) use ($shiftGroupsIds) {
+                    $q->whereNotIn('visits_status_id', [5, 6])
+                        ->whereIn('assign_to_id', $shiftGroupsIds);
+                })
+                    ->whereHas('address.region', function ($q) use ($regionId) {
+                        $q->where('id', $regionId);
+                    })
+                    ->where([
+                        ['category_id', '=', $cart->category_id],
+                        ['date', '=', $cart->date],
+                        ['time', '=', $cart->time],
+                    ])
+                    ->count();
+
+                if (($countInBooking >= $countGroup)) {
+                    return self::apiResponse(400, __('api.time_not_available'), $this->body);
+                }
+            }
+
+            activity()
+                ->causedBy(auth()->user()) // Action performed by the authenticated user
+                ->withProperties([
+                    'title'         => 'A Test checkTimeDate  ',   // Descriptive title of the action
+                    'user_id'       => auth()->user()->id,         // User’s ID for identification
+                    'user_name'     => auth()->user()->first_name, // User’s name for clarity
+                    'region_id'     => Cart::where('user_id', auth()->user()->id)->pluck('region_id')->first(),
+                    'date'          => Cart::where('user_id', auth()->user()->id)->pluck('date')->first(),
+                    'time'          => Cart::where('user_id', auth()->user()->id)->pluck('time')->first(),
+                    'price_in_cart' => Cart::where('user_id', auth()->user()->id)->pluck('price')->first(),    // Total price of items in the cart (sum of prices)
+                    'quantity'      => Cart::where('user_id', auth()->user()->id)->pluck('quantity')->first(), // Total quantity of items in the cart
+                    'current_url'   => url()->current(),                                                       // URL of the page from which the action was triggered
+                ])
+                ->log('A Test  Checkout successfully ');
+
+            return self::apiResponse(200, __('api.test_checkout'), $this->body);
+        } catch (\Exception $e) {
+            // Log the exception with additional context
+            activity()
+                ->causedBy(auth()->user()) // Log the user who caused the action
+                ->withProperties([
+                    'exception_message' => $e->getMessage(),
+                    'exception_file'    => $e->getFile(),
+                    'exception_line'    => $e->getLine(),
+                    'url'               => url()->current(),
+                    'user_id'           => auth()->user()->id,
+                    'user_name'         => auth()->user()->first_name,
+                    'cart_id'           => Cart::where('user_id', auth()->user()->id)->pluck('id')->first(),
+                    'date'              => $cart->date,
+                    'time'              => $cart->time,
+                    'regionId'          => $regionId,
+
+                ])
+                ->log('Exception while processing the add_to_cart endpoint');
+
+            return response()->json(['error' => 'Failed .'], 500);
         }
-        return self::apiResponse(200, __('api.order created successfully'), $this->body);
     }
 
     protected function checkout(Request $request)
     {
         $rules = [
-            'user_address_id' => 'required',
-            'car_user_id' => 'required|exists:car_clients,id',
-            'payment_method' => 'required|in:cache,visa,wallet,package',
-            'coupon' => 'nullable|numeric',
-            'transaction_id' => 'nullable',
+            'user_address_id'  => 'required',
+            'car_user_id'      => 'required|exists:car_clients,id',
+            'payment_method'   => 'required|in:cache,visa,wallet,package',
+            'coupon'           => 'nullable|numeric',
+            'transaction_id'   => 'nullable',
             'wallet_discounts' => 'nullable|numeric',
-            'amount' => 'nullable|numeric',
-            'file' => 'nullable',
-            'image' => 'nullable|image|mimes:jpeg,jpg,png,gif',
-            'notes' => 'nullable',
+            'amount'           => 'nullable|numeric',
+            'file'             => 'nullable',
+            'image'            => 'nullable|image|mimes:jpeg,jpg,png,gif',
+            'notes'            => 'nullable',
         ];
         $request->validate($rules, $request->all());
-        $user = auth()->user('sanctum');
-        $carts = Cart::query()->where('user_id', $user->id)->get();
+        $user                  = auth()->user('sanctum');
+        $carts                 = Cart::query()->where('user_id', $user->id)->get();
         $parent_payment_method = null;
 
-        if (!$carts->first()) {
+        if (! $carts->first()) {
             return self::apiResponse(400, t_('Cart is empty'), []);
         }
 
@@ -101,17 +171,17 @@ class CheckoutController extends Controller
             // }
             $uploadImage = null;
             if ($request->image && $request->image != null) {
-                $image = $this->storeImages($request->image, 'order');
+                $image       = $this->storeImages($request->image, 'order');
                 $uploadImage = 'storage/images/order' . '/' . $image;
             }
             $uploadFile = null;
             if ($request->file && $request->file != null) {
-                $file = $this->storeImages($request->file, 'order');
+                $file       = $this->storeImages($request->file, 'order');
                 $uploadFile = 'storage/images/order' . '/' . $file;
             }
 
             foreach ($carts as $cart) {
-                $now = Carbon::now('Asia/Riyadh');
+                $now                  = Carbon::now('Asia/Riyadh');
                 $contractPackagesUser = ContractPackagesUser::where('user_id', auth()->user()->id)
                     ->whereDate('end_date', '>=', $now)
                     ->where(function ($query) use ($cart) {
@@ -123,8 +193,8 @@ class CheckoutController extends Controller
                     })->first();
 
                 if ($contractPackagesUser) {
-                    $contractPackage = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
-                    $cart->coupon = null;
+                    $contractPackage       = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
+                    $cart->coupon          = null;
                     $parent_payment_method = $contractPackagesUser->payment_method;
                     if ($cart->quantity < $contractPackage->visit_number - $contractPackagesUser->used) {
                         $contractPackagesUser->increment('used', $cart->quantity);
@@ -143,7 +213,7 @@ class CheckoutController extends Controller
         $total = [];
         for ($i = 0; $i < $carts->count(); $i++) {
             $cart_total = ($carts[$i]->price) * $carts[$i]->quantity;
-            $total[] = $cart_total;
+            $total[]    = $cart_total;
         }
         return array_sum($total);
     }
@@ -152,42 +222,42 @@ class CheckoutController extends Controller
     {
 
         $totalAfterDiscount = $total - $request->coupon;
-        $order = Order::create([
-            'user_id' => $user->id,
-            'discount' => $request->coupon,
+        $order              = Order::create([
+            'user_id'         => $user->id,
+            'discount'        => $request->coupon,
             'user_address_id' => $request->user_address_id,
-            'sub_total' => $total,
-            'total' => $totalAfterDiscount,
+            'sub_total'       => $total,
+            'total'           => $totalAfterDiscount,
 
-            'partial_amount' => $totalAfterDiscount,
-            'status_id' => 1,
-            'file' => $uploadFile,
-            'image' => $uploadImage,
-            'notes' => $request->notes,
-            'car_user_id' => $request->car_user_id,
+            'partial_amount'  => $totalAfterDiscount,
+            'status_id'       => 1,
+            'file'            => $uploadFile,
+            'image'           => $uploadImage,
+            'notes'           => $request->notes,
+            'car_user_id'     => $request->car_user_id,
         ]);
-        $address = UserAddresses::where('id', $order->user_address_id)->first();
+        $address  = UserAddresses::where('id', $order->user_address_id)->first();
         $services = [];
         foreach ($carts as $cart) {
             $services[] = ['id' => $cart->service_id, 'amount' => $cart->quantity];
             OrderService::create([
-                'order_id' => $order->id,
-                'service_id' => $cart->service_id,
-                'price' => $cart->price,
-                'quantity' => $cart->quantity,
+                'order_id'    => $order->id,
+                'service_id'  => $cart->service_id,
+                'price'       => $cart->price,
+                'quantity'    => $cart->quantity,
                 'category_id' => $cart->category_id,
             ]);
             $service = Service::query()->find($cart->service_id);
             $service?->save();
         }
         $remaining_days = Carbon::now()->diffInDays(Carbon::parse($cart->date)) + 1;
-        $page_number = floor($remaining_days / 14);
-        $time = new Appointment($address->region_id, $services, null, $page_number);
-        $times = $time->getAvailableTimesFromDate();
+        $page_number    = floor($remaining_days / 14);
+        $time           = new Appointment($address->region_id, $services, null, $page_number);
+        $times          = $time->getAvailableTimesFromDate();
         if ($times) {
             $days = array_column($times, 'day');
 
-            if (!in_array($cart->date, $days)) {
+            if (! in_array($cart->date, $days)) {
                 DB::rollback();
                 return self::apiResponse(400, __('api.This Time is not available'), $this->body);
             }
@@ -195,7 +265,7 @@ class CheckoutController extends Controller
 
                 $timeList = array_column($time['times'], 'time');
 
-                if (!in_array(Carbon::parse($cart->time)->format('g:i A'), $timeList) && $cart->date == $time['day']) {
+                if (! in_array(Carbon::parse($cart->time)->format('g:i A'), $timeList) && $cart->date == $time['day']) {
 
                     DB::rollback();
                     return self::apiResponse(400, __('api.This Time is not available'), $this->body);
@@ -211,7 +281,7 @@ class CheckoutController extends Controller
             $cart = Cart::query()->where('user_id', auth('sanctum')->user()->id)
                 ->where('category_id', $category_id)->first();
             $booking_no = 'dash2023/' . $cart->id;
-            $minutes = 0;
+            $minutes    = 0;
 
             $bookSetting = BookingSetting::where('service_id', $cart->service_id)->first();
             if ($bookSetting) {
@@ -222,7 +292,7 @@ class CheckoutController extends Controller
                 }
             }
 
-            $address = UserAddresses::where('id', $order->user_address_id)->first();
+            $address    = UserAddresses::where('id', $order->user_address_id)->first();
             $booking_id = Booking::whereHas('address', function ($qu) use ($address) {
                 $qu->where('region_id', $address->region_id);
             })->whereHas('category', function ($qu) use ($category_id) {
@@ -232,7 +302,7 @@ class CheckoutController extends Controller
             $assign_to_id = 0;
 
             $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
-            $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
+            $group    = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
                 $qu->where('region_id', $address->region_id);
             })->whereIn('id', $groupIds);
 
@@ -246,13 +316,13 @@ class CheckoutController extends Controller
                 ->whereIn('assign_to_id', $activeGroups)->pluck('assign_to_id');
             if ($takenGroupsIds->isNotEmpty()) {
                 $assign_to_id = $group->whereNotIn('id', $takenGroupsIds)->inRandomOrder()?->first()?->id;
-                if (!isset($assign_to_id)) {
+                if (! isset($assign_to_id)) {
                     DB::rollback();
                     return self::apiResponse(400, __('api.This Time is not available'), $this->body);
                 }
             } else {
                 $assign_to_id = $group->inRandomOrder()?->first()?->id;
-                if (!isset($assign_to_id)) {
+                if (! isset($assign_to_id)) {
                     DB::rollback();
                     return self::apiResponse(400, __('api.This Time is not available'), $this->body);
                 }
@@ -260,37 +330,37 @@ class CheckoutController extends Controller
 
         }
         $bookingInsert = Booking::query()->create([
-            'booking_no' => $booking_no,
-            'user_id' => auth('sanctum')->user()->id,
-            'category_id' => $category_id,
-            'order_id' => $order->id,
-            'service_id' => $cart->service_id,
-            'user_address_id' => $order->user_address_id,
+            'booking_no'        => $booking_no,
+            'user_id'           => auth('sanctum')->user()->id,
+            'category_id'       => $category_id,
+            'order_id'          => $order->id,
+            'service_id'        => $cart->service_id,
+            'user_address_id'   => $order->user_address_id,
             'booking_status_id' => 1,
-            'notes' => $cart->notes,
-            'quantity' => $cart->quantity,
-            'date' => $cart->date,
-            'type' => 'service',
-            'time' => Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString(),
-            'end_time' => $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null,
+            'notes'             => $cart->notes,
+            'quantity'          => $cart->quantity,
+            'date'              => $cart->date,
+            'type'              => 'service',
+            'time'              => Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString(),
+            'end_time'          => $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null,
         ]);
 
-        $start_time = Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString();
-        $end_time = $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null;
-        $validated['start_time'] = $start_time;
-        $validated['end_time'] = $end_time;
-        $validated['duration'] = $minutes;
-        $validated['visite_id'] = rand(1111, 9999) . '_' . date('Ymd');
-        $validated['assign_to_id'] = $assign_to_id;
-        $validated['booking_id'] = $bookingInsert->id;
+        $start_time                    = Carbon::parse($cart->time)->timezone('Asia/Riyadh')->toTimeString();
+        $end_time                      = $minutes ? Carbon::parse($cart->time)->timezone('Asia/Riyadh')->addMinutes($minutes)->toTimeString() : null;
+        $validated['start_time']       = $start_time;
+        $validated['end_time']         = $end_time;
+        $validated['duration']         = $minutes;
+        $validated['visite_id']        = rand(1111, 9999) . '_' . date('Ymd');
+        $validated['assign_to_id']     = $assign_to_id;
+        $validated['booking_id']       = $bookingInsert->id;
         $validated['visits_status_id'] = 1;
-        $visitInsert = Visit::query()->create($validated);
+        $visitInsert                   = Visit::query()->create($validated);
 
         $allTechn = Technician::where('group_id', $assign_to_id)->whereNotNull('fcm_token')->get();
 
         if (count($allTechn) > 0) {
 
-            $title = 'موعد زيارة جديد';
+            $title   = 'موعد زيارة جديد';
             $message = 'لديك موعد زياره جديد';
 
             foreach ($allTechn as $tech) {
@@ -300,16 +370,16 @@ class CheckoutController extends Controller
                 );
             }
 
-            $techFcmArray = $allTechn->pluck('fcm_token');
+            $techFcmArray  = $allTechn->pluck('fcm_token');
             $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
             $FcmTokenArray = $techFcmArray->merge($adminFcmArray)->toArray();
 
             $notification = [
                 'device_token' => $FcmTokenArray,
-                'title' => $title,
-                'message' => $message,
-                'type' => 'technician',
-                'code' => 1,
+                'title'        => $title,
+                'message'      => $message,
+                'type'         => 'technician',
+                'code'         => 1,
             ];
 
             $this->pushNotification($notification);
@@ -318,36 +388,36 @@ class CheckoutController extends Controller
         $payment_method = $request->payment_method;
         if ($payment_method == 'wallet') {
             $transaction = Transaction::create([
-                'order_id' => $order->id,
+                'order_id'           => $order->id,
                 'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
-                'payment_result' => 'success',
-                'payment_method' => $payment_method,
+                'payment_result'     => 'success',
+                'payment_method'     => $payment_method,
             ]);
-            Order::where('id', $order->id)->update(array('partial_amount' => 0));
+            Order::where('id', $order->id)->update(['partial_amount' => 0]);
         } elseif ($payment_method == 'cache') {
             $transaction = Transaction::create([
-                'order_id' => $order->id,
+                'order_id'           => $order->id,
                 'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
-                'payment_result' => 'success',
-                'payment_method' => $payment_method,
+                'payment_result'     => 'success',
+                'payment_method'     => $payment_method,
             ]);
-            Order::where('id', $order->id)->update(array('partial_amount' => $totalAfterDiscount));
+            Order::where('id', $order->id)->update(['partial_amount' => $totalAfterDiscount]);
         } elseif ($payment_method == 'package') {
             $transaction = Transaction::create([
-                'order_id' => $order->id,
+                'order_id'           => $order->id,
                 'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
-                'payment_result' => 'success',
-                'payment_method' => $parent_payment_method,
+                'payment_result'     => 'success',
+                'payment_method'     => $parent_payment_method,
             ]);
-            Order::where('id', $order->id)->update(array('partial_amount' => 0));
+            Order::where('id', $order->id)->update(['partial_amount' => 0]);
         } else {
             Transaction::create([
-                'order_id' => $order->id,
+                'order_id'           => $order->id,
                 'transaction_number' => $request->transaction_id,
-                'payment_result' => 'success',
-                'payment_method' => $payment_method,
+                'payment_result'     => 'success',
+                'payment_method'     => $payment_method,
             ]);
-            Order::where('id', $order->id)->update(array('partial_amount' => 0));
+            Order::where('id', $order->id)->update(['partial_amount' => 0]);
         }
 
         $user->update([
@@ -363,14 +433,14 @@ class CheckoutController extends Controller
 
     private function saveContract($user, $request, $total, $carts)
     {
-        $contractPackage = ContractPackage::where('id', $carts->first()->contract_package_id)->first();
-        $date = Carbon::now('Asia/Riyadh')->addDays($contractPackage->time)->format('Y-m-d');
+        $contractPackage     = ContractPackage::where('id', $carts->first()->contract_package_id)->first();
+        $date                = Carbon::now('Asia/Riyadh')->addDays($contractPackage->time)->format('Y-m-d');
         $contractPackageUser = ContractPackagesUser::create([
-            'used' => 0,
-            'end_date' => $date,
-            'user_id' => $user->id,
+            'used'                 => 0,
+            'end_date'             => $date,
+            'user_id'              => $user->id,
             'contract_packages_id' => $carts->first()->contract_package_id,
-            'payment_method' => $request->payment_method,
+            'payment_method'       => $request->payment_method,
         ]);
 
         // $order = Order::create([
@@ -385,27 +455,27 @@ class CheckoutController extends Controller
             $transaction = Transaction::create([
                 //      'order_id' => $order->id,
                 'contract_packages_users_id' => $contractPackageUser->id,
-                'transaction_number' => 'waller/' . rand(1111111111, 9999999999),
-                'payment_result' => 'success',
-                'payment_method' => $request->payment_method,
+                'transaction_number'         => 'waller/' . rand(1111111111, 9999999999),
+                'payment_result'             => 'success',
+                'payment_method'             => $request->payment_method,
             ]);
             //   Order::where('id', $order->id)->update(array('partial_amount' => 0));
         } elseif ($request->payment_method == 'cache') {
             $transaction = Transaction::create([
                 //      'order_id' => $order->id,
                 'contract_packages_users_id' => $contractPackageUser->id,
-                'transaction_number' => 'cache/' . rand(1111111111, 9999999999),
-                'payment_result' => 'success',
-                'payment_method' => $request->payment_method,
+                'transaction_number'         => 'cache/' . rand(1111111111, 9999999999),
+                'payment_result'             => 'success',
+                'payment_method'             => $request->payment_method,
             ]);
             //   Order::where('id', $order->id)->update(array('partial_amount' => ($total )));
         } else {
             Transaction::create([
                 //       'order_id' => $order->id,
                 'contract_packages_users_id' => $contractPackageUser->id,
-                'transaction_number' => $request->transaction_id,
-                'payment_result' => 'success',
-                'payment_method' => $request->payment_method,
+                'transaction_number'         => $request->transaction_id,
+                'payment_result'             => 'success',
+                'payment_method'             => $request->payment_method,
                 //  'amount' => $total,
             ]);
 
@@ -445,10 +515,10 @@ class CheckoutController extends Controller
         try {
 
             $rules = [
-                'order_id' => 'required|exists:orders,id',
-                'payment_method' => 'required|in:cache,visa,wallet',
+                'order_id'         => 'required|exists:orders,id',
+                'payment_method'   => 'required|in:cache,visa,wallet',
                 //   'amount' => 'required|numeric',
-                'transaction_id' => 'nullable',
+                'transaction_id'   => 'nullable',
                 'wallet_discounts' => 'nullable|numeric',
             ];
             $request->validate($rules, $request->all());
@@ -457,18 +527,18 @@ class CheckoutController extends Controller
             $trans = Transaction::where('order_id', $request->order_id)->get();
             if ($trans->isEmpty()) {
                 Transaction::create([
-                    'order_id' => $request->order_id,
+                    'order_id'           => $request->order_id,
                     'transaction_number' => $request->transaction_id,
-                    'payment_result' => 'success',
-                    'payment_method' => $request->payment_method,
+                    'payment_result'     => 'success',
+                    'payment_method'     => $request->payment_method,
                     //     'amount' => $request->amount,
                 ]);
             } else {
                 Transaction::where('order_id', $request->order_id)->update([
                     //   'order_id' => $request->order_id,
                     'transaction_number' => $request->transaction_id,
-                    'payment_result' => 'success',
-                    'payment_method' => $request->payment_method,
+                    'payment_result'     => 'success',
+                    'payment_method'     => $request->payment_method,
                     //     'amount' => $request->amount,
                 ]);
             }
@@ -488,10 +558,10 @@ class CheckoutController extends Controller
                 ->causedBy(auth()->user())
                 ->withProperties(
                     json_decode(json_encode([
-                        'url' => url()->current(),
-                        'user_id' => auth()->id(),
-                        'user_name' => auth()->user()->first_name ?? 'N/A',
-                        'order_id' => $request->order_id,
+                        'url'            => url()->current(),
+                        'user_id'        => auth()->id(),
+                        'user_name'      => auth()->user()->first_name ?? 'N/A',
+                        'order_id'       => $request->order_id,
                         'payment_method' => $request->payment_method,
                         'transaction_id' => $trans->first()->id ?? 'N/A',
                     ]), JSON_PRETTY_PRINT)
@@ -505,13 +575,13 @@ class CheckoutController extends Controller
                 ->causedBy(auth()->user()) // Log the user who caused the action
                 ->withProperties([
                     'exception_message' => $e->getMessage(),
-                    'exception_file' => $e->getFile(),
-                    'exception_line' => $e->getLine(),
-                    'url' => url()->current(),
-                    'user_id' => auth()->user()->id,
-                    'user_name' => auth()->user()->first_name ?? '',
-                    'order_id' => $request->order_id,
-                    'payment_method' => $request->payment_method,
+                    'exception_file'    => $e->getFile(),
+                    'exception_line'    => $e->getLine(),
+                    'url'               => url()->current(),
+                    'user_id'           => auth()->user()->id,
+                    'user_name'         => auth()->user()->first_name ?? '',
+                    'order_id'          => $request->order_id,
+                    'payment_method'    => $request->payment_method,
 
                 ])
                 ->log('Exception while processing the paid endpoint');
