@@ -39,101 +39,30 @@ class CheckoutController extends Controller
 
     protected function checkTimeDate(Request $request)
     {
-        try {
+        $user     = auth()->user('sanctum');
+        $carts    = Cart::query()->where('user_id', $user->id)->get();
+        $regionId = UserAddresses::where('id', \request()->query('user_address_id'))->first()->region_id;
+        foreach ($carts as $cart) {
+            $groupIds   = CategoryGroup::where('category_id', $cart->category_id)->pluck('group_id')->toArray();
+            $countGroup = Group::where('active', 1)->whereHas('regions', function ($qu) use ($regionId) {
+                $qu->where('region_id', $regionId);
+            })->whereIn('id', $groupIds)->count();
+            $countInBooking = Booking::whereHas('visit', function ($q) {
+                $q->whereNotIn('visits_status_id', [5, 6]);
+            })->whereHas(
+                'address.region',
+                function ($q) use ($regionId) {
 
-            $validator = Validator::make($request->all(), [
-                'user_address_id' => 'required|exists:user_addresses,id',
-                'shift_id'        => 'required|exists:shifts,id',
-            ]);
-
-            if ($validator->fails()) {
-                return self::apiResponse(400, 'Validation failed', $validator->errors());
-            }
-
-            $user  = auth()->user('sanctum');
-            $carts = Cart::query()->where('user_id', $user->id)->get();
-
-            if ($carts->first() && $carts->first()->time != null) {
-                $shift = Shift::find($request->shift_id);
-
-            } else {
-                return self::apiResponse(400, __('api.time_not_available'), $this->body);
-
-            }
-
-            if (empty($shift)) {
-                return false;
-            }
-
-            $shiftGroupsIds = Shift::where('id', $shift->id)->pluck('group_id')->toArray();
-            $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
-                return array_map('intval', json_decode($jsonString, true));
-            }, $shiftGroupsIds));
-
-            $regionId = UserAddresses::where('id', \request()->query('user_address_id'))->first()->region_id;
-            foreach ($carts as $cart) {
-
-                $groupIds   = CategoryGroup::where('category_id', $cart->category_id)->pluck('group_id')->toArray();
-                $countGroup = Group::where('active', 1)->whereHas('regions', function ($qu) use ($regionId) {
-                    $qu->where('region_id', $regionId);
-                })->whereIn('id', $shiftGroupsIds)->count();
-
-                $countInBooking = Booking::whereHas('visit', function ($q) use ($shiftGroupsIds) {
-                    $q->whereNotIn('visits_status_id', [5, 6])
-                        ->whereIn('assign_to_id', $shiftGroupsIds);
-                })
-                    ->whereHas('address.region', function ($q) use ($regionId) {
-                        $q->where('id', $regionId);
-                    })
-                    ->where([
-                        ['category_id', '=', $cart->category_id],
-                        ['date', '=', $cart->date],
-                        ['time', '=', $cart->time],
-                    ])
-                    ->count();
-
-                if (($countInBooking >= $countGroup)) {
-                    return self::apiResponse(400, __('api.time_not_available'), $this->body);
+                    $q->where('id', $regionId);
                 }
+            )->where([['category_id', '=', $cart->category_id], ['date', '=', $cart->date], ['time', '=', $cart->time]])
+                ->count();
+
+            if (($countInBooking == $countGroup)) {
+                return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
             }
-
-            activity()
-                ->causedBy(auth()->user()) // Action performed by the authenticated user
-                ->withProperties([
-                    'title'         => 'A Test checkTimeDate  ',   // Descriptive title of the action
-                    'user_id'       => auth()->user()->id,         // User’s ID for identification
-                    'user_name'     => auth()->user()->first_name, // User’s name for clarity
-                    'region_id'     => Cart::where('user_id', auth()->user()->id)->pluck('region_id')->first(),
-                    'date'          => Cart::where('user_id', auth()->user()->id)->pluck('date')->first(),
-                    'time'          => Cart::where('user_id', auth()->user()->id)->pluck('time')->first(),
-                    'price_in_cart' => Cart::where('user_id', auth()->user()->id)->pluck('price')->first(),    // Total price of items in the cart (sum of prices)
-                    'quantity'      => Cart::where('user_id', auth()->user()->id)->pluck('quantity')->first(), // Total quantity of items in the cart
-                    'current_url'   => url()->current(),                                                       // URL of the page from which the action was triggered
-                ])
-                ->log('A Test  Checkout successfully ');
-
-            return self::apiResponse(200, __('api.test_checkout'), $this->body);
-        } catch (\Exception $e) {
-            // Log the exception with additional context
-            activity()
-                ->causedBy(auth()->user()) // Log the user who caused the action
-                ->withProperties([
-                    'exception_message' => $e->getMessage(),
-                    'exception_file'    => $e->getFile(),
-                    'exception_line'    => $e->getLine(),
-                    'url'               => url()->current(),
-                    'user_id'           => auth()->user()->id,
-                    'user_name'         => auth()->user()->first_name,
-                    'cart_id'           => Cart::where('user_id', auth()->user()->id)->pluck('id')->first(),
-                    'date'              => $cart->date,
-                    'time'              => $cart->time,
-                    'regionId'          => $regionId,
-
-                ])
-                ->log('Exception while processing the add_to_cart endpoint');
-
-            return response()->json(['error' => 'Failed .'], 500);
         }
+        return self::apiResponse(200, __('api.order created successfully'), $this->body);
     }
 
     protected function checkout(Request $request)
