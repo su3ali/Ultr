@@ -187,7 +187,6 @@ class OrderController extends Controller
         $length    = $request->input('length', 10);
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
-        // بناء الاستعلام مع تحسين الأداء
         $ordersQuery = Order::with([
             'user', 'bookings', 'transaction', 'status',
             'bookings.visit.status', 'services.category',
