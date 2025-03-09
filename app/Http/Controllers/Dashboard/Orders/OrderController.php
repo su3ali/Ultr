@@ -33,33 +33,59 @@ class OrderController extends Controller
     public function index(Request $request)
     {
 
-                                                 // Get pagination data sent by DataTables
-        $start  = $request->input('start', 0);   // Start index
-        $length = $request->input('length', 10); // Page size
+        $start  = $request->input('start', 0);
+        $length = $request->input('length', 10);
 
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
         // Start building the query
+        // $ordersQuery = Order::query()
+        //     ->whereHas('userAddress', function ($query) use ($regionIds) {
+        //         $query->whereIn('region_id', $regionIds);
+        //     })
+        //     ->with(['user', 'bookings', 'transaction', 'status', 'bookings.visit.status', 'services.category'])
+        //     ->orderBy('created_at');
+
+        // if ($request->has('search_value') && $request->search_value != '') {
+        //     $searchTerm = $request->search_value;
+
+        //     $ordersQuery->where(function ($query) use ($searchTerm) {
+        //         $query->where('id', 'like', "%{$searchTerm}%")
+        //             ->orWhere('total', 'like', "%{$searchTerm}%")
+        //             ->orWhere('created_at', 'like', "%{$searchTerm}%")
+        //             ->orWhere('user_id', 'like', "%{$searchTerm}%")
+        //             ->orWhereHas('user', function ($query) use ($searchTerm) {
+        //                 $query->where('first_name', 'like', "%{$searchTerm}%");
+        //             });
+        //     });
+
+        // }
+        // $orders = $ordersQuery->get();
+
         $ordersQuery = Order::query()
-            ->whereHas('userAddress', function ($query) use ($regionIds) {
-                $query->whereIn('region_id', $regionIds);
-            })
-            ->with(['user', 'bookings', 'transaction', 'status', 'bookings.visit.status', 'services.category']);
+            ->whereHas('userAddress', fn($query) => $query->whereIn('region_id', $regionIds))
+            ->with([
+                'user',
+                'bookings',
+                'transaction',
+                'status',
+                'bookings.visit.status',
+                'services.category',
+            ])
+            ->orderBy('created_at');
 
-        if ($request->has('search_value') && $request->search_value != '') {
-            $searchTerm = $request->search_value;
+        $ordersQuery->when($request->filled('search_value'), function ($query) use ($request) {
+            $searchTerm = "%{$request->search_value}%";
 
-            $ordersQuery->where(function ($query) use ($searchTerm) {
-                $query->where('id', 'like', "%{$searchTerm}%")
-                    ->orWhere('total', 'like', "%{$searchTerm}%")
-                    ->orWhere('created_at', 'like', "%{$searchTerm}%")
-                    ->orWhere('user_id', 'like', "%{$searchTerm}%")
-                    ->orWhereHas('user', function ($query) use ($searchTerm) {
-                        $query->where('first_name', 'like', "%{$searchTerm}%");
-                    });
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('id', 'like', $searchTerm)
+                    ->orWhere('total', 'like', $searchTerm)
+                    ->orWhere('created_at', 'like', $searchTerm)
+                    ->orWhere('user_id', 'like', $searchTerm)
+                    ->orWhereHas('user', fn($q) => $q->where('first_name', 'like', $searchTerm));
             });
+        });
 
-        }
         $orders = $ordersQuery->get();
 
         // Apply additional filters

@@ -12,7 +12,6 @@ class CustomerController extends Controller
 
     public function index(Request $request)
     {
-        // Check if the request is an AJAX request
         if ($request->ajax()) {
             // Fetch users with relevant data
             $usersQuery = User::select('id', 'first_name', 'last_name', 'active', 'city_id', 'phone')
