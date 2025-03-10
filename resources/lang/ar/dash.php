@@ -652,7 +652,7 @@ return [
     'content'                               => 'المحتوي',
     'no_messages_yet'                       => 'لا يوجد رسائل حتي الان',
     'complaint_details'                     => 'تفاصيل الرسالة',
-    'user_name'                             => 'الاسم',
+    // 'user_name'                             => 'الاسم',
     'replies'                               => 'الردود',
     'write_reply'                           => 'اكتب هنا الرد',
     'send_reply'                            => 'ارسال الرد',
@@ -965,5 +965,6 @@ return [
     'financial_reports'                     => 'التقارير المالية',
     'view_financial_reports'                => 'عرض التقارير المالية',
     'view_customer_complaints'              => 'عرض شكاوي العملاء',
+    'user_name'                             => 'اسم المستخدم',
 
 ];

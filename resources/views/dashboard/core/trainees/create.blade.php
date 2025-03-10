@@ -127,9 +127,9 @@
                                 placeholder="{{ __('dash.trainee_name') }}" required>
                         </div>
                         <div class="col-md-6 col-sm-12">
-                            <label for="username" class="form-label">اسم المستخدم</label>
+                            <label for="username" class="form-label">{{ __('dash.user_name') }}</label>
                             <input type="text" name="user_name" class="form-control" id="username"
-                                placeholder="اسم المستخدم" required>
+                                placeholder="{{ __('dash.user_name') }}" required>
                         </div>
 
                         <!-- password  -->

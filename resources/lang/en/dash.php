@@ -1035,6 +1035,6 @@ return [
     'appointments'                          => 'Appointments',
     'no_image'                              => 'No Image Added',
     'save'                                  => 'Save',
-
+    'user_name'                             => 'User Name',
 
 ];
