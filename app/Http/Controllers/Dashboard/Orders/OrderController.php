@@ -641,6 +641,11 @@ class OrderController extends Controller
 
                     return $cancelReason?->is_for_tech === 1 ? "الفني" : "العميل";
                 })
+
+                ->addColumn('total', function ($row) {
+                    return $row->total ? (fmod($row->total, 1) == 0 ? (int) $row->total : number_format($row->total, 2)) : '';
+                })
+
                 ->addColumn('status', function ($row) {
                     return $row->status?->name;
                 })
@@ -689,6 +694,7 @@ class OrderController extends Controller
                     'service',
                     'quantity',
                     'cancelled_by',
+                    'total',
                     'status',
                     'region',
                     'created_at',
