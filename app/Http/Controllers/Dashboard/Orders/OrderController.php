@@ -428,17 +428,20 @@ class OrderController extends Controller
             //     $query->whereIn('region_id', $regionIds);
             // });
 
-            //  orders for the current day, as well as orders created or updated within the first 3 hours of the next day,
-            $now       = Carbon::now('Asia/Riyadh')->toDateString();
-            $tomorrow  = Carbon::tomorrow('Asia/Riyadh')->toDateString();
-            $startTime = Carbon::tomorrow('Asia/Riyadh')->startOfDay()->toTimeString();
-            $endTime   = Carbon::tomorrow('Asia/Riyadh')->startOfDay()->addHours(3)->toTimeString();
+                                                                          //  orders for the current day, as well as orders created or updated within the first 3 hours of the next day,
+            $now       = Carbon::now('Asia/Riyadh')->toDateString();      // تاريخ اليوم
+            $tomorrow  = Carbon::tomorrow('Asia/Riyadh')->toDateString(); // تاريخ اليوم التالي
+            $startTime = '00:00:00';                                      // بداية اليوم التالي
+            $endTime   = '03:00:00';                                      // أول 3 ساعات من اليوم التالي
 
             $orders = Order::where('status_id', 5)
                 ->where('is_active', 1)
                 ->where(function ($qu) use ($now, $tomorrow, $startTime, $endTime) {
+                    // الطلبات الخاصة باليوم الحالي
                     $qu->whereDate('created_at', $now)
                         ->orWhereDate('updated_at', $now)
+
+                    // الطلبات الخاصة بأول 3 ساعات من اليوم التالي فقط
                         ->orWhere(function ($q) use ($tomorrow, $startTime, $endTime) {
                             $q->whereDate('created_at', $tomorrow)
                                 ->whereTime('created_at', '>=', $startTime)
