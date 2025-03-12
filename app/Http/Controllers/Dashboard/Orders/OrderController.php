@@ -211,7 +211,7 @@ class OrderController extends Controller
                 }
                 $query->where('is_active', 1);
             })
-            ->orderBy('created_at');
+            ->orderByDesc('created_at');
 
         if ($length != -1) {
             $ordersQuery->skip($start)->take($length);
@@ -455,7 +455,10 @@ class OrderController extends Controller
                 })
                 ->whereHas('userAddress', function ($query) use ($regionIds) {
                     $query->whereIn('region_id', $regionIds);
-                });
+                })
+                ->orderByDesc('updated_at') // الأحدث بناءً على التحديث
+                ->orderByDesc('created_at') // الأحدث بناءً على الإنشاء (احتياطيًا)
+                ->get();
 
             return DataTables::of($orders)
                 ->addColumn('booking_id', function ($row) {
@@ -582,7 +585,7 @@ class OrderController extends Controller
             ->whereHas('userAddress', function ($query) use ($regionIds) {
                 $query->whereIn('region_id', $regionIds);
             })
-            ->with(['user', 'status', 'bookings.visit.status', 'bookings.visit', 'services.category', 'userAddress']);
+            ->with(['user', 'status', 'bookings.visit.status', 'bookings.visit', 'services.category', 'userAddress'])->orderByDesc('updated_at');
 
         // Count total records before applying pagination
         $totalOrders = $ordersQuery->count();
