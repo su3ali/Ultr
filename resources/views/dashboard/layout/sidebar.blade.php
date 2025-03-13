@@ -361,7 +361,8 @@
             @endif
 
 
-            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_companys_services_management'))
+            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_companys_services_management') ||
+            (auth()->user()->hasRole('التسويق') ))
 
             <li class="menu">
                 <a href="#contact" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">

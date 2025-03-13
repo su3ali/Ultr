@@ -753,6 +753,7 @@ class OrderController extends Controller
     }
     public function complaints()
     {
+       
         if (request()->ajax()) {
                                                                   // Eager load the related user model to optimize database queries
             $customerComplaints = CustomerComplaint::with('user') // Assuming 'user' is the relation name
