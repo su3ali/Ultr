@@ -753,52 +753,55 @@ class OrderController extends Controller
     }
     public function complaints()
     {
-       
         if (request()->ajax()) {
-                                                                  // Eager load the related user model to optimize database queries
-            $customerComplaints = CustomerComplaint::with('user') // Assuming 'user' is the relation name
-                ->orderBy('created_at', 'desc')
-                ->get();
+            // تحميل العلاقات الضرورية دفعة واحدة لتقليل الاستعلامات
+            $customerComplaints = CustomerComplaint::with([
+                'user',
+                'order.bookings.visits.group',
+                'order.bookings.address.region',
+            ])->orderBy('created_at', 'desc')->get();
 
             return DataTables::of($customerComplaints)
+                ->addColumn('order_id', fn($row) => $row->order_id ?? 'N/A')
+
+                ->addColumn('booking_no', function ($row) {
+                    return optional($row->order?->bookings?->first())->id ?? 'N/A';
+                })
+
+                ->addColumn('zone_name', function ($row) {
+                    return optional($row->order?->bookings?->first()?->address?->region)->title ?? 'N/A';
+                })
+
                 ->addColumn('customer_name', function ($row) {
                     return $row->user ? $row->user->first_name . ' ' . $row->user->last_name : 'N/A';
                 })
-                ->addColumn('customer_phone', function ($row) {
-                    $phone = $row->user ? $row->user->phone : 'N/A';
-                    // If the phone number is not 'N/A', format it as a WhatsApp clickable link
-                    if ($phone !== 'N/A') {
-                        return '<a href="https://wa.me/' . $phone . '" target="_blank" class="whatsapp-link" title="فتح الواتساب">
-                                    <span class="phone-number">' . $phone . '</span>
-                                    <i class="fab fa-whatsapp whatsapp-icon"></i>
-                                </a>';
-                    }
-                    return $phone;
+
+                ->addColumn('tech_name', function ($row) {
+                    return optional($row->order?->bookings?->first()?->visits?->first()?->group)->name ?? 'N/A';
                 })
 
-                ->addColumn('complaint_text', function ($row) {
-                    return $row->text ?? 'No text provided';
+                ->addColumn('customer_phone', function ($row) {
+                    $phone = $row->user?->phone ?? 'N/A';
+                    return $phone !== 'N/A'
+                    ? '<a href="https://wa.me/' . $phone . '" target="_blank" class="whatsapp-link" title="فتح الواتساب">
+                                <span class="phone-number">' . $phone . '</span>
+                                <i class="fab fa-whatsapp whatsapp-icon"></i>
+                            </a>'
+                    : $phone;
                 })
-                ->addColumn('complaint_images', function ($row) {
-                    // Assuming images are stored in an 'images' attribute or related table
-                    return $row->images ? implode(', ', $row->images) : 'No images';
-                })
-                ->addColumn('complaint_video', function ($row) {
-                    // Assuming video is stored in a 'video' attribute or related table
-                    return $row->video ? $row->video : 'No video';
-                })
-                ->addColumn('created_at', function ($row) {
-                    // Use the created_at timestamp directly, formatted to the desired timezone
-                    return $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d");
-                })
+
+                ->addColumn('complaint_text', fn($row) => $row->text ?? 'No text provided')
+
+                ->addColumn('complaint_images', fn($row) => $row->images ? implode(', ', $row->images) : 'No images')
+
+                ->addColumn('complaint_video', fn($row) => $row->video ?? 'No video')
+
+                ->addColumn('created_at', fn($row) => $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d"))
+
                 ->addColumn('control', function ($row) {
-                    // Generate control buttons inline
-                    $html = '
-                    <a href="' . route('dashboard.order.complaintDetails', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                        <i class="far fa-eye fa-2x"></i>
-                    </a>
-                ';
-                    return $html;
+                    return '<a href="' . route('dashboard.order.complaintDetails', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                                <i class="far fa-eye fa-2x"></i>
+                            </a>';
                 })
                 ->rawColumns(['customer_name', 'customer_phone', 'complaint_text', 'complaint_images', 'complaint_video', 'created_at', 'control'])
                 ->make(true);

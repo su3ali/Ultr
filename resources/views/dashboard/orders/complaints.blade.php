@@ -81,9 +81,13 @@
                 <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
                     <thead>
                         <tr>
+
                             <th>رقم الشكوى</th>
                             <th>رقم الطلب</th>
+                            <th>رقم الحجز</th>
+                            <th>{{ __('dash.zone') }}</th>
                             <th>{{ __('dash.customer_name') }}</th>
+                            <th>{{ __('dash.tech_name') }}</th>
                             <th>هاتف العميل</th>
                             <th>التاريخ</th>
                             <th class="no-content">{{ __('dash.actions') }}</th>
@@ -149,8 +153,21 @@
                         name: 'order_id'
                     },
                     {
+                        data:'booking_no',
+                        name:'booking_no'
+                    },
+                    {
+                        data:'zone_name',
+                        name:'zone_name'
+                    },
+                    {
                         data: 'customer_name',
                         name: 'customer_name'
+                    },
+
+                    {
+                        data: 'tech_name',
+                        name: 'tech_name'
                     },
                     
                     {
