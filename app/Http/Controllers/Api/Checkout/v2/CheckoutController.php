@@ -56,7 +56,6 @@ class CheckoutController extends Controller
 
     protected function checkTimeDate(Request $request)
     {
-
         try {
 
             $rules = [
@@ -136,6 +135,7 @@ class CheckoutController extends Controller
 
                 $dayName = Carbon::parse($date_on_cart_to_user)->locale('ar')->translatedFormat('l');
             }
+
             // dd($dayName);
             $times = $time->getAvailableTimesFromDate();
             if ($times) {
@@ -205,10 +205,7 @@ class CheckoutController extends Controller
                     $qu->where('category_id', $category_id);
                 })->where('date', $cart->date)->pluck('id')->toArray();
 
-                $activeGroups = Group::where('active', 1)->pluck('id')->toArray();
                 $assign_to_id = 0;
-
-                $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
 
                 $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
                     $qu->where('region_id', $address->region_id);
@@ -241,48 +238,21 @@ class CheckoutController extends Controller
                 }
 
                 //
+                $this->logActivity(' before Processing the Test Checkout ');
+
+                // dd($address->region_id);
 
                 $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
                     $qu->where('region_id', $address->region_id);
-                })->whereIn('id', $techIdsOnThisDay);
+                })->whereIn('id', $techIdsOnThisDay)->pluck('id')->toArray();
 
-                // dd($group->get()->isEmpty());
+                // dd(empty($group));
 
-                if ($group->get()->isEmpty()) {
+                if (empty($group)) {
                     DB::rollback();
                     return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
                 }
                 // dd($cart->time);
-
-                $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()
-                        ->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time) * $cart->quantity)
-                        ->format('H:i:s'))
-                    ->where('end_time', '>', $cart->time)
-                    ->activeVisits()->whereIn('booking_id', $booking_id)
-                    ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id');
-
-                // dd($takenGroupsIds);
-                if ($takenGroupsIds->isNotEmpty()) {
-                    $assign_to_id = $group->whereNotIn('id', $takenGroupsIds)->inRandomOrder()?->first()?->id;
-                    // dd($assign_to_id);
-                    if (! isset($assign_to_id)) {
-                        DB::rollback();
-                        return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-                    }
-                } else {
-                    $assign_to_id = $group->inRandomOrder()?->first()?->id;
-                    if (! isset($assign_to_id)) {
-                        DB::rollback();
-                        return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-                    }
-                }
-
-                // dd($group->get());
-
-                if ($group->get()->isEmpty()) {
-                    DB::rollback();
-                    return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
-                }
 
                 if ($cart->time == '23:00:00') {
                     $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()
@@ -290,7 +260,7 @@ class CheckoutController extends Controller
                             ->format('H:i:s'))
                         ->where('end_time', '>', $cart->time)
                         ->activeVisits()->whereIn('booking_id', $booking_id)
-                        ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id');
+                        ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id')->toArray();
                     // dd($takenGroupsIds);
                 } else {
 
@@ -299,36 +269,20 @@ class CheckoutController extends Controller
                             ->format('H:i:s'))
                         ->where('end_time', '>', $cart->time)
                         ->activeVisits()->whereIn('booking_id', $booking_id)
-                        ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id');
+                        ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id')->toArray();
                 }
 
-                // dd($takenGroupsIds);
-                if ($takenGroupsIds->isNotEmpty()) {
+                $availableShiftGroupsIds = array_diff($group, $takenGroupsIds);
+
+                // dd($availableShiftGroupsIds);
+
+                if (empty($availableShiftGroupsIds)) {
 
                     return self::apiResponse(400, __('api.This Time is not available'), $this->body);
                 }
 
             }
-            activity()
-                ->causedBy(auth()->user()) // Log the user who caused the action
-                ->withProperties([
-                    'url'            => url()->current(),
-                    'user_id'        => auth()->user()->id,
-                    'user_name'      => auth()->user()->first_name,
-                    'region_id'      => $address->region_id ?? '',
-                    'cart_time'      => $cart->time ?? '',
-                    'cart_date'      => $cart->date ?? '',
-                    'takenGroupsIds' => $takenGroupsIds ?? null,
-                    'assign_to_id'   => $assign_to_id ?? null,
-                    'shiftGroupsIds' => $shiftGroupsIds ?? null,
-                    'total'          => $total ?? '',
-                    'service_id'     => $cart->service_id ?? '',
-                    'cart'           => $cart ?? '',
-                    'success'        => true,
-                    'status_code'    => 200,
-
-                ])
-                ->log('  processing the test checkout endpoint');
+            $this->logActivity(' after Processing the Test Checkout ');
 
             return self::apiResponse(200, __('api.test_checkout'), $this->body);
         } catch (\Exception $e) {
@@ -1005,5 +959,29 @@ class CheckoutController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
 
         }
+    }
+
+    public function logActivity($msg)
+    {
+        activity()
+            ->causedBy(auth()->user()) // Log the user who caused the action
+            ->withProperties([
+                'url'            => url()->current(),
+                'user_id'        => auth()->user()->id,
+                'user_name'      => auth()->user()->first_name,
+                'region_id'      => $address->region_id ?? '',
+                'cart_time'      => $cart->time ?? '',
+                'cart_date'      => $cart->date ?? '',
+                'takenGroupsIds' => $takenGroupsIds ?? null,
+                'assign_to_id'   => $assign_to_id ?? null,
+                'shiftGroupsIds' => $shiftGroupsIds ?? null,
+                'total'          => $total ?? '',
+                'service_id'     => $cart->service_id ?? '',
+                'cart'           => $cart ?? '',
+                'success'        => true,
+                'status_code'    => 200,
+
+            ])
+            ->log($msg);
     }
 }
