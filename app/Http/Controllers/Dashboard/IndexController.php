@@ -21,7 +21,7 @@ class IndexController extends Controller
 
         $customersHaveOrders = User::has('orders')->count();
 
-        $customer_complaints = CustomerComplaint::count();
+        $customer_complaints = CustomerComplaint::count(); 
 
         $complaints_unresolved = CustomerComplaint::where('customer_complaints_status_id', 1)->count();
 
