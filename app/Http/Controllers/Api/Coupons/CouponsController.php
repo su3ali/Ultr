@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Api\Coupons;
 
 use App\Bll\CouponCheck;
@@ -26,6 +25,7 @@ class CouponsController extends Controller
         $coupons = Coupon::query()->where('active', 1)->where('is_hidden', 0)
             ->where('start', '<=', Carbon::now('Asia/Riyadh'))->where('end', '>=', Carbon::now('Asia/Riyadh'))
             ->get();
+
         $this->body['coupons'] = CouponsResource::collection($coupons);
         return self::apiResponse(200, null, $this->body);
     }
@@ -37,22 +37,22 @@ class CouponsController extends Controller
         $user = auth()->user('sanctum');
 
         $carts = Cart::query()->where('user_id', $user->id)->get();
-        if (!$carts->first()) {
+        if (! $carts->first()) {
             return self::apiResponse(400, t_('Cart is empty'), []);
         }
-        $total = $this->calc_total($carts);
+        $total  = $this->calc_total($carts);
         $coupon = Coupon::query()->where('code', $code)->first();
 
         if ($coupon) {
             $coupon_user = CouponUser::query()->where('coupon_id', $coupon->id)
                 ->where('user_id', auth()->user()->id)->get();
-            $check = new CouponCheck();
+            $check          = new CouponCheck();
             $match_response = $check->check_coupon_services_match($coupon, $total, $carts);
             if ($match_response['error']) {
                 return self::apiResponse(400, __('api.This coupon con not be used to any of these services !'), $this->body);
             }
             $discount = $match_response['discount'];
-            $res = $check->check_avail($coupon, $coupon_user, $total);
+            $res      = $check->check_avail($coupon, $coupon_user, $total);
             if (key_exists('success', $res)) {
                 // CouponUser::query()->create([
                 //     'user_id' => auth()->user()->id,
@@ -65,10 +65,10 @@ class CouponsController extends Controller
                 }
                 $coupon->times_used++;
                 $coupon->save();
-                $sub_total = $total - $discount;
+                $sub_total                  = $total - $discount;
                 $this->body['coupon_value'] = $discount;
-                $this->body['total'] = $total;
-                $this->body['sub_total'] = $sub_total;
+                $this->body['total']        = $total;
+                $this->body['sub_total']    = $sub_total;
                 return self::apiResponse(200, $res['success'], $this->body);
             } else {
                 return self::apiResponse(400, $res['error'], $this->body);
@@ -82,7 +82,7 @@ class CouponsController extends Controller
         $user = auth()->user('sanctum');
 
         $carts = Cart::query()->where('user_id', $user->id)->get();
-        if (!$carts->first()) {
+        if (! $carts->first()) {
             return self::apiResponse(400, __('api.Cart is empty'), []);
         }
         $total = $this->calc_total($carts);
@@ -99,11 +99,11 @@ class CouponsController extends Controller
                 ]);
             }
             $coupon_value = $coupon->type == 'percentage' ? ($coupon->value / 100) * $total : $coupon->value;
-            $sub_total = $request->total - $coupon_value;
+            $sub_total    = $request->total - $coupon_value;
 
             $this->body['coupon_value'] = $coupon_value;
-            $this->body['total'] = $total;
-            $this->body['sub_total'] = $sub_total;
+            $this->body['total']        = $total;
+            $this->body['sub_total']    = $sub_total;
             return self::apiResponse(200, null, $this->body);
         } else {
             return self::apiResponse(400, __('api.invalid code!'), $this->body);
@@ -115,7 +115,7 @@ class CouponsController extends Controller
         $total = [];
         for ($i = 0; $i < $carts->count(); $i++) {
             $cart_total = ($carts[$i]->price) * $carts[$i]->quantity;
-            $total[] = $cart_total;
+            $total[]    = $cart_total;
         }
         return array_sum($total);
     }

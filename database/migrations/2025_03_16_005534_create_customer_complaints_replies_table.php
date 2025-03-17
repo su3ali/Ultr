@@ -14,15 +14,17 @@ return new class extends Migration
                 ->constrained('customer_complaints')
                 ->onDelete('cascade');
 
-            $table->foreignId('user_id')
-                ->constrained('users')
+            $table->foreignId('admin_id')
+                ->constrained('admins')
                 ->onDelete('cascade');
 
             $table->text('text')->nullable();
+            $table->string('file_path')->nullable();
             $table->unsignedTinyInteger('rating')->nullable();
 
             $table->timestamps();
         });
+
     }
 
     public function down()

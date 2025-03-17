@@ -28,14 +28,28 @@ class TraineeController extends Controller
         $specs  = cache()->remember('specs', 60, fn() => Specialization::all());
 
         // Static nationalities data
+        // $nationalities = [
+        //     "فلبين"     => "1",
+        //     "اندونيسيا" => "2",
+        //     "الهند"     => "3",
+        //     "تايلند"    => "4",
+        //     "ماليزيا"   => "5",
+        //     "باكستان"   => "6",
+        //     "مصر"       => "7",
+        // ];
+
         $nationalities = [
-            "فلبين"     => "1",
-            "اندونيسيا" => "2",
-            "الهند"     => "3",
-            "تايلند"    => "4",
-            "ماليزيا"   => "5",
-            "باكستان"   => "6",
-            "مصر"       => "7",
+            ["id" => 1, "ar" => "فلبين", "en" => "Philippines"],
+            ["id" => 2, "ar" => "اندونيسيا", "en" => "Indonesia"],
+            ["id" => 3, "ar" => "الهند", "en" => "India"],
+            ["id" => 4, "ar" => "تايلند", "en" => "Thailand"],
+            ["id" => 5, "ar" => "ماليزيا", "en" => "Malaysia"],
+            ["id" => 6, "ar" => "باكستان", "en" => "Pakistan"],
+            ["id" => 7, "ar" => "مصر", "en" => "Egypt"],
+            ["id" => 8, "ar" => "كينيا", "en" => "Kenya"],
+            ["id" => 9, "ar" => "نيجيريا", "en" => "Nigeria"],
+            ["id" => 10, "ar" => "نيبال", "en" => "Nepal"],
+            ["id" => 11, "ar" => "بنغلاديش", "en" => "Bangladesh"],
         ];
 
         // Handle AJAX request for DataTables

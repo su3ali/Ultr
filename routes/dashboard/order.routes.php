@@ -18,7 +18,20 @@ Route::get('order/orderDetail', 'Orders\OrderController@orderDetail')->name('ord
 Route::get('ordersToday', 'Orders\OrderController@ordersToday')->name('order.ordersToday');
 Route::get('ordersCanceled', 'Orders\OrderController@canceledOrders')->name('order.canceledOrders');
 Route::get('ordersTodayCanceled', 'Orders\OrderController@canceledOrdersToday')->name('order.canceledOrdersToday');
+
+// Strart Complaints
 Route::get('complaints', 'Orders\OrderController@complaints')->name('order.complaints');
+Route::get('complaints/complaintsToday', 'Orders\OrderController@complaintsToday')->name('order.complaintsToday');
+
+Route::get('complaints/complaintsResolved', 'Orders\OrderController@complaintsResolved')->name('order.complaintsResolved');
+
+Route::get('complaints/complaintsUnresolved', 'Orders\OrderController@complaintsUnresolved')->name('order.complaintsUnresolved');
+
+Route::post('complaints/action', 'Orders\OrderController@complaintsAction')->name('order.complaintsAction');
+
+
+// End Complaints
+
 Route::get('complaints/complaintDetails', 'Orders\OrderController@complaintDetails')->name('order.complaintDetails');
 
 Route::get('/orders/{order}/bookings', [OrderController::class, 'getBookings'])->name('orders.bookings');

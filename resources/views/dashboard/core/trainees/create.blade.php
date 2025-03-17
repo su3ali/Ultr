@@ -127,9 +127,9 @@
                                 placeholder="{{ __('dash.trainee_name') }}" required>
                         </div>
                         <div class="col-md-6 col-sm-12">
-                            <label for="username" class="form-label">اسم المستخدم</label>
+                            <label for="username" class="form-label">{{ __('dash.user_name') }}</label>
                             <input type="text" name="user_name" class="form-control" id="username"
-                                placeholder="اسم المستخدم" required>
+                                placeholder="{{ __('dash.user_name') }}" required>
                         </div>
 
                         <!-- password  -->
@@ -174,11 +174,14 @@
                             <label for="country_id" class="form-label">{{ __('dash.nationality') }}</label>
                             <select id="country_id" class="form-select select2" name="country_id" required>
                                 <option selected disabled>{{ __('dash.choose') }}</option>
-                                @foreach ($nationalities as $key => $nationality)
-                                <option value="{{ $nationality }}">{{ $key }}</option>
+                                @foreach ($nationalities as $nationality)
+                                <option value="{{ $nationality['id'] }}">
+                                    {{ $nationality[app()->getLocale()] }}
+                                </option>
                                 @endforeach
                             </select>
                         </div>
+
                         <div class="col-md-6 col-sm-12">
                             <label for="identity_id" class="form-label">{{ __('dash.identity_number') }}</label>
                             <input type="text" name="identity_id" class="form-control" id="identity_id"
@@ -204,15 +207,15 @@
                         <div class="col-md-6 col-sm-12">
                             <label for="training_start_date" class="form-label">{{ __('dash.training_start_date')
                                 }}</label>
-                            <input type="date" name="training_start_date" class="form-control" id="training_start_date"
-                                required>
+                            <input type="date" name="training_start_date" lang="{{ app()->getLocale() }}"
+                                class="form-control" id="training_start_date" required>
                         </div>
 
                         <!-- training_end_date  -->
                         <div class="col-md-6 col-sm-12">
                             <label for="training_end_date" class="form-label">{{ __('dash.training_end_date') }}</label>
-                            <input type="date" name="training_end_date" class="form-control" id="training_end_date"
-                                required>
+                            <input type="date" name="training_end_date" lang="{{ app()->getLocale() }}"
+                                class="form-control" id="training_end_date" required>
                         </div>
 
 
@@ -261,5 +264,7 @@
 @push('script')
 <script>
     let secondUpload = new FileUploadWithPreview('mySecondImage');
+
+    
 </script>
 @endpush

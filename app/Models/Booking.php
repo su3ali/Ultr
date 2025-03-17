@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -58,6 +57,10 @@ class Booking extends Model
     public function category()
     {
         return $this->hasOne(Category::class, 'id', 'category_id');
+    }
+    public function visits()
+    {
+        return $this->hasMany(Visit::class, 'booking_id');
     }
 
 }
