@@ -57,7 +57,7 @@
                             <li class="breadcrumb-item"><a href="{{ route('dashboard.home') }}">{{ __('dash.home')
                                     }}</a></li>
                             <li class="breadcrumb-item active" aria-current="page">
-                                {{ __('dash.complaints_total') }}</li>
+                                {{ __('dash.complaints_today') }}</li>
                         </ol>
                     </nav>
 
@@ -89,9 +89,7 @@
                             <th>{{ __('dash.customer_name') }}</th>
                             <th>{{ __('dash.tech_name') }}</th>
                             <th>هاتف العميل</th>
-                            <th> {{ __('dash.status') }} </th>
                             <th>التاريخ</th>
-
                             <th class="no-content">{{ __('dash.actions') }}</th>
                         </tr>
                     </thead>
@@ -145,7 +143,7 @@
                 },
                 processing: true,
                 serverSide: false,
-                ajax: '{{ route('dashboard.order.complaints') }}',
+                ajax: '{{ route('dashboard.order.complaintsToday') }}',
                 columns: [{
                         data: 'id',
                         name: 'id'
@@ -175,10 +173,6 @@
                     {
                         data: 'customer_phone',
                         name: 'customer_phone'
-                    },
-                    {
-                        data:'status',
-                        name:'status'
                     },
                     {
                         data: 'created_at',

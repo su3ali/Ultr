@@ -8,6 +8,8 @@ use App\Models\Category;
 use App\Models\City;
 use App\Models\CustomerComplaint;
 use App\Models\CustomerComplaintImage;
+use App\Models\CustomerComplaintReply;
+use App\Models\CustomerComplaintStatus;
 use App\Models\Group;
 use App\Models\Order;
 use App\Models\OrderService;
@@ -17,11 +19,15 @@ use App\Models\User;
 use App\Models\UserAddresses;
 use App\Models\Visit;
 use App\Traits\schedulesTrait;
+use Auth;
 use Carbon\CarbonInterval;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 use Yajra\DataTables\DataTables;
@@ -30,159 +36,9 @@ class OrderController extends Controller
 {
     use schedulesTrait;
 
-    // public function index(Request $request)
-    // {
-
-    //     $start  = $request->input('start', 0);
-    //     $length = $request->input('length', 10);
-
-    //     $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
-
-    //     // Start building the query
-    //     $ordersQuery = Order::query()
-    //         ->whereHas('userAddress', function ($query) use ($regionIds) {
-    //             $query->whereIn('region_id', $regionIds);
-    //         })
-    //         ->with(['user', 'bookings', 'transaction', 'status', 'bookings.visit.status', 'services.category'])
-    //         ->orderBy('created_at');
-
-    //     if ($request->has('search_value') && $request->search_value != '') {
-    //         $searchTerm = $request->search_value;
-
-    //         $ordersQuery->where(function ($query) use ($searchTerm) {
-    //             $query->where('id', 'like', "%{$searchTerm}%")
-    //                 ->orWhere('total', 'like', "%{$searchTerm}%")
-    //                 ->orWhere('created_at', 'like', "%{$searchTerm}%")
-    //                 ->orWhere('user_id', 'like', "%{$searchTerm}%")
-    //                 ->orWhereHas('user', function ($query) use ($searchTerm) {
-    //                     $query->where('first_name', 'like', "%{$searchTerm}%");
-    //                 });
-    //         });
-
-    //     }
-    //     $orders = $ordersQuery->get();
-
-    //     // Apply additional filters
-    //     if ($request->ajax()) {
-    //         if ($request->status) {
-    //             $ordersQuery->where('status_id', $request->status);
-    //         }
-
-    //         if ($request->page) {
-    //             $now = Carbon::now('Asia/Riyadh')->toDateString();
-    //             $ordersQuery->where('status_id', '!=', 5)->whereDate('created_at', '=', $now);
-    //         }
-
-    //         $ordersQuery->where('is_active', 1);
-
-    //         if ($length == -1) {
-    //             $visits = $ordersQuery->get(); // Get all records without pagination
-    //         } else {
-    //             // Get paginated results
-    //             $orders = $ordersQuery->skip($start)->take($length)->get();
-    //         }
-
-    //         // Debug: Log the fetched orders
-    //         // \Log::info('Fetched Orders:', $orders->toArray());
-
-    //         // Debug: Uncomment below to return the raw data
-    //         // return response()->json($orders);
-
-    //         return DataTables::of($ordersQuery)
-    //             ->addColumn('booking_id', function ($row) {
-    //                 return $row->bookings->first() ? $row->bookings->first()->id : '';
-    //             })
-    //             ->addColumn('user', function ($row) {
-    //                 return $row->user?->first_name . ' ' . $row->user?->last_name;
-    //             })
-
-    //             ->addColumn('phone', function ($row) {
-    //                 $phone = $row->user?->phone;
-    //                 return $phone
-    //                 ? '<a href="https://api.whatsapp.com/send?phone=' . $phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $phone . '</a>'
-    //                 : 'N/A';
-    //             })
-
-    //             ->addColumn('service', function ($row) {
-    //                 $services = $row->services->unique('id');
-    //                 $html     = '';
-    //                 foreach ($services as $service) {
-    //                     $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
-    //                 }
-    //                 return $html;
-    //             })
-    //             ->addColumn('quantity', function ($row) {
-    //                 return $row->services->sum('pivot.quantity');
-    //             })
-    //             ->addColumn('payment_method', function ($row) {
-    //                 return match ($row->transaction?->payment_method) {
-    //                     'cache', 'cash' => __('api.payment_method_cach'),
-    //                     'wallet' => __('api.payment_method_wallet'),
-    //                     'mada'   => __('api.payment_method_network'),
-    //                     default  => __('api.payment_method_visa'),
-    //                 };
-    //             })
-    //             ->addColumn('region', function ($row) {
-    //                 return optional($row->userAddress?->region)->title ?? '';
-    //             })
-    //             ->addColumn('status', function ($row) {
-    //                                               // Get the current locale
-    //                 $locale = app()->getLocale(); // Returns either 'ar' or 'en'
-
-    //                 // Return the corresponding translation based on the locale
-    //                 return $locale === 'ar'
-    //                 ? $row->bookings?->first()?->visit?->status->name_ar
-    //                 : $row->bookings?->first()?->visit?->status->name_en;
-    //             })
-    //             ->addColumn('created_at', function ($row) {
-    //                 return Carbon::parse($row->created_at)->timezone('Asia/Riyadh')->format("Y-m-d");
-    //             })
-    //             ->addColumn('control', function ($row) {
-    //                 $html = '';
-
-    //                 // Example: If the order status is '2' (pending or similar), show the confirm button
-    //                 if ($row->status_id == 2) {
-    //                     $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-    //                                     <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
-    //                                 </a>';
-    //                 }
-
-    //                 // Show the "show bookings" button
-    //                 $html .= '<button type="button" id="show-bookings" class="btn btn-sm btn-outline-primary" data-id="' . $row->id . '" data-toggle="modal" data-target="#changeGroupModel">
-    //                                 <i class="far fa-eye fa-2x"></i>
-    //                             </button>';
-
-    //                 // Link to order details page
-    //                 $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-    //                                 <i class="far fa-eye fa-2x"></i>
-    //                             </a>';
-
-    //                 // Link to service details page
-    //                 $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-    //                                 <i class="far fa-eye fa-2x"></i>
-    //                             </a>';
-
-    //                 if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
-    //                     // Show delete button only if the permission exists in the session
-    //                     $html .= '<a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
-    //                                     <i class="far fa-trash-alt fa-2x"></i>
-    //                                 </a>';
-    //                 }
-
-    //                 return $html;
-    //             })
-
-    //             ->rawColumns(['booking_id', 'user', 'phone', 'service', 'quantity', 'payment_method', 'region', 'status', 'created_at', 'control'])
-    //             ->make(true);
-    //     }
-
-    //     // Return view
-    //     $statuses = OrderStatus::all()->pluck('name', 'id');
-    //     return view('dashboard.orders.index', compact('statuses', 'start', 'length'));
-    // }
-
     public function index(Request $request)
     {
+
         $start     = $request->input('start', 0);
         $length    = $request->input('length', 10);
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
@@ -742,20 +598,230 @@ class OrderController extends Controller
     }
     protected function complaintDetails()
     {
-        $customerComplaint       = CustomerComplaint::findOrFail(\request()->id);
+        $customerComplaint       = CustomerComplaint::with('complaintReply')->findOrFail(request()->id);
         $customerComplaintImages = CustomerComplaintImage::where('customer_complaints_id', $customerComplaint->id)->get();
         $user                    = User::where('id', $customerComplaint->user_id)->first();
         $order                   = Order::where('id', $customerComplaint->order_id)->first();
         $category_ids            = $order->services->pluck('category_id')->toArray();
         $category_ids            = array_unique($category_ids);
         $categories              = Category::whereIn('id', $category_ids)->get();
-        return view('dashboard.orders.show_complaint', compact('categories', 'customerComplaint', 'customerComplaintImages', 'user', 'order'));
+
+        $locale   = Config::get('app.locale'); // Get the current locale
+        $statuses = CustomerComplaintStatus::query()
+            ->select('id', "name_{$locale} as name")
+            ->get()
+            ->pluck('name', 'id');
+
+        // dd($customerComplaint->complaintReply);
+
+        return view('dashboard.orders.show_complaint', compact('categories', 'statuses', 'customerComplaint', 'customerComplaintImages', 'user', 'order'));
     }
     public function complaints()
     {
         if (request()->ajax()) {
             // تحميل العلاقات الضرورية دفعة واحدة لتقليل الاستعلامات
             $customerComplaints = CustomerComplaint::with([
+                'user',
+                'order.bookings.visits.group',
+                'order.bookings.address.region',
+            ])->orderBy('created_at', 'desc')->get();
+
+            return DataTables::of($customerComplaints)
+                ->addColumn('order_id', fn($row) => $row->order_id ?? 'N/A')
+
+                ->addColumn('booking_no', function ($row) {
+                    return optional($row->order?->bookings?->first())->id ?? 'N/A';
+                })
+
+                ->addColumn('zone_name', function ($row) {
+                    return optional($row->order?->bookings?->first()?->address?->region)->title ?? 'N/A';
+                })
+
+                ->addColumn('customer_name', function ($row) {
+                    return $row->user ? $row->user->first_name . ' ' . $row->user->last_name : 'N/A';
+                })
+
+                ->addColumn('tech_name', function ($row) {
+                    return optional($row->order?->bookings?->first()?->visits?->first()?->group)->name ?? 'N/A';
+                })
+
+                ->addColumn('customer_phone', function ($row) {
+                    $phone = $row->user?->phone ?? 'N/A';
+                    return $phone !== 'N/A'
+                    ? '<a href="https://wa.me/' . $phone . '" target="_blank" class="whatsapp-link" title="فتح الواتساب">
+                                <span class="phone-number">' . $phone . '</span>
+                                <i class="fab fa-whatsapp whatsapp-icon"></i>
+                            </a>'
+                    : $phone;
+                })
+
+                ->addColumn('status', function ($row) {
+                    return $row->status?->name_ar ?? 'N/A';
+                })
+
+                ->addColumn('complaint_text', fn($row) => $row->text ?? 'No text provided')
+
+                ->addColumn('complaint_images', fn($row) => $row->images ? implode(', ', $row->images) : 'No images')
+
+                ->addColumn('complaint_video', fn($row) => $row->video ?? 'No video')
+
+                ->addColumn('created_at', fn($row) => $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d"))
+
+                ->addColumn('control', function ($row) {
+                    return '<a href="' . route('dashboard.order.complaintDetails', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                                <i class="far fa-eye fa-2x"></i>
+                            </a>';
+                })
+                ->rawColumns(['customer_name', 'customer_phone', 'status', 'complaint_text', 'complaint_images', 'complaint_video', 'created_at', 'control'])
+                ->make(true);
+        }
+
+        return view('dashboard.orders.complaints');
+    }
+
+    public function complaintsToday()
+    {
+
+        if (request()->ajax()) {
+
+            $startOfToday         = now()->startOfDay();
+            $endOfTodayPlus3Hours = now()->endOfDay()->addHours(3);
+
+            $customerComplaints = CustomerComplaint::with([
+                'user',
+                'order.bookings.visits.group',
+                'order.bookings.address.region',
+            ])
+                ->whereBetween('created_at', [$startOfToday, $endOfTodayPlus3Hours])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return DataTables::of($customerComplaints)
+                ->addColumn('order_id', fn($row) => $row->order_id ?? 'N/A')
+
+                ->addColumn('booking_no', function ($row) {
+                    return optional($row->order?->bookings?->first())->id ?? 'N/A';
+                })
+
+                ->addColumn('zone_name', function ($row) {
+                    return optional($row->order?->bookings?->first()?->address?->region)->title ?? 'N/A';
+                })
+
+                ->addColumn('customer_name', function ($row) {
+                    return $row->user ? $row->user->first_name . ' ' . $row->user->last_name : 'N/A';
+                })
+
+                ->addColumn('tech_name', function ($row) {
+                    return optional($row->order?->bookings?->first()?->visits?->first()?->group)->name ?? 'N/A';
+                })
+
+                ->addColumn('customer_phone', function ($row) {
+                    $phone = $row->user?->phone ?? 'N/A';
+                    return $phone !== 'N/A'
+                    ? '<a href="https://wa.me/' . $phone . '" target="_blank" class="whatsapp-link" title="فتح الواتساب">
+                                <span class="phone-number">' . $phone . '</span>
+                                <i class="fab fa-whatsapp whatsapp-icon"></i>
+                            </a>'
+                    : $phone;
+                })
+
+                ->addColumn('complaint_text', fn($row) => $row->text ?? 'No text provided')
+
+                ->addColumn('complaint_images', fn($row) => $row->images ? implode(', ', $row->images) : 'No images')
+
+                ->addColumn('complaint_video', fn($row) => $row->video ?? 'No video')
+
+                ->addColumn('created_at', fn($row) => $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d"))
+
+                ->addColumn('control', function ($row) {
+                    return '<a href="' . route('dashboard.order.complaintDetails', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                                <i class="far fa-eye fa-2x"></i>
+                            </a>';
+                })
+                ->rawColumns(['customer_name', 'customer_phone', 'complaint_text', 'complaint_images', 'complaint_video', 'created_at', 'control'])
+                ->make(true);
+        }
+
+        return view('dashboard.orders.complaints_today');
+    }
+
+    public function complaintsResolved()
+    {
+        if (request()->ajax()) {
+
+            $customerComplaints = CustomerComplaint::where('customer_complaints_status_id', 3)->with([
+                'user',
+                'complaintReply',
+                'order.bookings.visits.group',
+                'order.bookings.address.region',
+            ])->orderBy('created_at', 'desc')->get();
+
+            return DataTables::of($customerComplaints)
+                ->addColumn('order_id', fn($row) => $row->order_id ?? 'N/A')
+
+                ->addColumn('booking_no', function ($row) {
+                    return optional($row->order?->bookings?->first())->id ?? 'N/A';
+                })
+
+                ->addColumn('zone_name', function ($row) {
+                    return optional($row->order?->bookings?->first()?->address?->region)->title ?? 'N/A';
+                })
+
+                ->addColumn('customer_name', function ($row) {
+                    return $row->user ? $row->user->first_name . ' ' . $row->user->last_name : 'N/A';
+                })
+
+                ->addColumn('tech_name', function ($row) {
+                    return optional($row->order?->bookings?->first()?->visits?->first()?->group)->name ?? 'N/A';
+                })
+
+                ->addColumn('customer_phone', function ($row) {
+                    $phone = $row->user?->phone ?? 'N/A';
+                    return $phone !== 'N/A'
+                    ? '<a href="https://wa.me/' . $phone . '" target="_blank" class="whatsapp-link" title="فتح الواتساب">
+                                <span class="phone-number">' . $phone . '</span>
+                                <i class="fab fa-whatsapp whatsapp-icon"></i>
+                            </a>'
+                    : $phone;
+                })
+
+                ->addColumn('complaint_text', fn($row) => $row->text ?? 'No text provided')
+
+                ->addColumn('complaint_images', fn($row) => $row->images ? implode(', ', $row->images) : 'No images')
+
+                ->addColumn('complaint_video', fn($row) => $row->video ?? 'No video')
+
+                ->addColumn('emp_last_reply', function ($row) {
+                    $lastReply = $row->complaintReply->last();
+                    return $lastReply ? optional($lastReply->admin)->first_name . ' ' . optional($lastReply->admin)->last_name : '';
+                })
+
+                ->addColumn('last_reply_date', function ($row) {
+                    $lastReply = $row->complaintReply->last();
+                    return $lastReply && $lastReply->created_at
+                    ? $lastReply->created_at->timezone('Asia/Riyadh')->format("Y-m-d")
+                    : '';
+                })
+
+                ->addColumn('created_at', fn($row) => $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d"))
+
+                ->addColumn('control', function ($row) {
+                    return '<a href="' . route('dashboard.order.complaintDetails', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                                <i class="far fa-eye fa-2x"></i>
+                            </a>';
+                })
+                ->rawColumns(['customer_name', 'customer_phone', 'last_reply_date', 'complaint_text', 'complaint_images', 'complaint_video', 'created_at', 'control'])
+                ->make(true);
+        }
+
+        return view('dashboard.orders.complaints_resolved');
+    }
+
+    public function complaintsUnresolved()
+    {
+        if (request()->ajax()) {
+
+            $customerComplaints = CustomerComplaint::where('customer_complaints_status_id', 1)->with([
                 'user',
                 'order.bookings.visits.group',
                 'order.bookings.address.region',
@@ -807,7 +873,47 @@ class OrderController extends Controller
                 ->make(true);
         }
 
-        return view('dashboard.orders.complaints');
+        return view('dashboard.orders.complaints_unresolved');
+    }
+
+    public function complaintsAction(Request $request)
+    {
+        $rules = [
+            'id'        => 'required|exists:customer_complaints,id',
+            'status'    => 'required|exists:customer_complaint_statuses,id',
+            'file_path' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
+            'desc'      => 'nullable|string',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator->errors());
+        }
+
+        $customerComplaint = CustomerComplaint::findOrFail($request->id);
+
+        if ($customerComplaint->customer_complaints_status_id !== (int) $request->status) {
+            $customerComplaint->update(['customer_complaints_status_id' => $request->status]);
+        }
+
+        $path = null;
+        if ($request->hasFile('file_path')) {
+            $image    = $request->file('file_path');
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $path     = $image->storeAs('public/images/customerComplaint', $filename);
+            $path     = Storage::url($path);
+        }
+
+        DB::transaction(function () use ($customerComplaint, $request, $path) {
+            CustomerComplaintReply::create([
+                'customer_complaint_id' => $customerComplaint->id,
+                'admin_id'              => auth()->id(),
+                'text'                  => $request->desc ?? '',
+                'file_path'             => $path,
+            ]);
+        });
+
+        return redirect()->back()->with('success', 'تم تحديث حالة الشكوى بنجاح ');
     }
 
     public function create()

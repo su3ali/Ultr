@@ -1,6 +1,8 @@
 <?php
 namespace App\Models;
 
+use App\Models\CustomerComplaintReply;
+use App\Models\CustomerComplaintStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -30,5 +32,15 @@ class CustomerComplaint extends Model
     public function visits()
     {
         return $this->hasManyThrough(Visit::class, Booking::class, 'order_id', 'booking_id', 'order_id', 'id');
+    }
+
+    public function status()
+    {
+        return $this->belongsTo(CustomerComplaintStatus::class, 'customer_complaints_status_id');
+    }
+
+    public function complaintReply()
+    {
+        return $this->hasMany(CustomerComplaintReply::class, 'customer_complaint_id');
     }
 }

@@ -392,7 +392,7 @@
                 <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                     <a href="{{ route('dashboard.core.customer.orders') }}" class="widget-link">
                         <div class="widget widget-one_hybrid widget-engagement">
-                            <div class="widget-heading p-4 rounded-lg bg-lightblue shadow-sm">
+                            <div class="widget-heading p-4 rounded-lg  shadow-sm">
                                 <div class="d-flex align-items-center">
                                     <div class="w-icon bg-primary text-white rounded-circle p-3 shadow-sm me-4">
                                         <!-- Clients Have Orders Icon (Package) -->
@@ -420,30 +420,107 @@
                 @endif
 
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_customer_complaints'))
-                <!-- customer complaints Widget -->
+                <!-- إجمالي الشكاوى -->
                 <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
                     <a href="{{ route('dashboard.order.complaints') }}" class="widget-link">
                         <div class="widget widget-one_hybrid widget-engagement">
-                            <div class="widget-heading p-4 rounded-lg bg-lightblue shadow-sm">
+                            <div class="widget-heading p-4 rounded-lg  shadow-sm">
                                 <div class="d-flex align-items-center">
-                                    <div class="w-icon bg-danger text-white rounded-circle p-3 shadow-sm me-4">
-                                        <i class="fas fa-exclamation-circle fa-2x"></i> <!-- أيقونة التحذير -->
+                                    <div class="w-icon bg-primary text-white rounded-circle p-3 shadow-sm me-4">
+                                        <i class="fas fa-list-alt fa-2x"></i> <!-- أيقونة القائمة -->
                                     </div>
                                     <div>
                                         <p class="w-value fs-2 fw-bold text-dark mb-1">
                                             {{ $customer_complaints }}
                                         </p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.complaints_count') }}</h5>
+                                        <h5 class="text-muted mb-0">{{ __('dash.complaints_total_count') }}</h5>
                                     </div>
                                 </div>
                             </div>
                             <div class="widget-footer p-4 text-center bg-lightblue">
-                                <p class="text-muted mb-0"> {{ __('dash.complaints') }} </p>
+                                <p class="text-muted mb-0"> {{ __('dash.complaints_total') }} </p>
                             </div>
                         </div>
                     </a>
                 </div>
+                @endif
 
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_customer_complaints'))
+                <!-- الشكاوى غير المحلولة -->
+                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
+                    <a href="{{ route('dashboard.order.complaintsUnresolved') }}" class="widget-link">
+                        <div class="widget widget-one_hybrid widget-engagement">
+                            <div class="widget-heading p-4 rounded-lg  shadow-sm">
+                                <div class="d-flex align-items-center">
+                                    <div class="w-icon bg-danger text-white rounded-circle p-3 shadow-sm me-4">
+                                        <i class="fas fa-exclamation-triangle fa-2x"></i> <!-- أيقونة التحذير -->
+                                    </div>
+                                    <div>
+                                        <p class="w-value fs-2 fw-bold text-dark mb-1">
+                                            {{ $complaints_unresolved }}
+                                        </p>
+                                        <h5 class="text-muted mb-0">{{ __('dash.complaints_unresolved_count') }}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="widget-footer p-4 text-center bg-lightblue">
+                                <p class="text-muted mb-0"> {{ __('dash.complaints_unresolved') }} </p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                @endif
+
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_customer_complaints'))
+                <!-- الشكاوى المحلولة -->
+                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
+                    <a href="{{ route('dashboard.order.complaintsResolved') }}" class="widget-link">
+                        <div class="widget widget-one_hybrid widget-engagement">
+                            <div class="widget-heading p-4 rounded-lg shadow-sm">
+                                <div class="d-flex align-items-center">
+                                    <div class="w-icon bg-success text-white rounded-circle p-3 shadow-sm me-4">
+                                        <i class="fas fa-check-circle fa-2x"></i> <!-- أيقونة التصحيح -->
+                                    </div>
+                                    <div>
+                                        <p class="w-value fs-2 fw-bold text-dark mb-1">
+                                            {{ $complaints_resolved }}
+                                        </p>
+                                        <h5 class="text-muted mb-0">{{ __('dash.complaints_resolved_count') }}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="widget-footer p-4 text-center bg-lightblue">
+                                <p class="text-muted mb-0"> {{ __('dash.complaints_resolved') }} </p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                @endif
+
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_customer_complaints'))
+                <!-- شكاوى اليوم -->
+                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
+                    <a href="{{ route('dashboard.order.complaintsToday') }}" class="widget-link">
+                        <div class="widget widget-one_hybrid widget-engagement">
+                            <div class="widget-heading p-4 rounded-lg  shadow-sm">
+                                <div class="d-flex align-items-center">
+                                    <div class="w-icon bg-warning text-white rounded-circle p-3 shadow-sm me-4">
+                                        <i class="fas fa-calendar-day fa-2x"></i> <!-- أيقونة التقويم -->
+                                    </div>
+                                    <div>
+                                        <p class="w-value fs-2 fw-bold text-dark mb-1">
+                                            {{ $todayCustomerComplaints }}
+                                        </p>
+                                        <h5 class="text-muted mb-0">{{ __('dash.complaints_today_count') }}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="widget-footer p-4 text-center bg-lightblue">
+                                <p class="text-muted mb-0"> {{ __('dash.complaints_today') }} </p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
                 @endif
 
 
