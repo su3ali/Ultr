@@ -15,105 +15,79 @@ class IndexController extends Controller
 
     protected function index()
     {
-
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
-        $customers = User::count();
 
-        $customersHaveOrders = User::has('orders')->count();
+        // Common Variables
+        $now       = Carbon::now('Asia/Riyadh')->toDateString();
+        $today     = Carbon::now('Asia/Riyadh'); // Set $today once
+        $tomorrow  = Carbon::tomorrow('Asia/Riyadh')->toDateString();
+        $startTime = Carbon::tomorrow('Asia/Riyadh')->startOfDay();
+        $endTime   = $startTime->copy()->addHours(3);
 
-        $customer_complaints = CustomerComplaint::count();
-
+        // Get the counts
+        $customers             = User::count();
+        $customersHaveOrders   = User::has('orders')->count();
+        $customer_complaints   = CustomerComplaint::count();
         $complaints_unresolved = CustomerComplaint::where('customer_complaints_status_id', 1)->count();
+        $complaints_resolved   = CustomerComplaint::where('customer_complaints_status_id', 3)->count();
 
-        $complaints_resolved = CustomerComplaint::where('customer_complaints_status_id', 3)->count();
+        // Get the start and end of today in Asia/Riyadh timezone
+        $startOfToday         = now()->timezone('Asia/Riyadh')->startOfDay();
+        $startOfTomorrow      = $startOfToday->copy()->addDay();
+        $endOfTodayPlus3Hours = $startOfTomorrow->addHours(3);
 
-        $startOfToday = now()->timezone('Asia/Riyadh')->startOfDay();
+        // Query to get today's customer complaints
+        $todayCustomerComplaints = CustomerComplaint::whereBetween('created_at', [$startOfToday, $endOfTodayPlus3Hours])
+            ->whereBetween('created_at', [now()->timezone('Asia/Riyadh')->startOfDay(), now()->timezone('Asia/Riyadh')->endOfDay()])
+            ->count();
 
-        $endOfTodayPlus3Hours = now()->timezone('Asia/Riyadh')->endOfDay()->addHours(3);
-
-        $todayCustomerComplaints = CustomerComplaint::whereBetween('created_at', [$startOfToday, $endOfTodayPlus3Hours])->count();
-
-        // dd($todayCustomerComplaints);
-
+        // Get counts for client orders and technician counts
         $client_orders = Order::where('is_active', 1)->whereHas('userAddress', function ($query) use ($regionIds) {
             $query->whereIn('region_id', $regionIds);
         })
             ->count();
-        $technicians = Technician::where('is_trainee', Technician::TECHNICIAN)->count();
 
+        $technicians    = Technician::where('is_trainee', Technician::TECHNICIAN)->count();
         $total_trainees = Technician::where('is_trainee', Technician::TRAINEE)->count();
+        $tech_visits    = Visit::where('is_active', 1)->count();
 
-        $tech_visits = Visit::where('is_active', 1)->count();
-
-        // $now = Carbon::now('Asia/Riyadh')->toDateString();
-
-        // $client_orders_today = Order::whereDate('created_at', $now)
-        //     ->where('status_id', '!=', 5)
-        //     ->where('is_active', 1)
-        //     ->whereHas('userAddress', function ($query) use ($regionIds) {
-        //         $query->whereIn('region_id', $regionIds);
-        //     })
-        //     ->count();
-
-        //
-        $now       = Carbon::now('Asia/Riyadh')->toDateString();
-        $tomorrow  = Carbon::tomorrow('Asia/Riyadh')->toDateString();
-        $startTime = Carbon::tomorrow('Asia/Riyadh')->startOfDay();
-        $endTime   = $startTime->copy()->addHours(3);
-
+        // Get client orders for today and tomorrow's 3-hour window
         $client_orders_today = Order::where(function ($query) use ($now, $tomorrow, $startTime, $endTime, $regionIds) {
-            // الطلبات الخاصة باليوم الحالي
             $query->whereDate('created_at', $now)
                 ->orWhere(function ($subQuery) use ($tomorrow, $startTime, $endTime) {
-                    // الطلبات من أول 3 ساعات من اليوم التالي
                     $subQuery->whereDate('created_at', $tomorrow)
                         ->whereBetween('created_at', [$startTime, $endTime]);
                 });
         })
-            ->where('status_id', '!=', 5)
-            ->where('is_active', 1)
+            ->where('status_id', '!=', 5) // Exclude canceled orders
+            ->where('is_active', 1)       // Only active orders
             ->whereHas('userAddress', function ($query) use ($regionIds) {
-                $query->whereIn('region_id', $regionIds);
+                $query->whereIn('region_id', $regionIds); // Filter by region
             })
             ->count();
 
-        // $tech_visits_today = Visit::whereHas('booking', function ($qu) use ($now) {
-        //     $qu->whereDate('date', '=', $now);
-        // })->whereNotIn('visits_status_id', [5, 6])->where('is_active', 1)->whereHas('booking.address', function ($query) use ($regionIds) {
-        //     $query->whereIn('region_id', $regionIds);
-        // })
-        //     ->count();
-
-        $now       = Carbon::now('Asia/Riyadh')->toDateString();
-        $tomorrow  = Carbon::tomorrow('Asia/Riyadh')->toDateString();
-        $startTime = Carbon::tomorrow('Asia/Riyadh')->startOfDay();
-        $endTime   = $startTime->copy()->addHours(3);
-
+        // Get visits for today and tomorrow's 3-hour window
         $tech_visits_today = Visit::where(function ($query) use ($now, $tomorrow, $startTime, $endTime) {
-            // الزيارات الخاصة باليوم الحالي
             $query->whereHas('booking', function ($q) use ($now) {
-                $q->whereDate('date', '=', $now);
+                $q->whereDate('date', '=', $now); // Filter by today's date
             })
                 ->orWhereHas('booking', function ($q) use ($tomorrow, $startTime, $endTime) {
-                    // الزيارات لأول 3 ساعات من اليوم التالي
-                    $q->whereDate('date', '=', $tomorrow)
-                        ->whereTime('time', '>=', $startTime->toTimeString())
-                        ->whereTime('time', '<', $endTime->toTimeString());
+                    $q->whereDate('date', '=', $tomorrow)                 // Filter by tomorrow's date
+                        ->whereTime('time', '>=', $startTime->toTimeString()) // Start of tomorrow
+                        ->whereTime('time', '<', $endTime->toTimeString());   // End of first 3 hours
                 });
         })
-            ->whereNotIn('visits_status_id', [5, 6])
-            ->where('is_active', 1)
+            ->whereNotIn('visits_status_id', [5, 6]) // Exclude canceled and completed visits
+            ->where('is_active', 1)                  // Only active visits
             ->whereHas('booking.address', function ($query) use ($regionIds) {
-                $query->whereIn('region_id', $regionIds);
+                $query->whereIn('region_id', $regionIds); // Filter by region
             })
             ->count();
 
-        $today        = Carbon::now('Asia/Riyadh');
+        // Get the sales data for the past 7 days
         $sevenDaysAgo = Carbon::now('Asia/Riyadh')->subDays(8);
-
-        $dateRange   = [];
-        $currentDate = clone $sevenDaysAgo;
-
+        $dateRange    = [];
+        $currentDate  = clone $sevenDaysAgo;
         while ($currentDate <= $today) {
             $dateRange[] = $currentDate->toDateString();
             $currentDate->addDay();
@@ -125,38 +99,26 @@ class IndexController extends Controller
             ->groupBy(\DB::raw('date(created_at)'))
             ->get();
 
-        $countsByDate = $all_sell_values->pluck('count', 'date')->toArray();
-
+        $countsByDate    = $all_sell_values->pluck('count', 'date')->toArray();
         $all_sell_values = array_map(function ($date) use ($countsByDate) {
             return isset($countsByDate[$date]) ? $countsByDate[$date] : 0;
         }, $dateRange);
 
+        // Prepare chart labels
         $labels = [];
-
-        $dates = [];
         for ($i = 8 - 1; $i >= 0; $i--) {
-            $date    = Carbon::now('Asia/Riyadh')->subDays($i)->format('Y-m-d');
-            $dates[] = $date;
-
+            $date     = Carbon::now('Asia/Riyadh')->subDays($i)->format('Y-m-d');
             $labels[] = date('j M Y', strtotime($date));
         }
 
         $sells_chart_1 = new CommonChart;
-
-        $sells_chart_1->labels($labels)->options($this->__chartOptions(
-            __(
-                __('dash.orders'),
-                ['currency' => 'SAR']
-            )
-        ));
+        $sells_chart_1->labels($labels)->options($this->__chartOptions(__('dash.orders'), ['currency' => 'SAR']));
         $sells_chart_1->dataset(__('dash.orders'), 'line', $all_sell_values);
 
-        $today    = Carbon::now('Asia/Riyadh');
-        $monthAgo = Carbon::now('Asia/Riyadh')->subDays(31);
-
+        // Get sales data for the past 31 days
+        $monthAgo    = Carbon::now('Asia/Riyadh')->subDays(31);
         $dateRange   = [];
         $currentDate = clone $monthAgo;
-
         while ($currentDate <= $today) {
             $dateRange[] = $currentDate->toDateString();
             $currentDate->addDay();
@@ -168,42 +130,43 @@ class IndexController extends Controller
             ->groupBy(\DB::raw('date(created_at)'))
             ->get();
 
-        $countsByDate = $all_sell_values2->pluck('count', 'date')->toArray();
-
+        $countsByDate     = $all_sell_values2->pluck('count', 'date')->toArray();
         $all_sell_values2 = array_map(function ($date) use ($countsByDate) {
             return isset($countsByDate[$date]) ? $countsByDate[$date] : 0;
         }, $dateRange);
 
+        // Prepare chart labels for the last 31 days
         $labels2 = [];
-
-        $dates2 = [];
         for ($i = 31 - 1; $i >= 0; $i--) {
-            $date2    = Carbon::now('Asia/Riyadh')->subDays($i)->format('Y-m-d');
-            $dates2[] = $date2;
-
+            $date2     = Carbon::now('Asia/Riyadh')->subDays($i)->format('Y-m-d');
             $labels2[] = date('j M Y', strtotime($date2));
         }
 
         $sells_chart_2 = new CommonChart;
-
-        $sells_chart_2->labels($labels2)->options($this->__chartOptions(
-            __(
-                __('dash.orders'),
-                ['currency' => 'SAR']
-            )
-        ));
+        $sells_chart_2->labels($labels2)->options($this->__chartOptions(__('dash.orders'), ['currency' => 'SAR']));
         $sells_chart_2->dataset(__('dash.orders'), 'line', $all_sell_values2);
-        $canceled_orders = Order::query()->whereHas('userAddress', function ($query) use ($regionIds) {
+
+        // Get canceled orders and visits data
+        $canceled_orders = Order::whereHas('userAddress', function ($query) use ($regionIds) {
             $query->whereIn('region_id', $regionIds);
         })->where('status_id', 5)->where('is_active', 1)->count();
-        $canceled_orders_today = Order::query()->whereHas('userAddress', function ($query) use ($regionIds) {
+
+        $canceled_orders_today = Order::whereHas('userAddress', function ($query) use ($regionIds) {
             $query->whereIn('region_id', $regionIds);
         })->where('status_id', 5)->where('is_active', 1)->whereDate('updated_at', $today)->count();
-        $finished_visits_today = Visit::query()->whereHas('booking.address', function ($query) use ($regionIds) {
+
+        $finished_visits_today = Visit::whereHas('booking.address', function ($query) use ($regionIds) {
             $query->whereIn('region_id', $regionIds);
         })->whereDate('end_date', '=', $now)->count();
-        return view('dashboard.home', compact('canceled_orders', 'complaints_resolved', 'complaints_unresolved', 'todayCustomerComplaints', 'customersHaveOrders', 'canceled_orders_today', 'tech_visits_today', 'finished_visits_today', 'total_trainees', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers', 'client_orders', 'technicians', 'tech_visits', 'customer_complaints'));
+
+        return view('dashboard.home', compact(
+            'canceled_orders', 'complaints_resolved', 'complaints_unresolved', 'todayCustomerComplaints',
+            'customersHaveOrders', 'canceled_orders_today', 'tech_visits_today', 'finished_visits_today',
+            'total_trainees', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers',
+            'client_orders', 'technicians', 'tech_visits', 'customer_complaints'
+        ));
     }
+
     private function __chartOptions($title)
     {
         return [
