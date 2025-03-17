@@ -821,11 +821,16 @@ class OrderController extends Controller
     {
         if (request()->ajax()) {
 
-            $customerComplaints = CustomerComplaint::where('customer_complaints_status_id', 1)->with([
-                'user',
-                'order.bookings.visits.group',
-                'order.bookings.address.region',
-            ])->orderBy('created_at', 'desc')->get();
+            $customerComplaints = CustomerComplaint::whereIn('customer_complaints_status_id', [1, null])
+                ->with([
+                    'user',
+                    'order.bookings.visits.group',
+                    'order.bookings.address.region',
+                ])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+                
 
             return DataTables::of($customerComplaints)
                 ->addColumn('order_id', fn($row) => $row->order_id ?? 'N/A')

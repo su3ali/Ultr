@@ -21,16 +21,19 @@ class IndexController extends Controller
 
         $customersHaveOrders = User::has('orders')->count();
 
-        $customer_complaints = CustomerComplaint::count(); 
+        $customer_complaints = CustomerComplaint::count();
 
         $complaints_unresolved = CustomerComplaint::where('customer_complaints_status_id', 1)->count();
 
         $complaints_resolved = CustomerComplaint::where('customer_complaints_status_id', 3)->count();
 
-        $startOfToday         = now()->startOfDay();
-        $endOfTodayPlus3Hours = now()->endOfDay()->addHours(3);
+        $startOfToday = now()->timezone('Asia/Riyadh')->startOfDay();
+
+        $endOfTodayPlus3Hours = now()->timezone('Asia/Riyadh')->endOfDay()->addHours(3);
 
         $todayCustomerComplaints = CustomerComplaint::whereBetween('created_at', [$startOfToday, $endOfTodayPlus3Hours])->count();
+
+        // dd($todayCustomerComplaints);
 
         $client_orders = Order::where('is_active', 1)->whereHas('userAddress', function ($query) use ($regionIds) {
             $query->whereIn('region_id', $regionIds);
@@ -199,7 +202,7 @@ class IndexController extends Controller
         $finished_visits_today = Visit::query()->whereHas('booking.address', function ($query) use ($regionIds) {
             $query->whereIn('region_id', $regionIds);
         })->whereDate('end_date', '=', $now)->count();
-        return view('dashboard.home', compact('canceled_orders','complaints_resolved','complaints_unresolved', 'todayCustomerComplaints', 'customersHaveOrders', 'canceled_orders_today', 'tech_visits_today', 'finished_visits_today', 'total_trainees', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers', 'client_orders', 'technicians', 'tech_visits', 'customer_complaints'));
+        return view('dashboard.home', compact('canceled_orders', 'complaints_resolved', 'complaints_unresolved', 'todayCustomerComplaints', 'customersHaveOrders', 'canceled_orders_today', 'tech_visits_today', 'finished_visits_today', 'total_trainees', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers', 'client_orders', 'technicians', 'tech_visits', 'customer_complaints'));
     }
     private function __chartOptions($title)
     {
