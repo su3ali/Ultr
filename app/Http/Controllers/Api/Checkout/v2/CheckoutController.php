@@ -776,6 +776,7 @@ class CheckoutController extends Controller
 
             return self::apiResponse(200, __('api.order created successfully'), $this->body);
         } catch (\Exception $e) {
+            DB::rollback(); // Rollback the transaction on error
 
             // Log the exception with additional context
             activity()
@@ -798,7 +799,6 @@ class CheckoutController extends Controller
                 ])
                 ->log('Exception while processing the Checkout V2 endpoint');
 
-            DB::rollback(); // Rollback the transaction on error
             return self::apiResponse(500, __('api.Something went wrong, please try again later'), $this->body);
         }
     }
