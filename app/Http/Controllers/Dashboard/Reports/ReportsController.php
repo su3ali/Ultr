@@ -254,50 +254,68 @@ class ReportsController extends Controller
     {
         if (request()->ajax()) {
             $order = Technician::all();
+
             return DataTables::of($order)
                 ->addColumn('user_name', function ($row) {
-                    return $row->name;
+                    return $row->name ?? 'N/A';
                 })
                 ->addColumn('phone', function ($row) {
-                    return $row->phone;
+                    return $row->phone ?? 'N/A';
                 })
                 ->addColumn('email', function ($row) {
-                    return $row->email;
-                })->addColumn('group', function ($row) {
-                return $row->group?->name;
-            })->addColumn('service_count', function ($row) {
-                $booking_ids = Visit::where('assign_to_id', $row->group_id)->where('visits_status_id', 5)->pluck('booking_id')->toArray();
-                $order_ids   = Booking::where('id', $booking_ids)->pluck('order_id')->toArray();
+                    return $row->email ?? 'N/A';
+                })
+                ->addColumn('group', function ($row) {
+                    return optional($row->group)->name ?? 'N/A';
+                })
+                ->addColumn('service_count', function ($row) {
+                    $booking_ids = Visit::where('assign_to_id', $row->group_id ?? 0)
+                        ->where('visits_status_id', 5)
+                        ->pluck('booking_id')
+                        ->toArray();
 
-                $services_count = OrderService::whereIn('order_id', $order_ids)->count();
-                return $services_count;
-            })->addColumn('point', function ($row) {
-                return $row->point;
-            })->addColumn('rate', function ($row) {
+                    $order_ids = Booking::whereIn('id', $booking_ids)->pluck('order_id')->toArray();
 
-                return number_format($row->rates->pluck('rate')->avg(), '2');
-            })
+                    return OrderService::whereIn('order_id', $order_ids)->count() ?? 0;
+                })
+                ->addColumn('point', function ($row) {
+                    return $row->point ?? 0;
+                })
+                ->addColumn('rate', function ($row) {
+                    $averageRate = $row->rates->pluck('rate')->avg();
+                    return $averageRate !== null ? number_format($averageRate, 2) : '0.00';
+                })
                 ->addColumn('late', function ($row) {
-                    $visits      = Visit::where('assign_to_id', $row->group_id)->where('visits_status_id', 5)->get();
+                    $visits = Visit::where('assign_to_id', $row->group_id ?? 0)
+                        ->where('visits_status_id', 5)
+                        ->get();
+
                     $booking_ids = $visits->pluck('booking_id')->toArray();
-                    $order_ids   = Booking::where('id', $booking_ids)->pluck('order_id')->toArray();
+                    $order_ids   = Booking::whereIn('id', $booking_ids)->pluck('order_id')->toArray();
                     $service_ids = OrderService::whereIn('order_id', $order_ids)->pluck('service_id')->toArray();
-                    if ($service_ids != []) {
-                        $service            = BookingSetting::whereIn('service_id', $service_ids)->pluck('service_duration')->toArray();
-                        $SumServiceDuration = array_sum($service);
+
+                    if (! empty($service_ids)) {
+                        $serviceDurations = BookingSetting::whereIn('service_id', $service_ids)
+                            ->pluck('service_duration')
+                            ->toArray();
+                        $SumServiceDuration = array_sum($serviceDurations);
                         $duration           = 0;
+
                         foreach ($visits as $visit) {
-                            $start_time = Carbon::parse($visit->start_time)->timezone('Asia/Riyadh')->format('H:i:s');
-                            $end_time   = Carbon::parse($visit->end_time)->timezone('Asia/Riyadh')->format('H:i:s');
-                            $duration += Carbon::parse($end_time)->diffInMinutes(Carbon::parse($start_time));
+                            if ($visit->start_time && $visit->end_time) {
+                                $start_time = Carbon::parse($visit->start_time)->timezone('Asia/Riyadh');
+                                $end_time   = Carbon::parse($visit->end_time)->timezone('Asia/Riyadh');
+                                $duration += $end_time->diffInMinutes($start_time);
+                            }
                         }
+
                         $sum   = $SumServiceDuration - $duration;
-                        $total = $sum / count($service_ids);
+                        $total = count($service_ids) > 0 ? $sum / count($service_ids) : 0;
+                        return number_format($total, 2);
                     }
 
-                    return $total ?? 0;
+                    return '0.00';
                 })
-
                 ->rawColumns([
                     'user_name',
                     'phone',
@@ -307,10 +325,10 @@ class ReportsController extends Controller
                     'point',
                     'rate',
                     'late',
-
                 ])
                 ->make(true);
         }
+
         return view('dashboard.reports.technicians');
     }
 
