@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Models\Visit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Log;
 use Yajra\DataTables\DataTables;
 
 class ReportsController extends Controller
@@ -253,51 +254,45 @@ class ReportsController extends Controller
     protected function technicians()
     {
         if (request()->ajax()) {
-            $order = Technician::all();
+            try {
+                $order = Technician::all();
 
-            return DataTables::of($order)
-                ->addColumn('user_name', function ($row) {
-                    return $row->name ?? 'N/A';
-                })
-                ->addColumn('phone', function ($row) {
-                    return $row->phone ?? 'N/A';
-                })
-                ->addColumn('email', function ($row) {
-                    return $row->email ?? 'N/A';
-                })
-                ->addColumn('group', function ($row) {
-                    return optional($row->group)->name ?? 'N/A';
-                })
-                ->addColumn('service_count', function ($row) {
-                    $booking_ids = Visit::where('assign_to_id', $row->group_id ?? 0)
-                        ->where('visits_status_id', 5)
-                        ->pluck('booking_id')
-                        ->toArray();
-
-                    $order_ids = Booking::whereIn('id', $booking_ids)->pluck('order_id')->toArray();
-
-                    return OrderService::whereIn('order_id', $order_ids)->count() ?? 0;
-                })
-                ->addColumn('point', function ($row) {
-                    return $row->point ?? 0;
-                })
-                ->addColumn('rate', function ($row) {
-                    $averageRate = $row->rates->pluck('rate')->avg();
-                    return $averageRate !== null ? number_format($averageRate, 2) : '0.00';
-                })
-                ->addColumn('late', function ($row) {
-                    $visits = Visit::where('assign_to_id', $row->group_id ?? 0)
-                        ->where('visits_status_id', 5)
-                        ->get();
-
-                    $booking_ids = $visits->pluck('booking_id')->toArray();
-                    $order_ids   = Booking::whereIn('id', $booking_ids)->pluck('order_id')->toArray();
-                    $service_ids = OrderService::whereIn('order_id', $order_ids)->pluck('service_id')->toArray();
-
-                    if (! empty($service_ids)) {
-                        $serviceDurations = BookingSetting::whereIn('service_id', $service_ids)
-                            ->pluck('service_duration')
+                return DataTables::of($order)
+                    ->addColumn('user_name', fn($row) => $row->name ?? 'N/A')
+                    ->addColumn('phone', fn($row) => $row->phone ?? 'N/A')
+                    ->addColumn('email', fn($row) => $row->email ?? 'N/A')
+                    ->addColumn('group', fn($row) => optional($row->group)->name ?? 'N/A')
+                    ->addColumn('service_count', function ($row) {
+                        $booking_ids = Visit::where('assign_to_id', $row->group_id ?? 0)
+                            ->where('visits_status_id', 5)
+                            ->pluck('booking_id')
                             ->toArray();
+                        $order_ids = Booking::whereIn('id', $booking_ids)->pluck('order_id')->toArray();
+                        return OrderService::whereIn('order_id', $order_ids)->count() ?? 0;
+                    })
+                    ->addColumn('point', fn($row) => $row->point ?? 0)
+                    ->addColumn('rate', function ($row) {
+                        $averageRate = $row->rates->pluck('rate')->avg();
+                        return $averageRate !== null ? number_format($averageRate, 2) : '0.00';
+                    })
+                    ->addColumn('late', function ($row) {
+                        $visits = Visit::where('assign_to_id', $row->group_id ?? 0)
+                            ->where('visits_status_id', 5)
+                            ->get();
+
+                        if ($visits->isEmpty()) {
+                            return '0.00';
+                        }
+
+                        $booking_ids = $visits->pluck('booking_id')->toArray();
+                        $order_ids   = Booking::whereIn('id', $booking_ids)->pluck('order_id')->toArray();
+                        $service_ids = OrderService::whereIn('order_id', $order_ids)->pluck('service_id')->toArray();
+
+                        if (empty($service_ids)) {
+                            return '0.00';
+                        }
+
+                        $serviceDurations   = BookingSetting::whereIn('service_id', $service_ids)->pluck('service_duration')->toArray();
                         $SumServiceDuration = array_sum($serviceDurations);
                         $duration           = 0;
 
@@ -312,21 +307,15 @@ class ReportsController extends Controller
                         $sum   = $SumServiceDuration - $duration;
                         $total = count($service_ids) > 0 ? $sum / count($service_ids) : 0;
                         return number_format($total, 2);
-                    }
-
-                    return '0.00';
-                })
-                ->rawColumns([
-                    'user_name',
-                    'phone',
-                    'email',
-                    'group',
-                    'service_count',
-                    'point',
-                    'rate',
-                    'late',
-                ])
-                ->make(true);
+                    })
+                    ->rawColumns([
+                        'user_name', 'phone', 'email', 'group', 'service_count', 'point', 'rate', 'late',
+                    ])
+                    ->make(true);
+            } catch (\Exception $e) {
+                Log::error('Error in technicians(): ' . $e->getMessage());
+                return response()->json(['error' => 'Internal Server Error'], 500);
+            }
         }
 
         return view('dashboard.reports.technicians');
