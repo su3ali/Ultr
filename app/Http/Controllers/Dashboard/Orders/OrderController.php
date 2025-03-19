@@ -38,6 +38,7 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
+        
 
         $start     = $request->input('start', 0);
         $length    = $request->input('length', 10);

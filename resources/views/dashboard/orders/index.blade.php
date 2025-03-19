@@ -174,8 +174,10 @@
                     url: '{{ route('dashboard.orders.index') }}',
                     data: function(d) {
 
-                        d.start = d.start; // Ensures correct offset
-                        d.length = d.length; // Ensures correct page size
+                        debugger;
+
+                        d.start = d.start; 
+                        d.length = d.length; 
 
 
                     }
