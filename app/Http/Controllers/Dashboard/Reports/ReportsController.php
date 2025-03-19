@@ -255,9 +255,9 @@ class ReportsController extends Controller
     {
         if (request()->ajax()) {
             try {
-                $order = Technician::all();
+                $technicians = Technician::where('is_trainee', 0)->wherenotnull('group_id')->get();
 
-                return DataTables::of($order)
+                return DataTables::of($technicians)
                     ->addColumn('user_name', fn($row) => $row->name ?? 'N/A')
                     ->addColumn('phone', fn($row) => $row->phone ?? 'N/A')
                     ->addColumn('email', fn($row) => $row->email ?? 'N/A')
