@@ -253,12 +253,13 @@ class ReportsController extends Controller
 
     protected function technicians()
     {
+
         if (request()->ajax()) {
             try {
                 $technicians = Technician::where('is_trainee', 0)
-                    ->whereNull('training_start_date') // Ensures 'training_start_date' is NULL
-                    ->whereNotNull('fcm_token')        // Ensures 'fcm_token' is NOT NULL
-                    ->whereNotNull('group_id')         // Ensures 'group_id' is NOT NULL
+                    ->whereNull('training_start_date')
+                    ->whereNotNull('fcm_token')
+                    ->whereNotNull('group_id')
                     ->get();
 
                 return DataTables::of($technicians)
@@ -271,12 +272,13 @@ class ReportsController extends Controller
                             ->where('visits_status_id', 5)
                             ->pluck('booking_id')
                             ->toArray();
+
                         $order_ids = Booking::whereIn('id', $booking_ids)->pluck('order_id')->toArray();
                         return OrderService::whereIn('order_id', $order_ids)->count() ?? 0;
                     })
                     ->addColumn('point', fn($row) => $row->point ?? 0)
                     ->addColumn('rate', function ($row) {
-                        $averageRate = $row->rates->pluck('rate')->avg();
+                        $averageRate = optional($row->rates)->pluck('rate')->avg();
                         return $averageRate !== null ? number_format($averageRate, 2) : '0.00';
                     })
                     ->addColumn('late', function ($row) {
@@ -317,7 +319,7 @@ class ReportsController extends Controller
                     ])
                     ->make(true);
             } catch (\Exception $e) {
-                Log::error('Error in technicians(): ' . $e->getMessage());
+                Log::error('Error in technicians(): ', ['exception' => $e]);
                 return response()->json(['error' => 'Internal Server Error'], 500);
             }
         }
