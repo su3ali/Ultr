@@ -255,7 +255,11 @@ class ReportsController extends Controller
     {
         if (request()->ajax()) {
             try {
-                $technicians = Technician::where('is_trainee', 0)->wherenotnull('group_id')->get();
+                $technicians = Technician::where('is_trainee', 0)
+                    ->whereNull('training_start_date') // Ensures 'training_start_date' is NULL
+                    ->whereNotNull('fcm_token')        // Ensures 'fcm_token' is NOT NULL
+                    ->whereNotNull('group_id')         // Ensures 'group_id' is NOT NULL
+                    ->get();
 
                 return DataTables::of($technicians)
                     ->addColumn('user_name', fn($row) => $row->name ?? 'N/A')
