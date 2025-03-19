@@ -253,12 +253,22 @@ class ReportsController extends Controller
 
     protected function technicians()
     {
+        // $technicians = Technician::where('is_trainee', 0)
+        //     ->whereNull('training_start_date')
+        //     ->whereNotNull('fcm_token')
+        //     ->whereNotNull('group_id')
+        //     ->whereNotNull('email')
+        //     ->orderBy('created_at')
+        //     ->get();
+
+        // dd($technicians);
 
         if (request()->ajax()) {
             try {
                 $technicians = Technician::where('is_trainee', 0)
                     ->whereNull('training_start_date')
                     ->whereNotNull('fcm_token')
+                    ->whereNotNull('email')
                     ->whereNotNull('group_id')
                     ->get();
 
