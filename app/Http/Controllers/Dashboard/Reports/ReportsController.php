@@ -253,7 +253,6 @@ class ReportsController extends Controller
 
     protected function technicians()
     {
-        
 
         if (request()->ajax()) {
             try {
@@ -304,11 +303,24 @@ class ReportsController extends Controller
                         $SumServiceDuration = array_sum($serviceDurations);
                         $duration           = 0;
 
+                        $duration = 0;
+
                         foreach ($visits as $visit) {
-                            if ($visit->start_time && $visit->end_time) {
-                                $start_time = Carbon::parse($visit->start_time)->timezone('Asia/Riyadh');
-                                $end_time   = Carbon::parse($visit->end_time)->timezone('Asia/Riyadh');
-                                $duration += $end_time->diffInMinutes($start_time);
+                            if (! empty($visit->start_time) && ! empty($visit->end_time)) {
+                                try {
+                                    $start_time = Carbon::createFromFormat('Y-m-d H:i:s', $visit->start_time)->timezone('Asia/Riyadh');
+                                    $end_time   = Carbon::createFromFormat('Y-m-d H:i:s', $visit->end_time)->timezone('Asia/Riyadh');
+
+                                    if ($start_time && $end_time) {
+                                        $duration += $end_time->diffInMinutes($start_time);
+                                    }
+                                } catch (\Exception $e) {
+                                    Log::error('Invalid time format in visit:', [
+                                        'start_time' => $visit->start_time,
+                                        'end_time'   => $visit->end_time,
+                                        'exception'  => $e->getMessage(),
+                                    ]);
+                                }
                             }
                         }
 

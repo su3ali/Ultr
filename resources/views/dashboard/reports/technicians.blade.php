@@ -92,17 +92,56 @@
                     ]
                 },
                 processing: true,
-                serverSide: false,
+                serverSide: true,
                 ajax: '{{ route('dashboard.report.technicians') }}',
                 columns: [
-                    {data: 'user_name', name: 'user_name',orderable: true, searchable: true},
-                    {data: 'phone', name: 'phone',orderable: true, searchable: true},
-                    {data: 'email', name: 'email',orderable: true, searchable: true},
-                    {data: 'group', name: 'group',orderable: true, searchable: true},
-                    {data: 'service_count', name: 'service_count',orderable: true, searchable: true},
-                    {data: 'point', name: 'point',orderable: true, searchable: true},
-                    {data: 'rate', name: 'rate',orderable: true, searchable: true},
-                    {data: 'late', name: 'late',orderable: true, searchable: true},
+                    {
+                     data: 'user_name',
+                     name: 'user_name',
+                     orderable: true,
+                     searchable: true
+                    },
+                    {
+                     data: 'phone',
+                     name: 'phone',
+                     orderable: true,
+                     searchable: true
+                    },
+                    {
+                    data: 'email',
+                    name: 'email',
+                    orderable: true,
+                    searchable: true
+                    },
+                    {
+                        data: 'group',
+                     name: 'group',
+                     orderable: true,
+                      searchable: true
+                    },
+                    {
+                    data: 'service_count',
+                    name: 'service_count',
+                    orderable: true,
+                    searchable: true
+                    },
+                    {
+                    data: 'point',
+                     name: 'point',
+                     orderable: true,
+                      searchable: true
+                    },
+                    {data: 'rate',
+                     name: 'rate',
+                     orderable: true,
+                      searchable: true
+                    },
+                    {
+                    data: 'late',
+                    name: 'late',
+                    orderable: true,
+                    searchable: true
+                    },
 
 
                 ]
