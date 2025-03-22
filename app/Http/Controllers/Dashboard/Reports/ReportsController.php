@@ -253,10 +253,10 @@ class ReportsController extends Controller
 
     protected function technicians()
     {
-        if (!request()->ajax()) {
+        if (! request()->ajax()) {
             return view('dashboard.reports.technicians');
         }
-    
+
         try {
             // Fetch technicians with necessary relationships
             $technicians = Technician::with(['group', 'rates'])
@@ -266,7 +266,7 @@ class ReportsController extends Controller
                 ->whereNotNull('email')
                 ->whereNotNull('group_id')
                 ->get();
-    
+
             return DataTables::of($technicians)
                 ->addColumn('user_name', fn($row) => $row->name ?? 'N/A')
                 ->addColumn('phone', fn($row) => $row->phone ?? 'N/A')
@@ -277,10 +277,10 @@ class ReportsController extends Controller
                     $booking_ids = Visit::where('assign_to_id', $row->group_id ?? 0)
                         ->where('visits_status_id', 5)
                         ->pluck('booking_id');
-    
+
                     // Get corresponding order IDs
                     $order_ids = Booking::whereIn('id', $booking_ids)->pluck('order_id');
-    
+
                     return OrderService::whereIn('order_id', $order_ids)->count() ?? 0;
                 })
                 ->addColumn('point', fn($row) => $row->point ?? 0)
@@ -293,60 +293,63 @@ class ReportsController extends Controller
                     $visits = Visit::where('assign_to_id', $row->group_id ?? 0)
                         ->where('visits_status_id', 5)
                         ->get();
-    
+
                     if ($visits->isEmpty()) {
                         return '0.00';
                     }
-    
+
                     // Extract IDs for services
                     $booking_ids = $visits->pluck('booking_id');
                     $order_ids   = Booking::whereIn('id', $booking_ids)->pluck('order_id');
                     $service_ids = OrderService::whereIn('order_id', $order_ids)->pluck('service_id');
-    
+
                     if ($service_ids->isEmpty()) {
                         return '0.00';
                     }
-    
+
                     // Get total expected service duration
                     $SumServiceDuration = BookingSetting::whereIn('service_id', $service_ids)
                         ->sum('service_duration');
-    
+
                     // Calculate actual time taken
                     $total_duration = 0;
-                    $date = Carbon::today()->toDateString(); // Get today's date
-    
+                    $date           = Carbon::today()->toDateString(); // Get today's date
+
                     foreach ($visits as $visit) {
-                        if (!empty($visit->start_time) && !empty($visit->end_time)) {
+                        if (! empty($visit->start_time) && ! empty($visit->end_time)) {
                             try {
                                 $start_time = Carbon::parse("{$date} {$visit->start_time}")->timezone('Asia/Riyadh');
                                 $end_time   = Carbon::parse("{$date} {$visit->end_time}")->timezone('Asia/Riyadh');
-    
+
                                 $total_duration += $end_time->diffInMinutes($start_time);
                             } catch (\Exception $e) {
                                 Log::error('Invalid time format in visit', [
+                                    'visit_id'   => $visit->id,
                                     'start_time' => $visit->start_time,
                                     'end_time'   => $visit->end_time,
                                     'exception'  => $e->getMessage(),
                                 ]);
+                                return '0.00'; // Prevents an error from affecting output
                             }
                         }
                     }
-    
+
                     // Calculate lateness
                     $sum   = $SumServiceDuration - $total_duration;
                     $total = count($service_ids) > 0 ? $sum / count($service_ids) : 0;
-    
-                    return number_format($total, 2);
+
+                    // Ensure no negative values, return 0 if negative
+                    return number_format(max($total, 0), 2);
                 })
+
                 ->rawColumns(['user_name', 'phone', 'email', 'group', 'service_count', 'point', 'rate', 'late'])
                 ->make(true);
-    
+
         } catch (\Exception $e) {
             Log::error('Error in technicians(): ', ['exception' => $e]);
             return response()->json(['error' => 'Internal Server Error'], 500);
         }
     }
-    
 
     protected function services()
     {
