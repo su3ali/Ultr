@@ -1,21 +1,21 @@
 <?php
 namespace App\Http\Controllers\Dashboard\Reports;
 
-use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\Order;
+use App\Models\Visit;
 use App\Models\Booking;
-use App\Models\BookingSetting;
+use App\Models\Service;
 use App\Models\Category;
 use App\Models\Contract;
-use App\Models\Order;
-use App\Models\OrderService;
-use App\Models\Service;
 use App\Models\Technician;
-use App\Models\User;
-use App\Models\Visit;
+use App\Models\OrderService;
 use Illuminate\Http\Request;
+use App\Models\BookingSetting;
 use Illuminate\Support\Carbon;
-use Log;
 use Yajra\DataTables\DataTables;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 
 class ReportsController extends Controller
 {
@@ -253,100 +253,115 @@ class ReportsController extends Controller
 
     protected function technicians()
     {
-        if (! request()->ajax()) {
-            return view('dashboard.reports.technicians');
-        }
-
         try {
-            // Fetch technicians with necessary relationships
-            $technicians = Technician::with(['group', 'rates'])
-                ->where('is_trainee', 0)
-                ->whereNull('training_start_date')
-                ->whereNotNull('fcm_token')
-                ->whereNotNull('email')
-                ->whereNotNull('group_id')
-                ->get();
+            if (request()->ajax()) {
+                $technicians = Technician::with(['group', 'rates'])
+                    ->where('is_trainee', 0)
+                    ->whereNull('training_start_date')
+                    ->whereNotNull('fcm_token')
+                    ->whereNotNull('email')
+                    ->whereNotNull('group_id')
+                    ->get();
 
-            return DataTables::of($technicians)
-                ->addColumn('user_name', fn($row) => $row->name ?? 'N/A')
-                ->addColumn('phone', fn($row) => $row->phone ?? 'N/A')
-                ->addColumn('email', fn($row) => $row->email ?? 'N/A')
-                ->addColumn('group', fn($row) => optional($row->group)->name ?? 'N/A')
-                ->addColumn('service_count', function ($row) {
-                    $booking_ids = Visit::where('assign_to_id', $row->group_id ?? 0)
-                        ->where('visits_status_id', 5)
-                        ->pluck('booking_id');
-
-                    $order_ids = Booking::whereIn('id', $booking_ids)->pluck('order_id');
-
-                    return OrderService::whereIn('order_id', $order_ids)->count() ?? 0;
-                })
-                ->addColumn('point', fn($row) => $row->point ?? 0)
-                ->addColumn('rate', function ($row) {
-                    $averageRate = optional($row->rates)->pluck('rate')->avg();
-                    return $averageRate !== null ? number_format($averageRate, 2) : '0.00';
-                })
-                ->addColumn('late', function ($row) {
-                    try {
-                        $visits = Visit::where('assign_to_id', $row->group_id ?? 0)
+                return DataTables::of($technicians)
+                    ->addColumn('user_name', fn($row) => $row->name ?? 'N/A')
+                    ->addColumn('phone', fn($row) => $row->phone ?? 'N/A')
+                    ->addColumn('email', fn($row) => $row->email ?? 'N/A')
+                    ->addColumn('group', fn($row) => optional($row->group)->name ?? 'N/A')
+                    ->addColumn('service_count', function ($row) {
+                        $booking_ids = Visit::where('assign_to_id', $row->group_id)
                             ->where('visits_status_id', 5)
-                            ->get();
+                            ->pluck('booking_id')
+                            ->toArray();
 
-                        if ($visits->isEmpty()) {
-                            return '0.00';
-                        }
+                        $order_ids = Booking::whereIn('id', $booking_ids)
+                            ->pluck('order_id')
+                            ->toArray();
 
-                        $booking_ids = $visits->pluck('booking_id');
-                        $order_ids   = Booking::whereIn('id', $booking_ids)->pluck('order_id');
-                        $service_ids = OrderService::whereIn('order_id', $order_ids)->pluck('service_id');
+                        return OrderService::whereIn('order_id', $order_ids)->count();
+                    })
+                    ->addColumn('point', fn($row) => $row->point ?? 0)
+                    ->addColumn('rate', function ($row) {
+                        $avgRate = $row->rates->pluck('rate')->avg();
+                        return $avgRate !== null ? number_format($avgRate, 2) : '0.00';
+                    })
+                    ->addColumn('late', function ($row) {
+                        try {
+                            $visits = Visit::where('assign_to_id', $row->group_id)
+                                ->where('visits_status_id', 5)
+                                ->get();
 
-                        if ($service_ids->isEmpty()) {
-                            return '0.00';
-                        }
+                            if ($visits->isEmpty()) {
+                                return '0.00';
+                            }
 
-                        $SumServiceDuration = BookingSetting::whereIn('service_id', $service_ids)
-                            ->sum('service_duration');
+                            $booking_ids = $visits->pluck('booking_id');
+                            $order_ids   = Booking::whereIn('id', $booking_ids)->pluck('order_id');
+                            $service_ids = OrderService::whereIn('order_id', $order_ids)->pluck('service_id');
 
-                        $total_duration = 0;
-                        $date           = Carbon::today()->toDateString();
+                            if ($service_ids->isEmpty()) {
+                                return '0.00';
+                            }
 
-                        foreach ($visits as $visit) {
-                            if (! empty($visit->start_time) && ! empty($visit->end_time)) {
-                                try {
-                                    $start_time = Carbon::parse("{$date} {$visit->start_time}")->timezone('Asia/Riyadh');
-                                    $end_time   = Carbon::parse("{$date} {$visit->end_time}")->timezone('Asia/Riyadh');
+                            $SumServiceDuration = BookingSetting::whereIn('service_id', $service_ids)
+                                ->sum('service_duration');
 
-                                    $total_duration += $end_time->diffInMinutes($start_time);
-                                } catch (\Exception $e) {
-                                    Log::error('Invalid time format in visit', [
-                                        'visit_id'   => $visit->id,
-                                        'start_time' => $visit->start_time,
-                                        'end_time'   => $visit->end_time,
-                                        'exception'  => $e->getMessage(),
-                                    ]);
-                                    session()->flash('error', 'Invalid time format detected. Some data may be inaccurate.');
+                            $total_duration = 0;
+
+                            foreach ($visits as $visit) {
+                                if (! empty($visit->start_time) && ! empty($visit->end_time)) {
+                                    try {
+                                        // Validate time format before parsing
+                                        if (! preg_match('/^\d{2}:\d{2}:\d{2}$/', $visit->start_time) ||
+                                            ! preg_match('/^\d{2}:\d{2}:\d{2}$/', $visit->end_time)) {
+                                            throw new \Exception("Invalid time format for visit ID: {$visit->id}");
+                                        }
+
+                                        $start_time = Carbon::parse($visit->start_time)->timezone('Asia/Riyadh');
+                                        $end_time   = Carbon::parse($visit->end_time)->timezone('Asia/Riyadh');
+
+                                        $total_duration += $end_time->diffInMinutes($start_time);
+                                    } catch (\Exception $e) {
+                                        Log::error("Skipping visit ID {$visit->id} due to invalid time format", [
+                                            'start_time' => $visit->start_time,
+                                            'end_time'   => $visit->end_time,
+                                            'error'      => $e->getMessage(),
+                                        ]);
+                                        continue; // Skip this visit and move to the next one
+                                    }
                                 }
                             }
-                        }
 
-                        if (count($service_ids) > 0) {
-                            $total = ($SumServiceDuration - $total_duration) / count($service_ids);
+                            $sum   = $SumServiceDuration - $total_duration;
+                            $total = count($service_ids) > 0 ? $sum / count($service_ids) : 0;
+
                             return number_format(max($total, 0), 2);
+                        } catch (\Exception $e) {
+                            Log::error("Error calculating lateness for technician ID: {$row->id}", [
+                                'error' => $e->getMessage(),
+                            ]);
+                            return "Error (Tech ID: {$row->id})";
                         }
+                    })
+                    ->rawColumns([
+                        'user_name',
+                        'phone',
+                        'email',
+                        'group',
+                        'service_count',
+                        'point',
+                        'rate',
+                        'late',
+                    ])
+                    ->make(true);
+            }
 
-                        return '0.00';
-                    } catch (\Exception $e) {
-                        Log::error('Error calculating late time: ', ['exception' => $e]);
-                        session()->flash('error', 'An error occurred while calculating lateness.');
-                        return '0.00';
-                    }
-                })
-                ->rawColumns(['user_name', 'phone', 'email', 'group', 'service_count', 'point', 'rate', 'late'])
-                ->make(true);
+            return view('dashboard.reports.technicians');
         } catch (\Exception $e) {
-            Log::error('Error in technicians(): ', ['exception' => $e]);
-            session()->flash('error', 'An unexpected error occurred.');
-            return response()->json(['error' => 'Internal Server Error'], 500);
+            Log::error('Error in technicians() method', ['error' => $e->getMessage()]);
+            return response()->json([
+                'error' => 'Internal Server Error',
+            ], 500);
         }
     }
 
