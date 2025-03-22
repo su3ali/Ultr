@@ -1,21 +1,22 @@
 <?php
 namespace App\Http\Controllers\Dashboard\Reports;
 
-use App\Http\Controllers\Controller;
+use Log;
+use Exception;
+use App\Models\User;
+use App\Models\Order;
+use App\Models\Visit;
 use App\Models\Booking;
-use App\Models\BookingSetting;
+use App\Models\Service;
 use App\Models\Category;
 use App\Models\Contract;
-use App\Models\Order;
-use App\Models\OrderService;
-use App\Models\Service;
 use App\Models\Technician;
-use App\Models\User;
-use App\Models\Visit;
+use App\Models\OrderService;
 use Illuminate\Http\Request;
+use App\Models\BookingSetting;
 use Illuminate\Support\Carbon;
-use Log;
 use Yajra\DataTables\DataTables;
+use App\Http\Controllers\Controller;
 
 class ReportsController extends Controller
 {
@@ -322,7 +323,7 @@ class ReportsController extends Controller
                                 $end_time   = Carbon::parse("{$date} {$visit->end_time}")->timezone('Asia/Riyadh');
 
                                 $total_duration += $end_time->diffInMinutes($start_time);
-                            } catch (\Exception $e) {
+                            } catch (Exception $e) {
                                 Log::error('Invalid time format in visit', [
                                     'visit_id'   => $visit->id,
                                     'start_time' => $visit->start_time,
