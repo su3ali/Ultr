@@ -286,11 +286,29 @@ class ReportsController extends Controller
                         $service            = BookingSetting::whereIn('service_id', $service_ids)->pluck('service_duration')->toArray();
                         $SumServiceDuration = array_sum($service);
                         $duration           = 0;
+
                         foreach ($visits as $visit) {
-                            $start_time = Carbon::parse($visit->start_time)->timezone('Asia/Riyadh')->format('H:i:s');
-                            $end_time   = Carbon::parse($visit->end_time)->timezone('Asia/Riyadh')->format('H:i:s');
-                            $duration += Carbon::parse($end_time)->diffInMinutes(Carbon::parse($start_time));
+                            if (! empty($visit->start_time) && ! empty($visit->end_time)) {
+                                try {
+                                    $date = Carbon::today()->toDateString(); // Get today's date (YYYY-MM-DD)
+
+                                    // Append the date to time before parsing
+                                    $start_time = Carbon::parse("{$date} {$visit->start_time}")->timezone('Asia/Riyadh');
+                                    $end_time   = Carbon::parse("{$date} {$visit->end_time}")->timezone('Asia/Riyadh');
+
+                                    if ($start_time && $end_time) {
+                                        $duration += $end_time->diffInMinutes($start_time);
+                                    }
+                                } catch (\Exception $e) {
+                                    Log::error('Invalid time format in visit:', [
+                                        'start_time' => $visit->start_time,
+                                        'end_time'   => $visit->end_time,
+                                        'exception'  => $e->getMessage(),
+                                    ]);
+                                }
+                            }
                         }
+
                         $sum   = $SumServiceDuration - $duration;
                         $total = $sum / count($service_ids);
                     }
