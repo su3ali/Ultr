@@ -272,10 +272,12 @@ class ReportsController extends Controller
                 ->addColumn('email', fn($row) => $row->email ?? 'N/A')
                 ->addColumn('group', fn($row) => optional($row->group)->name ?? 'N/A')
                 ->addColumn('service_count', function ($row) {
+                    // Get booking IDs assigned to this technician
                     $booking_ids = Visit::where('assign_to_id', $row->group_id ?? 0)
                         ->where('visits_status_id', 5)
                         ->pluck('booking_id');
 
+                    // Get corresponding order IDs
                     $order_ids = Booking::whereIn('id', $booking_ids)->pluck('order_id');
 
                     return OrderService::whereIn('order_id', $order_ids)->count() ?? 0;
@@ -286,55 +288,59 @@ class ReportsController extends Controller
                     return $averageRate !== null ? number_format($averageRate, 2) : '0.00';
                 })
                 ->addColumn('late', function ($row) {
-                    try {
-                        $visits = Visit::where('assign_to_id', $row->group_id ?? 0)
-                            ->where('visits_status_id', 5)
-                            ->get();
+                    // Fetch all visits for the technician
+                    $visits = Visit::where('assign_to_id', $row->group_id ?? 0)
+                        ->where('visits_status_id', 5)
+                        ->get();
 
-                        if ($visits->isEmpty()) {
-                            return '0.00';
-                        }
-
-                        $booking_ids = $visits->pluck('booking_id');
-                        $order_ids   = Booking::whereIn('id', $booking_ids)->pluck('order_id');
-                        $service_ids = OrderService::whereIn('order_id', $order_ids)->pluck('service_id');
-
-                        if ($service_ids->isEmpty()) {
-                            return '0.00';
-                        }
-
-                        $SumServiceDuration = BookingSetting::whereIn('service_id', $service_ids)->sum('service_duration');
-
-                        $total_duration = 0;
-                        $date           = Carbon::today()->toDateString();
-
-                        foreach ($visits as $visit) {
-                            if (! empty($visit->start_time) && ! empty($visit->end_time)) {
-                                try {
-                                    $start_time = Carbon::parse("{$date} {$visit->start_time}")->timezone('Asia/Riyadh');
-                                    $end_time   = Carbon::parse("{$date} {$visit->end_time}")->timezone('Asia/Riyadh');
-                                    $total_duration += $end_time->diffInMinutes($start_time);
-                                } catch (\Exception $e) {
-                                    Log::error('Invalid time format in visit', [
-                                        'visit_id'   => $visit->id,
-                                        'start_time' => $visit->start_time,
-                                        'end_time'   => $visit->end_time,
-                                        'exception'  => $e->getMessage(),
-                                    ]);
-                                    return '0.00'; // Ensure the row does not break
-                                }
-                            }
-                        }
-
-                        $sum   = $SumServiceDuration - $total_duration;
-                        $total = count($service_ids) > 0 ? $sum / count($service_ids) : 0;
-
-                        return number_format($total, 2);
-                    } catch (\Exception $e) {
-                        Log::error('Error calculating late column', ['technician_id' => $row->id, 'exception' => $e]);
+                    if ($visits->isEmpty()) {
                         return '0.00';
                     }
+
+                    // Extract IDs for services
+                    $booking_ids = $visits->pluck('booking_id');
+                    $order_ids   = Booking::whereIn('id', $booking_ids)->pluck('order_id');
+                    $service_ids = OrderService::whereIn('order_id', $order_ids)->pluck('service_id');
+
+                    if ($service_ids->isEmpty()) {
+                        return '0.00';
+                    }
+
+                    // Get total expected service duration
+                    $SumServiceDuration = BookingSetting::whereIn('service_id', $service_ids)
+                        ->sum('service_duration');
+
+                    // Calculate actual time taken
+                    $total_duration = 0;
+                    $date           = Carbon::today()->toDateString(); // Get today's date
+
+                    foreach ($visits as $visit) {
+                        if (! empty($visit->start_time) && ! empty($visit->end_time)) {
+                            try {
+                                $start_time = Carbon::parse("{$date} {$visit->start_time}")->timezone('Asia/Riyadh');
+                                $end_time   = Carbon::parse("{$date} {$visit->end_time}")->timezone('Asia/Riyadh');
+
+                                $total_duration += $end_time->diffInMinutes($start_time);
+                            } catch (\Exception $e) {
+                                Log::error('Invalid time format in visit', [
+                                    'visit_id'   => $visit->id,
+                                    'start_time' => $visit->start_time,
+                                    'end_time'   => $visit->end_time,
+                                    'exception'  => $e->getMessage(),
+                                ]);
+                                return '0.00'; // Prevents an error from affecting output
+                            }
+                        }
+                    }
+
+                    // Calculate lateness
+                    $sum   = $SumServiceDuration - $total_duration;
+                    $total = count($service_ids) > 0 ? $sum / count($service_ids) : 0;
+
+                    // Ensure no negative values, return 0 if negative
+                    return number_format(max($total, 0), 2);
                 })
+
                 ->rawColumns(['user_name', 'phone', 'email', 'group', 'service_count', 'point', 'rate', 'late'])
                 ->make(true);
 
