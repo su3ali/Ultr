@@ -290,6 +290,12 @@ class CheckoutController extends Controller
             $cart_updated->save();
             $this->logActivity(' after Processing the Test Checkout ');
 
+            $cart_updated = $carts->first();
+
+            // Add 30 minutes
+            $cart_updated->created_at = Carbon::now()->addMinutes(30);
+            $cart_updated->save();
+
             return self::apiResponse(200, __('api.test_checkout'), $this->body);
         } catch (\Exception $e) {
             // Log the exception with additional context
