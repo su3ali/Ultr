@@ -187,6 +187,9 @@ class BookingController extends Controller
                         'new'            => $row->visit?->status?->name_ar ?? 'N/A',
                         'date'           => $row->date ?? 'N/A',
                         'quantity'       => $row->quantity ?? 'N/A',
+                        'total'          => isset($row->visit?->booking?->order?->total) && is_numeric($row->visit->booking->order->total)
+                        ? number_format((float) $row->visit->booking->order->total, 2)
+                        : 'N/A',
                         'payment_method' => match ($row->visit?->booking?->order?->transaction?->payment_method ?? 'N/A') {
                             'cache', 'cash' => __('api.payment_method_cach'),
                             'wallet'         => __('api.payment_method_wallet'),

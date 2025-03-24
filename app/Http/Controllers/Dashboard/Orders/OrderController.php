@@ -38,7 +38,6 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
-        
 
         $start     = $request->input('start', 0);
         $length    = $request->input('length', 10);
@@ -87,12 +86,17 @@ class OrderController extends Controller
                     )->implode(' ');
                 })
                 ->addColumn('quantity', fn($row) => $row->services->sum('pivot.quantity'))
+                ->addColumn('total', function ($row) {
+                    return number_format($row->total, 2);
+                })
+
                 ->addColumn('payment_method', fn($row) => match ($row->transaction?->payment_method) {
                     'cache', 'cash' => __('api.payment_method_cach'),
                     'wallet' => __('api.payment_method_wallet'),
                     'mada'   => __('api.payment_method_network'),
                     default  => __('api.payment_method_visa'),
                 })
+
                 ->addColumn('region', fn($row) => optional($row->userAddress?->region)->title ?? '')
                 ->addColumn('status', fn($row) => app()->getLocale() === 'ar'
                     ? optional($row->bookings?->first()?->visit?->status)->name_ar
@@ -122,7 +126,7 @@ class OrderController extends Controller
                     }
                     return $html;
                 })
-                ->rawColumns(['booking_id', 'user', 'phone', 'service', 'quantity', 'payment_method', 'region', 'status', 'created_at', 'control'])
+                ->rawColumns(['booking_id', 'user', 'phone', 'service', 'quantity', 'total', 'payment_method', 'region', 'status', 'created_at', 'control'])
                 ->make(true);
         }
 
@@ -195,6 +199,10 @@ class OrderController extends Controller
                     $qu = $row->services->pluck('pivot.quantity')->toArray();
                     return array_sum($qu);
                 })
+                ->addColumn('total', function ($row) {
+                    return number_format($row->total, 2);
+                })
+
                 ->addColumn('payment_method', function ($row) {
                     $payment_method = $row->transaction?->payment_method;
                     if ($payment_method == "cache" || $payment_method == "cash") {
@@ -830,8 +838,6 @@ class OrderController extends Controller
                 ])
                 ->orderBy('created_at', 'desc')
                 ->get();
-
-                
 
             return DataTables::of($customerComplaints)
                 ->addColumn('order_id', fn($row) => $row->order_id ?? 'N/A')

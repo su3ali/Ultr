@@ -174,7 +174,7 @@
                     url: '{{ route('dashboard.orders.index') }}',
                     data: function(d) {
 
-                        debugger;
+                       
 
                         d.start = d.start; 
                         d.length = d.length; 
