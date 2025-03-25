@@ -221,10 +221,15 @@ class OrderController extends Controller
                 ->addColumn('status', function ($row) {
                     return $row->bookings?->first()?->visit?->status->name_ar;
                 })
+
+                ->addColumn('order_count', function ($row) {
+                    return Order::where('user_id', $row->user_id)->count();
+                })
+
                 ->addColumn('created_at', function ($row) {
                     $date = Carbon::parse($row->created_at)->timezone('Asia/Riyadh');
 
-                    return $date->format("Y-m-d H:i:s");
+                    return $date->format("Y-m-d");
                 })
 
                 ->addColumn('control', function ($row) {
@@ -271,6 +276,7 @@ class OrderController extends Controller
                     'payment_method',
                     'region',
                     'status',
+                    'order_count',
                     'created_at',
                     'control',
                 ])
