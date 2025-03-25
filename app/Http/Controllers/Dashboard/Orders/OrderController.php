@@ -259,6 +259,14 @@ class OrderController extends Controller
                                   </a>';
                     }
 
+                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
+                        $html .= '<a data-toggle="modal" data-target="#rescheduleModal"
+                               data-id="' . $row->id . '"
+                               class="mr-2 btn btn-outline-danger btn-sm  btn-sm ">
+                                <i class="fas fa-calendar-alt fa-2x"></i>
+                              </a>';
+                    }
+
                     return $html;
                 })
 

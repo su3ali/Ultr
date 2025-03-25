@@ -52,6 +52,7 @@ class CheckoutController extends Controller
     public function __construct()
     {
         $this->middleware('localization');
+
     }
 
     protected function checkTimeDate(Request $request)

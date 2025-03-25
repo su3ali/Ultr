@@ -1,41 +1,68 @@
 @extends('dashboard.layout.layout')
 
 @section('sub-header')
-    <div class="sub-header-container">
-        <header class="header navbar navbar-expand-sm">
+<div class="sub-header-container">
+    <header class="header navbar navbar-expand-sm">
 
-            <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    class="feather feather-menu">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-            </a>
+        <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="feather feather-menu">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </a>
 
-            <ul class="navbar-nav flex-row">
-                <li>
-                    <div class="page-header">
+        <ul class="navbar-nav flex-row">
+            <li>
+                <div class="page-header">
 
-                        <nav class="breadcrumb-one" aria-label="breadcrumb">
-                            <ol class="breadcrumb mb-0 py-2">
-                                <li class="breadcrumb-item"><a
-                                        href="{{ route('dashboard.home') }}">{{ __('dash.home') }}</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">{{ __('dash.client_orders_today') }}
-                                </li>
-                            </ol>
-                        </nav>
+                    <nav class="breadcrumb-one" aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0 py-2">
+                            <li class="breadcrumb-item"><a href="{{ route('dashboard.home') }}">{{ __('dash.home')
+                                    }}</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">{{ __('dash.client_orders_today') }}
+                            </li>
+                        </ol>
+                    </nav>
 
-                    </div>
-                </li>
-            </ul>
+                </div>
+            </li>
+        </ul>
 
 
-        </header>
+    </header>
+</div>
+
+<div class="modal fade" id="rescheduleModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel">المواعيد المتاحة</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="timeButtonsContainer">
+                    <!-- Dynamic buttons will be added here -->
+                </div>
+                <div id="loadingSpinner" class="d-none text-center">
+                    <i class="fa fa-spinner fa-spin"></i> تحميل البيانات...
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">رجوع</button>
+                <button type="button" class="btn btn-primary" id="confirmButton" onclick="updateOrder()">تأكيد</button>
+            </div>
+        </div>
     </div>
+</div>
 
-    {{--    @include('dashboard.orders.create') --}}
+
+
+{{-- @include('dashboard.orders.create') --}}
 @endsection
 <style>
     .whatsapp-link {
@@ -51,68 +78,226 @@
     }
 </style>
 @section('content')
-    <div class="layout-px-spacing">
+<div class="layout-px-spacing">
 
-        <div class="row layout-top-spacing">
+    <div class="row layout-top-spacing">
 
-            <div class="col-xl-12 col-lg-12 col-sm-12  layout-spacing">
-                <div class="widget-content widget-content-area br-6">
-                    <div class="col-md-12  mb-3">
-
-
-                        <div class="row">
+        <div class="col-xl-12 col-lg-12 col-sm-12  layout-spacing">
+            <div class="widget-content widget-content-area br-6">
+                <div class="col-md-12  mb-3">
 
 
+                    <div class="row">
 
-                            <div class="col-md-1">
-                                <label for="inputEmail4">الحالة</label>
-                            </div>
-                            <div class="col-md-4">
-                                <select class="select2 status_filter form-control" name="status_filter">
-                                    <option value="all" selected>الكل</option>
-                                    @foreach ($statuses as $id => $status)
-                                        <option value="{{ $id }}">{{ $status }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
 
+
+                        <div class="col-md-1">
+                            <label for="inputEmail4">الحالة</label>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="select2 status_filter form-control" name="status_filter">
+                                <option value="all" selected>الكل</option>
+                                @foreach ($statuses as $id => $status)
+                                <option value="{{ $id }}">{{ $status }}</option>
+                                @endforeach
+                            </select>
                         </div>
 
                     </div>
 
-                    <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>رقم الطلب</th>
-                                <th>رقم الحجز</th>
-                                <th>{{ __('dash.customer_name') }}</th>
-                                <th>{{ __('dash.phone') }}</th>
-                                <th>{{ __('dash.service') }}</th>
-                                <th>{{ __('dash.quantity') }}</th>
-                                <th>{{ __('dash.price_value') }}</th>
-                                <th>{{ __('dash.payment_method') }}</th>
-                                <th>{{ __('dash.zone') }}</th>
-                                <th>{{ __('dash.status') }}</th>
-                                <th>تاريخ الطلب</th>
-                                <th class="no-content">{{ __('dash.actions') }}</th>
-                            </tr>
-                        </thead>
-                    </table>
-
-
                 </div>
-            </div>
 
+                <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>رقم الطلب</th>
+                            <th>رقم الحجز</th>
+                            <th>{{ __('dash.customer_name') }}</th>
+                            <th>{{ __('dash.phone') }}</th>
+                            <th>{{ __('dash.service') }}</th>
+                            <th>{{ __('dash.quantity') }}</th>
+                            <th>{{ __('dash.price_value') }}</th>
+                            <th>{{ __('dash.payment_method') }}</th>
+                            <th>{{ __('dash.zone') }}</th>
+                            <th>{{ __('dash.status') }}</th>
+                            <th>تاريخ الطلب</th>
+                            <th class="no-content">{{ __('dash.actions') }}</th>
+                        </tr>
+                    </thead>
+                </table>
+
+
+            </div>
         </div>
 
     </div>
-    {{--    @include('dashboard.orders.edit') --}}
-    @include('dashboard.orders.partial.show_bookings')
+
+</div>
+{{-- @include('dashboard.orders.edit') --}}
+@include('dashboard.orders.partial.show_bookings')
 @endsection
 
 @push('script')
-    <script type="text/javascript">
-        $(document).ready(function() {
+<script type="text/javascript">
+    const apiUrl = 'http://127.0.0.1:8000/api/get_avail_times_from_date';  // Your actual API URL
+
+    let pageNumber = 0; // Start with the first page of data
+let loadingData = false; // To prevent multiple requests
+
+// Function to fetch and display available times with pagination
+
+
+ // Initialize the variables
+let selectedDay = null;
+let selectedTime = null;
+let selectedShiftId = null;
+let orderId = 9689; // Replace with dynamic order ID from your application context
+
+// Fetch available times function
+async function fetchAvailableTimes() {
+    if (loadingData) return;
+    loadingData = true;
+
+    document.getElementById("loadingSpinner").classList.remove('d-none');
+
+    const params = new URLSearchParams({
+        date: '2024-03-18',
+        'services[0][id]': 22,
+        'services[0][amount]': 1,
+        region_id: 6,
+        page_number: pageNumber,
+        package_id: 0
+    });
+
+    try {
+        const response = await fetch(`${apiUrl}?${params.toString()}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Error fetching available times');
+        }
+
+        const data = await response.json();
+        populateTimeButtons(data.body.times.available_days);
+        pageNumber++; 
+
+    } catch (error) {
+        console.error('Error fetching available times:', error);
+    } finally {
+        loadingData = false;
+        document.getElementById("loadingSpinner").classList.add('d-none'); 
+    }
+}
+
+// Function to populate time buttons with collapsible day groups
+function populateTimeButtons(availableDays) {
+    let container = document.getElementById("timeButtonsContainer");
+    container.innerHTML = ''; 
+
+    availableDays.forEach(day => {
+        let dayHeader = document.createElement('h6');
+        dayHeader.classList.add('fw-bold', 'm-3');
+        dayHeader.textContent = `${day.dayName} (${day.day})`;
+
+        let dayContent = document.createElement('div');
+        dayContent.classList.add('day-content', 'mb-2', 'p-2');
+
+        if (day.times.length === 0) {
+            let noTimesMsg = document.createElement('p');
+            noTimesMsg.classList.add('text-danger', 'fw-bold', 'text-center', 'p-2');
+            noTimesMsg.textContent = 'لا يوجد مواعيد متاحة في هذا اليوم';
+            dayContent.appendChild(noTimesMsg);
+        } else {
+            day.times.forEach(timeObj => {
+                let timeButton = document.createElement('button');
+                timeButton.classList.add('btn', 'btn-outline-primary', 'btn-lg', 'm-1');
+                timeButton.textContent = timeObj.time;
+                timeButton.setAttribute('data-day', day.day);
+                timeButton.setAttribute('data-time', timeObj.time);
+                timeButton.setAttribute('data-shift-id', timeObj.shift_id);
+
+                // Add click event to select the time
+                timeButton.onclick = function() {
+                    selectTime(day.day, timeObj.time, timeObj.shift_id);
+                };
+
+                dayContent.appendChild(timeButton);
+            });
+        }
+
+        container.appendChild(dayHeader);
+        container.appendChild(dayContent);
+    });
+
+    let showMoreButton = document.createElement('button');
+    showMoreButton.classList.add('btn', 'btn-primary', 'btn-sm', 'm-1');
+    showMoreButton.textContent = 'عرض المزيد';
+    showMoreButton.onclick = function() {
+        fetchAvailableTimes(); 
+        showMoreButton.style.display = 'none';
+    };
+    container.appendChild(showMoreButton);
+}
+
+// Function to handle time selection
+function selectTime(day, time, shiftId) {
+    selectedDay = day;
+    selectedTime = time;
+    selectedShiftId = shiftId;
+
+    // Display selected time in the console (for debugging)
+    console.log(`Selected Time: ${time} on ${day}`);
+}
+
+// Update Order function to pass date, time, and order ID
+async function updateOrder() {
+    if (!selectedDay || !selectedTime || !selectedShiftId) {
+        alert("Please select a valid time");
+        return;
+    }
+
+    const params = {
+        order_id: orderId,  // Use the dynamic order ID
+        date: selectedDay,  // Selected day
+        time: selectedTime,  // Selected time
+        shift_id: selectedShiftId  // Selected shift ID
+    };
+
+    try {
+        const response = await fetch('/api/v2/orders/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(params)
+        });
+
+        if (!response.ok) {
+            throw new Error('Error updating order');
+        }
+
+        const data = await response.json();
+        alert('Order updated successfully!');
+        console.log(data); // Display response if needed
+
+    } catch (error) {
+        console.error('Error updating order:', error);
+        alert('There was an error updating the order');
+    }
+}
+
+// Add event listener to submit button
+document.getElementById("confirmButton").addEventListener("click", updateOrder);
+
+// Initialize modal with available times when page is loaded
+document.addEventListener("DOMContentLoaded", fetchAvailableTimes);
+
+
+    $(document).ready(function() {
             var table = $('#html5-extension').DataTable({
                 dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-6 d-flex justify-content-md-start justify-content-center'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
                     "<'table-responsive'tr>" +
@@ -270,5 +455,5 @@
                 }
             });
         })
-    </script>
+</script>
 @endpush
