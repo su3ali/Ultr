@@ -26,6 +26,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/verify', [AuthController::class, 'verify']);
 
 Route::get('/get_avail_times_from_date', [CartControllerV2::class, 'getAvailableTimesFromDate']);
+Route::post('/changeOrderSchedule', [CartControllerV2::class, 'changeOrderSchedule'])->name('changeOrderSchedule');
 
 //Route::post('/payment-callback/{type?}',[CheckoutController::class,'callbackPayment']);
 

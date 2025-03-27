@@ -61,6 +61,8 @@ $msgs[] = $m;
 
     <link href="{{ asset(app()->getLocale() . '/plugins/file-upload/file-upload-with-preview.min.css') }}"
         rel="stylesheet" type="text/css" />
+    {{-- order index style --}}
+    <link rel="stylesheet" href="{{ asset('css/orders/index.css') }}">
 
 
     <link href="{{ asset(app()->getLocale() . '/plugins/animate/animate.css') }}" rel="stylesheet" type="text/css" />
@@ -380,6 +382,7 @@ $msgs[] = $m;
         });
     </script>
     {{-- <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> --}}
+    <script src="{{ asset('js/orders/index.js') }}"></script>
 
     @stack('script')
 

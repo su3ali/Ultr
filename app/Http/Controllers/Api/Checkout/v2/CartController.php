@@ -544,4 +544,10 @@ class CartController extends Controller
 
         return self::apiResponse(400, __('api.Sorry, the service is currently unavailable'), []);
     }
+
+    public function changeOrderSchedule(Request $request)
+    {
+        return self::apiResponse(200, 'ok', $request->all());
+
+    }
 }
