@@ -416,13 +416,20 @@
                     <li>
                         <a href="{{ route('dashboard.core.technician.index') }}"> {{ __('dash.technicians') }} </a>
                     </li>
+                    @can('view_technicians_groups')
                     <li>
                         <a href="{{ route('dashboard.core.group.index') }}"> {{ __('dash.technicians_groups') }} </a>
                     </li>
+                    @endcan
+
+                    @can('view_tech_specializations')
+
                     <li>
                         <a href="{{ route('dashboard.core.tech_specializations.index') }}"> {{
                             __('dash.tech_specializations') }} </a>
                     </li>
+
+                    @endcan
                 </ul>
             </li>
             @endcan
