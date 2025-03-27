@@ -93,7 +93,7 @@
                             <th>{{ __('dash.payment_method') }}</th>
                             <th>{{ __('dash.zone') }}</th>
                             <th>{{ __('dash.status') }}</th>
-                            <th>{{ __('dash.order_count') }}</th>
+                            {{-- <th>{{ __('dash.order_count') }}</th> --}}
                             <th>تاريخ الطلب</th>
                             <th class="no-content">{{ __('dash.actions') }}</th>
                         </tr>
@@ -192,10 +192,10 @@
                         name: 'status'
                     },
 
-                    {
-                        data: 'order_count',
-                        name: 'order_count'
-                    },
+                    // {
+                    //     data: 'order_count',
+                    //     name: 'order_count'
+                    // },
 
 
                     
