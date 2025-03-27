@@ -63,6 +63,10 @@ $msgs[] = $m;
         rel="stylesheet" type="text/css" />
 
 
+    {{-- order index style --}}
+    <link rel="stylesheet" href="{{ asset('css/orders/index.css') }}">
+
+
     <link href="{{ asset(app()->getLocale() . '/plugins/animate/animate.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset(app()->getLocale() . '/plugins/sweetalerts/sweetalert2.min.css') }}" rel="stylesheet"
         type="text/css" />
@@ -380,6 +384,8 @@ $msgs[] = $m;
         });
     </script>
     {{-- <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> --}}
+
+
 
     @stack('script')
 

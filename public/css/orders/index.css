@@ -1,0 +1,73 @@
+/* public/css/orders/index.css */
+
+/* General form styles */
+.form-label {
+    font-weight: 500;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+/* Custom styles for inputs, selects, etc. */
+.custom-input,
+.custom-select {
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    font-size: 14px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    width: 100%;
+}
+
+.custom-input:focus,
+.custom-select:focus {
+    border-color: #2B68A6;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.custom-date-picker .form-control {
+    border-radius: 8px 0 0 8px;
+    padding-left: 15px;
+}
+
+.custom-date-picker .input-group-text {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 0 8px 8px 0;
+    padding: 10px;
+    cursor: pointer;
+    color: #2B68A6;
+}
+
+.custom-date-picker .input-group-text:hover {
+    background-color: #2B68A6;
+    color: #fff;
+}
+
+.custom-date-picker .fa-calendar {
+    font-size: 16px;
+}
+
+/* Select2 and Status Filter Styling */
+.custom-select {
+    height: 38px;
+}
+
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-selection {
+    height: 38px !important;
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+}
+
+.whatsapp-link {
+    color: #0074cc;
+    text-decoration: none;
+}
+
+.whatsapp-link:hover {
+    color: #25d366;
+}

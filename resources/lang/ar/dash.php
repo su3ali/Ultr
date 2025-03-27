@@ -766,7 +766,6 @@ return [
     'first name'                            => 'الإسم الأول',
     'last name'                             => 'الإسم الأخير',
     'Showing'                               => 'عرض',
-    'to'                                    => 'ل',
     'of'                                    => 'من',
     'entries'                               => 'ادخالات',
     'category name'                         => 'اسم القسم',
