@@ -34,6 +34,87 @@
 
     </header>
 </div>
+
+{{-- <div class="modal fade" id="rescheduleModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel">المواعيد المتاحة</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="timeButtonsContainer">
+                    <!-- Dynamic buttons will be added here -->
+                </div>
+                <div id="loadingSpinner" class="d-none text-center">
+                    <i class="fa fa-spinner fa-spin"></i> تحميل البيانات...
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">رجوع</button>
+                <button type="button" class="btn btn-primary" id="confirmButton" onclick="updateOrder()">تأكيد</button>
+            </div>
+        </div>
+    </div>
+</div> --}}
+
+<!-- Modal for Rescheduling -->
+<!-- Modal for Rescheduling -->
+<div class="modal fade" id="rescheduleModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel">المواعيد المتاحة</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center">يرجى اختيار أحد الخيارات:</p>
+
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <!-- Keep the same time option -->
+                    <label class="option-card">
+                        <input type="radio" name="timeChoice" id="keepSameTime" value="same" checked>
+                        <div class="option-content">
+                            <i class="fas fa-clock"></i>
+                            <p>الاحتفاظ بالموعد الأصلي</p>
+                        </div>
+                    </label>
+
+                    <!-- Select a new time option -->
+                    <label class="option-card">
+                        <input type="radio" name="timeChoice" id="chooseNewTime" value="new">
+                        <div class="option-content">
+                            <i class="fas fa-calendar-alt"></i>
+                            <p>اختيار وقت جديد</p>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Available Times Section (Initially Hidden) -->
+                <div id="newTimeContainer" class="mt-3 d-none">
+                    <p class="text-center">يرجى اختيار وقت جديد من الأوقات المتاحة:</p>
+                    <div id="timeButtonsContainer">
+                        <!-- Available time buttons will be dynamically added here -->
+                    </div>
+                    <div id="loadingSpinner" class="d-none text-center mt-3">
+                        <i class="fa fa-spinner fa-spin"></i> تحميل البيانات...
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">رجوع</button>
+                <button type="button" class="btn btn-primary" id="confirmButton">تأكيد</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 {{-- @include('dashboard.orders.create') --}}
 @endsection
 <style>
@@ -487,14 +568,6 @@ $(document).ready(function () {
                         data: 'status',
                         name: 'status'
                     },
-
-                    // {
-                    //     data: 'order_count',
-                    //     name: 'order_count'
-                    // },
-
-
-                    
                     {
                         data: 'created_at',
                         name: 'created_at'

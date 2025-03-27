@@ -346,7 +346,7 @@ class OrderController extends Controller
                 ->addColumn('created_at', function ($row) {
                     $date = Carbon::parse($row->created_at)->timezone('Asia/Riyadh');
 
-                    return $date->format("Y-m-d H:i:s");
+                    return $date->format("Y-m-d");
                 })
 
                 ->addColumn('control', function ($row) {
