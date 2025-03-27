@@ -991,5 +991,8 @@ return [
     'add_reply'                             => ' إضافة رد',
     'emp_last_reply'                        => 'اخر رد من قبل',
     'order_count'                           => 'عدد الطلبات',
+    'public_settings'                       => 'إعدادات عامة',
+
+    'technicians_manage'                    => 'إدارة الفنيين',
 
 ];

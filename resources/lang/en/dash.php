@@ -1066,5 +1066,8 @@ return [
     'add_reply'                             => 'Add Reply',
     'emp_last_reply'                        => 'Last reply by',
     'order_count'                           => 'Order Count',
+    'public_settings'                       => 'Public Settings',
+
+    'technicians_manage'                    => ' Technicians Mange',
 
 ];
