@@ -1,21 +1,22 @@
 <?php
 namespace App\Http\Controllers\Dashboard\Reports;
 
-use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\Order;
+use App\Models\Visit;
 use App\Models\Booking;
-use App\Models\BookingSetting;
+use App\Models\Service;
 use App\Models\Category;
 use App\Models\Contract;
-use App\Models\Order;
-use App\Models\OrderService;
-use App\Models\Service;
 use App\Models\Technician;
-use App\Models\User;
-use App\Models\Visit;
+use App\Models\OrderService;
 use Illuminate\Http\Request;
+use App\Models\BookingSetting;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 
 class ReportsController extends Controller
 {
