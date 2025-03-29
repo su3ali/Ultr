@@ -238,6 +238,7 @@
     let selectedDay = null;
     let selectedTime = null;
     let selectedShiftId = null;
+    let orderId = null;
 
   
     $(document).on('click', '.btn[data-toggle="modal"]', function () {
@@ -263,10 +264,12 @@
             'services[0][id]': 22,
             'services[0][amount]': 1,
             region_id: 6,
-            page_number: pageNumber,
-            package_id: 0
-        });
+            page_number: 0,
+            package_id: 0,
+            orderId: orderId || null
 
+        });
+        
         try {
             const response = await fetch(`${apiUrl}?${params.toString()}`, {
                 method: 'GET',

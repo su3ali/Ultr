@@ -30,12 +30,13 @@ class Appointment
         ['id' => 7, 'name' => 'Friday'],
     ];
 
-    public function __construct($region_id, $services, $package_id, $page_number)
+    public function __construct($region_id, $services, $package_id, $page_number, $orderId = null)
     {
         $this->region_id   = $region_id;
         $this->services    = $services;
         $this->package_id  = $package_id;
         $this->page_number = $page_number;
+        $this->orderId     = $orderId;
     }
 
     public function getAvailableTimesFromDate()
@@ -97,6 +98,14 @@ class Appointment
             $page_number = $this->page_number ?? 0;
             $start       = $page_number * $page_size;
             $end         = ($page_number + 1) * $page_size;
+
+            $orderId = $this->orderId ?? null;
+
+            if ($orderId) {
+
+            } else {
+
+            }
 
             for ($i = $start; $i < $end; $i++) {
                 $date = Carbon::now('Asia/Riyadh')->addDays($i)->format('Y-m-d');
