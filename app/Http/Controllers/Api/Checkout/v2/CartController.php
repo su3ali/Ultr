@@ -14,6 +14,7 @@ use App\Models\ContractPackagesUser;
 use App\Models\Group;
 use App\Models\GroupRegion;
 use App\Models\Icon;
+use App\Models\Order;
 use App\Models\Service;
 use App\Models\Shift;
 use App\Models\Visit;
@@ -32,6 +33,7 @@ class CartController extends Controller
     public function __construct()
     {
         $this->middleware('localization');
+
     }
 
     protected function add_to_cart(Request $request): JsonResponse
@@ -518,5 +520,58 @@ class CartController extends Controller
                 'total_after_discount'  => $total - $discount_value,
             ];
         }
+    }
+
+    public function getAvailableTimes(Request $request)
+    {
+
+        $rules = [
+            'services'          => 'required|array',
+            'services.*.id'     => 'required|exists:services,id',
+            'services.*.amount' => 'required|numeric',
+            'region_id'         => 'required|exists:regions,id',
+            'package_id'        => 'required',
+            'page_number'       => 'required|numeric',
+        ];
+        $request->validate($rules, $request->all());
+
+        $times = new Appointment($request->region_id, $request->services, $request->package_id, $request->page_number);
+
+        $collectionOfTimesOfServices = $times->getAvailableTimesFromDate();
+        if ($collectionOfTimesOfServices) {
+            $this->body['times']['available_days'] = $collectionOfTimesOfServices;
+            return self::apiResponse(200, null, $this->body);
+        }
+
+        return self::apiResponse(400, __('api.Sorry, the service is currently unavailable'), []);
+    }
+
+    public function changeOrderSchedule(Request $request)
+    {
+
+        $order_id = $request->order_id;
+        $order    = Order::find($order_id);
+        if (! $order) {
+            return self::apiResponse(400, __('لا يوجد طلب  من خلال هذا الرقم'));
+        }
+
+        // booking
+        $booking = Booking::where('order_id', $order->id)->first();
+        if (! $booking) {
+
+            $booking->booking_status_id = 1;
+            $booking->save();
+
+        }
+
+        if ($order->status_id == 5) {
+
+            $order->status_id = 1;
+            $order->save();
+
+        }
+
+        return self::apiResponse(200, 'ok', $request->all());
+
     }
 }
