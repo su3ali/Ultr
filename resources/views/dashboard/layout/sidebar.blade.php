@@ -6,6 +6,9 @@
 
         <ul class="list-unstyled menu-categories" id="accordionExample">
 
+
+            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_home_page'))
+
             <li class="menu">
                 <a href="{{ route('dashboard.home') }}" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -20,7 +23,18 @@
                 </a>
             </li>
 
-            @can('view_visits')
+            @endif
+
+
+            @php
+            $user = auth()->user();
+            $canViewTechOrders = $user->hasRole('admin') || $user->can('view_technician_orders');
+            $canViewTodayTechOrders = $user->hasRole('admin') || $user->can('view_today_technician_orders');
+            $canViewOrdersStatus = $user->hasRole('admin') || $user->can('view_orders_status');
+            $canViewCancellationReasons = $user->hasRole('admin') || $user->can('view_cancellation_reasons');
+            @endphp
+
+            @if ($canViewTechOrders)
             <li class="menu">
                 <a href="#visits" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -32,7 +46,7 @@
                             <polyline points="2 12 12 17 22 12"></polyline>
                         </svg>
 
-                        <span> {{ __('dash.tech_orders') }}</span>
+                        <span>{{ __('dash.tech_orders') }}</span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -42,33 +56,45 @@
                         </svg>
                     </div>
                 </a>
+
                 <ul class="collapse submenu list-unstyled" id="visits" data-parent="#accordionExample">
-                    @can('view_visits')
+                    @if ($canViewTechOrders)
                     <li>
-                        <a href="{{ route('dashboard.visits.index') }}"> {{ __('dash.tech_orders') }}</a>
+                        <a href="{{ route('dashboard.visits.index') }}">{{ __('dash.tech_orders') }}</a>
                     </li>
-                    @endcan
-                    @can('view_visits')
+                    @endif
+
+                    @if ($canViewTodayTechOrders)
                     <li>
-                        <a href="{{ route('dashboard.visits.visitsToday') }}"> {{ __('dash.tech_orders_today') }}</a>
+                        <a href="{{ route('dashboard.visits.visitsToday') }}">{{ __('dash.tech_orders_today') }}</a>
                     </li>
-                    @endcan
-                    @can('update_visits')
+                    @endif
+
+                    @if ($canViewOrdersStatus)
                     <li>
-                        <a href="{{ route('dashboard.visits_statuses.index') }}"> {{ __('dash.orders_status') }}</a>
+                        <a href="{{ route('dashboard.visits_statuses.index') }}">{{ __('dash.orders_status') }}</a>
                     </li>
+                    @endif
+
+                    @if ($canViewCancellationReasons)
                     <li>
-                        <a href="{{ route('dashboard.reason_cancel.index') }}"> {{ __('dash.cancellation_reasons') }}
-                        </a>
+                        <a href="{{ route('dashboard.reason_cancel.index') }}">{{ __('dash.cancellation_reasons') }}</a>
                     </li>
-                    @endcan
+                    @endif
                 </ul>
             </li>
-            @endcan
-            @can('view_packages')
+            @endif
+
+
+            @php
+            $user = auth()->user();
+            $canViewPackages = $user->hasRole('admin') || $user->can('view_packages');
+            @endphp
+
+            @if ($canViewPackages)
             <li class="menu">
                 <a href="#contract" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                    <div class="">
+                    <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             class="feather feather-package">
@@ -79,7 +105,6 @@
                             <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                             <line x1="12" y1="22.08" x2="12" y2="12"></line>
                         </svg>
-
                         <span>{{ __('dash.packages_management') }}</span>
                     </div>
                     <div>
@@ -90,29 +115,40 @@
                         </svg>
                     </div>
                 </a>
+
                 <ul class="collapse submenu list-unstyled" id="contract" data-parent="#accordionExample">
                     <li>
                         <a href="{{ route('dashboard.contract_packages.index') }}">{{ __('dash.packages') }}</a>
                     </li>
 
-                    {{-- <li> --}}
-                        {{-- <a href="{{route('dashboard.contracts.index')}}"> التقاول </a> --}}
-                        {{-- </li> --}}
+                    {{-- Future feature: Contracts --}}
+                    {{-- <li>
+                        <a href="{{ route('dashboard.contracts.index') }}"> التقاول </a>
+                    </li> --}}
 
                     <li>
                         <a href="{{ route('dashboard.contract_order.index') }}">{{ __('dash.packages_orders') }}</a>
                     </li>
                 </ul>
             </li>
-            @endcan
-            @can('view_orders')
+            @endif
+
+
+
+            @php
+            $user = auth()->user();
+            $canViewOrders = $user->hasRole('admin') || $user->can('view_orders');
+            $canUpdateOrders = $user->hasRole('admin') || $user->can('update_orders');
+            $canViewBookings = $user->hasRole('admin') || $user->can('view_bookings');
+            $canUpdateBookings = $user->hasRole('admin') || $user->can('update_bookings');
+            @endphp
+
+            @if ($canViewOrders)
             <li class="menu">
                 <a href="#orders" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                    <div class="">
-                        <div class="icon-container">
-                            <i data-feather="shopping-cart"></i><span class="icon-name">{{ __('dash.client_orders')
-                                }}</span>
-                        </div>
+                    <div class="icon-container">
+                        <i data-feather="shopping-cart"></i><span class="icon-name">{{ __('dash.client_orders')
+                            }}</span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -122,45 +158,28 @@
                         </svg>
                     </div>
                 </a>
-                <ul class="collapse submenu list-unstyled" id="orders" data-parent="#accordionExample">
-                    @can('view_orders')
-                    <li>
-                        <a href="{{ route('dashboard.orders.index') }}">{{ __('dash.client_orders') }}</a>
-                    </li>
-                    @endcan
-                    @can('view_orders')
-                    <li>
-                        <a href="{{ route('dashboard.order.ordersToday') }}">{{ __('dash.client_orders_today') }}</a>
-                    </li>
-                    @endcan
-                    @can('view_orders')
-                    <li>
-                        <a href="{{ route('dashboard.order.canceledOrdersToday') }}">{{ __('dash.canceled_orders_today')
-                            }}</a>
-                    </li>
-                    @endcan
-                    @can('update_orders')
-                    <li>
-                        <a href="{{ route('dashboard.order_statuses.index') }}">{{ __('dash.orders_status') }}</a>
-                    </li>
-                    @endcan
-                    @can('view_orders')
-                    <li>
-                        <a href="{{ route('dashboard.order.complaints') }}">{{ __('dash.complaints') }}</a>
-                    </li>
-                    @endcan
 
+                <ul class="collapse submenu list-unstyled" id="orders" data-parent="#accordionExample">
+                    <li><a href="{{ route('dashboard.orders.index') }}">{{ __('dash.client_orders') }}</a></li>
+                    <li><a href="{{ route('dashboard.order.ordersToday') }}">{{ __('dash.client_orders_today') }}</a>
+                    </li>
+                    <li><a href="{{ route('dashboard.order.canceledOrdersToday') }}">{{ __('dash.canceled_orders_today')
+                            }}</a></li>
+
+                    @if ($canUpdateOrders)
+                    <li><a href="{{ route('dashboard.order_statuses.index') }}">{{ __('dash.orders_status') }}</a></li>
+                    @endif
+
+                    <li><a href="{{ route('dashboard.order.complaints') }}">{{ __('dash.complaints') }}</a></li>
                 </ul>
             </li>
-            @endcan
+            @endif
 
-            @can('view_bookings')
+            @if ($canViewBookings)
             <li class="menu">
                 <a href="#booking" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                    <div class="">
-                        <div class="icon-container">
-                            <i data-feather="book"></i><span class="icon-name"> {{ __('dash.bookings') }} </span>
-                        </div>
+                    <div class="icon-container">
+                        <i data-feather="book"></i><span class="icon-name">{{ __('dash.bookings') }}</span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -170,24 +189,20 @@
                         </svg>
                     </div>
                 </a>
+
                 <ul class="collapse submenu list-unstyled" id="booking" data-parent="#accordionExample">
-                    @can('view_bookings')
-                    <li>
-                        <a href="{{ url('admin/bookings?type=service') }}"> {{ __('dash.bookings') }} </a>
+                    <li><a href="{{ url('admin/bookings?type=service') }}">{{ __('dash.bookings') }}</a></li>
+
+                    @if ($canUpdateBookings)
+                    <li><a href="{{ route('dashboard.booking_statuses.index') }}">{{ __('dash.booking_statuses') }}</a>
                     </li>
-                    @endcan
-                    @can('update_bookings')
-                    <li>
-                        <a href="{{ route('dashboard.booking_statuses.index') }}"> {{ __('dash.booking_statuses') }}
-                        </a>
+                    <li><a href="{{ route('dashboard.booking_setting.index') }}">{{ __('dash.booking_settings') }}</a>
                     </li>
-                    <li>
-                        <a href="{{ route('dashboard.booking_setting.index') }}"> {{ __('dash.booking_statuses')}} </a>
-                    </li>
-                    @endcan
+                    @endif
                 </ul>
             </li>
-            @endcan
+            @endif
+
             @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_admins'))
 
             {{-- Beginning of appointments --}}
@@ -228,7 +243,13 @@
 
 
 
-            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_admins'))
+            @php
+            $user = auth()->user();
+            $canViewAdmins = $user->hasRole('admin') || $user->can('view_admins');
+            $canViewRoles = $user->hasRole('admin') || $user->can('view_roles');
+            @endphp
+
+            @if ($canViewAdmins)
             <li class="menu">
                 <a href="#app" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -250,22 +271,27 @@
                 </a>
 
                 <ul class="collapse submenu list-unstyled" id="app" data-parent="#accordionExample">
-                    @can('view_admins')
                     <li>
                         <a href="{{ route('dashboard.core.administration.admins.index') }}"> {{ __('dash.users') }} </a>
                     </li>
-                    @endcan
-                    @can('view_roles')
+
+                    @if ($canViewRoles)
                     <li>
                         <a href="{{ route('dashboard.core.administration.roles.index') }}"> {{ __('dash.permissions') }}
                         </a>
                     </li>
-                    @endcan
+                    @endif
                 </ul>
-
             </li>
             @endif
-            @can('view_categories')
+
+
+            @php
+            $user = auth()->user();
+            $canViewCategories = $user->hasRole('admin') || $user->can('view_categories');
+            @endphp
+
+            @if ($canViewCategories)
             <li class="menu">
                 <a href="#admin" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -276,7 +302,6 @@
                             <polyline points="2 17 12 22 22 17"></polyline>
                             <polyline points="2 12 12 17 22 12"></polyline>
                         </svg>
-
                         <span>{{ __('dash.categories') }}</span>
                     </div>
                     <div>
@@ -293,9 +318,15 @@
                     </li>
                 </ul>
             </li>
-            @endcan
+            @endif
 
-            @can('view_services')
+
+            @php
+            $user = auth()->user();
+            $canViewServices = $user->hasRole('admin') || $user->can('view_services');
+            @endphp
+
+            @if ($canViewServices)
             <li class="menu">
                 <a href="#service1" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -307,7 +338,6 @@
                             <line x1="6" y1="6" x2="6.01" y2="6"></line>
                             <line x1="6" y1="18" x2="6.01" y2="18"></line>
                         </svg>
-
                         <span>{{ __('dash.Service Management') }}</span>
                     </div>
                     <div>
@@ -322,17 +352,20 @@
                     <li>
                         <a href="{{ route('dashboard.core.service.index') }}"> {{ __('dash.Services') }} </a>
                     </li>
-
                     <li>
                         <a href="{{ route('dashboard.core.icon.index') }}"> {{ __('dash.icons') }} </a>
                     </li>
                 </ul>
             </li>
-            @endcan
+            @endif
 
 
-            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_cars'))
+            @php
+            $user = auth()->user();
+            $canViewCars = $user->hasRole('admin') || $user->can('view_cars');
+            @endphp
 
+            @if ($canViewCars)
             <li class="menu">
                 <a href="#car" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -351,19 +384,26 @@
                 </a>
                 <ul class="collapse submenu list-unstyled" id="car" data-parent="#accordionExample">
                     <li>
-                        <a href="{{ route('dashboard.car_type.index') }}"> {{ __('dash.car_type') }} </a>
-                        <a href="{{ route('dashboard.car_model.index') }}"> {{ __('dash.car_model') }} </a>
-                        <a href="{{ route('dashboard.car_client.index') }}"> {{ __('dash.car_clients') }} </a>
+                        <a href="{{ route('dashboard.car_type.index') }}">{{ __('dash.car_type') }}</a>
                     </li>
-
+                    <li>
+                        <a href="{{ route('dashboard.car_model.index') }}">{{ __('dash.car_model') }}</a>
+                    </li>
+                    <li>
+                        <a href="{{ route('dashboard.car_client.index') }}">{{ __('dash.car_clients') }}</a>
+                    </li>
                 </ul>
             </li>
             @endif
 
 
-            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_companys_services_management') ||
-            (auth()->user()->hasRole('التسويق') ))
 
+            @php
+            $user = auth()->user();
+            $canManageCompanyServices = $user->hasRole('admin') || $user->can('view_companys_services_management');
+            @endphp
+
+            @if ($canManageCompanyServices)
             <li class="menu">
                 <a href="#contact" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -390,7 +430,6 @@
                     </li>
                 </ul>
             </li>
-
             @endif
 
 
@@ -414,27 +453,25 @@
                 </a>
                 <ul class="collapse submenu list-unstyled" id="tech" data-parent="#accordionExample">
                     <li>
-                        <a href="{{ route('dashboard.core.technician.index') }}"> {{ __('dash.technicians') }} </a>
+                        <a href="{{ route('dashboard.core.technician.index') }}">{{ __('dash.technicians') }}</a>
                     </li>
                     @can('view_technicians_groups')
                     <li>
-                        <a href="{{ route('dashboard.core.group.index') }}"> {{ __('dash.technicians_groups') }} </a>
+                        <a href="{{ route('dashboard.core.group.index') }}">{{ __('dash.technicians_groups') }}</a>
                     </li>
                     @endcan
-
                     @can('view_tech_specializations')
-
                     <li>
-                        <a href="{{ route('dashboard.core.tech_specializations.index') }}"> {{
-                            __('dash.tech_specializations') }} </a>
+                        <a href="{{ route('dashboard.core.tech_specializations.index') }}">{{
+                            __('dash.tech_specializations') }}</a>
                     </li>
-
                     @endcan
                 </ul>
             </li>
             @endcan
 
-            @if (auth()->user()->hasRole('admin') || auth()->user()->can('create_trainees'))
+
+            @if(auth()->user()->hasRole('admin') || auth()->user()->can('create_trainees'))
             <li class="menu">
                 <a href="#trainees" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -453,10 +490,8 @@
                 </a>
                 <ul class="collapse submenu list-unstyled" id="trainees" data-parent="#accordionExample">
                     <li>
-                        <a href="{{ route('dashboard.core.trainee.index') }}"> {{ __('dash.trainees') }} </a>
+                        <a href="{{ route('dashboard.core.trainee.index') }}">{{ __('dash.trainees') }}</a>
                     </li>
-
-
                 </ul>
             </li>
             @endif
@@ -471,7 +506,6 @@
                             <line x1="12" y1="1" x2="12" y2="23"></line>
                             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                         </svg>
-
                         <span>{{ __('dash.wallet_Manage') }}</span>
                     </div>
                     <div>
@@ -483,16 +517,10 @@
                     </div>
                 </a>
                 <ul class="collapse submenu list-unstyled" id="wallet" data-parent="#accordionExample">
-                    <li>
-                        <a href="{{ route('dashboard.core.customer_wallet.index') }}">
-                            {{ __('dash.customers_wallet') }} </a>
-                    </li>
-
-                    <li>
-                        <a href="{{ route('dashboard.core.technician_wallet.index') }}">
-                            {{ __('dash.technicians_wallet') }} </a>
-                    </li>
-
+                    <li><a href="{{ route('dashboard.core.customer_wallet.index') }}">{{ __('dash.customers_wallet')
+                            }}</a></li>
+                    <li><a href="{{ route('dashboard.core.technician_wallet.index') }}">{{ __('dash.technicians_wallet')
+                            }}</a></li>
                 </ul>
             </li>
             @endcan
@@ -507,7 +535,6 @@
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
-
                         <span>{{ __('dash.customers_Management') }}</span>
                     </div>
                     <div>
@@ -519,11 +546,7 @@
                     </div>
                 </a>
                 <ul class="collapse submenu list-unstyled" id="customer" data-parent="#accordionExample">
-                    <li>
-                        <a href="{{ route('dashboard.core.customer.index') }}"> {{ __('dash.Customers') }} </a>
-                    </li>
-
-
+                    <li><a href="{{ route('dashboard.core.customer.index') }}">{{ __('dash.Customers') }}</a></li>
                 </ul>
             </li>
             @endcan
@@ -538,7 +561,7 @@
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
-                        <span> {{ __('dash.supplier_Manage') }}</span>
+                        <span>{{ __('dash.supplier_Manage') }}</span>
                     </div>
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -549,12 +572,11 @@
                     </div>
                 </a>
                 <ul class="collapse submenu list-unstyled" id="suppliers" data-parent="#accordionExample">
-                    <li>
-                        <a href="{{ route('dashboard.core.suppliers.index') }}"> {{ __('dash.suppliers') }} </a>
-                    </li>
+                    <li><a href="{{ route('dashboard.core.suppliers.index') }}">{{ __('dash.suppliers') }}</a></li>
                 </ul>
             </li>
             @endif
+
 
 
 

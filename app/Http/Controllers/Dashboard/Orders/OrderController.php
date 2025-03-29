@@ -389,8 +389,8 @@ class OrderController extends Controller
                                     <i class="fas fa-calendar-alt fa-2x"></i>
                                   </a>';
                     }
-
                     return $html;
+
                 })
 
                 ->rawColumns([

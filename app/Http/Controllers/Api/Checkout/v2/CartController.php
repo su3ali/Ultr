@@ -14,6 +14,7 @@ use App\Models\ContractPackagesUser;
 use App\Models\Group;
 use App\Models\GroupRegion;
 use App\Models\Icon;
+use App\Models\Order;
 use App\Models\Service;
 use App\Models\Shift;
 use App\Models\Visit;
@@ -547,6 +548,29 @@ class CartController extends Controller
 
     public function changeOrderSchedule(Request $request)
     {
+
+        $order_id = $request->order_id;
+        $order    = Order::find($order_id);
+        if (! $order) {
+            return self::apiResponse(400, __('لا يوجد طلب  من خلال هذا الرقم'));
+        }
+
+        // booking
+        $booking = Booking::where('order_id', $order->id)->first();
+        if (! $booking) {
+
+            $booking->booking_status_id = 1;
+            $booking->save();
+
+        }
+
+        if ($order->status_id == 5) {
+
+            $order->status_id = 1;
+            $order->save();
+
+        }
+
         return self::apiResponse(200, 'ok', $request->all());
 
     }

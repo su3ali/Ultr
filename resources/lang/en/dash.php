@@ -1066,5 +1066,6 @@ return [
     'add_reply'                             => 'Add Reply',
     'emp_last_reply'                        => 'Last reply by',
     'order_count'                           => 'Order Count',
+    'booking_settings'                      => 'Booking Settings',
 
 ];

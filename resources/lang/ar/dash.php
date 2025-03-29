@@ -992,4 +992,6 @@ return [
     'emp_last_reply'                        => 'اخر رد من قبل',
     'order_count'                           => 'عدد الطلبات',
 
+    'booking_settings'                      => 'إعدادات الحجوزات',
+
 ];

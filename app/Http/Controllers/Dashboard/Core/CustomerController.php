@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Dashboard\Core;
 
 use App\Http\Controllers\Controller;
@@ -31,34 +30,49 @@ class CustomerController extends Controller
                 });
             }
 
-            // Get total records before pagination
-            $totalRecords = $usersQuery->count();
+          
+
+            if ($request->filled('date') && $request->filled('date2')) {
+                $startDate = \Carbon\Carbon::createFromFormat('Y-m-d', $request->query('date'))->startOfDay();
+                $endDate   = \Carbon\Carbon::createFromFormat('Y-m-d', $request->query('date2'))->endOfDay();
+                $usersQuery->whereBetween('created_at', [$startDate, $endDate]);
+            } elseif ($request->filled('date')) {
+                $startDate = \Carbon\Carbon::createFromFormat('Y-m-d', $request->query('date'))->startOfDay();
+                $usersQuery->where('created_at', '>=', $startDate);
+            } elseif ($request->filled('date2')) {
+                $endDate = \Carbon\Carbon::createFromFormat('Y-m-d', $request->query('date2'))->endOfDay();
+                $usersQuery->where('created_at', '<=', $endDate);
+            }
 
             // Apply pagination
             $users = $usersQuery
                 ->orderBy('created_at', 'desc')
-                ->skip($request->input('start', 0)) // Skip records based on DataTables pagination
+                ->skip($request->input('start', 0))   // Skip records based on DataTables pagination
                 ->take($request->input('length', 10)) // Take the number of records specified
                 ->get();
 
+                
+                  // Get total records before pagination
+            $totalRecords = $usersQuery->count();
+
             // Prepare DataTables response
             return response()->json([
-                'draw' => $request->input('draw'),
-                'recordsTotal' => $totalRecords,
+                'draw'            => $request->input('draw'),
+                'recordsTotal'    => $totalRecords,
                 'recordsFiltered' => $totalRecords,
-                'data' => $users->map(function ($user) {
+                'data'            => $users->map(function ($user) {
                     return [
-                        'id' => $user->id,
-                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'id'        => $user->id,
+                        'name'      => $user->first_name . ' ' . $user->last_name,
                         'city_name' => $user->city?->title ?? 'N/A',
-                        'phone' => $user->phone
+                        'phone'     => $user->phone
                         ? '<a href="https://api.whatsapp.com/send?phone=' . $user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $user->phone . '</a>'
                         : 'N/A',
-                        'status' => '<label class="switch s-outline s-outline-info mb-4 mr-2">
+                        'status'    => '<label class="switch s-outline s-outline-info mb-4 mr-2">
                                         <input type="checkbox" id="customSwitch4" data-id="' . $user->id . '" ' . ($user->active ? 'checked' : '') . '>
                                         <span class="slider round"></span>
                                     </label>',
-                        'controll' => '
+                        'controll'  => '
                             <a href="' . route('dashboard.core.address.index', ['id' => $user->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
                                 <i class="far fa-address-book fa-2x"></i>
                             </a>
@@ -107,21 +121,21 @@ class CustomerController extends Controller
             // Apply pagination
             $users = $clientsWithOrders
                 ->orderBy('created_at', 'desc')
-                ->skip($request->input('start', 0)) // Skip records based on DataTables pagination
+                ->skip($request->input('start', 0))   // Skip records based on DataTables pagination
                 ->take($request->input('length', 10)) // Take the number of records specified
                 ->get();
 
             // Prepare DataTables response
             return response()->json([
-                'draw' => $request->input('draw'),
-                'recordsTotal' => $totalRecords,
+                'draw'            => $request->input('draw'),
+                'recordsTotal'    => $totalRecords,
                 'recordsFiltered' => $totalRecords,
-                'data' => $users->map(function ($user) {
+                'data'            => $users->map(function ($user) {
                     return [
-                        'id' => $user->id,
-                        'name' => $user->first_name . ' ' . $user->last_name,
-                        'region' => 'N/A',
-                        'phone' => $user->phone
+                        'id'             => $user->id,
+                        'name'           => $user->first_name . ' ' . $user->last_name,
+                        'region'         => 'N/A',
+                        'phone'          => $user->phone
                         ? '<a href="https://api.whatsapp.com/send?phone=' . $user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $user->phone . '</a>'
                         : 'N/A',
                         'orders_numbers' => $user->orders->count(),
@@ -146,14 +160,14 @@ class CustomerController extends Controller
     {
         $request->validate([
             'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
-            'email' => 'nullable|email|max:255|unique:users,email',
-            'phone' => 'required|numeric|unique:users,phone',
-            'active' => 'nullable|in:on,off',
-            'city_id' => 'nullable|exists:cities,id',
+            'last_name'  => 'required|string|max:100',
+            'email'      => 'nullable|email|max:255|unique:users,email',
+            'phone'      => 'required|numeric|unique:users,phone',
+            'active'     => 'nullable|in:on,off',
+            'city_id'    => 'nullable|exists:cities,id',
         ]);
 
-        $data = $request->except('_token', 'active');
+        $data           = $request->except('_token', 'active');
         $data['active'] = 1;
         User::query()->create($data);
 
@@ -163,7 +177,7 @@ class CustomerController extends Controller
 
     public function edit($id)
     {
-        $user = User::where('id', $id)->first();
+        $user   = User::where('id', $id)->first();
         $cities = City::where('active', 1)->get()->pluck('title', 'id');
         return view('dashboard.core.customers.edit', compact('user', 'cities'));
     }
@@ -173,11 +187,11 @@ class CustomerController extends Controller
 
         $request->validate([
             'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
-            'email' => 'nullable|email|max:255|unique:users,email,' . $id,
-            'phone' => 'required|numeric|unique:users,phone,' . $id,
-            'active' => 'nullable|in:on,off',
-            'city_id' => 'nullable|exists:cities,id',
+            'last_name'  => 'required|string|max:100',
+            'email'      => 'nullable|email|max:255|unique:users,email,' . $id,
+            'phone'      => 'required|numeric|unique:users,phone,' . $id,
+            'active'     => 'nullable|in:on,off',
+            'city_id'    => 'nullable|exists:cities,id',
 
         ]);
         $data = $request->except('_token', 'active');
@@ -197,7 +211,7 @@ class CustomerController extends Controller
         $user->delete();
         return [
             'success' => true,
-            'msg' => __("dash.deleted_success"),
+            'msg'     => __("dash.deleted_success"),
         ];
     }
 
