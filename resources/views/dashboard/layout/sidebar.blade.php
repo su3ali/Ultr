@@ -3,6 +3,7 @@
 
     <nav id="sidebar">
         <div class="shadow-bottom"></div>
+        {{-- {{ dump(auth()->user()->can('view_complaint_type')) }} --}}
 
         <ul class="list-unstyled menu-categories" id="accordionExample">
 
@@ -778,6 +779,10 @@
                     </li>
 
                     @if(auth()->user()->can('view_complaint_type') || auth()->user()->hasRole(['admin', 'super']))
+
+
+
+
 
                     <li>
                         <a href="{{ route('dashboard.complaint_type.index') }}"> {{ __('dash.complaint_type') }} </a>
