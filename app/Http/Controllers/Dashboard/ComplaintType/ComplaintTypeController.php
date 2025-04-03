@@ -5,7 +5,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ComplaintType\TypesResource;
 use App\Models\ComplaintType;
 use App\Support\Api\ApiResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 
 class ComplaintTypeController extends Controller
@@ -71,10 +73,16 @@ class ComplaintTypeController extends Controller
         return view('dashboard.complaint_type.index');
     }
 
-    protected function allType()
+    public function allType(): JsonResponse
     {
+        // Check if the user is authenticated
+        if (! auth('sanctum')->check()) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
         $complaint_type     = ComplaintType::latest()->get();
         $this->body['type'] = TypesResource::collection($complaint_type);
+
         return self::apiResponse(200, null, $this->body);
     }
 

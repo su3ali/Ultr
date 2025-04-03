@@ -1,7 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\ComplaintType\ComplaintTypeController;
 use App\Http\Controllers\Api\Complaint\ComplaintController;
-use App\Http\Controllers\Dashboard\ComplaintType\ComplaintTypeController;
 
 Route::prefix('complaints')->group(function () {
     Route::post('/store', [ComplaintController::class, 'store']);
