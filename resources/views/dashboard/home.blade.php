@@ -36,6 +36,9 @@
 <div class="layout-px-spacing">
     <div class="row layout-top-spacing">
 
+
+
+
         <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
             <div class="row widget-statistic">
 
@@ -181,13 +184,7 @@
                 </div>
 
                 @endif
-            </div>
-        </div>
 
-
-
-        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
-            <div class="row widget-statistic">
 
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
 
