@@ -38,4 +38,6 @@ Route::group(['middleware' => ['auth:dashboard']], static function () {
     require __DIR__ . '/appointment.routes.php';
     require __DIR__ . '/suppliers.routes.php';
 
+    require __DIR__ . '/complaint_type.routes.php';
+
 });

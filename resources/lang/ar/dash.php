@@ -994,5 +994,10 @@ return [
     'public_settings'                       => 'إعدادات عامة',
 
     'technicians_manage'                    => 'إدارة الفنيين',
+    'complaint_type'                        => 'نوع الشكوى',
+    'edit_complaint_type'                   => 'تعديل نوع الشكوى',
+    'add_complaint_type'                    => 'أضافة نوع الشكوى',
+    'frequently_questions'                  => 'الأسئلة الشائعة',
+    'measurements_units'                    => 'وحدات القياس',
 
 ];

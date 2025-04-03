@@ -776,12 +776,22 @@
                     <li>
                         <a href="{{ route('dashboard.city.index') }}"> {{ __('dash.Cities') }} </a>
                     </li>
+
+                    @if(auth()->user()->can('view_complaint_type') || auth()->user()->hasRole(['admin', 'super']))
+
+                    <li>
+                        <a href="{{ route('dashboard.complaint_type.index') }}"> {{ __('dash.complaint_type') }} </a>
+                    </li>
+
+                    @endif
+
                     <li>
                         <a href="{{ route('dashboard.core.measurements.index') }}"> {{ __('dash.measurements_units') }}
                         </a>
                     </li>
+
                     <li>
-                        <a href="{{ route('dashboard.faqs.index') }}">الأسئلة الشائعة</a>
+                        <a href="{{ route('dashboard.faqs.index') }}"> {{ __('dash.frequently_questions') }}</a>
                     </li>
 
                 </ul>

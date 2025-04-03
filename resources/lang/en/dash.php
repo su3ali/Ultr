@@ -1069,5 +1069,8 @@ return [
     'public_settings'                       => 'Public Settings',
 
     'technicians_manage'                    => ' Technicians Mange',
+    'frequently_questions'                  => 'Frequently Asked Questions',
+
+    'measurements_units'                    => 'Units of measurement',
 
 ];
