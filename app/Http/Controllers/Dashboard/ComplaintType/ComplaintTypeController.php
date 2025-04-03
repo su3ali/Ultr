@@ -18,10 +18,6 @@ class ComplaintTypeController extends Controller
 
     use ApiResponse;
 
-    public function __construct()
-    {
-        $this->middleware('localization');
-    }
     public function index()
     {
 
