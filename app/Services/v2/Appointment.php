@@ -242,9 +242,8 @@ class Appointment
                         // Calculate how many slots we need to keep
                         $slotsToKeep        = $totalSlots - ($requestedQuantity - 1);
                         $availableTimeSlots = array_slice($shiftSlots, 0, $slotsToKeep);
-                    } 
-                    
-                    // else {
+                    }
+                    //  else {
                     //     // If there are not enough slots for the requested quantity, show all available slots
                     //     $availableTimeSlots = $shiftSlots;
                     // }
