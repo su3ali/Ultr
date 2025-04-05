@@ -1073,4 +1073,12 @@ return [
 
     'measurements_units'                    => 'Units of measurement',
 
+    // late orders
+    'lateOrder'                             => 'Late Orders',
+    'lateOrderCount'                        => ' Late Orders Count',
+    'lateOrderCountToday'                   => 'late Orders Count Today',
+    'lateOrderCountWeek'                    => ' late Orders Count Week',
+    'lateOrderCountTotal'                   => ' late Orders Count Total',
+    'lateOrderCountMonth'                   => ' late Orders Count Month',
+
 ];

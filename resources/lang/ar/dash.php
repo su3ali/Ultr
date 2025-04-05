@@ -1000,4 +1000,12 @@ return [
     'frequently_questions'                  => 'الأسئلة الشائعة',
     'measurements_units'                    => 'وحدات القياس',
 
+    // late orders
+    'lateOrder'                             => 'الطلبات المتأخرة',
+    'lateOrderCount'                        => 'عدد الطلبات المتأخرة',
+    'lateOrderCountToday'                   => 'عدد الطلبات المتأخرة اليوم',
+    'lateOrderCountWeek'                    => 'عدد الطلبات المتأخرة هذا الأسبوع',
+    'lateOrderCountTotal'                   => 'عدد الطلبات المتأخرة الكلي',
+    'lateOrderCountMonth'                   => 'عدد الطلبات المتأخرة هذا الشهر',
+
 ];

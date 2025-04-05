@@ -25,6 +25,7 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -564,6 +565,102 @@ class OrderController extends Controller
         }
         $statuses = OrderStatus::all()->pluck('name', 'id');
         return view('dashboard.orders.canceled_orders_today', compact('statuses'));
+    }
+
+    public function lateOrders(Request $request)
+    {
+        $regionIds = auth()->user()->regions->pluck('region_id')->toArray();
+
+        // Cache::forget('late_order_query');
+
+        // Cache late orders for 30 minutes
+        $ordersQuery = Cache::remember('late_order_query', now()->addMinutes(30), function () {
+            return Order::lateToServe()->with(['user', 'bookings.visits', 'status', 'userAddress.region'])->get();
+        });
+
+        // Convert collection to queryable format
+        $ordersQuery = collect($ordersQuery);
+
+        // Total count for DataTables
+        $totalOrders = $ordersQuery->count();
+
+        // Handle AJAX for DataTables
+        if ($request->ajax()) {
+            $filteredOrders = $ordersQuery;
+
+            if ($request->status) {
+                $filteredOrders = $filteredOrders->where('status_id', $request->status);
+            }
+
+            if ($request->page) {
+                $now            = Carbon::now('Asia/Riyadh')->toDateString();
+                $filteredOrders = $filteredOrders->filter(function ($order) use ($now) {
+                    return Carbon::parse($order->created_at)->toDateString() === $now;
+                });
+            }
+
+            return DataTables::of($filteredOrders)
+                ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id)
+                ->addColumn('user', fn($row) => optional($row->user)->first_name . ' ' . optional($row->user)->last_name)
+                ->addColumn('phone', fn($row) => $row->user?->phone
+                    ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->user->phone . '</a>'
+                    : 'N/A')
+                ->addColumn('service', function ($row) {
+                    $serviceIds = $row->orderServices->pluck('service_id')->unique();
+                    $services   = Service::whereIn('id', $serviceIds)->get();
+                    return $services->map(fn($s) => '<button class="btn-sm btn-primary">' . $s->title . '</button>')->implode('');
+                })
+                ->addColumn('quantity', fn($row) => $row->orderServices->sum('quantity'))
+                ->addColumn('cancelled_by', function ($row) {
+                    $reason = optional(optional($row->bookings->first())->visit)->cancelReason;
+                    return $reason?->is_for_tech === 1 ? "الفني" : "العميل";
+                })
+                ->addColumn('total', fn($row) => $row->total ? (fmod($row->total, 1) == 0 ? (int) $row->total : number_format($row->total, 2)) : '')
+                ->addColumn('status', fn($row) => optional($row->status)->name)
+                ->addColumn('payment_method', function ($row) {
+                    $payment_method = $row->transaction?->payment_method;
+                    if ($payment_method == "cache" || $payment_method == "cash") {
+                        return __('api.payment_method_network');
+                    } else if ($payment_method == "wallet") {
+                        return __('api.payment_method_wallet');
+                    } else {
+                        return __('api.payment_method_visa');
+                    }
+
+                })
+                ->addColumn('region', fn($row) => optional($row->userAddress?->region)->title)
+                ->addColumn('created_at', fn($row) => Carbon::parse($row->created_at)->locale('ar')->timezone('Asia/Riyadh')->format("Y-m-d"))
+                ->addColumn('updated_at', fn($row) => Carbon::parse($row->updated_at)->locale('ar')->timezone('Asia/Riyadh')->format("Y-m-d"))
+                ->addColumn('control', function ($row) {
+                    $html = '';
+                    if ($row->status_id == 2) {
+                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                            <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
+                        </a>';
+                    }
+                    $html .= '
+                        <a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                            <i class="far fa-eye fa-2x"></i>
+                        </a>
+                        <a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                            <i class="far fa-eye fa-2x"></i>
+                        </a>
+                        <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
+                            <i class="far fa-trash-alt fa-2x"></i>
+                        </a>';
+                    return $html;
+                })
+                ->rawColumns(['booking_id', 'user', 'phone', 'service', 'quantity', 'cancelled_by', 'total', 'status', 'payment_method', 'region', 'created_at', 'updated_at', 'control'])
+                ->with([
+                    'recordsTotal'    => $totalOrders,
+                    'recordsFiltered' => $filteredOrders->count(),
+                ])
+                ->make(true);
+        }
+
+        // Initial page load (non-AJAX)
+        $statuses = OrderStatus::pluck('name_ar', 'id');
+        return view('dashboard.orders.late_orders', compact('statuses'));
     }
 
     public function canceledOrders(Request $request)

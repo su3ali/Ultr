@@ -1,9 +1,9 @@
 <?php
-
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Order extends Model
 {
@@ -67,6 +67,20 @@ class Order extends Model
     public function orderServices()
     {
         return $this->hasMany(OrderService::class, 'order_id'); // Relating orders to order_services
+    }
+
+    public function scopeLateToServe($query)
+    {
+        return $query->where('status_id', 1)
+            ->whereHas('bookings', function ($bookingQuery) {
+                $bookingQuery->where('booking_status_id', 1)
+                    ->whereHas('visits', function ($visitQuery) {
+                        $visitQuery->where('visits_status_id', 1);
+                    })
+                    ->whereRaw("STR_TO_DATE(CONCAT(bookings.date, ' ', bookings.time), '%Y-%m-%d %H:%i:%s') < ?", [
+                        Carbon::now('Asia/Riyadh')->format('Y-m-d H:i:s'),
+                    ]);
+            });
     }
 
 }
