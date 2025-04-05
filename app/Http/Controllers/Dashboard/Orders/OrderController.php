@@ -1,37 +1,37 @@
 <?php
 namespace App\Http\Controllers\Dashboard\Orders;
 
-use Auth;
-use App\Models\City;
-use App\Models\User;
-use App\Models\Group;
-use App\Models\Order;
-use App\Models\Visit;
-use App\Models\Booking;
-use App\Models\Service;
-use App\Models\Category;
-use Carbon\CarbonInterval;
-use App\Models\OrderStatus;
-use App\Models\OrderService;
-use Illuminate\Http\Request;
-use App\Models\UserAddresses;
-use App\Models\BookingSetting;
-use App\Traits\schedulesTrait;
-use Illuminate\Support\Carbon;
-use Yajra\DataTables\DataTables;
-use App\Models\CustomerComplaint;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Cache;
+use App\Models\Booking;
+use App\Models\BookingSetting;
+use App\Models\Category;
+use App\Models\City;
+use App\Models\CustomerComplaint;
 use App\Models\CustomerComplaintImage;
 use App\Models\CustomerComplaintReply;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Support\Facades\Config;
 use App\Models\CustomerComplaintStatus;
+use App\Models\Group;
+use App\Models\Order;
+use App\Models\OrderService;
+use App\Models\OrderStatus;
+use App\Models\Service;
+use App\Models\User;
+use App\Models\UserAddresses;
+use App\Models\Visit;
+use App\Traits\schedulesTrait;
+use Auth;
+use Carbon\CarbonInterval;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
+use Yajra\DataTables\DataTables;
 
 class OrderController extends Controller
 {
@@ -460,20 +460,49 @@ class OrderController extends Controller
     {
         $regionIds = auth()->user()->regions->pluck('region_id')->toArray();
 
-        // Cache::forget('late_order_query');
+        $date  = $request->query('date');
+        $date2 = $request->query('date2');
 
-        // Cache late orders for 30 minutes
-        $ordersQuery = Cache::remember('late_order_query', now()->addMinutes(30), function () {
-            return Order::lateToServe()->with(['user', 'bookings.visits', 'status', 'userAddress.region'])->get();
+        //  Create a unique cache key based on filters
+        $cacheKey = 'late_order_query';
+        if ($date || $date2) {
+            $cacheKey .= '_' . ($date ?? 'null') . '_' . ($date2 ?? 'null');
+        }
+
+        //  Cache per filter
+        $ordersQuery = Cache::remember($cacheKey, now()->addMinutes(30), function () {
+            return Order::lateToServe()
+                ->with([
+                    'user',
+                    'bookings.visits',
+                    'status',
+                    'userAddress.region',
+                    'orderServices',
+                    'transaction',
+                ])->get();
         });
 
-        // Convert collection to queryable format
+        // Convert to collection
         $ordersQuery = collect($ordersQuery);
 
-        // Total count for DataTables
+        //  Additional filtering (again for safety if cache was broader)
+        if ($date && $date2) {
+            $carbonDate  = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
+            $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
+            $ordersQuery = $ordersQuery->whereBetween('created_at', [
+                $carbonDate->startOfDay(),
+                $carbonDate2->endOfDay(),
+            ]);
+        } elseif ($date) {
+            $carbonDate  = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
+            $ordersQuery = $ordersQuery->where('created_at', '>=', $carbonDate->startOfDay());
+        } elseif ($date2) {
+            $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
+            $ordersQuery = $ordersQuery->where('created_at', '<=', $carbonDate2->endOfDay());
+        }
+
         $totalOrders = $ordersQuery->count();
 
-        // Handle AJAX for DataTables
         if ($request->ajax()) {
             $filteredOrders = $ordersQuery;
 
@@ -483,20 +512,20 @@ class OrderController extends Controller
 
             if ($request->page) {
                 $now            = Carbon::now('Asia/Riyadh')->toDateString();
-                $filteredOrders = $filteredOrders->filter(function ($order) use ($now) {
-                    return Carbon::parse($order->created_at)->toDateString() === $now;
-                });
+                $filteredOrders = $filteredOrders->filter(fn($order) =>
+                    Carbon::parse($order->created_at)->toDateString() === $now
+                );
             }
 
             return DataTables::of($filteredOrders)
                 ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id)
                 ->addColumn('user', fn($row) => optional($row->user)->first_name . ' ' . optional($row->user)->last_name)
                 ->addColumn('phone', fn($row) => $row->user?->phone
-                    ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->user->phone . '</a>'
+                    ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link">' . $row->user->phone . '</a>'
                     : 'N/A')
                 ->addColumn('service', function ($row) {
                     $serviceIds = $row->orderServices->pluck('service_id')->unique();
-                    $services   = Service::whereIn('id', $serviceIds)->get();
+                    $services   = \App\Models\Service::whereIn('id', $serviceIds)->get();
                     return $services->map(fn($s) => '<button class="btn-sm btn-primary">' . $s->title . '</button>')->implode('');
                 })
                 ->addColumn('quantity', fn($row) => $row->orderServices->sum('quantity'))
@@ -508,18 +537,15 @@ class OrderController extends Controller
                 ->addColumn('status', fn($row) => optional($row->status)->name)
                 ->addColumn('payment_method', function ($row) {
                     $payment_method = $row->transaction?->payment_method;
-                    if ($payment_method == "cache" || $payment_method == "cash") {
-                        return __('api.payment_method_network');
-                    } else if ($payment_method == "wallet") {
-                        return __('api.payment_method_wallet');
-                    } else {
-                        return __('api.payment_method_visa');
-                    }
-
+                    return match ($payment_method) {
+                        "cache", "cash" => __('api.payment_method_network'),
+                        "wallet" => __('api.payment_method_wallet'),
+                        default  => __('api.payment_method_visa'),
+                    };
                 })
                 ->addColumn('region', fn($row) => optional($row->userAddress?->region)->title)
-                ->addColumn('created_at', fn($row) => Carbon::parse($row->created_at)->locale('ar')->timezone('Asia/Riyadh')->format("Y-m-d"))
-                ->addColumn('updated_at', fn($row) => Carbon::parse($row->updated_at)->locale('ar')->timezone('Asia/Riyadh')->format("Y-m-d"))
+                ->addColumn('created_at', fn($row) => \Carbon\Carbon::parse($row->created_at)->locale('ar')->timezone('Asia/Riyadh')->format("Y-m-d"))
+                ->addColumn('updated_at', fn($row) => \Carbon\Carbon::parse($row->updated_at)->locale('ar')->timezone('Asia/Riyadh')->format("Y-m-d"))
                 ->addColumn('control', function ($row) {
                     $html = '';
                     if ($row->status_id == 2) {
@@ -534,7 +560,7 @@ class OrderController extends Controller
                         <a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
                             <i class="far fa-eye fa-2x"></i>
                         </a>
-                        <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
+                        <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech">
                             <i class="far fa-trash-alt fa-2x"></i>
                         </a>';
                     return $html;
@@ -547,8 +573,7 @@ class OrderController extends Controller
                 ->make(true);
         }
 
-        // Initial page load (non-AJAX)
-        $statuses = OrderStatus::pluck('name_ar', 'id');
+        $statuses = OrderStatus::pluck('name_' . app()->getLocale(), 'id');
         return view('dashboard.orders.late_orders', compact('statuses'));
     }
     public function canceledOrders(Request $request)
