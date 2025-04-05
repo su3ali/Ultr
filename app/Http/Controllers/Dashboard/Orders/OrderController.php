@@ -567,6 +567,7 @@ class OrderController extends Controller
         return view('dashboard.orders.canceled_orders_today', compact('statuses'));
     }
 
+    // Late Orders
     public function lateOrders(Request $request)
     {
         $regionIds = auth()->user()->regions->pluck('region_id')->toArray();
@@ -574,13 +575,13 @@ class OrderController extends Controller
         $date  = $request->query('date');
         $date2 = $request->query('date2');
 
-        // ✅ Create a unique cache key based on filters
+        //  Create a unique cache key based on filters
         $cacheKey = 'late_order_query';
         if ($date || $date2) {
             $cacheKey .= '_' . ($date ?? 'null') . '_' . ($date2 ?? 'null');
         }
 
-        // ✅ Cache per filter
+        //  Cache per filter
         $ordersQuery = Cache::remember($cacheKey, now()->addMinutes(30), function () {
             return Order::lateToServe()
                 ->with([
@@ -596,20 +597,48 @@ class OrderController extends Controller
         // Convert to collection
         $ordersQuery = collect($ordersQuery);
 
-        // ✅ Additional filtering (again for safety if cache was broader)
+        //  Additional filtering (again for safety if cache was broader)
         if ($date && $date2) {
             $carbonDate  = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
             $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
-            $ordersQuery = $ordersQuery->whereBetween('created_at', [
-                $carbonDate->startOfDay(),
-                $carbonDate2->endOfDay(),
-            ]);
+
+            $ordersQuery = $ordersQuery->filter(function ($order) use ($carbonDate, $carbonDate2) {
+                $booking = $order->bookings->first();
+                if (! $booking || ! $booking->date) {
+                    return false;
+                }
+
+                $bookingDate = \Carbon\Carbon::parse($booking->date)->timezone('Asia/Riyadh');
+                return $bookingDate->between($carbonDate->startOfDay(), $carbonDate2->endOfDay());
+            });
+
         } elseif ($date) {
-            $carbonDate  = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
-            $ordersQuery = $ordersQuery->where('created_at', '>=', $carbonDate->startOfDay());
+            $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
+
+            $ordersQuery = $ordersQuery->filter(function ($order) use ($carbonDate) {
+                $booking = $order->bookings->first();
+                if (! $booking || ! $booking->date) {
+                    return false;
+                }
+
+                return \Carbon\Carbon::parse($booking->date)
+                    ->timezone('Asia/Riyadh')
+                    ->isSameDay($carbonDate);
+            });
+
         } elseif ($date2) {
             $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
-            $ordersQuery = $ordersQuery->where('created_at', '<=', $carbonDate2->endOfDay());
+
+            $ordersQuery = $ordersQuery->filter(function ($order) use ($carbonDate2) {
+                $booking = $order->bookings->first();
+                if (! $booking || ! $booking->date) {
+                    return false;
+                }
+
+                return \Carbon\Carbon::parse($booking->date)
+                    ->timezone('Asia/Riyadh')
+                    ->lte($carbonDate2->endOfDay());
+            });
         }
 
         $totalOrders = $ordersQuery->count();
@@ -645,7 +674,22 @@ class OrderController extends Controller
                     return $reason?->is_for_tech === 1 ? "الفني" : "العميل";
                 })
                 ->addColumn('total', fn($row) => $row->total ? (fmod($row->total, 1) == 0 ? (int) $row->total : number_format($row->total, 2)) : '')
-                ->addColumn('status', fn($row) => optional($row->status)->name)
+                ->addColumn('status', fn($row) => app()->getLocale() === 'ar'
+                    ? optional($row->bookings?->first()?->visit?->status)->name_ar
+                    : optional($row->bookings?->first()?->visit?->status)->name_en)
+                ->addColumn('date', function ($row) {
+                    $booking = $row->bookings->first();
+
+                    if (! $booking || ! $booking->date) {
+                        return '-';
+                    }
+
+                    return \Carbon\Carbon::parse($booking->date)
+                        ->locale('ar')
+                        ->timezone('Asia/Riyadh')
+                        ->format('Y-m-d');
+                })
+
                 ->addColumn('payment_method', function ($row) {
                     $payment_method = $row->transaction?->payment_method;
                     return match ($payment_method) {
@@ -655,8 +699,6 @@ class OrderController extends Controller
                     };
                 })
                 ->addColumn('region', fn($row) => optional($row->userAddress?->region)->title)
-                ->addColumn('created_at', fn($row) => \Carbon\Carbon::parse($row->created_at)->locale('ar')->timezone('Asia/Riyadh')->format("Y-m-d"))
-                ->addColumn('updated_at', fn($row) => \Carbon\Carbon::parse($row->updated_at)->locale('ar')->timezone('Asia/Riyadh')->format("Y-m-d"))
                 ->addColumn('control', function ($row) {
                     $html = '';
                     if ($row->status_id == 2) {
@@ -676,7 +718,7 @@ class OrderController extends Controller
                         </a>';
                     return $html;
                 })
-                ->rawColumns(['booking_id', 'user', 'phone', 'service', 'quantity', 'cancelled_by', 'total', 'status', 'payment_method', 'region', 'created_at', 'updated_at', 'control'])
+                ->rawColumns(['booking_id', 'user', 'phone', 'service', 'quantity', 'cancelled_by', 'total', 'status', 'date', 'payment_method', 'region', 'control'])
                 ->with([
                     'recordsTotal'    => $totalOrders,
                     'recordsFiltered' => $filteredOrders->count(),
@@ -687,7 +729,6 @@ class OrderController extends Controller
         $statuses = OrderStatus::pluck('name_' . app()->getLocale(), 'id');
         return view('dashboard.orders.late_orders', compact('statuses'));
     }
-
     public function canceledOrders(Request $request)
     {
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();

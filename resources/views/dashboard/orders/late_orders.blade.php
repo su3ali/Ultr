@@ -99,8 +99,7 @@
                                     <th>طريقة الدفع</th>
                                     <th>{{ __('dash.zone') }}</th>
                                     <th>{{ __('dash.status') }}</th>
-                                    <th>تاريخ إنشاء الطلب</th>
-                                    <th>تاريخ إلغاء الطلب</th>
+                                    <th> {{ __('dash.date') }} </th>
                                     <th class="no-content">{{ __('dash.actions') }}</th>
                                 </tr>
                             </thead>
@@ -193,8 +192,7 @@
                 { data: 'payment_method', name: 'payment_method' },
                 { data: 'region', name: 'region' },
                 { data: 'status', name: 'status' },
-                { data: 'created_at', name: 'created_at' },
-                { data: 'updated_at', name: 'updated_at' },
+                { data: 'date', name: 'date' },
                 {
                     data: 'control',
                     name: 'control',

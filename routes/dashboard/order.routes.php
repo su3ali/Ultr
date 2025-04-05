@@ -21,7 +21,6 @@ Route::get('ordersTodayCanceled', 'Orders\OrderController@canceledOrdersToday')-
 
 Route::get('lateOrders', 'Orders\OrderController@lateOrders')->name('order.lateOrders');
 
-
 // Strart Complaints
 Route::get('complaints', 'Orders\OrderController@complaints')->name('order.complaints');
 Route::get('complaints/complaintsToday', 'Orders\OrderController@complaintsToday')->name('order.complaintsToday');
@@ -31,7 +30,6 @@ Route::get('complaints/complaintsResolved', 'Orders\OrderController@complaintsRe
 Route::get('complaints/complaintsUnresolved', 'Orders\OrderController@complaintsUnresolved')->name('order.complaintsUnresolved');
 
 Route::post('complaints/action', 'Orders\OrderController@complaintsAction')->name('order.complaintsAction');
-
 
 // End Complaints
 
