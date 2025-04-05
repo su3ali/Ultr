@@ -1066,5 +1066,19 @@ return [
     'add_reply'                             => 'Add Reply',
     'emp_last_reply'                        => 'Last reply by',
     'order_count'                           => 'Order Count',
+    'public_settings'                       => 'Public Settings',
+
+    'technicians_manage'                    => ' Technicians Mange',
+    'frequently_questions'                  => 'Frequently Asked Questions',
+
+    'measurements_units'                    => 'Units of measurement',
+
+    // late orders
+    'lateOrder'                             => 'Late Orders',
+    'lateOrderCount'                        => ' Late Orders Count',
+    'lateOrderCountToday'                   => 'late Orders Count Today',
+    'lateOrderCountWeek'                    => ' late Orders Count Week',
+    'lateOrderCountTotal'                   => ' late Orders Count Total',
+    'lateOrderCountMonth'                   => ' late Orders Count Month',
 
 ];

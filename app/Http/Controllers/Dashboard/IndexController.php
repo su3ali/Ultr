@@ -1,14 +1,15 @@
 <?php
 namespace App\Http\Controllers\Dashboard;
 
-use App\Charts\CommonChart;
-use App\Http\Controllers\Controller;
-use App\Models\CustomerComplaint;
-use App\Models\Order;
-use App\Models\Technician;
-use App\Models\User;
-use App\Models\Visit;
 use Carbon\Carbon;
+use App\Models\User;
+use App\Models\Order;
+use App\Models\Visit;
+use App\Models\Technician;
+use App\Charts\CommonChart;
+use App\Models\CustomerComplaint;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache;
 
 class IndexController extends Controller
 {
@@ -16,6 +17,15 @@ class IndexController extends Controller
     protected function index()
     {
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
+
+        // Get the late orders
+        // $lateOrders = Order::lateToServe()->get();
+
+        $lateOrderCount = Cache::remember('late_order_count', now()->addMinutes(30), function () {
+            return Order::lateToServe()->count();
+        });
+
+        // dd($lateOrderCount);
 
         // Common Variables
         $now       = Carbon::now('Asia/Riyadh')->toDateString();
@@ -163,7 +173,7 @@ class IndexController extends Controller
             'canceled_orders', 'complaints_resolved', 'complaints_unresolved', 'todayCustomerComplaints',
             'customersHaveOrders', 'canceled_orders_today', 'tech_visits_today', 'finished_visits_today',
             'total_trainees', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers',
-            'client_orders', 'technicians', 'tech_visits', 'customer_complaints'
+            'client_orders', 'technicians', 'tech_visits', 'customer_complaints','lateOrderCount',
         ));
     }
 

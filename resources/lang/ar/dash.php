@@ -991,5 +991,21 @@ return [
     'add_reply'                             => ' إضافة رد',
     'emp_last_reply'                        => 'اخر رد من قبل',
     'order_count'                           => 'عدد الطلبات',
+    'public_settings'                       => 'إعدادات عامة',
+
+    'technicians_manage'                    => 'إدارة الفنيين',
+    'complaint_type'                        => 'نوع الشكوى',
+    'edit_complaint_type'                   => 'تعديل نوع الشكوى',
+    'add_complaint_type'                    => 'أضافة نوع الشكوى',
+    'frequently_questions'                  => 'الأسئلة الشائعة',
+    'measurements_units'                    => 'وحدات القياس',
+
+    // late orders
+    'lateOrder'                             => 'الطلبات المتأخرة',
+    'lateOrderCount'                        => 'عدد الطلبات المتأخرة',
+    'lateOrderCountToday'                   => 'عدد الطلبات المتأخرة اليوم',
+    'lateOrderCountWeek'                    => 'عدد الطلبات المتأخرة هذا الأسبوع',
+    'lateOrderCountTotal'                   => 'عدد الطلبات المتأخرة الكلي',
+    'lateOrderCountMonth'                   => 'عدد الطلبات المتأخرة هذا الشهر',
 
 ];

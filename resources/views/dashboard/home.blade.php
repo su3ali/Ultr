@@ -43,73 +43,61 @@
             <div class="row widget-statistic">
 
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_customers'))
-                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                    <a href="{{ route('dashboard.core.customer.index') }}" class="widget-link">
-                        <div class="widget widget-one_hybrid widget-followers">
-                            <div class="widget-heading p-4 rounded-lg bg-white shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <!-- Icon Container -->
-                                    <div class="w-icon bg-primary text-white rounded-circle p-3 shadow-sm me-4">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round"
-                                            class="feather feather-users">
-                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                            <circle cx="9" cy="7" r="4"></circle>
-                                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                        </svg>
-                                    </div>
-
-                                    <!-- Title and Value -->
-                                    <div>
-                                        <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $customers }}</p>
-                                        <h5 class="text-muted mb-0"> {{ __('dash.customers') }}</h5>
-                                    </div>
-                                </div>
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.core.customer.index') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #3b82f6;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            transition: 0.3s;">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">{{ $customers }}</div>
+                                <div style="font-size: 14px; color: #64748b;">{{ __('dash.customers') }}</div>
                             </div>
-
-                            <!-- Hover Effect Container -->
-                            <div class="widget-footer p-4 text-center">
-                                <p class="text-muted mb-0"> {{ __('dash.customers_Management') }}</p>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-users">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                </svg>
                             </div>
                         </div>
                     </a>
                 </div>
                 @endif
 
-
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
-
-                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                    <a href="{{ route('dashboard.orders.index') }}" class="widget-link">
-                        <div class="widget widget-one_hybrid widget-referral">
-                            <div class="widget-heading p-4 rounded-lg bg-white shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <!-- Icon Container -->
-                                    <div class="w-icon bg-info text-white rounded-circle p-3 shadow-sm me-4">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round"
-                                            class="feather feather-shopping-cart">
-                                            <circle cx="9" cy="21" r="1"></circle>
-                                            <circle cx="20" cy="21" r="1"></circle>
-                                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6">
-                                            </path>
-                                        </svg>
-                                    </div>
-
-                                    <!-- Title and Value -->
-                                    <div>
-                                        <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $client_orders }}</p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.client_orders') }}</h5>
-                                    </div>
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.orders.index') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #0ea5e9;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            transition: 0.3s;">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">{{ $client_orders }}
                                 </div>
+                                <div style="font-size: 14px; color: #64748b;">{{ __('dash.client_orders') }}</div>
                             </div>
-
-                            <!-- Hover Effect Container -->
-                            <div class="widget-footer p-4 text-center">
-                                <p class="text-muted mb-0"> {{ __('dash.manage_orders') }}</p>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-shopping-cart">
+                                    <circle cx="9" cy="21" r="1" />
+                                    <circle cx="20" cy="21" r="1" />
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                                </svg>
                             </div>
                         </div>
                     </a>
@@ -117,102 +105,28 @@
                 @endif
 
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_technicians'))
-
-                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                    <a href="{{ route('dashboard.core.technician.index') }}" class="widget-link">
-                        <div class="widget widget-one_hybrid widget-engagement">
-                            <div class="widget-heading p-4 rounded-lg bg-white shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <!-- Icon Container -->
-                                    <div class="w-icon bg-warning text-white rounded-circle p-3 shadow-sm me-4">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" class="feather feather-user">
-                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                            <circle cx="12" cy="7" r="4"></circle>
-                                        </svg>
-                                    </div>
-
-                                    <!-- Title and Value -->
-                                    <div>
-                                        <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $technicians }}</p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.technicians') }}</h5>
-                                    </div>
-                                </div>
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.core.technician.index') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #f59e0b;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            transition: 0.3s;">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">{{ $technicians }}</div>
+                                <div style="font-size: 14px; color: #64748b;">{{ __('dash.technicians') }}</div>
                             </div>
-
-                            <!-- Hover Effect Container -->
-                            <div class="widget-footer p-4 text-center">
-                                <p class="text-muted mb-0"> {{ __('dash.technicians_manage') }}</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                @endif
-                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
-
-                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                    <a href="{{ route('dashboard.visits.index') }}" class="widget-link">
-                        <div class="widget widget-one_hybrid widget-engagement">
-                            <div class="widget-heading p-4 rounded-lg bg-white shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <!-- Icon Container -->
-                                    <div class="w-icon bg-primary text-white rounded-circle p-3 shadow-sm me-4">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" class="feather feather-book">
-                                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z">
-                                            </path>
-                                        </svg>
-                                    </div>
-
-                                    <!-- Title and Value -->
-                                    <div>
-                                        <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $tech_visits }}</p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.tech_orders') }}</h5>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Hover Effect Container -->
-                            <div class="widget-footer p-4 text-center">
-                                <p class="text-muted mb-0"> {{ __('dash.manage_tech_orders') }}</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                @endif
-
-
-                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
-
-                <!-- Canceled Orders Widget -->
-                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                    <a href="{{ route('dashboard.order.canceledOrders') }}" class="widget-link">
-                        <div class="widget widget-one_hybrid widget-engagement">
-                            <div class="widget-heading p-4 rounded-lg bg-lightblue shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <div class="w-icon bg-danger text-white rounded-circle p-3 shadow-sm me-4">
-                                        <!-- X Circle Icon for Canceled Orders -->
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round"
-                                            class="feather feather-x-circle">
-                                            <path d="M12 19c3.9 0 7-3.1 7-7s-3.1-7-7-7-7 3.1-7 7 3.1 7 7 7z"></path>
-                                            <path d="M15 9l-6 6"></path>
-                                            <path d="M9 9l6 6"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $canceled_orders }}</p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.canceled_orders') }}</h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="widget-footer p-4 text-center bg-lightblue">
-                                <p class="text-muted mb-0"> {{ __('dash.Manage_cancelled_orders') }}</p>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-user">
+                                    <circle cx="12" cy="7" r="4" />
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                </svg>
                             </div>
                         </div>
                     </a>
@@ -220,163 +134,277 @@
                 @endif
 
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
-
-                <!-- Canceled Orders Today Widget -->
-                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                    <a href="{{ route('dashboard.order.canceledOrdersToday') }}" class="widget-link">
-                        <div class="widget widget-one_hybrid widget-engagement">
-                            <div class="widget-heading p-4 rounded-lg bg-lightgreen shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <div class="w-icon bg-warning text-white rounded-circle p-3 shadow-sm me-4">
-                                        <!-- Warning or X Circle Icon for Canceled Orders Today -->
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round"
-                                            class="feather feather-alert-triangle">
-                                            <path
-                                                d="M10.29 3.29l-6 6c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0L12 4.83l5.29 5.29c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-6-6c-.39-.39-1.02-.39-1.41 0z">
-                                            </path>
-                                            <path d="M12 20c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z">
-                                            </path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $canceled_orders_today }}
-                                        </p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.canceled_orders_today') }}</h5>
-                                    </div>
-                                </div>
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.visits.index') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #3b82f6;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            transition: 0.3s;">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">{{ $tech_visits }}</div>
+                                <div style="font-size: 14px; color: #64748b;">{{ __('dash.tech_orders') }}</div>
                             </div>
-                            <div class="widget-footer p-4 text-center bg-lightgreen">
-                                <p class="text-muted mb-0"> {{ __('dash.canceled_orders_today') }}</p>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-book">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                                </svg>
                             </div>
                         </div>
                     </a>
                 </div>
                 @endif
-
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
 
-                <!-- Orders Today Widget -->
-                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                    <a href="{{ route('dashboard.order.ordersToday') }}" class="widget-link">
-                        <div class="widget widget-one_hybrid widget-referral">
-                            <div class="widget-heading p-4 rounded-lg bg-lightyellow shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <div class="w-icon bg-success text-white rounded-circle p-3 shadow-sm me-4">
-                                        <i class="fas fa-check-circle" style="font-size: 24px;"></i>
-                                    </div>
-                                    <div>
-                                        <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $client_orders_today }}</p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.client_orders_today') }}</h5>
-                                    </div>
+                <!-- Canceled Orders -->
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.order.canceledOrders') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #ef4444;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                                    {{ $canceled_orders }}
+                                </div>
+                                <div style="font-size: 14px; color: #64748b;">
+                                    {{ __('dash.canceled_orders') }}
                                 </div>
                             </div>
-                            <div class="widget-footer p-4 text-center bg-lightyellow">
-                                <p class="text-muted mb-0">{{ __('dash.Manage_customer_orders_today') }}</p>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-x-circle">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                                </svg>
                             </div>
                         </div>
                     </a>
                 </div>
+
+                <!-- Late Orders -->
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.order.lateOrders') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #f59e0b;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                                    {{ $lateOrderCount }}
+                                </div>
+                                <div style="font-size: 14px; color: #64748b;">
+                                    {{ __('dash.lateOrder') }}
+                                </div>
+                            </div>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-alert-circle">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12" y2="16"></line>
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Canceled Orders Today -->
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.order.canceledOrdersToday') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #facc15;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                                    {{ $canceled_orders_today }}
+                                </div>
+                                <div style="font-size: 14px; color: #64748b;">
+                                    {{ __('dash.canceled_orders_today') }}
+                                </div>
+                            </div>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#facc15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-alert-triangle">
+                                    <path d="M10.29 3.29L1 21h22L13.71 3.29a1 1 0 0 0-1.42 0z" />
+                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                    <line x1="12" y1="17" x2="12" y2="17"></line>
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Orders Today -->
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.order.ordersToday') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #22c55e;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                                    {{ $client_orders_today }}
+                                </div>
+                                <div style="font-size: 14px; color: #64748b;">
+                                    {{ __('dash.client_orders_today') }}
+                                </div>
+                            </div>
+                            <div>
+                                <i class="fas fa-check-circle" style="color: #22c55e; font-size: 20px;"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
                 @endif
 
+
+
+                {{-- Visits Today --}}
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
 
-                <!-- Visits Today Widget -->
-                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                    <a href="{{ route('dashboard.visits.visitsToday') }}" class="widget-link">
-                        <div class="widget widget-one_hybrid widget-engagement">
-                            <div class="widget-heading p-4 rounded-lg bg-lightblue shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <div class="w-icon bg-info text-white rounded-circle p-3 shadow-sm me-4">
-                                        <!-- Clipboard Check Icon for Today's Orders -->
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round"
-                                            class="feather feather-clipboard-check">
-                                            <path d="M9 2H15V6H9z"></path>
-                                            <path d="M9 10H15V14H9z"></path>
-                                            <path d="M9 18H15V22H9z"></path>
-                                            <path d="M18 2L22 6"></path>
-                                            <path d="M18 6L22 2"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $tech_visits_today }}</p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.tech_orders_today') }}</h5>
-                                    </div>
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.visits.visitsToday') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #0ea5e9;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            transition: 0.3s;
+                        ">
+                            <div style="flex-grow: 1;">
+                                <!-- Main Number -->
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                                    {{ $tech_visits_today }}
+                                </div>
+                                <!-- Label -->
+                                <div style="font-size: 14px; color: #64748b;">
+                                    {{ __('dash.tech_orders_today') }}
                                 </div>
                             </div>
-                            <div class="widget-footer p-4 text-center bg-lightblue">
-                                <p class="text-muted mb-0"> {{ __('dash.Manage_orders_today') }} </p>
+
+                            <!-- Small Icon (optional) -->
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-clipboard-check">
+                                    <path d="M9 2H15V6H9z" />
+                                    <path d="M9 10H15V14H9z" />
+                                    <path d="M9 18H15V22H9z" />
+                                    <path d="M18 2L22 6" />
+                                    <path d="M18 6L22 2" />
+                                </svg>
                             </div>
                         </div>
                     </a>
                 </div>
+
                 @endif
 
+                {{-- Finished Visits Today --}}
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
-                <!-- Finished Visits Today Widget -->
-                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                    <a href="{{ route('dashboard.visits.finishedVisitsToday') }}" class="widget-link">
-                        <div class="widget widget-one_hybrid widget-engagement">
-                            <div class="widget-heading p-4 rounded-lg bg-lightpink shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <div class="w-icon bg-success text-white rounded-circle p-3 shadow-sm me-4">
-                                        <!-- Check Circle Icon for Completed Orders -->
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round"
-                                            class="feather feather-check-circle">
-                                            <path d="M9 11l3 3L22 4"></path>
-                                            <circle cx="12" cy="12" r="10"></circle>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="w-value fs-2 fw-bold text-dark mb-1">{{ $finished_visits_today }}
-                                        </p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.finished_orders_today') }}</h5>
-                                    </div>
+
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.visits.finishedVisitsToday') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #10b981;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            transition: 0.3s; ">
+                            <div style="flex-grow: 1;">
+                                <!-- Main Number -->
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                                    {{ $finished_visits_today }}
+                                </div>
+                                <!-- Label -->
+                                <div style="font-size: 14px; color: #64748b;">
+                                    {{ __('dash.finished_orders_today') }}
                                 </div>
                             </div>
-                            <div class="widget-footer p-4 text-center bg-lightpink">
-                                <p class="text-muted mb-0"> {{
-                                    __('dash.Manage_completed_orders_today') }}</p>
+
+                            <!-- Icon -->
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-check-circle">
+                                    <path d="M9 11l3 3L22 4" />
+                                    <circle cx="12" cy="12" r="10" />
+                                </svg>
                             </div>
                         </div>
                     </a>
                 </div>
+
                 @endif
 
+
+                {{-- Trainees Count --}}
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('create_trainees'))
-                <!-- Training Management Widget -->
-                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                    <a href="{{ route('dashboard.core.trainee.index') }}" class="widget-link">
-                        <div class="widget widget-one_hybrid widget-engagement">
-                            <div class="widget-heading p-4 rounded-lg bg-lightblue shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <div class="w-icon bg-primary text-white rounded-circle p-3 shadow-sm me-4">
-                                        <!-- Number of Trainees Icon -->
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round"
-                                            class="feather feather-users">
-                                            <path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2"></path>
-                                            <circle cx="9" cy="7" r="4"></circle>
-                                            <path d="M23 21v-2a4 4 0 00-3-3.87"></path>
-                                            <circle cx="19" cy="7" r="4"></circle>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="w-value fs-2 fw-bold text-dark mb-1">
-                                            {{ $total_trainees }}
-                                        </p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.number_of_trainees') }}</h5>
-                                    </div>
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.core.trainee.index') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #3b82f6;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            transition: 0.3s;
+                        ">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                                    {{ $total_trainees }}
+                                </div>
+                                <div style="font-size: 14px; color: #64748b;">
+                                    {{ __('dash.number_of_trainees') }}
                                 </div>
                             </div>
-                            <div class="widget-footer p-4 text-center bg-lightblue">
-                                <p class="text-muted mb-0"> {{ __('dash.training_management') }} </p>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-users">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                    <circle cx="19" cy="7" r="4" />
+                                </svg>
                             </div>
                         </div>
                     </a>
@@ -384,218 +412,224 @@
                 @endif
 
 
+                {{-- Clients Have Orders --}}
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_clients_with_orders'))
-                <!-- Clients Have Orders Widget -->
-                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                    <a href="{{ route('dashboard.core.customer.orders') }}" class="widget-link">
-                        <div class="widget widget-one_hybrid widget-engagement">
-                            <div class="widget-heading p-4 rounded-lg  shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <div class="w-icon bg-primary text-white rounded-circle p-3 shadow-sm me-4">
-                                        <!-- Clients Have Orders Icon (Package) -->
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round"
-                                            class="feather feather-package">
-                                            <path d="M12 2v5M3 7l9 5 9-5M3 17l9 5 9-5V7M12 2l9 5-9 5-9-5z"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="w-value fs-2 fw-bold text-dark mb-1">
-                                            {{ $customersHaveOrders }}
-                                        </p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.clients_have_orders') }}</h5>
-                                    </div>
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.core.customer.orders') }}" class="text-decoration-none">
+                        <div style="
+            display: flex;
+            align-items: center;
+            background-color: #ffffff;
+            border-left: 5px solid #6366f1;
+            border-radius: 10px;
+            padding: 16px 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: 0.3s;">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                                    {{ $customersHaveOrders }}
+                                </div>
+                                <div style="font-size: 14px; color: #64748b;">
+                                    {{ __('dash.clients_have_orders') }}
                                 </div>
                             </div>
-                            <div class="widget-footer p-4 text-center bg-lightblue">
-                                <p class="text-muted mb-0"> {{ __('dash.clients_have_orders_management') }} </p>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-package">
+                                    <path d="M12 2v5M3 7l9 5 9-5M3 17l9 5 9-5V7M12 2l9 5-9 5-9-5z" />
+                                </svg>
                             </div>
                         </div>
                     </a>
                 </div>
                 @endif
+
 
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_customer_complaints'))
-                <!-- إجمالي الشكاوى -->
-                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                    <a href="{{ route('dashboard.order.complaints') }}" class="widget-link">
-                        <div class="widget widget-one_hybrid widget-engagement">
-                            <div class="widget-heading p-4 rounded-lg  shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <div class="w-icon bg-primary text-white rounded-circle p-3 shadow-sm me-4">
-                                        <i class="fas fa-list-alt fa-2x"></i> <!-- أيقونة القائمة -->
-                                    </div>
-                                    <div>
-                                        <p class="w-value fs-2 fw-bold text-dark mb-1">
-                                            {{ $customer_complaints }}
-                                        </p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.complaints_total_count') }}</h5>
-                                    </div>
+
+                {{-- Total Complaints --}}
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.order.complaints') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #3b82f6;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            transition: 0.3s;
+                        ">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                                    {{ $customer_complaints }}
+                                </div>
+                                <div style="font-size: 14px; color: #64748b;">
+                                    {{ __('dash.complaints_total') }}
                                 </div>
                             </div>
-                            <div class="widget-footer p-4 text-center bg-lightblue">
-                                <p class="text-muted mb-0"> {{ __('dash.complaints_total') }} </p>
+                            <div>
+                                <i class="fas fa-list-alt" style="color: #3b82f6; font-size: 20px;"></i>
                             </div>
                         </div>
                     </a>
                 </div>
-                @endif
 
-                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_customer_complaints'))
-                <!-- الشكاوى غير المحلولة -->
-                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                    <a href="{{ route('dashboard.order.complaintsUnresolved') }}" class="widget-link">
-                        <div class="widget widget-one_hybrid widget-engagement">
-                            <div class="widget-heading p-4 rounded-lg  shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <div class="w-icon bg-danger text-white rounded-circle p-3 shadow-sm me-4">
-                                        <i class="fas fa-exclamation-triangle fa-2x"></i> <!-- أيقونة التحذير -->
-                                    </div>
-                                    <div>
-                                        <p class="w-value fs-2 fw-bold text-dark mb-1">
-                                            {{ $complaints_unresolved }}
-                                        </p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.complaints_unresolved_count') }}</h5>
-                                    </div>
+                {{-- Unresolved Complaints --}}
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.order.complaintsUnresolved') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #ef4444;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            transition: 0.3s;
+                        ">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                                    {{ $complaints_unresolved }}
+                                </div>
+                                <div style="font-size: 14px; color: #64748b;">
+                                    {{ __('dash.complaints_unresolved') }}
                                 </div>
                             </div>
-                            <div class="widget-footer p-4 text-center bg-lightblue">
-                                <p class="text-muted mb-0"> {{ __('dash.complaints_unresolved') }} </p>
+                            <div>
+                                <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 20px;"></i>
                             </div>
                         </div>
                     </a>
                 </div>
-                @endif
 
-                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_customer_complaints'))
-                <!-- الشكاوى المحلولة -->
-                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                    <a href="{{ route('dashboard.order.complaintsResolved') }}" class="widget-link">
-                        <div class="widget widget-one_hybrid widget-engagement">
-                            <div class="widget-heading p-4 rounded-lg shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <div class="w-icon bg-success text-white rounded-circle p-3 shadow-sm me-4">
-                                        <i class="fas fa-check-circle fa-2x"></i> <!-- أيقونة التصحيح -->
-                                    </div>
-                                    <div>
-                                        <p class="w-value fs-2 fw-bold text-dark mb-1">
-                                            {{ $complaints_resolved }}
-                                        </p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.complaints_resolved_count') }}</h5>
-                                    </div>
+                {{-- Resolved Complaints --}}
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.order.complaintsResolved') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #10b981;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            transition: 0.3s;
+                        ">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                                    {{ $complaints_resolved }}
+                                </div>
+                                <div style="font-size: 14px; color: #64748b;">
+                                    {{ __('dash.complaints_resolved') }}
                                 </div>
                             </div>
-                            <div class="widget-footer p-4 text-center bg-lightblue">
-                                <p class="text-muted mb-0"> {{ __('dash.complaints_resolved') }} </p>
+                            <div>
+                                <i class="fas fa-check-circle" style="color: #10b981; font-size: 20px;"></i>
                             </div>
                         </div>
                     </a>
                 </div>
-                @endif
 
-                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_customer_complaints'))
-                <!-- شكاوى اليوم -->
-                <div class="col-xl-3 col-lg-4 col-md-4 col-sm-4 col-12 layout-spacing">
-                    <a href="{{ route('dashboard.order.complaintsToday') }}" class="widget-link">
-                        <div class="widget widget-one_hybrid widget-engagement">
-                            <div class="widget-heading p-4 rounded-lg  shadow-sm">
-                                <div class="d-flex align-items-center">
-                                    <div class="w-icon bg-warning text-white rounded-circle p-3 shadow-sm me-4">
-                                        <i class="fas fa-calendar-day fa-2x"></i> <!-- أيقونة التقويم -->
-                                    </div>
-                                    <div>
-                                        <p class="w-value fs-2 fw-bold text-dark mb-1">
-                                            {{ $todayCustomerComplaints }}
-                                        </p>
-                                        <h5 class="text-muted mb-0">{{ __('dash.complaints_today_count') }}</h5>
-                                    </div>
+                {{-- Complaints Today --}}
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.order.complaintsToday') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #fbbf24;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            transition: 0.3s;
+                        ">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                                    {{ $todayCustomerComplaints }}
+                                </div>
+                                <div style="font-size: 14px; color: #64748b;">
+                                    {{ __('dash.complaints_today') }}
                                 </div>
                             </div>
-                            <div class="widget-footer p-4 text-center bg-lightblue">
-                                <p class="text-muted mb-0"> {{ __('dash.complaints_today') }} </p>
+                            <div>
+                                <i class="fas fa-calendar-day" style="color: #fbbf24; font-size: 20px;"></i>
                             </div>
                         </div>
                     </a>
                 </div>
+
                 @endif
-
-
-
-
-
-
 
 
 
             </div>
         </div>
 
-
+        {{-- Bookings Today --}}
         @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_bookings'))
 
-        <div class="col-xl-6 col-lg-12 col-sm-12  layout-spacing">
-
-            <div class="widget-content widget-content-area br-6">
-                <div class="col-md-12 text-left mb-3">
-
-
-                    <h5 class="">{{ __('dash.bookings_today') }}</h5>
-
-
+        <div class="col-xl-6 col-lg-12 col-sm-12 mb-4">
+            <div
+                style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); padding: 20px;">
+                <div class="mb-3">
+                    <h5 style="color: #1e293b; font-weight: 600;">{{ __('dash.bookings_today') }}</h5>
                 </div>
-                <table id="html5-extension-bookings" class="table table-hover non-hover">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th> {{ __('dash.booking_number') }}</th>
-                            <th> {{ __('dash.customer_name') }}</th>
-                            <th> {{ __('dash.phone') }}</th>
-                            <th> {{ __('dash.services') }}</th>
-                            <th> {{ __('dash.date') }}</th>
-                            <th> {{ __('dash.time') }}</th>
-                            <th> {{ __('dash.status') }}</th>
-                        </tr>
-                    </thead>
-                </table>
 
-
+                <div class="table-responsive">
+                    <table id="html5-extension-bookings" class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>{{ __('dash.booking_number') }}</th>
+                                <th>{{ __('dash.customer_name') }}</th>
+                                <th>{{ __('dash.phone') }}</th>
+                                <th>{{ __('dash.services') }}</th>
+                                <th>{{ __('dash.date') }}</th>
+                                <th>{{ __('dash.time') }}</th>
+                                <th>{{ __('dash.status') }}</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
             </div>
-
         </div>
+
         @endif
 
+
+
+        {{-- Client Orders Today --}}
         @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
 
-        <div class="col-xl-6 col-lg-12 col-sm-12  layout-spacing">
-
-            <div class="widget-content widget-content-area br-6">
-                <div class="col-md-12 text-left mb-3">
-
-
-                    <h5 class="">{{ __('dash.client_orders_today') }}</h5>
-
-
+        <div class="col-xl-6 col-lg-12 col-sm-12 mb-4">
+            <div
+                style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); padding: 20px;">
+                <div class="mb-3">
+                    <h5 style="color: #1e293b; font-weight: 600;">{{ __('dash.client_orders_today') }}</h5>
                 </div>
-                <table id="html5-extension-order" class="table table-hover non-hover">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th> {{ __('dash.order_number') }}</th>
-                            <th> {{ __('dash.customer_name') }}</th>
-                            <th> {{ __('dash.date') }}</th>
-                            <th> {{ __('dash.amount') }}</th>
-                            <th> {{ __('dash.payment_method') }}</th>
-                            <th> {{ __('dash.status') }}</th>
-                        </tr>
-                    </thead>
-                </table>
 
-
+                <div class="table-responsive">
+                    <table id="html5-extension-order" class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>{{ __('dash.order_number') }}</th>
+                                <th>{{ __('dash.customer_name') }}</th>
+                                <th>{{ __('dash.date') }}</th>
+                                <th>{{ __('dash.amount') }}</th>
+                                <th>{{ __('dash.payment_method') }}</th>
+                                <th>{{ __('dash.status') }}</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
             </div>
-
         </div>
+
         @endif
+
 
 
 
