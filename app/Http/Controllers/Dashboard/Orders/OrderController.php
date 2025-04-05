@@ -534,7 +534,9 @@ class OrderController extends Controller
                     return $reason?->is_for_tech === 1 ? "الفني" : "العميل";
                 })
                 ->addColumn('total', fn($row) => $row->total ? (fmod($row->total, 1) == 0 ? (int) $row->total : number_format($row->total, 2)) : '')
-                ->addColumn('status', fn($row) => optional($row->status)->name)
+                ->addColumn('status', fn($row) => app()->getLocale() === 'ar'
+                    ? optional($row->bookings?->first()?->visit?->status)->name_ar
+                    : optional($row->bookings?->first()?->visit?->status)->name_en)
                 ->addColumn('payment_method', function ($row) {
                     $payment_method = $row->transaction?->payment_method;
                     return match ($payment_method) {
