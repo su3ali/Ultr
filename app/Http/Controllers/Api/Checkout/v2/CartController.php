@@ -5,7 +5,9 @@ use App\Bll\ControlCart;
 use App\Bll\CouponCheck;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Checkout\CartResource;
+use App\Models\Admin;
 use App\Models\Booking;
+use App\Models\BookingSetting;
 use App\Models\Cart;
 use App\Models\Category;
 use App\Models\CategoryGroup;
@@ -17,18 +19,32 @@ use App\Models\Icon;
 use App\Models\Order;
 use App\Models\Service;
 use App\Models\Shift;
+use App\Models\Technician;
+use App\Models\UserAddresses;
 use App\Models\Visit;
+use App\Notifications\SendPushNotification;
 use App\Services\v2\Appointment;
 use App\Support\Api\ApiResponse;
 use App\Traits\schedulesTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Validator;
 
 class CartController extends Controller
 {
-    use ApiResponse, schedulesTrait;
+    use ApiResponse, schedulesTrait, \App\Traits\NotificationTrait;
+    public $daysOfWeek = [
+        ['id' => 1, 'name' => 'Saturday'],
+        ['id' => 2, 'name' => 'Sunday'],
+        ['id' => 3, 'name' => 'Monday'],
+        ['id' => 4, 'name' => 'Tuesday'],
+        ['id' => 5, 'name' => 'Wednesday'],
+        ['id' => 6, 'name' => 'Thursday'],
+        ['id' => 7, 'name' => 'Friday'],
+    ];
 
     public function __construct()
     {
@@ -548,30 +564,150 @@ class CartController extends Controller
 
     public function changeOrderSchedule(Request $request)
     {
+        DB::beginTransaction();
 
-        $order_id = $request->order_id;
-        $order    = Order::find($order_id);
-        if (! $order) {
-            return self::apiResponse(400, __('لا يوجد طلب  من خلال هذا الرقم'));
-        }
+        try {
+            $order = Order::find($request->order_id);
+            if (! $order) {
+                return self::apiResponse(400, 'لا يوجد طلب من خلال هذا الرقم');
+            }
 
-        // booking
-        $booking = Booking::where('order_id', $order->id)->first();
-        if (! $booking) {
+            $shift_id = $request->shift_id;
+            if (! $shift_id) {
+                return self::apiResponse(400, 'رقم الشيفت غير موجود');
+            }
 
+            $newDate = $request->date;
+            $newTime = Carbon::parse($request->time)->format('H:i:s');
+
+            // Create or update booking
+            $booking                    = Booking::firstOrNew(['order_id' => $order->id]);
             $booking->booking_status_id = 1;
+            $booking->date              = $newDate;
+            $booking->time              = $newTime;
             $booking->save();
 
+            // Create or update visit
+            $visit                   = Visit::firstOrNew(['booking_id' => $booking->id]);
+            $visit->visits_status_id = 1;
+            $visit->save();
+
+            // Reset order status
+            if ($order->status_id === 5) {
+                $order->status_id = 1;
+                $order->save();
+            }
+
+            $serviceIds = $order->bookings->pluck('service_id')->toArray();
+            $quantity   = $booking->quantity;
+
+            // Get shift groups
+            $shiftGroupJson = Shift::where('id', $shift_id)->value('group_id');
+            $shiftGroupsIds = $shiftGroupJson ? json_decode($shiftGroupJson, true) : [];
+
+            // Duration calculation
+            $bookSetting = BookingSetting::where('service_id', $serviceIds[0] ?? null)->first();
+
+            $serviceDuration = (int) $bookSetting->service_duration;
+            $bufferTime      = (int) $bookSetting->buffering_time;
+
+            $duration = ($serviceDuration + $bufferTime) * $quantity;
+
+            if ($duration <= 0) {
+                DB::rollBack();
+                return self::apiResponse(400, 'المدة المحتسبة غير صحيحة.', $order->quantity);
+            }
+
+            $category_id = Category::pluck('id')->first();
+            $address     = UserAddresses::find($order->user_address_id);
+
+            $booking_id = Booking::whereHas('address', function ($q) use ($address) {
+                $q->where('region_id', optional($address)->region_id);
+            })->whereHas('category', function ($q) use ($category_id) {
+                $q->where('category_id', $category_id);
+            })->where('date', $newDate)->pluck('id')->toArray();
+
+            $dayName = Carbon::parse($newDate)->format('l');
+            $dayId   = collect($this->daysOfWeek)->firstWhere('name', $dayName)['id'] ?? null;
+
+            $techIdsOnThisDay = Technician::whereIn('group_id', $shiftGroupsIds)
+                ->with('workingDays')
+                ->get()
+                ->filter(fn($tech) => in_array($dayId, $tech->workingDays->pluck('day_id')->toArray()))
+                ->pluck('group_id')
+                ->toArray();
+
+            $groupQuery = Group::where('active', 1)
+                ->whereIn('id', $techIdsOnThisDay)
+                ->whereHas('regions', fn($q) => $q->where('region_id', optional($address)->region_id));
+
+            if (! $groupQuery->exists()) {
+                DB::rollBack();
+                return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'));
+            }
+
+            $startTime = Carbon::parse($newTime);
+
+            $takenGroupsIds = Visit::where('start_time', '<', $startTime->copy()->addMinutes($duration)->format('H:i:s'))
+                ->where('end_time', '>', $newTime)
+                ->activeVisits()
+                ->whereIn('booking_id', $booking_id)
+                ->whereIn('assign_to_id', $techIdsOnThisDay)
+                ->pluck('assign_to_id');
+
+            $availableGroups = $groupQuery
+                ->when($takenGroupsIds->isNotEmpty(), fn($q) => $q->whereNotIn('id', $takenGroupsIds))
+                ->get();
+
+            if ($availableGroups->isEmpty()) {
+                DB::rollBack();
+                return self::apiResponse(400, __('api.This Time is not available'));
+            }
+
+            $groupWithLeastVisits = $availableGroups->sortBy(function ($group) {
+                return Visit::where('assign_to_id', $group->id)->count();
+            })->first();
+
+            $assign_to_id = $groupWithLeastVisits->id;
+
+            // Update visit with assigned group and time info
+            $visit->update([
+                'assign_to_id' => $assign_to_id,
+                'start_time'   => $startTime->format('H:i:s'),
+                'end_time'     => $startTime->copy()->addMinutes($duration)->format('H:i:s'),
+            ]);
+
+            // Notifications
+            $technicians = Technician::where('group_id', $assign_to_id)->whereNotNull('fcm_token')->get();
+
+            if ($technicians->isNotEmpty()) {
+                $title   = 'موعد زيارة جديد';
+                $message = 'لديك موعد زياره جديد';
+
+                foreach ($technicians as $tech) {
+                    Notification::send($tech, new SendPushNotification($title, $message));
+                }
+
+                $fcmTokens = $technicians->pluck('fcm_token')
+                    ->merge(Admin::whereNotNull('fcm_token')->pluck('fcm_token'))
+                    ->toArray();
+
+                $this->pushNotification([
+                    'device_token' => $fcmTokens,
+                    'title'        => $title,
+                    'message'      => $message,
+                    'type'         => 'technician',
+                    'code'         => 1,
+                ]);
+            }
+
+            DB::commit();
+            return self::apiResponse(200, 'تمت إعادة الجدولة بنجاح', $assign_to_id);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Exception: ' . $e->getMessage()], 500);
         }
-
-        if ($order->status_id == 5) {
-
-            $order->status_id = 1;
-            $order->save();
-
-        }
-
-        return self::apiResponse(200, 'ok', $request->all());
-
     }
+
 }

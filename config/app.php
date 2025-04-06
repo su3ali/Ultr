@@ -51,8 +51,10 @@ return [
     | your application so that it is used when running Artisan tasks.
     |
      */
-
+    
     'url'                  => env('APP_URL', 'http://localhost'),
+    'url_local'            => env('APP_URL_LOCAL', 'http://127.0.0.1:8000'),
+    'url_dev'              => env('APP_URL_DEV', 'https://dev.ultragold.sa'),
 
     'asset_url'            => env('ASSET_URL', null),
 

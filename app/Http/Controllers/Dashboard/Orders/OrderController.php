@@ -200,7 +200,7 @@ class OrderController extends Controller
             }
 
             return DataTables::of($ordersQuery)
-                ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id ?? '')
+                // ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id ?? '')
                 ->addColumn('user', fn($row) => $row->user?->first_name . ' ' . $row->user?->last_name)
                 ->addColumn('phone', fn($row) => $row->user?->phone
                     ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->user->phone . '</a>'
@@ -247,9 +247,20 @@ class OrderController extends Controller
                             <i class="far fa-trash-alt fa-2x"></i>
                           </a>';
                     }
+
+                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
+                        $html .= '<a href="javascript:void(0);"
+                                   class="mr-2 btn btn-outline-danger btn-sm open-reschedule"
+                                   data-id="' . $row->id . '"
+                                   data-toggle="modal"
+                                   data-target="#rescheduleModal"
+                                   title="إعادة جدولة الطلب">
+                                    <i class="fas fa-calendar-alt fa-2x"></i>
+                                  </a>';
+                    }
                     return $html;
                 })
-                ->rawColumns(['booking_id', 'user', 'phone', 'service', 'quantity', 'total', 'payment_method', 'region', 'status', 'created_at', 'control'])
+                ->rawColumns([ 'user', 'phone', 'service', 'quantity', 'total', 'payment_method', 'region', 'status', 'created_at', 'control'])
                 ->make(true);
         }
 
@@ -382,14 +393,16 @@ class OrderController extends Controller
                                   </a>';
                     }
 
-                    // if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
-                    //     $html .= '<a data-toggle="modal" data-target="#rescheduleModal"
-                    //                data-id="' . $row->id . '"
-                    //                class="mr-2 btn btn-outline-danger btn-sm"
-                    //                data-toggle="tooltip" data-placement="top" title="إعادة جدولة الطلب">
-                    //                 <i class="fas fa-calendar-alt fa-2x"></i>
-                    //               </a>';
-                    // }
+                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
+                        $html .= '<a href="javascript:void(0);"
+                                   class="mr-2 btn btn-outline-danger btn-sm open-reschedule"
+                                   data-id="' . $row->id . '"
+                                   data-toggle="modal"
+                                   data-target="#rescheduleModal"
+                                   title="إعادة جدولة الطلب">
+                                    <i class="fas fa-calendar-alt fa-2x"></i>
+                                  </a>';
+                    }
 
                     return $html;
                 })
