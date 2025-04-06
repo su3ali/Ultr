@@ -1,10 +1,10 @@
 <?php
-
 namespace App\Http\Controllers\Dashboard\Core;
 
 use App\Http\Controllers\Controller;
 use App\Models\City;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
@@ -12,14 +12,38 @@ class CustomerController extends Controller
 
     public function index(Request $request)
     {
-        if ($request->ajax()) {
-            // Fetch users with relevant data
-            $usersQuery = User::select('id', 'first_name', 'last_name', 'active', 'city_id', 'phone')
-                ->with('city');
+        $date  = $request->query('date');
+        $date2 = $request->query('date2');
 
-            // Apply search filter if provided
+        // Start building the users query
+        $usersQuery = User::select('id', 'first_name', 'last_name', 'active', 'city_id', 'phone', 'created_at')
+            ->with('city');
+
+        //  Filter for today's date if request has page param (optional)
+        if ($request->has('page')) {
+            $now = Carbon::now('Asia/Riyadh')->toDateString();
+            $usersQuery->whereDate('created_at', '=', $now);
+        }
+
+        //  Filter by date range
+        if ($date && $date2) {
+            $start = Carbon::parse($date)->timezone('Asia/Riyadh')->startOfDay();
+            $end   = Carbon::parse($date2)->timezone('Asia/Riyadh')->endOfDay();
+            $usersQuery->whereBetween('created_at', [$start, $end]);
+        } elseif ($date) {
+            $start = Carbon::parse($date)->timezone('Asia/Riyadh')->startOfDay();
+            $usersQuery->where('created_at', '>=', $start);
+        } elseif ($date2) {
+            $end = Carbon::parse($date2)->timezone('Asia/Riyadh')->endOfDay();
+            $usersQuery->where('created_at', '<=', $end);
+        }
+
+        // AJAX request (DataTables)
+        if ($request->ajax()) {
+            // Search filter
             if ($request->filled('search.value')) {
                 $search = $request->input('search.value');
+
                 $usersQuery->where(function ($query) use ($search) {
                     $query->where('id', 'LIKE', "%$search%")
                         ->orWhere('first_name', 'LIKE', "%$search%")
@@ -31,51 +55,54 @@ class CustomerController extends Controller
                 });
             }
 
-            // Get total records before pagination
+            // Total records before pagination
             $totalRecords = $usersQuery->count();
 
-            // Apply pagination
+            // Apply pagination and ordering
             $users = $usersQuery
                 ->orderBy('created_at', 'desc')
-                ->skip($request->input('start', 0)) // Skip records based on DataTables pagination
-                ->take($request->input('length', 10)) // Take the number of records specified
+                ->skip($request->input('start', 0))
+                ->take($request->input('length', 10))
                 ->get();
 
-            // Prepare DataTables response
+            // Format for DataTables
             return response()->json([
-                'draw' => $request->input('draw'),
-                'recordsTotal' => $totalRecords,
+                'draw'            => $request->input('draw'),
+                'recordsTotal'    => $totalRecords,
                 'recordsFiltered' => $totalRecords,
-                'data' => $users->map(function ($user) {
+                'data'            => $users->map(function ($user) {
                     return [
-                        'id' => $user->id,
-                        'name' => $user->first_name . ' ' . $user->last_name,
-                        'city_name' => $user->city?->title ?? 'N/A',
-                        'phone' => $user->phone
+                        'id'         => $user->id,
+                        'name'       => $user->first_name . ' ' . $user->last_name,
+                        'city_name'  => $user->city?->title ?? 'N/A',
+                        'phone'      => $user->phone
                         ? '<a href="https://api.whatsapp.com/send?phone=' . $user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $user->phone . '</a>'
                         : 'N/A',
-                        'status' => '<label class="switch s-outline s-outline-info mb-4 mr-2">
-                                        <input type="checkbox" id="customSwitch4" data-id="' . $user->id . '" ' . ($user->active ? 'checked' : '') . '>
-                                        <span class="slider round"></span>
-                                    </label>',
-                        'controll' => '
-                            <a href="' . route('dashboard.core.address.index', ['id' => $user->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                                <i class="far fa-address-book fa-2x"></i>
-                            </a>
-                            <a href="' . route('dashboard.core.customer.edit', $user->id) . '" class="mr-2 btn btn-outline-warning btn-sm">
-                                <i class="far fa-edit fa-2x"></i>
-                            </a>
-                            <a data-href="' . route('dashboard.core.customer.destroy', $user->id) . '" data-id="' . $user->id . '" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
-                                <i class="far fa-trash-alt fa-2x"></i>
-                            </a>',
+                        'created_at' => $user->created_at?->format('Y-m-d'),
+                        'status'     => '<label class="switch s-outline s-outline-info mb-4 mr-2">
+                                    <input type="checkbox" id="customSwitch4" data-id="' . $user->id . '" ' . ($user->active ? 'checked' : '') . '>
+                                    <span class="slider round"></span>
+                                </label>',
+                        'controll'   => '
+                        <a href="' . route('dashboard.core.address.index', ['id' => $user->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                            <i class="far fa-address-book fa-2x"></i>
+                        </a>
+                        <a href="' . route('dashboard.core.customer.edit', $user->id) . '" class="mr-2 btn btn-outline-warning btn-sm">
+                            <i class="far fa-edit fa-2x"></i>
+                        </a>
+                        <a data-href="' . route('dashboard.core.customer.destroy', $user->id) . '" data-id="' . $user->id . '" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
+                            <i class="far fa-trash-alt fa-2x"></i>
+                        </a>',
+
                     ];
                 }),
             ]);
         }
 
-        // Render the initial view for non-AJAX requests
+        // Return Blade view for non-AJAX request
         return view('dashboard.core.customers.index');
     }
+
     // just  clints have orders on system
     public function withOrders(Request $request)
     {
@@ -107,21 +134,21 @@ class CustomerController extends Controller
             // Apply pagination
             $users = $clientsWithOrders
                 ->orderBy('created_at', 'desc')
-                ->skip($request->input('start', 0)) // Skip records based on DataTables pagination
+                ->skip($request->input('start', 0))   // Skip records based on DataTables pagination
                 ->take($request->input('length', 10)) // Take the number of records specified
                 ->get();
 
             // Prepare DataTables response
             return response()->json([
-                'draw' => $request->input('draw'),
-                'recordsTotal' => $totalRecords,
+                'draw'            => $request->input('draw'),
+                'recordsTotal'    => $totalRecords,
                 'recordsFiltered' => $totalRecords,
-                'data' => $users->map(function ($user) {
+                'data'            => $users->map(function ($user) {
                     return [
-                        'id' => $user->id,
-                        'name' => $user->first_name . ' ' . $user->last_name,
-                        'region' => 'N/A',
-                        'phone' => $user->phone
+                        'id'             => $user->id,
+                        'name'           => $user->first_name . ' ' . $user->last_name,
+                        'region'         => 'N/A',
+                        'phone'          => $user->phone
                         ? '<a href="https://api.whatsapp.com/send?phone=' . $user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $user->phone . '</a>'
                         : 'N/A',
                         'orders_numbers' => $user->orders->count(),
@@ -146,14 +173,14 @@ class CustomerController extends Controller
     {
         $request->validate([
             'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
-            'email' => 'nullable|email|max:255|unique:users,email',
-            'phone' => 'required|numeric|unique:users,phone',
-            'active' => 'nullable|in:on,off',
-            'city_id' => 'nullable|exists:cities,id',
+            'last_name'  => 'required|string|max:100',
+            'email'      => 'nullable|email|max:255|unique:users,email',
+            'phone'      => 'required|numeric|unique:users,phone',
+            'active'     => 'nullable|in:on,off',
+            'city_id'    => 'nullable|exists:cities,id',
         ]);
 
-        $data = $request->except('_token', 'active');
+        $data           = $request->except('_token', 'active');
         $data['active'] = 1;
         User::query()->create($data);
 
@@ -163,7 +190,7 @@ class CustomerController extends Controller
 
     public function edit($id)
     {
-        $user = User::where('id', $id)->first();
+        $user   = User::where('id', $id)->first();
         $cities = City::where('active', 1)->get()->pluck('title', 'id');
         return view('dashboard.core.customers.edit', compact('user', 'cities'));
     }
@@ -173,11 +200,11 @@ class CustomerController extends Controller
 
         $request->validate([
             'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
-            'email' => 'nullable|email|max:255|unique:users,email,' . $id,
-            'phone' => 'required|numeric|unique:users,phone,' . $id,
-            'active' => 'nullable|in:on,off',
-            'city_id' => 'nullable|exists:cities,id',
+            'last_name'  => 'required|string|max:100',
+            'email'      => 'nullable|email|max:255|unique:users,email,' . $id,
+            'phone'      => 'required|numeric|unique:users,phone,' . $id,
+            'active'     => 'nullable|in:on,off',
+            'city_id'    => 'nullable|exists:cities,id',
 
         ]);
         $data = $request->except('_token', 'active');
@@ -197,7 +224,7 @@ class CustomerController extends Controller
         $user->delete();
         return [
             'success' => true,
-            'msg' => __("dash.deleted_success"),
+            'msg'     => __("dash.deleted_success"),
         ];
     }
 
