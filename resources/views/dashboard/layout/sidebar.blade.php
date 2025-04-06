@@ -739,18 +739,25 @@
             </li>
             @endcan
 
-            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_financial_reports'))
 
+            @php
+            $canSeeReports = auth()->user()->hasRole('admin') ||
+            auth()->user()->can('view_financial_reports') ||
+            auth()->user()->can('view_customers') ||
+            auth()->user()->can('view_technicians') ||
+            auth()->user()->can('view_services');
+            @endphp
+
+            @if ($canSeeReports)
             <li class="menu">
                 <a href="#reports" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                    <div class="">
+                    <div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             class="feather feather-flag">
                             <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
                             <line x1="4" y1="22" x2="4" y2="15"></line>
                         </svg>
-
                         <span>{{ __('dash.reports') }}</span>
                     </div>
                     <div>
@@ -762,30 +769,39 @@
                     </div>
                 </a>
                 <ul class="collapse submenu list-unstyled" id="reports" data-parent="#accordionExample">
-                    <li>
-                        <a href="{{ route('dashboard.report.sales') }}"> {{ __('dash.report_sales') }} </a>
-                    </li>
 
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_financial_reports'))
                     <li>
-                        <a href="{{ route('dashboard.report.contractSales') }}"> {{ __('dash.report_contractSales') }}
-                        </a>
+                        <a href="{{ route('dashboard.report.sales') }}">{{ __('dash.report_sales') }}</a>
                     </li>
+                    <li>
+                        <a href="{{ route('dashboard.report.contractSales') }}">{{ __('dash.report_contractSales')
+                            }}</a>
+                    </li>
+                    @endif
 
+                    @can('view_customers')
                     <li>
-                        <a href="{{ route('dashboard.report.customers') }}"> {{ __('dash.report_customers') }} </a>
+                        <a href="{{ route('dashboard.report.customers') }}">{{ __('dash.report_customers') }}</a>
                     </li>
+                    @endcan
 
+                    @can('view_technicians')
                     <li>
-                        <a href="{{ route('dashboard.report.technicians') }}"> {{ __('dash.technicians_reports') }} </a>
+                        <a href="{{ route('dashboard.report.technicians') }}">{{ __('dash.technicians_reports') }}</a>
                     </li>
+                    @endcan
 
+                    @can('view_services')
                     <li>
-                        <a href="{{ route('dashboard.report.services') }}"> {{ __('dash.report_services') }} </a>
+                        <a href="{{ route('dashboard.report.services') }}">{{ __('dash.report_services') }}</a>
                     </li>
+                    @endcan
 
                 </ul>
             </li>
             @endif
+
 
             {{-- @can('view_setting') --}}
             {{-- <li class="menu"> --}}
