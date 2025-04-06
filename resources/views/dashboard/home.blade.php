@@ -445,8 +445,10 @@
                 </div>
                 @endif
 
+                
 
-                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_customer_complaints'))
+
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_customer_complaints') || auth()->user()->hasRole('خدمة العملاء'))
 
                 {{-- Total Complaints --}}
                 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
@@ -561,8 +563,6 @@
                 </div>
 
                 @endif
-
-
 
             </div>
         </div>
