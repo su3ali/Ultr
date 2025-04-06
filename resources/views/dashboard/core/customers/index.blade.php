@@ -52,9 +52,39 @@
 
     <div class="row layout-top-spacing">
 
+
+
         <div class="col-xl-12 col-lg-12 col-sm-12  layout-spacing">
             <div class="widget-content widget-content-area br-6">
                 <div class="col-md-12 text-right mb-3">
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <div class="row">
+                                <!-- Date Range Section -->
+                                <div class="col-md-1">
+                                    <label for="date_from" class="form-label">{{ __('dash.date') }}</label>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="date_from">{{ __('dash.from') }}</label>
+                                    <div class="input-group custom-date-picker">
+                                        <input type="date" name="date" class="form-control custom-input" id="date_from">
+                                        <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="date_to">{{ __('dash.to') }}</label>
+                                    <div class="input-group custom-date-picker">
+                                        <input type="date" name="date2" class="form-control custom-input" id="date_to">
+                                        <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                    </div>
 
                     <a href="{{ route('dashboard.core.customer.create') }}" class="btn btn-primary">{{
                         __('dash.add_new') }}</a>
@@ -68,6 +98,7 @@
                             <th>{{ __('dash.name') }}</th>
                             <th>{{ __('dash.city') }}</th>
                             <th>{{ __('dash.phone') }}</th>
+                            <th>{{ __('dash.created_at') }}</th>
                             <th>{{ __('dash.status') }}</th>
                             <th class="no-content">{{ __('dash.actions') }}</th>
                         </tr>
@@ -82,108 +113,98 @@
 
 </div>
 @endsection
-
 @push('script')
 <script type="text/javascript">
-    $(document).ready(function() {
-            $('#html5-extension').DataTable({
-                dom: "<'dt--top-section d-flex justify-content-between align-items-center'<'col-sm-12 col-md-4 d-flex justify-content-start'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-end'f>>" +
-                    "<'table-responsive'tr>" + // Table rows
-                    "<'dt--bottom-section d-flex justify-content-between'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'p>>" +
-                    "<'dt--pages-count text-center mt-2'i>", // Entry count at the bottom-center
+    $(document).ready(function () {
+        const table = $('#html5-extension').DataTable({
+            dom: "<'dt--top-section d-flex justify-content-between align-items-center'<'col-sm-12 col-md-4'l><'col-sm-12 col-md-4 text-center'B><'col-sm-12 col-md-4'f>>" +
+                "<'table-responsive'tr>" +
+                "<'dt--bottom-section d-flex justify-content-between'<'col-md-6'l><'col-md-6'p>>" +
+                "<'dt--pages-count text-center mt-2'i>",
 
-                buttons: [
-                    {
-                            extend: 'copy',
-                            className: 'btn btn-sm',
-                            text: '{{ __("dash.copy") }}'
-
-
-                        },
-                        {
-                            extend: 'csv',
-                            className: 'btn btn-sm',
-                            text: '{{ __("dash.csv") }}'
-                        },
-                        {
-                            extend: 'excel',
-                            className: 'btn btn-sm',
-                            text: '{{ __("dash.excel") }}'
-                        },
-                        {
-                            extend: 'print',
-                            className: 'btn btn-sm',
-                            text: '{{ __("dash.print") }}'
-                        }
-                ],
-
-                order: [
-                    [0, 'desc']
-                ],
-                language: {
-                    url: "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
+            buttons: [
+                {
+                    extend: 'copy',
+                    className: 'btn btn-sm',
+                    text: @json(__('dash.copy'))
                 },
-                processing: true,
-                serverSide: true,
-                ajax: '{{ route('dashboard.core.customer.index') }}',
-                columns: [{
-                        data: 'id',
-                        name: 'id'
-                    },
-                    {
-                        data: 'name',
-                        name: 'name'
-                    },
-                    {
-                        data: 'city_name',
-                        name: 'city_name'
-                    },
-                    {
-                        data: 'phone',
-                        name: 'phone'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status'
-                    },
-                    {
-                        data: 'controll',
-                        name: 'controll',
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
-                pageLength: 10,
-                lengthMenu: [
-                    [10, 100, 500, 1000, 5000, 10000, 20000],
-                    [10, 100, 500, 1000, 5000, 10000, 20000]
-                ]
-            });
+                {
+                    extend: 'csv',
+                    className: 'btn btn-sm',
+                    text: @json(__('dash.csv'))
+                },
+                {
+                    extend: 'excel',
+                    className: 'btn btn-sm',
+                    text: @json(__('dash.excel'))
+                },
+                {
+                    extend: 'print',
+                    className: 'btn btn-sm',
+                    text: @json(__('dash.print'))
+                }
+            ],
+
+            order: [[0, 'desc']],
+
+            language: {
+                url: "{{ app()->getLocale() === 'ar'
+                    ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json'
+                    : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
+            },
+
+            processing: true,
+            serverSide: true,
+
+            ajax: {
+                url: '{{ route('dashboard.core.customer.index') }}',
+                data: function (d) {
+                    d.date = $('#date_from').val();
+                    d.date2 = $('#date_to').val();
+                }
+            },
+
+            columns: [
+                { data: 'id', name: 'id' },
+                { data: 'name', name: 'name' },
+                { data: 'city_name', name: 'city_name' },
+                { data: 'phone', name: 'phone' },
+                { data : 'created_at', name:'created_at'},
+                { data: 'status', name: 'status' },
+                { data: 'controll', name: 'controll', orderable: false, searchable: false }
+            ],
+
+            pageLength: 10,
+            lengthMenu: [
+                [10, 100, 500, 1000, 5000, 10000, 20000],
+                [10, 100, 500, 1000, 5000, 10000, 20000]
+            ]
         });
 
+        // 🔁 Reload on date change
+        $('#date_from, #date_to').on('change', function () {
+            table.ajax.reload();
+        });
 
-
-
-        $("body").on('change', '#customSwitch4', function() {
-            let active = $(this).is(':checked');
-            let id = $(this).attr('data-id');
+        // ✅ Toggle customer status
+        $('body').on('change', '#customSwitch4', function () {
+            const active = $(this).is(':checked');
+            const id = $(this).data('id');
 
             $.ajax({
                 url: '{{ route('dashboard.core.customer.change_status') }}',
-                type: 'get',
-                data: {
-                    id: id,
-                    active: active
-                },
-                success: function(data) {
+                type: 'GET',
+                data: { id, active },
+                success: function () {
                     swal({
-                        title: "{{ __('dash.successful_operation') }}",
-                        text: "{{ __('dash.request_executed_successfully') }}",
+                        title: @json(__('dash.successful_operation')),
+                        text: @json(__('dash.request_executed_successfully')),
                         type: 'success',
                         padding: '2em'
                     });
                 }
             });
         });
+    });
 </script>
 @endpush
