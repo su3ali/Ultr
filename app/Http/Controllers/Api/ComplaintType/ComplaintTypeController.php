@@ -14,7 +14,6 @@ class ComplaintTypeController extends Controller
     public function __construct()
     {
         $this->middleware('localization');
-        $this->middleware('auth:sanctum'); // Apply auth middleware globally to this controller
 
     }
 
