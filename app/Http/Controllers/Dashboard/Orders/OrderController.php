@@ -37,118 +37,6 @@ class OrderController extends Controller
 {
     use schedulesTrait;
 
-    // public function index(Request $request)
-    // {
-
-    //     if ($request->ajax()) {
-
-    //         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
-
-    //         $ordersQuery = Order::with([
-    //             'user', 'bookings', 'transaction', 'status',
-    //             'bookings.visit.status', 'services.category',
-    //         ])
-    //             ->whereHas('userAddress', fn($query) => $query->whereIn('region_id', $regionIds))
-    //             ->when($request->search_value, function ($query, $searchTerm) {
-    //                 $query->where(function ($q) use ($searchTerm) {
-    //                     $q->where('id', 'like', "%{$searchTerm}%")
-    //                         ->orWhere('total', 'like', "%{$searchTerm}%")
-    //                         ->orWhere('created_at', 'like', "%{$searchTerm}%")
-    //                         ->orWhere('user_id', 'like', "%{$searchTerm}%")
-    //                         ->orWhereHas('user', fn($q) => $q->where('first_name', 'like', "%{$searchTerm}%"));
-    //                 });
-    //             })
-    //             ->when($request->ajax(), function ($query) use ($request) {
-    //                 if ($request->status) {
-    //                     $query->where('status_id', $request->status);
-    //                 }
-    //                 if ($request->page) {
-    //                     $query->where('status_id', '!=', 5)
-    //                         ->whereDate('created_at', Carbon::now('Asia/Riyadh')->toDateString());
-    //                 }
-    //                 $query->where('is_active', 1);
-    //             })
-    //             ->orderByDesc('created_at');
-
-    //         $date  = \request()->query('date');
-    //         $date2 = \request()->query('date2');
-    //         if (request()->page) {
-    //             $now = Carbon::now('Asia/Riyadh')->toDateString();
-    //             $ordersQuery->whereDate('date', '=', $now);
-    //         }
-
-    //         if ($date) {
-    //             $carbonDate    = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
-    //             $formattedDate = $carbonDate->format('Y-m-d');
-    //             $ordersQuery->where('created_at', '>=', $formattedDate);
-    //         }
-
-    //         if ($date2) {
-    //             $carbonDate2    = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
-    //             $formattedDate2 = $carbonDate2->format('Y-m-d');
-    //             $ordersQuery->where('created_at', '<=', $formattedDate2);
-    //         }
-
-    //         return DataTables::of($ordersQuery)
-    //             ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id ?? '')
-    //             ->addColumn('user', fn($row) => $row->user?->first_name . ' ' . $row->user?->last_name)
-    //             ->addColumn('phone', fn($row) => $row->user?->phone
-    //                 ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->user->phone . '</a>'
-    //                 : 'N/A')
-    //             ->addColumn('service', function ($row) {
-    //                 return $row->services->unique('id')->map(fn($service) =>
-    //                     '<button class="btn-sm btn-primary">' . $service->title . '</button>'
-    //                 )->implode(' ');
-    //             })
-    //             ->addColumn('quantity', fn($row) => $row->services->sum('pivot.quantity'))
-    //             ->addColumn('total', function ($row) {
-    //                 return number_format($row->total, 2);
-    //             })
-
-    //             ->addColumn('payment_method', fn($row) => match ($row->transaction?->payment_method) {
-    //                 'cache', 'cash' => __('api.payment_method_cach'),
-    //                 'wallet' => __('api.payment_method_wallet'),
-    //                 'mada'   => __('api.payment_method_network'),
-    //                 default  => __('api.payment_method_visa'),
-    //             })
-
-    //             ->addColumn('region', fn($row) => optional($row->userAddress?->region)->title ?? '')
-    //             ->addColumn('status', fn($row) => app()->getLocale() === 'ar'
-    //                 ? optional($row->bookings?->first()?->visit?->status)->name_ar
-    //                 : optional($row->bookings?->first()?->visit?->status)->name_en)
-    //             ->addColumn('created_at', fn($row) => $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d"))
-    //             ->addColumn('control', function ($row) {
-    //                 $html = '';
-    //                 if ($row->status_id == 2) {
-    //                     $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-    //                             <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
-    //                           </a>';
-    //                 }
-    //                 $html .= '<button type="button" id="show-bookings" class="btn btn-sm btn-outline-primary" data-id="' . $row->id . '" data-toggle="modal" data-target="#changeGroupModel">
-    //                         <i class="far fa-eye fa-2x"></i>
-    //                       </button>';
-    //                 $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-    //                         <i class="far fa-eye fa-2x"></i>
-    //                       </a>';
-    //                 $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-    //                         <i class="far fa-eye fa-2x"></i>
-    //                       </a>';
-    //                 if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
-    //                     $html .= '<a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '"
-    //                             data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
-    //                             <i class="far fa-trash-alt fa-2x"></i>
-    //                           </a>';
-    //                 }
-    //                 return $html;
-    //             })
-    //             ->rawColumns(['booking_id', 'user', 'phone', 'service', 'quantity', 'total', 'payment_method', 'region', 'status', 'created_at', 'control'])
-    //             ->make(true);
-    //     }
-
-    //     $statuses = OrderStatus::pluck('name_ar', 'id');
-    //     return view('dashboard.orders.index', compact('statuses'));
-    // }
-
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -200,7 +88,7 @@ class OrderController extends Controller
             }
 
             return DataTables::of($ordersQuery)
-                // ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id ?? '')
+            // ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id ?? '')
                 ->addColumn('user', fn($row) => $row->user?->first_name . ' ' . $row->user?->last_name)
                 ->addColumn('phone', fn($row) => $row->user?->phone
                     ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->user->phone . '</a>'
@@ -227,40 +115,66 @@ class OrderController extends Controller
                 ->addColumn('created_at', fn($row) => $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d"))
                 ->addColumn('control', function ($row) {
                     $html = '';
-                    if ($row->status_id == 2) {
-                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                            <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
-                          </a>';
-                    }
-                    $html .= '<button type="button" id="show-bookings" class="btn btn-sm btn-outline-primary" data-id="' . $row->id . '" data-toggle="modal" data-target="#changeGroupModel">
-                        <i class="far fa-eye fa-2x"></i>
-                      </button>';
-                    $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                        <i class="far fa-eye fa-2x"></i>
-                      </a>';
-                    $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                        <i class="far fa-eye fa-2x"></i>
-                      </a>';
-                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
-                        $html .= '<a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '"
-                            data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
-                            <i class="far fa-trash-alt fa-2x"></i>
-                          </a>';
-                    }
 
-                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
-                        $html .= '<a href="javascript:void(0);"
-                                   class="mr-2 btn btn-outline-danger btn-sm open-reschedule"
-                                   data-id="' . $row->id . '"
-                                   data-toggle="modal"
-                                   data-target="#rescheduleModal"
-                                   title="إعادة جدولة الطلب">
-                                    <i class="fas fa-calendar-alt fa-2x"></i>
+                    // Confirm order button
+                    if ($row->status_id == 2) {
+                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '"
+                                    class="mr-2 btn btn-outline-primary btn-sm" title="تأكيد الطلب">
+                                    <i class="far fa-thumbs-up fa-2x mx-1"></i>
                                   </a>';
                     }
+
+                    // Show bookings modal button
+                    $html .= '<button type="button" id="show-bookings"
+                                    class="btn btn-sm btn-outline-primary mr-2"
+                                    data-id="' . $row->id . '"
+                                    data-toggle="modal"
+                                    data-target="#changeGroupModel"
+                                    title="عرض مواعيد الحجز">
+                                    <i class="fas fa-clock fa-2x"></i>
+                              </button>';
+
+                    // View order details
+                    $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '"
+                                  class="mr-2 btn btn-outline-primary btn-sm"
+                                  title="عرض تفاصيل الطلب">
+                                  <i class="far fa-eye fa-2x"></i>
+                              </a>';
+
+                    // Show service with better icon
+                    $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '"
+                                  class="mr-2 btn btn-outline-info btn-sm"
+                                  title="عرض الخدمات">
+                                  <i class="fas fa-tools fa-2x"></i>
+                              </a>';
+
+                    // Delete button (super admin only)
+                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
+                        $html .= '<a data-table_id="html5-extension"
+                                      data-href="' . route('dashboard.orders.destroy', $row->id) . '"
+                                      data-id="' . $row->id . '"
+                                      class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech"
+                                      title="حذف الطلب">
+                                      <i class="far fa-trash-alt fa-2x"></i>
+                                  </a>';
+                    }
+
+                    // Reschedule button (super admin only)
+                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
+                        $html .= '<a href="javascript:void(0);"
+                                     class="mr-2 btn btn-outline-warning btn-sm open-reschedule"
+                                     data-id="' . $row->id . '"
+                                     data-toggle="modal"
+                                     data-target="#rescheduleModal"
+                                     title="إعادة جدولة الطلب">
+                                     <i class="fas fa-calendar-alt fa-2x"></i>
+                                 </a>';
+                    }
+
                     return $html;
                 })
-                ->rawColumns([ 'user', 'phone', 'service', 'quantity', 'total', 'payment_method', 'region', 'status', 'created_at', 'control'])
+
+                ->rawColumns(['user', 'phone', 'service', 'quantity', 'total', 'payment_method', 'region', 'status', 'created_at', 'control'])
                 ->make(true);
         }
 
@@ -393,7 +307,7 @@ class OrderController extends Controller
                                   </a>';
                     }
 
-                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
+                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
                         $html .= '<a href="javascript:void(0);"
                                    class="mr-2 btn btn-outline-danger btn-sm open-reschedule"
                                    data-id="' . $row->id . '"
@@ -530,12 +444,12 @@ class OrderController extends Controller
                 ->addColumn('created_at', function ($row) {
                     $date = Carbon::parse($row->created_at)->timezone('Asia/Riyadh');
 
-                    return $date->format("Y-m-d H:i:s");
+                    return $date->format("Y-m-d");
                 })
                 ->addColumn('updated_at', function ($row) {
                     $date = Carbon::parse($row->updated_at)->timezone('Asia/Riyadh');
 
-                    return $date->format("Y-m-d H:i:s");
+                    return $date->format("Y-m-d");
                 })
                 ->addColumn('control', function ($row) {
 
@@ -671,7 +585,7 @@ class OrderController extends Controller
             }
 
             return DataTables::of($filteredOrders)
-                ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id)
+            // ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id)
                 ->addColumn('user', fn($row) => optional($row->user)->first_name . ' ' . optional($row->user)->last_name)
                 ->addColumn('phone', fn($row) => $row->user?->phone
                     ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link">' . $row->user->phone . '</a>'
@@ -682,10 +596,10 @@ class OrderController extends Controller
                     return $services->map(fn($s) => '<button class="btn-sm btn-primary">' . $s->title . '</button>')->implode('');
                 })
                 ->addColumn('quantity', fn($row) => $row->orderServices->sum('quantity'))
-                ->addColumn('cancelled_by', function ($row) {
-                    $reason = optional(optional($row->bookings->first())->visit)->cancelReason;
-                    return $reason?->is_for_tech === 1 ? "الفني" : "العميل";
-                })
+            // ->addColumn('cancelled_by', function ($row) {
+            //     $reason = optional(optional($row->bookings->first())->visit)->cancelReason;
+            //     return $reason?->is_for_tech === 1 ? "الفني" : "العميل";
+            // })
                 ->addColumn('total', fn($row) => $row->total ? (fmod($row->total, 1) == 0 ? (int) $row->total : number_format($row->total, 2)) : '')
                 ->addColumn('status', fn($row) => app()->getLocale() === 'ar'
                     ? optional($row->bookings?->first()?->visit?->status)->name_ar
@@ -714,24 +628,37 @@ class OrderController extends Controller
                 ->addColumn('region', fn($row) => optional($row->userAddress?->region)->title)
                 ->addColumn('control', function ($row) {
                     $html = '';
+
+                    // Confirm button
                     if ($row->status_id == 2) {
-                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                            <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
+                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="تأكيد الطلب">
+                            <i class="far fa-thumbs-up fa-2x mx-1"></i>
                         </a>';
                     }
-                    $html .= '
-                        <a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                            <i class="far fa-eye fa-2x"></i>
-                        </a>
-                        <a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                            <i class="far fa-eye fa-2x"></i>
-                        </a>
-                        <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech">
-                            <i class="far fa-trash-alt fa-2x"></i>
-                        </a>';
-                    return $html;
+
+                    // View order details
+                    $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="عرض تفاصيل الطلب">
+                        <i class="far fa-eye fa-2x"></i>
+                    </a>';
+
+                    // Show services - updated icon to fa-tools
+                    $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="عرض الخدمات">
+                        <i class="fas fa-tools fa-2x"></i>
+                    </a>';
+
+                    // Delete
+
+                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
+
+                        $html .= '<a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech" title="حذف الطلب">
+                        <i class="far fa-trash-alt fa-2x"></i>
+                    </a>';
+
+                        return $html;
+                    }
                 })
-                ->rawColumns(['booking_id', 'user', 'phone', 'service', 'quantity', 'cancelled_by', 'total', 'status', 'date', 'payment_method', 'region', 'control'])
+
+                ->rawColumns(['user', 'phone', 'service', 'quantity', 'total', 'status', 'date', 'payment_method', 'region', 'control'])
                 ->with([
                     'recordsTotal'    => $totalOrders,
                     'recordsFiltered' => $filteredOrders->count(),
@@ -778,10 +705,10 @@ class OrderController extends Controller
                 ->get();
 
             return DataTables::of($orders)
-                ->addColumn('booking_id', function ($row) {
-                    $booking = $row->bookings->first();
-                    return $booking ? $booking->id : '';
-                })
+            // ->addColumn('booking_id', function ($row) {
+            //     $booking = $row->bookings->first();
+            //     return $booking ? $booking->id : '';
+            // })
                 ->addColumn('user', function ($row) {
                     return $row->user?->first_name . ' ' . $row->user?->last_name;
                 })
@@ -830,37 +757,68 @@ class OrderController extends Controller
                     return Carbon::parse($row->created_at)
                         ->locale('ar')
                         ->timezone('Asia/Riyadh')
-                        ->format("Y-m-d - h:i A");
+                        ->format("Y-m-d");
                 })
                 ->addColumn('updated_at', function ($row) {
                     return Carbon::parse($row->updated_at)
                         ->locale('ar')
                         ->timezone('Asia/Riyadh')
-                        ->format("Y-m-d - h:i A");
+                        ->format("Y-m-d");
                 })
 
                 ->addColumn('control', function ($row) {
                     $html = '';
+
+                    // Confirm button
                     if ($row->status_id == 2) {
-                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                        <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
-                    </a>';
+                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '"
+                                    class="mr-2 btn btn-outline-success btn-sm"
+                                    title="تأكيد الطلب">
+                                    <i class="fas fa-check-circle fa-2x mx-1"></i>
+                                 </a>';
                     }
-                    $html .= '
-                    <a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                        <i class="far fa-eye fa-2x"></i>
-                    </a>
-                    <a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                        <i class="far fa-eye fa-2x"></i>
-                    </a>
-                    <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
-                        <i class="far fa-trash-alt fa-2x"></i>
-                    </a>
-                ';
+
+                    // View order details
+                    $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '"
+                                  class="mr-2 btn btn-outline-info btn-sm"
+                                  title="عرض تفاصيل الطلب">
+                                  <i class="far fa-eye fa-2x"></i>
+                              </a>';
+
+                    // Show services
+                    $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '"
+                                  class="mr-2 btn btn-outline-primary btn-sm"
+                                  title="عرض الخدمات">
+                                  <i class="fas fa-tools fa-2x"></i>
+                              </a>';
+
+                    // Delete button with permission check
+
+                    if ((Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') || Auth::user()->can('delete_orders')) {
+                        $html .= '<a data-table_id="html5-extension"
+                                      data-href="' . route('dashboard.orders.destroy', $row->id) . '"
+                                      data-id="' . $row->id . '"
+                                      class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech"
+                                      title="حذف الطلب">
+                                      <i class="far fa-trash-alt fa-2x"></i>
+                                  </a>';
+                    }
+
+                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
+                        $html .= '<a href="javascript:void(0);"
+                                   class="mr-2 btn btn-outline-danger btn-sm open-reschedule"
+                                   data-id="' . $row->id . '"
+                                   data-toggle="modal"
+                                   data-target="#rescheduleModal"
+                                   title="إعادة جدولة الطلب">
+                                    <i class="fas fa-calendar-alt fa-2x"></i>
+                                  </a>';
+                    }
+
                     return $html;
                 })
+
                 ->rawColumns([
-                    'booking_id',
                     'user',
                     'phone',
                     'service',

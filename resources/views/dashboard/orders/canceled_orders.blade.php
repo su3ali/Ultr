@@ -1,40 +1,40 @@
 @extends('dashboard.layout.layout')
 
 @section('sub-header')
-    <div class="sub-header-container">
-        <header class="header navbar navbar-expand-sm">
+<div class="sub-header-container">
+    <header class="header navbar navbar-expand-sm">
 
-            <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    class="feather feather-menu">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-            </a>
+        <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="feather feather-menu">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </a>
 
-            <ul class="navbar-nav flex-row">
-                <li>
-                    <div class="page-header">
+        <ul class="navbar-nav flex-row">
+            <li>
+                <div class="page-header">
 
-                        <nav class="breadcrumb-one" aria-label="breadcrumb">
-                            <ol class="breadcrumb mb-0 py-2">
-                                <li class="breadcrumb-item"><a
-                                        href="{{ route('dashboard.home') }}">{{ __('dash.home') }}</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">{{ __('dash.canceled_orders') }}</li>
-                            </ol>
-                        </nav>
+                    <nav class="breadcrumb-one" aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0 py-2">
+                            <li class="breadcrumb-item"><a href="{{ route('dashboard.home') }}">{{ __('dash.home')
+                                    }}</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">{{ __('dash.canceled_orders') }}</li>
+                        </ol>
+                    </nav>
 
-                    </div>
-                </li>
-            </ul>
+                </div>
+            </li>
+        </ul>
 
 
-        </header>
-    </div>
+    </header>
+</div>
 
-    {{--    @include('dashboard.orders.create') --}}
+{{-- @include('dashboard.orders.create') --}}
 @endsection
 
 <style>
@@ -52,46 +52,46 @@
 </style>
 
 @section('content')
-    <div class="layout-px-spacing">
+<div class="layout-px-spacing">
 
-        <div class="row layout-top-spacing">
+    <div class="row layout-top-spacing">
 
-            <div class="col-xl-12 col-lg-12 col-sm-12  layout-spacing">
-                <div class="widget-content widget-content-area br-6">
+        <div class="col-xl-12 col-lg-12 col-sm-12  layout-spacing">
+            <div class="widget-content widget-content-area br-6">
 
-                    <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>رقم الطلب</th>
-                                <th>رقم الحجز</th>
-                                <th>{{ __('dash.customer_name') }}</th>
-                                <th>{{ __('dash.phone') }}</th>
-                                <th>{{ __('dash.service') }}</th>
-                                <th>{{ __('dash.quantity') }}</th>
-                                <th>{{ __('dash.cancelled_by') }}</th>
-                                <th>{{ __('dash.price_value') }}</th>
-                                <th>{{ __('dash.status') }}</th>
-                                <th>{{ __('dash.zone') }}</th>
-                                <th>تاريخ إنشاء الطلب</th>
-                                <th>تاريخ إلغاء الطلب</th>
-                                <th class="no-content">{{ __('dash.actions') }}</th>
-                            </tr>
-                        </thead>
-                    </table>
+                <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>رقم الطلب</th>
+                            {{-- <th>رقم الحجز</th> --}}
+                            <th>{{ __('dash.customer_name') }}</th>
+                            <th>{{ __('dash.phone') }}</th>
+                            <th>{{ __('dash.service') }}</th>
+                            <th>{{ __('dash.quantity') }}</th>
+                            <th>{{ __('dash.cancelled_by') }}</th>
+                            <th>{{ __('dash.price_value') }}</th>
+                            <th>{{ __('dash.status') }}</th>
+                            <th>{{ __('dash.zone') }}</th>
+                            <th>تاريخ إنشاء الطلب</th>
+                            <th>تاريخ إلغاء الطلب</th>
+                            <th class="no-content">{{ __('dash.actions') }}</th>
+                        </tr>
+                    </thead>
+                </table>
 
 
-                </div>
             </div>
-
         </div>
 
     </div>
-    {{--    @include('dashboard.orders.edit') --}}
+
+</div>
+{{-- @include('dashboard.orders.edit') --}}
 @endsection
 
 @push('script')
-    <script type="text/javascript">
-        $(document).ready(function() {
+<script type="text/javascript">
+    $(document).ready(function() {
             var table = $('#html5-extension').DataTable({
                 dom: "<'dt--top-section d-flex justify-content-between align-items-center'<'col-sm-12 col-md-4 d-flex justify-content-start'l>" +
                     "<'col-sm-12 col-md-4 d-flex justify-content-center'B>" + // Buttons are centered
@@ -151,10 +151,10 @@
                         data: 'id',
                         name: 'id'
                     },
-                    {
-                        data: 'booking_id',
-                        name: 'booking_id'
-                    },
+                    // {
+                    //     data: 'booking_id',
+                    //     name: 'booking_id'
+                    // },
                     {
                         data: 'user',
                         name: 'user'
@@ -220,5 +220,5 @@
                 updateTableData();
             });
         });
-    </script>
+</script>
 @endpush

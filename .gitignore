@@ -3,7 +3,7 @@
 /node_modules
 
 # Laravel environment and config files
-.env
+# .env
 .phpunit.result.cache
 /docker-compose.override.yml
 /Homestead.json

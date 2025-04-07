@@ -234,222 +234,237 @@
 
 @push('script')
 <script type="text/javascript">
+    // ------------------[ BASE URL ]------------------
     const BASE_URL = @json(
-    config('app.env') === 'local' ? config('app.url_local') :
-    (config('app.env') === 'dev' ? config('app.url_dev') : config('app.url'))
-);
+        config('app.env') === 'local' ? config('app.url_local') :
+        (config('app.env') === 'dev' ? config('app.url_dev') : config('app.url'))
+    );
 
-let orderId = null;
-let selectedDay = null;
-let selectedTime = null;
-let selectedShiftId = null;
-let regionId = null;
-let serviceId = null;
-let amount = null;
-let loadingData = false;
-let pageNumber = 0;
+    // ------------------[ Audio Feedback ]------------------
+    const successSound = new Audio('/audio/success.mp3');
+    const errorSound = new Audio('/audio/error.mp3');
+    const warningSound = new Audio('/audio/warning.mp3');
 
-// Handle "Reschedule" button click
-$(document).on('click', '.open-reschedule', async function () {
-    orderId = $(this).data('id');
-    selectedDay = selectedTime = selectedShiftId = null;
-    await fetchOrderInfo(); // Get order info and region ID
-});
+    successSound.volume = 0.5;
+    errorSound.volume = 0.5;
+    warningSound.volume = 0.5;
 
-// Fetch order info
-async function fetchOrderInfo() {
-    try {
-        const res = await fetch(`${BASE_URL}/api/getOrderData/${orderId}`);
-        const data = await res.json();
+    // ------------------[ Variables ]------------------
+    let orderId = null;
+    let selectedDay = null;
+    let selectedTime = null;
+    let selectedShiftId = null;
+    let regionId = null;
+    let serviceId = null;
+    let amount = null;
+    let loadingData = false;
+    let pageNumber = 0;
 
-        if (data.status === 200) {
-            const order = data.body.order;
-            selectedDay = order.date;
-            selectedTime = order.time;
-            selectedShiftId = order.shift_id;
-            regionId = data.body.regionId;
-            serviceId = order.serviceId;
-            amount = order.amount;
-        } else {
-            alert(data.body?.message || 'تعذر تحميل بيانات الطلب.');
-        }
-    } catch (error) {
-        console.error(error);
-        alert("حدث خطأ أثناء تحميل بيانات الموعد.");
-    }
-}
-
-// Fetch available times
-async function fetchAvailableTimes() {
-    if (loadingData) return;
-    loadingData = true;
-    $('#loadingSpinner').removeClass('d-none');
-
-    try {
-        const params = new URLSearchParams({
-            date: selectedDay || new Date().toISOString().split('T')[0],
-            'services[0][id]': serviceId ?? '',
-            'services[0][amount]': amount ?? 1,
-            region_id: regionId ?? '',
-            page_number: pageNumber,
-            package_id: 0
-        });
-
-        const response = await fetch(`${BASE_URL}/api/get_avail_times_from_date?${params.toString()}`);
-        const data = await response.json();
-
-        if (data?.body?.times?.available_days) {
-            populateTimeButtons(data.body.times.available_days);
-            pageNumber++;
-        }
-    } catch (error) {
-        console.error('Error fetching times:', error);
-        alert('فشل تحميل المواعيد المتاحة.');
-    } finally {
-        $('#loadingSpinner').addClass('d-none');
-        loadingData = false;
-    }
-}
-
-// Populate time buttons
-function populateTimeButtons(days) {
-    const container = $("#timeButtonsContainer").empty();
-
-    days.forEach(day => {
-        container.append(`<h6 class="fw-bold m-3">${day.dayName} (${day.day})</h6>`);
-
-        if (day.times.length === 0) {
-            container.append('<p class="text-danger text-center fw-bold">لا يوجد مواعيد</p>');
-        } else {
-            day.times.forEach(t => {
-                const btn = `<button class="btn btn-outline-primary btn-lg m-1"
-                    data-day="${day.day}" data-time="${t.time}" data-shift-id="${t.shift_id}">
-                    ${t.time}
-                </button>`;
-                container.append(btn);
-            });
-        }
-    });
-
-    // Click handler
-    $("#timeButtonsContainer button").click(function () {
-        $("#timeButtonsContainer button").removeClass('btn-primary').addClass('btn-outline-primary');
-        $(this).removeClass('btn-outline-primary').addClass('btn-primary');
-        selectedDay = $(this).data('day');
-        selectedTime = $(this).data('time');
-        selectedShiftId = $(this).data('shift-id');
-    });
-}
-
-// Submit updated schedule
-async function updateOrder() {
-    if (!orderId || !selectedDay || !selectedTime || !selectedShiftId) {
-        alert("يرجى اختيار موعد صحيح!");
-        return;
-    }
-
-    try {
-        const res = await fetch(`${BASE_URL}/api/changeOrderSchedule`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                order_id: orderId,
-                date: selectedDay,
-                time: selectedTime,
-                shift_id: selectedShiftId
-            })
-        });
-
-        const result = await res.json();
-        debugger;
-        if (res.ok) {
-            alert('تم تحديث الموعد بنجاح!');
-        } else {
-            alert(result.body?.message || 'فشل تحديث الموعد.');
-        }
-    } catch (error) {
-        console.error(error);
-        alert("حدث خطأ أثناء تحديث الموعد.");
-    }
-}
-
-// Handle option switch (same/new)
-$('input[name="timeChoice"]').change(async function () {
-    const choice = $(this).val();
-
-    if (choice === 'new') {
-        $('#newTimeContainer').removeClass('d-none');
-        await fetchAvailableTimes();
-    } else {
-        $('#newTimeContainer').addClass('d-none');
+    // ------------------[ Handle Reschedule Click ]------------------
+    $(document).on('click', '.open-reschedule', async function () {
+        orderId = $(this).data('id');
+        selectedDay = selectedTime = selectedShiftId = null;
         await fetchOrderInfo();
+    });
+
+    // ------------------[ Fetch Order Info ]------------------
+    async function fetchOrderInfo() {
+        try {
+            const res = await fetch(`${BASE_URL}/api/getOrderData/${orderId}`);
+            const data = await res.json();
+
+            if (data.status === 200) {
+                const order = data.body.order;
+                selectedDay = order.date;
+                selectedTime = order.time;
+                selectedShiftId = order.shift_id;
+                regionId = data.body.regionId;
+                serviceId = order.serviceId;
+                amount = order.amount;
+            } else {
+                toastr.error(data.body?.message || 'تعذر تحميل بيانات الطلب.');
+                errorSound.play();
+            }
+        } catch (error) {
+            console.error(error);
+            toastr.error("حدث خطأ أثناء تحميل بيانات الموعد.");
+            errorSound.play();
+        }
     }
-});
 
-// Confirm button
-$('#confirmButton').click(async function () {
-    const selectedChoice = $('input[name="timeChoice"]:checked').val();
+    // ------------------[ Fetch Available Times ]------------------
+    async function fetchAvailableTimes() {
+        if (loadingData) return;
+        loadingData = true;
+        $('#loadingSpinner').removeClass('d-none');
 
-    if (selectedChoice === 'new') {
-        if (!selectedDay || !selectedTime || !selectedShiftId) {
-            alert("يرجى اختيار وقت جديد.");
+        try {
+            const params = new URLSearchParams({
+                date: selectedDay || new Date().toISOString().split('T')[0],
+                'services[0][id]': serviceId ?? '',
+                'services[0][amount]': amount ?? 1,
+                region_id: regionId ?? '',
+                page_number: pageNumber,
+                package_id: 0
+            });
+
+            const response = await fetch(`${BASE_URL}/api/get_avail_times_from_date?${params.toString()}`);
+            const data = await response.json();
+
+            if (data?.body?.times?.available_days) {
+                populateTimeButtons(data.body.times.available_days);
+                pageNumber++;
+            }
+        } catch (error) {
+            console.error('Error fetching times:', error);
+            toastr.error('فشل تحميل المواعيد المتاحة.');
+            errorSound.play();
+        } finally {
+            $('#loadingSpinner').addClass('d-none');
+            loadingData = false;
+        }
+    }
+
+    // ------------------[ Populate Time Buttons ]------------------
+    function populateTimeButtons(days) {
+        const container = $("#timeButtonsContainer").empty();
+
+        days.forEach(day => {
+            container.append(`<h6 class="fw-bold m-3">${day.dayName} (${day.day})</h6>`);
+
+            if (day.times.length === 0) {
+                container.append('<p class="text-danger text-center fw-bold">لا يوجد مواعيد</p>');
+            } else {
+                day.times.forEach(t => {
+                    const btn = `<button class="btn btn-outline-primary btn-lg m-1"
+                        data-day="${day.day}" data-time="${t.time}" data-shift-id="${t.shift_id}">
+                        ${t.time}
+                    </button>`;
+                    container.append(btn);
+                });
+            }
+        });
+
+        $("#timeButtonsContainer button").click(function () {
+            $("#timeButtonsContainer button").removeClass('btn-primary').addClass('btn-outline-primary');
+            $(this).removeClass('btn-outline-primary').addClass('btn-primary');
+            selectedDay = $(this).data('day');
+            selectedTime = $(this).data('time');
+            selectedShiftId = $(this).data('shift-id');
+        });
+    }
+
+    // ------------------[ Update Order Schedule ]------------------
+    async function updateOrder() {
+        if (!orderId || !selectedDay || !selectedTime || !selectedShiftId) {
+            toastr.warning("يرجى اختيار موعد صحيح!");
+            warningSound.play();
             return;
         }
+
+        try {
+            const res = await fetch(`${BASE_URL}/api/changeOrderSchedule`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    date: selectedDay,
+                    time: selectedTime,
+                    shift_id: selectedShiftId
+                })
+            });
+
+            const result = await res.json();
+
+            if (res.ok && result.status) {
+                toastr.success('تم تحديث الموعد بنجاح!');
+                successSound.play();
+            } else {
+                toastr.error(result.message || 'فشل تحديث الموعد.');
+                errorSound.play();
+            }
+
+        } catch (error) {
+            console.error(error);
+            toastr.error("حدث خطأ أثناء تحديث الموعد.");
+            errorSound.play();
+        }
     }
 
-    await updateOrder();
-    $('#rescheduleModal').modal('hide');
-});
-
-// Initialize DataTable
-$(document).ready(function () {
-    const table = $('#html5-extension').DataTable({
-        dom: "<'row'<'col-md-6'B><'col-md-6'f>>" +
-            "<'table-responsive'tr>" +
-            "<'row'<'col-md-6'i><'col-md-6'p>>",
-        order: [[0, 'desc']],
-        processing: true,
-        serverSide: false,
-        ajax: '{{ route('dashboard.order.ordersToday') }}',
-        columns: [
-            { data: 'id' }, { data: 'booking_id' }, { data: 'user' },
-            { data: 'phone' }, { data: 'service' }, { data: 'quantity' },
-            { data: 'total' }, { data: 'payment_method' }, { data: 'region' },
-            { data: 'status' }, { data: 'created_at' },
-            { data: 'control', orderable: false, searchable: false }
-        ],
-        buttons: [
-            { extend: 'copy', className: 'btn btn-sm', text: 'نسخ' },
-            { extend: 'csv', className: 'btn btn-sm', text: 'CSV' },
-            { extend: 'excel', className: 'btn btn-sm', text: 'Excel' },
-            { extend: 'print', className: 'btn btn-sm', text: 'طباعة' }
-        ],
-        language: {
-            url: "{{ app()->getLocale() === 'ar' 
-                ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' 
-                : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
+    // ------------------[ Time Choice Toggle ]------------------
+    $('input[name="timeChoice"]').change(async function () {
+        const choice = $(this).val();
+        if (choice === 'new') {
+            $('#newTimeContainer').removeClass('d-none');
+            await fetchAvailableTimes();
+        } else {
+            $('#newTimeContainer').addClass('d-none');
+            await fetchOrderInfo();
         }
     });
 
-    $('.status_filter').change(function () {
-        let url = '{{ route('dashboard.order.ordersToday') }}';
-        const status = $(this).val();
-        if (status && status !== 'all') url += '?status=' + status;
-        table.ajax.url(url).load();
+    // ------------------[ Confirm Button Handler ]------------------
+    $('#confirmButton').click(async function () {
+        const selectedChoice = $('input[name="timeChoice"]:checked').val();
+        if (selectedChoice === 'new' && (!selectedDay || !selectedTime || !selectedShiftId)) {
+            toastr.warning("يرجى اختيار وقت جديد.");
+            warningSound.play();
+            return;
+        }
+
+        await updateOrder();
+        $('#rescheduleModal').modal('hide');
     });
 
-    $('body').on('change', '#customSwitchtech', function () {
-        const id = $(this).data('id');
-        const active = $(this).is(':checked');
-        $.get('{{ route('dashboard.core.technician.change_status') }}', { id, active }, function () {
-            swal({
-                title: "{{ __('dash.successful_operation') }}",
-                text: "{{ __('dash.request_executed_successfully') }}",
-                type: 'success',
-                padding: '2em'
+    // ------------------[ DataTable Init ]------------------
+    $(document).ready(function () {
+        const table = $('#html5-extension').DataTable({
+            dom: "<'row'<'col-md-6'B><'col-md-6'f>>" +
+                "<'table-responsive'tr>" +
+                "<'row'<'col-md-6'i><'col-md-6'p>>",
+            order: [[0, 'desc']],
+            processing: true,
+            serverSide: false,
+            ajax: '{{ route('dashboard.order.ordersToday') }}',
+            columns: [
+                { data: 'id' }, { data: 'booking_id' }, { data: 'user' },
+                { data: 'phone' }, { data: 'service' }, { data: 'quantity' },
+                { data: 'total' }, { data: 'payment_method' }, { data: 'region' },
+                { data: 'status' }, { data: 'created_at' },
+                { data: 'control', orderable: false, searchable: false }
+            ],
+            buttons: [
+                { extend: 'copy', className: 'btn btn-sm', text: 'نسخ' },
+                { extend: 'csv', className: 'btn btn-sm', text: 'CSV' },
+                { extend: 'excel', className: 'btn btn-sm', text: 'Excel' },
+                { extend: 'print', className: 'btn btn-sm', text: 'طباعة' }
+            ],
+            language: {
+                url: "{{ app()->getLocale() === 'ar' 
+                    ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' 
+                    : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
+            }
+        });
+
+        $('.status_filter').change(function () {
+            let url = '{{ route('dashboard.order.ordersToday') }}';
+            const status = $(this).val();
+            if (status && status !== 'all') url += '?status=' + status;
+            table.ajax.url(url).load();
+        });
+
+        $('body').on('change', '#customSwitchtech', function () {
+            const id = $(this).data('id');
+            const active = $(this).is(':checked');
+            $.get('{{ route('dashboard.core.technician.change_status') }}', { id, active }, function () {
+                swal({
+                    title: "{{ __('dash.successful_operation') }}",
+                    text: "{{ __('dash.request_executed_successfully') }}",
+                    type: 'success',
+                    padding: '2em'
+                });
             });
         });
     });
-});
 </script>
 @endpush

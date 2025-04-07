@@ -577,6 +577,22 @@ class CartController extends Controller
                 return self::apiResponse(400, 'رقم الشيفت غير موجود');
             }
 
+            $date    = $request->date;
+            $rawTime = $request->time;
+
+            try {
+                $bookingDateTime = Carbon::createFromFormat('Y-m-d h:i A', $date . ' ' . $rawTime, 'Asia/Riyadh');
+
+                if ($bookingDateTime->isPast()) {
+                    return self::apiResponse(422, 'الوقت المحدد قد مضى. يرجى اختيار وقت آخر والمحاولة مرة أخرى.');
+                }
+
+                $time = $bookingDateTime->format('H:i:s');
+
+            } catch (\Exception $e) {
+                return self::apiResponse(400, 'تنسيق الوقت غير صحيح. يرجى استخدام تنسيق مثل 02:30 PM');
+            }
+
             $newDate = $request->date;
             $newTime = Carbon::parse($request->time)->format('H:i:s');
 
@@ -706,7 +722,8 @@ class CartController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Exception: ' . $e->getMessage()], 500);
+            return self::apiResponse(500, 'حدث خطأ أثناء معالجة الطلب: ' . $e->getMessage());
+
         }
     }
 

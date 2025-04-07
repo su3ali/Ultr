@@ -192,23 +192,23 @@ class OrdersController extends Controller
             ]);
         }
 
-        try {
-            $time = is_numeric($booking->time) ? date('H:i', $booking->time) : $booking->time;
+        // try {
+        //     $time = is_numeric($booking->time) ? date('H:i', $booking->time) : $booking->time;
 
-            $bookingDateTime = \Carbon\Carbon::parse($booking->date . ' ' . $time, 'Asia/Riyadh');
+        //     $bookingDateTime = \Carbon\Carbon::parse($booking->date . ' ' . $time, 'Asia/Riyadh');
 
-            if ($bookingDateTime->isPast()) {
-                return response()->json([
-                    'status' => 422,
-                    'body'   => ['message' => 'الوقت المحدد قد مضى. يرجى اختيار وقت آخر والمحاولة مرة أخرى.'],
-                ]);
-            }
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 500,
-                'body'   => ['message' => 'خطأ أثناء التحقق من الوقت.'],
-            ]);
-        }
+        //     if ($bookingDateTime->isPast()) {
+        //         return response()->json([
+        //             'status' => 422,
+        //             'body'   => ['message' => 'الوقت المحدد قد مضى. يرجى اختيار وقت آخر والمحاولة مرة أخرى.'],
+        //         ]);
+        //     }
+        // } catch (\Exception $e) {
+        //     return response()->json([
+        //         'status' => 500,
+        //         'body'   => ['message' => 'خطأ أثناء التحقق من الوقت.'],
+        //     ]);
+        // }
 
         $formattedTime = is_numeric($booking->time)
         ? date('h:i A', $booking->time)
@@ -228,12 +228,12 @@ class OrdersController extends Controller
             'status' => 200,
             'body'   => [
                 'order'    => [
-                    'id'             => $order->id,
-                    'date'           => $booking->date,
-                    'time'           => $formattedTime,
-                    'serviceId'      => $booking->service_id,
-                    'amount'         => $booking->quantity,
-                    'shift_id'       => $firstShift->id ?? null,
+                    'id'        => $order->id,
+                    'date'      => $booking->date,
+                    'time'      => $formattedTime,
+                    'serviceId' => $booking->service_id,
+                    'amount'    => $booking->quantity,
+                    'shift_id'  => $firstShift->id ?? null,
                     // 'shiftGroupsIds' => $shiftGroupsIds ?? null,
                 ],
                 'regionId' => $regionId,
