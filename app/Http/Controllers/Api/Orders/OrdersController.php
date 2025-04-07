@@ -188,7 +188,7 @@ class OrdersController extends Controller
         if (! $booking || ! $booking->date || ! $booking->time) {
             return response()->json([
                 'status' => 422,
-                'body'   => ['message' => 'Booking date or time not found.'],
+                'body'   => ['message' => __('dash.booking_not_found')],
             ]);
         }
 

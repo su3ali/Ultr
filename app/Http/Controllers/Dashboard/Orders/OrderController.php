@@ -119,14 +119,15 @@ class OrderController extends Controller
                     // Confirm order button
                     if ($row->status_id == 2) {
                         $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '"
-                                    class="mr-2 btn btn-outline-primary btn-sm" title="تأكيد الطلب">
-                                    <i class="far fa-thumbs-up fa-2x mx-1"></i>
+                                    class="btn btn-outline-primary btn-sm mr-2"
+                                    title="تأكيد الطلب">
+                                    <i class="far fa-thumbs-up fa-2x"></i>
                                   </a>';
                     }
 
-                    // Show bookings modal button
-                    $html .= '<button type="button" id="show-bookings"
-                                    class="btn btn-sm btn-outline-primary mr-2"
+                    // Show bookings modal
+                    $html .= '<button type="button"
+                                    class="btn btn-outline-primary btn-sm mr-2"
                                     data-id="' . $row->id . '"
                                     data-toggle="modal"
                                     data-target="#changeGroupModel"
@@ -134,41 +135,45 @@ class OrderController extends Controller
                                     <i class="fas fa-clock fa-2x"></i>
                               </button>';
 
-                    // View order details
+                    // Order details
                     $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '"
-                                  class="mr-2 btn btn-outline-primary btn-sm"
-                                  title="عرض تفاصيل الطلب">
-                                  <i class="far fa-eye fa-2x"></i>
+                                class="btn btn-outline-primary btn-sm mr-2"
+                                title="عرض تفاصيل الطلب">
+                                <i class="far fa-eye fa-2x"></i>
                               </a>';
 
-                    // Show service with better icon
+                    // Service details
                     $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '"
-                                  class="mr-2 btn btn-outline-info btn-sm"
-                                  title="عرض الخدمات">
-                                  <i class="fas fa-tools fa-2x"></i>
+                                class="btn btn-outline-info btn-sm mr-2"
+                                title="عرض الخدمات">
+                                <i class="fas fa-tools fa-2x"></i>
                               </a>';
 
-                    // Delete button (super admin only)
-                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
-                        $html .= '<a data-table_id="html5-extension"
-                                      data-href="' . route('dashboard.orders.destroy', $row->id) . '"
-                                      data-id="' . $row->id . '"
-                                      class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech"
-                                      title="حذف الطلب">
-                                      <i class="far fa-trash-alt fa-2x"></i>
+                    // Delete (Super Admin only)
+                    if (auth()->user()->id == 1 && auth()->user()->first_name == 'Super Admin') {
+                        $html .= '<a href="javascript:void(0);"
+                                    data-table_id="html5-extension"
+                                    data-href="' . route('dashboard.orders.destroy', $row->id) . '"
+                                    data-id="' . $row->id . '"
+                                    class="btn btn-outline-danger btn-sm mr-2 btn-delete delete_tech"
+                                    title="حذف الطلب">
+                                    <i class="far fa-trash-alt fa-2x"></i>
                                   </a>';
                     }
 
-                    // Reschedule button (super admin only)
-                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
+                    // Reschedule (Super Admin or permission)
+                    if (
+                        (auth()->user()->id == 1 && auth()->user()->first_name == 'Super Admin') ||
+                        auth()->user()->can('delete_orders')
+                    ) {
                         $html .= '<a href="javascript:void(0);"
-                                     class="mr-2 btn btn-outline-warning btn-sm open-reschedule"
-                                     data-id="' . $row->id . '"
-                                     data-toggle="modal"
-                                     data-target="#rescheduleModal"
-                                     title="إعادة جدولة الطلب">
-                                     <i class="fas fa-calendar-alt fa-2x"></i>
-                                 </a>';
+                                    class="btn btn-outline-warning btn-sm mr-2 open-reschedule"
+                                    data-id="' . $row->id . '"
+                                    data-toggle="modal"
+                                    data-target="#rescheduleModal"
+                                    title="إعادة جدولة الطلب">
+                                    <i class="fas fa-calendar-alt fa-2x"></i>
+                                  </a>';
                     }
 
                     return $html;
@@ -278,42 +283,62 @@ class OrderController extends Controller
                 ->addColumn('control', function ($row) {
                     $html = '';
 
-                    // Check if the order status is 2 (pending, for example)
+                    // Confirm order button
                     if ($row->status_id == 2) {
-                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                                    <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
-                                </a>';
+                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '"
+                                    class="btn btn-outline-primary btn-sm mr-2"
+                                    title="تأكيد الطلب">
+                                    <i class="far fa-thumbs-up fa-2x"></i>
+                                  </a>';
                     }
 
-                    // Show "show bookings" button
-                    $html .= '<button type="button" id="show-bookings" class="btn btn-sm btn-outline-primary" data-id="' . $row->id . '" data-toggle="modal" data-target="#changeGroupModel">
-                                <i class="far fa-eye fa-2x"></i>
+                    // Show bookings modal
+                    $html .= '<button type="button"
+                                    class="btn btn-outline-primary btn-sm mr-2"
+                                    data-id="' . $row->id . '"
+                                    data-toggle="modal"
+                                    data-target="#changeGroupModel"
+                                    title="عرض مواعيد الحجز">
+                                    <i class="fas fa-clock fa-2x"></i>
                               </button>';
 
-                    // Link to order details page
-                    $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                    // Order details
+                    $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '"
+                                class="btn btn-outline-primary btn-sm mr-2"
+                                title="عرض تفاصيل الطلب">
                                 <i class="far fa-eye fa-2x"></i>
                               </a>';
 
-                    // Link to service details page
-                    $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                                <i class="far fa-eye fa-2x"></i>
+                    // Service details
+                    $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '"
+                                class="btn btn-outline-info btn-sm mr-2"
+                                title="عرض الخدمات">
+                                <i class="fas fa-tools fa-2x"></i>
                               </a>';
 
-                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
-                        // Show delete button only if user has permission
-                        $html .= '<a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
+                    // Delete (Super Admin only)
+                    if (auth()->user()->id == 1 && auth()->user()->first_name == 'Super Admin') {
+                        $html .= '<a href="javascript:void(0);"
+                                    data-table_id="html5-extension"
+                                    data-href="' . route('dashboard.orders.destroy', $row->id) . '"
+                                    data-id="' . $row->id . '"
+                                    class="btn btn-outline-danger btn-sm mr-2 btn-delete delete_tech"
+                                    title="حذف الطلب">
                                     <i class="far fa-trash-alt fa-2x"></i>
                                   </a>';
                     }
 
-                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
+                    // Reschedule (Super Admin or permission)
+                    if (
+                        (auth()->user()->id == 1 && auth()->user()->first_name == 'Super Admin') ||
+                        auth()->user()->can('delete_orders')
+                    ) {
                         $html .= '<a href="javascript:void(0);"
-                                   class="mr-2 btn btn-outline-danger btn-sm open-reschedule"
-                                   data-id="' . $row->id . '"
-                                   data-toggle="modal"
-                                   data-target="#rescheduleModal"
-                                   title="إعادة جدولة الطلب">
+                                    class="btn btn-outline-warning btn-sm mr-2 open-reschedule"
+                                    data-id="' . $row->id . '"
+                                    data-toggle="modal"
+                                    data-target="#rescheduleModal"
+                                    title="إعادة جدولة الطلب">
                                     <i class="fas fa-calendar-alt fa-2x"></i>
                                   </a>';
                     }
@@ -385,10 +410,10 @@ class OrderController extends Controller
                 ->get();
 
             return DataTables::of($orders)
-                ->addColumn('booking_id', function ($row) {
-                    $booking = $row->bookings->first();
-                    return $booking ? $booking->id : '';
-                })
+            // ->addColumn('booking_id', function ($row) {
+            //     $booking = $row->bookings->first();
+            //     return $booking ? $booking->id : '';
+            // })
                 ->addColumn('user', function ($row) {
                     return $row->user?->first_name . ' ' . $row->user?->last_name;
                 })
@@ -452,30 +477,58 @@ class OrderController extends Controller
                     return $date->format("Y-m-d");
                 })
                 ->addColumn('control', function ($row) {
-
                     $html = '';
-                    if ($row->status_id == 2) {
-                        $html .= '<a href="' . route('dashboard.order.confirmOrder', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                            <i class="far fa-thumbs-up fa-2x mx-1"></i> تأكيد
-                        </a>';
-                    }
-                    $html .= '
-                    <a href="' . route('dashboard.order.orderDetail', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                            <i class="far fa-eye fa-2x"></i>
-                        </a>
 
-                        <a href="' . route('dashboard.order.showService', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                            <i class="far fa-eye fa-2x"></i>
-                        </a>
-                                <a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
-                            <i class="far fa-trash-alt fa-2x"></i>
-                    </a>
-                                ';
+                    // Confirm button
+                    if ($row->status_id == 2) {
+                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '"
+                                    class="mr-2 btn btn-outline-success btn-sm"
+                                    title="تأكيد الطلب">
+                                    <i class="fas fa-check-circle fa-2x mx-1"></i>
+                                 </a>';
+                    }
+
+                    // View order details
+                    $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '"
+                                  class="mr-2 btn btn-outline-info btn-sm"
+                                  title="عرض تفاصيل الطلب">
+                                  <i class="far fa-eye fa-2x"></i>
+                              </a>';
+
+                    // Show services
+                    $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '"
+                                  class="mr-2 btn btn-outline-primary btn-sm"
+                                  title="عرض الخدمات">
+                                  <i class="fas fa-tools fa-2x"></i>
+                              </a>';
+
+                    // Delete button with permission check
+
+                    if ((Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') || Auth::user()->can('delete_orders')) {
+                        $html .= '<a data-table_id="html5-extension"
+                                      data-href="' . route('dashboard.orders.destroy', $row->id) . '"
+                                      data-id="' . $row->id . '"
+                                      class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech"
+                                      title="حذف الطلب">
+                                      <i class="far fa-trash-alt fa-2x"></i>
+                                  </a>';
+                    }
+
+                    // if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
+                    //     $html .= '<a href="javascript:void(0);"
+                    //                class="mr-2 btn btn-outline-danger btn-sm open-reschedule"
+                    //                data-id="' . $row->id . '"
+                    //                data-toggle="modal"
+                    //                data-target="#rescheduleModal"
+                    //                title="إعادة جدولة الطلب">
+                    //                 <i class="fas fa-calendar-alt fa-2x"></i>
+                    //               </a>';
+                    // }
 
                     return $html;
                 })
                 ->rawColumns([
-                    'booking_id',
+
                     'user',
                     'phone',
                     'service',
@@ -673,9 +726,8 @@ class OrderController extends Controller
     {
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
-                                                 // Get pagination data sent by DataTables
-        $start  = $request->input('start', 0);   // Start index
-        $length = $request->input('length', 10); // Page size
+        $start  = $request->input('start', 0);   // default 0
+        $length = $request->input('length', 10); // default 10
 
         // Start building the query
         $ordersQuery = Order::query()
@@ -804,16 +856,16 @@ class OrderController extends Controller
                                   </a>';
                     }
 
-                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
-                        $html .= '<a href="javascript:void(0);"
-                                   class="mr-2 btn btn-outline-danger btn-sm open-reschedule"
-                                   data-id="' . $row->id . '"
-                                   data-toggle="modal"
-                                   data-target="#rescheduleModal"
-                                   title="إعادة جدولة الطلب">
-                                    <i class="fas fa-calendar-alt fa-2x"></i>
-                                  </a>';
-                    }
+                    // if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
+                    //     $html .= '<a href="javascript:void(0);"
+                    //                class="mr-2 btn btn-outline-danger btn-sm open-reschedule"
+                    //                data-id="' . $row->id . '"
+                    //                data-toggle="modal"
+                    //                data-target="#rescheduleModal"
+                    //                title="إعادة جدولة الطلب">
+                    //                 <i class="fas fa-calendar-alt fa-2x"></i>
+                    //               </a>';
+                    // }
 
                     return $html;
                 })
@@ -834,6 +886,7 @@ class OrderController extends Controller
                 ->with([
                     'recordsTotal'    => $totalOrders, // Total records count (without filtering)
                     'recordsFiltered' => $totalOrders, // Filtered count (same here, as no additional filters applied)
+
                 ])
                 ->make(true);
         }

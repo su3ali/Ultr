@@ -370,6 +370,13 @@
 
             table.ajax.url(url).load();
         }
+
+        $('#rescheduleModal').on('hidden.bs.modal', function () {
+    $('#timeButtonsContainer').empty();
+    $('#newTimeContainer').addClass('d-none');
+    $('input[name="timeChoice"][value="same"]').prop('checked', true);
+});
+
     });
 
     // ------------------[ Fetch Order Info ]------------------
@@ -501,6 +508,12 @@
         orderId = $(this).data('id');
         selectedDay = selectedTime = selectedShiftId = null;
         await fetchOrderInfo();
+        // If "new time" option is selected, fetch times immediately
+    if ($('#chooseNewTime').is(':checked')) {
+        $('#newTimeContainer').removeClass('d-none');
+        pageNumber = 0;
+        await fetchAvailableTimes();
+    }
     });
 
     $('input[name="timeChoice"]').change(async function () {

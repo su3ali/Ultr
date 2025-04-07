@@ -60,5 +60,6 @@ return [
     'payment_method_wallet'                                                           => '<i class="fas fa-wallet text-primary" title="Wallet Payment (e.g., Digital Wallet)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> Wallet',
     'payment_method_visa'                                                             => '<i class="fas fa-credit-card text-warning" title="Credit Card Payment (Visa, MasterCard, etc.)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> Visa',
     'payment_method_cach'                                                             => '<i class="fas fa-money-bill-wave text-success" title="Cash Payment (Cash or Physical Money)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> Cash',
+    'booking_not_found'                                                               => 'Sorry, booking not found.',
 
 ];

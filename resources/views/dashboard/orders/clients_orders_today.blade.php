@@ -262,10 +262,19 @@
 
     // ------------------[ Handle Reschedule Click ]------------------
     $(document).on('click', '.open-reschedule', async function () {
-        orderId = $(this).data('id');
-        selectedDay = selectedTime = selectedShiftId = null;
-        await fetchOrderInfo();
+    orderId = $(this).data('id');
+    selectedDay = selectedTime = selectedShiftId = null;
+
+    await fetchOrderInfo();
+
+    // If "new time" option is selected, fetch times immediately
+    if ($('#chooseNewTime').is(':checked')) {
+        $('#newTimeContainer').removeClass('d-none');
+        pageNumber = 0;
+        await fetchAvailableTimes();
+    }
     });
+
 
     // ------------------[ Fetch Order Info ]------------------
     async function fetchOrderInfo() {
@@ -405,16 +414,23 @@
 
     // ------------------[ Confirm Button Handler ]------------------
     $('#confirmButton').click(async function () {
-        const selectedChoice = $('input[name="timeChoice"]:checked').val();
-        if (selectedChoice === 'new' && (!selectedDay || !selectedTime || !selectedShiftId)) {
-            toastr.warning("يرجى اختيار وقت جديد.");
-            warningSound.play();
-            return;
-        }
+    const selectedChoice = $('input[name="timeChoice"]:checked').val();
 
-        await updateOrder();
-        $('#rescheduleModal').modal('hide');
+    if (selectedChoice === 'new' && (!selectedDay || !selectedTime || !selectedShiftId)) {
+        toastr.warning("يرجى اختيار وقت جديد.");
+        warningSound.play();
+        return;
+    }
+
+    await updateOrder();
+
+    $('#rescheduleModal').modal('hide');
+
+    // Refresh available times when the modal is reopened
+    // (reset pageNumber to start from fresh)
+    pageNumber = 0;
     });
+
 
     // ------------------[ DataTable Init ]------------------
     $(document).ready(function () {
@@ -465,6 +481,13 @@
                 });
             });
         });
+
+        //  Reset reschedule modal on close
+    $('#rescheduleModal').on('hidden.bs.modal', function () {
+        $('#timeButtonsContainer').empty();
+        $('#newTimeContainer').addClass('d-none');
+        $('input[name="timeChoice"][value="same"]').prop('checked', true);
+    });
     });
 </script>
 @endpush

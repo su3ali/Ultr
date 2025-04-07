@@ -91,134 +91,94 @@
 
 @push('script')
 <script type="text/javascript">
-    $(document).ready(function() {
-            var table = $('#html5-extension').DataTable({
-                dom: "<'dt--top-section d-flex justify-content-between align-items-center'<'col-sm-12 col-md-4 d-flex justify-content-start'l>" +
-                    "<'col-sm-12 col-md-4 d-flex justify-content-center'B>" + // Buttons are centered
-                    "<'col-sm-12 col-md-4 d-flex justify-content-end'f>>" + // Search input on the right
-                    "<'table-responsive'tr>" + // Table rows
-                    "<'dt--bottom-section d-flex justify-content-between'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'p>>" +
-                    // Pagination at the bottom
-                    "<'dt--pages-count text-center mt-2'i>", // Entry count in the center
+    const canceledOrdersUrl = '{{ route('dashboard.order.canceledOrders') }}';
+    const langUrl = "{{ app()->getLocale() == 'ar' 
+        ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' 
+        : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}";
 
-
-                order: [
-                    [0, 'desc']
-                ],
-                pageLength: 10,
-                lengthMenu: [
-                    [10, 30, 100, 200],
-                    [10, 30, 100, 200]
-                ],
-                language: {
-                    "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
+    $(document).ready(function () {
+        const table = $('#html5-extension').DataTable({
+            dom: `
+                <'dt--top-section d-flex justify-content-between align-items-center'
+                    <'col-sm-12 col-md-4 d-flex justify-content-start'l>
+                    <'col-sm-12 col-md-4 d-flex justify-content-center'B>
+                    <'col-sm-12 col-md-4 d-flex justify-content-end'f>
+                >
+                <'table-responsive'tr>
+                <'dt--bottom-section d-flex justify-content-between'
+                    <'col-sm-12 col-md-6'l>
+                    <'col-sm-12 col-md-6'p>
+                >
+                <'dt--pages-count text-center mt-2'i>
+            `,
+            language: {
+                url: langUrl
+            },
+            buttons: [
+                {
+                    extend: 'copy',
+                    className: 'btn btn-sm',
+                    text: '<i class="fas fa-copy"></i> نسخ'
                 },
-                buttons: [{
-                        extend: 'copy',
-                        className: 'btn btn-sm',
-                        text: '<i class="fas fa-copy"></i> نسخ'
-                    },
-                    {
-                        extend: 'csv',
-                        className: 'btn btn-sm',
-                        text: '<i class="fas fa-file-csv"></i> تصدير إلى CSV'
-                    },
-                    {
-                        extend: 'excel',
-                        className: 'btn btn-sm',
-                        text: '<i class="fas fa-file-excel"></i> تصدير إلى Excel'
-                    },
-                    {
-                        extend: 'print',
-                        className: 'btn btn-sm',
-                        text: '<i class="fas fa-print"></i> طباعة'
-                    }
-                ],
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route('dashboard.order.canceledOrders') }}',
-                    data: function(d) {
-                        d.start = d.start || 0;
-                        d.length = d.length || 10;
-                        var status_filter = $('.status_filter').val();
-                        if (status_filter && status_filter !== 'all') {
-                            d.status = status_filter;
-                        }
-                    }
+                {
+                    extend: 'csv',
+                    className: 'btn btn-sm',
+                    text: '<i class="fas fa-file-csv"></i> تصدير إلى CSV'
                 },
-                columns: [{
-                        data: 'id',
-                        name: 'id'
-                    },
-                    // {
-                    //     data: 'booking_id',
-                    //     name: 'booking_id'
-                    // },
-                    {
-                        data: 'user',
-                        name: 'user'
-                    },
-                    {
-                        data: 'phone',
-                        name: 'phone'
-                    },
-                    {
-                        data: 'service',
-                        name: 'service'
-                    },
-                    {
-                        data: 'quantity',
-                        name: 'quantity'
-                    },
-
-                    {
-                        data: 'cancelled_by',
-                        name: 'cancelled_by'
-                    },
-
-                    {
-                        data: 'total',
-                        name: 'total'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status'
-                    },
-                    {
-                        data: 'region',
-                        name: 'region'
-                    },
-
-                    {
-                        data: 'created_at',
-                        name: 'created_at'
-                    },
-                    {
-                        data: 'updated_at',
-                        name: 'updated_at'
-                    },
-                    {
-                        data: 'control',
-                        name: 'control',
-                        orderable: false,
-                        searchable: false
-                    }
-                ]
-            });
-
-            function updateTableData() {
-                var status_filter = $('.status_filter').val();
-                var url = '{{ route('dashboard.order.canceledOrders') }}';
-                if (status_filter && status_filter !== 'all') {
-                    url += '?status=' + status_filter;
+                {
+                    extend: 'excel',
+                    className: 'btn btn-sm',
+                    text: '<i class="fas fa-file-excel"></i> تصدير إلى Excel'
+                },
+                {
+                    extend: 'print',
+                    className: 'btn btn-sm',
+                    text: '<i class="fas fa-print"></i> طباعة'
                 }
-                table.ajax.url(url).load();
-            }
+            ],
+            pageLength: 10,
+            order: [[0, 'desc']],
+            lengthMenu: [[10, 30, 100, 200], [10, 30, 100, 200]],
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            pagingType: 'full_numbers',
 
-            $('.status_filter').change(function() {
-                updateTableData();
-            });
+            ajax: {
+                url: canceledOrdersUrl,
+                data: function (d) {
+                    const statusFilter = $('.status_filter').val();
+                    if (statusFilter && statusFilter !== 'all') {
+                        d.status = statusFilter;
+                    }
+                }
+            },
+
+            columns: [
+                { data: 'id', name: 'id' },
+                { data: 'user', name: 'user' },
+                { data: 'phone', name: 'phone' },
+                { data: 'service', name: 'service' },
+                { data: 'quantity', name: 'quantity' },
+                { data: 'cancelled_by', name: 'cancelled_by' },
+                { data: 'total', name: 'total' },
+                { data: 'status', name: 'status' },
+                { data: 'region', name: 'region' },
+                { data: 'created_at', name: 'created_at' },
+                { data: 'updated_at', name: 'updated_at' },
+                {
+                    data: 'control',
+                    name: 'control',
+                    orderable: false,
+                    searchable: false
+                }
+            ]
         });
+
+        // Filter handler
+        $('.status_filter').on('change', function () {
+            table.ajax.reload();
+        });
+    });
 </script>
 @endpush

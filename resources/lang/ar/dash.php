@@ -1007,5 +1007,6 @@ return [
     'lateOrderCountWeek'                    => 'عدد الطلبات المتأخرة هذا الأسبوع',
     'lateOrderCountTotal'                   => 'عدد الطلبات المتأخرة الكلي',
     'lateOrderCountMonth'                   => 'عدد الطلبات المتأخرة هذا الشهر',
+    'booking_not_found' => 'عذراً، لم يتم العثور على الحجز.',
 
 ];
