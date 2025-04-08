@@ -2,6 +2,7 @@
 namespace App\Services;
 
 use App\Models\Order;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ReportService
@@ -22,7 +23,7 @@ class ReportService
             });
 
         if ($request->filled('date')) {
-            $query->where('created_at', '>=', \Carbon\Carbon::parse($request->date)->timezone('Asia/Riyadh')->startOfDay());
+            $query->where('created_at', '>=', Carbon::parse($request->date)->timezone('Asia/Riyadh')->startOfDay());
         }
 
         if ($request->filled('date2')) {

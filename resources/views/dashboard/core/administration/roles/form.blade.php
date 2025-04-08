@@ -104,13 +104,13 @@ $name = 'name_' . app()->getLocale();
                                                         <label
                                                             class="new-control new-checkbox new-checkbox-text checkbox-success">
                                                             <input type="checkbox"
-                                                                name="permissions[{{ $permissions[2]->id }}]"
+                                                                name="permissions[{{ $permissions[1]->id }}]"
                                                                 class="new-control-input perm-check perm-check-admins"
-                                                                {{ isset($model) ? (in_array($permissions[2]->id,
+                                                                {{ isset($model) ? (in_array($permissions[1]->id,
                                                             $model->permissions->pluck('id')->toArray()) ? 'checked' :
                                                             '') : '' }}>
                                                             <span class="new-control-indicator"></span><span
-                                                                class="new-chk-content"><b>{{ $permissions[2]->$name
+                                                                class="new-chk-content"><b>{{ $permissions[1]->$name
                                                                     }}</b></span>
                                                         </label>
                                                     </div>
@@ -1430,13 +1430,13 @@ $name = 'name_' . app()->getLocale();
                                                         <label
                                                             class="new-control new-checkbox new-checkbox-text checkbox-success">
                                                             <input type="checkbox"
-                                                                name="permissions[{{ $permissions[78]->id }}]"
+                                                                name="permissions[{{ $permissions[77]->id }}]"
                                                                 class="new-control-input perm-check perm-check-customer_complaints"
-                                                                {{ isset($model) ? (in_array($permissions[78]->id,
+                                                                {{ isset($model) ? (in_array($permissions[77]->id,
                                                             $model->permissions->pluck('id')->toArray()) ? 'checked' :
                                                             '') : '' }}>
                                                             <span class="new-control-indicator"></span><span
-                                                                class="new-chk-content"><b>{{ $permissions[78]->$name
+                                                                class="new-chk-content"><b>{{ $permissions[77]->$name
                                                                     }}</b></span>
                                                         </label>
                                                     </div>
