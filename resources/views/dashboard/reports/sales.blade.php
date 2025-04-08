@@ -3,11 +3,9 @@
 @section('sub-header')
 <div class="sub-header-container">
     <header class="header navbar navbar-expand-sm">
-
         <a href="javascript:void(0);" class="sidebarCollapse" data-placement="bottom">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                class="feather feather-menu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu">
                 <line x1="3" y1="12" x2="21" y2="12"></line>
                 <line x1="3" y1="6" x2="21" y2="6"></line>
                 <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -17,7 +15,6 @@
         <ul class="navbar-nav flex-row">
             <li>
                 <div class="page-header">
-
                     <nav class="breadcrumb-one" aria-label="breadcrumb">
                         <ol class="breadcrumb mb-0 py-2">
                             <li class="breadcrumb-item"><a href="{{ route('dashboard.home') }}">{{ __('dash.home')
@@ -25,274 +22,299 @@
                             <li class="breadcrumb-item active" aria-current="page">تقرير المبيعات</li>
                         </ol>
                     </nav>
-
                 </div>
             </li>
         </ul>
-
-
     </header>
 </div>
 @endsection
+@push('styles')
+<style>
+    select.select2,
+    input[type="datetime-local"] {
+        border-radius: 0.5rem;
+        height: 42px;
+    }
+
+    select.select2:focus,
+    input[type="datetime-local"]:focus {
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    }
+</style>
+@endpush
+
 
 @section('content')
 <div class="layout-px-spacing">
 
     <div class="row layout-top-spacing">
-
-        <div class="col-xl-12 col-lg-12 col-sm-12  layout-spacing">
+        <div class="col-12">
             <div class="widget-content widget-content-area br-6">
-                <div class="col-md-12  mb-3">
-                    <div class="row">
-                        <div class="col-md-1">
-                            <label for="inputEmail4">{{ __('dash.date') }}</label>
-                        </div>
-                        <label>من</label>
-                        <div class="col-md-4">
-                            <input type="datetime-local" name="date" class="form-control date" step="1"
-                                id="inputEmail4">
-                        </div>
-                        <label>إلى</label>
-                        <div class="col-md-4">
-                            <input type="datetime-local" name="date2" class="form-control date2" step="1"
-                                id="inputEmail42">
+
+                {{-- Filters --}}
+                <div class="col-12 mb-4">
+
+                    <h5 class="fw-bold text-primary mb-3">
+                        <i class="fas fa-sliders-h me-2"></i> {{ __('dash.filters') }}
+                    </h5>
+
+                    <div class="p-4 rounded shadow-sm border bg-white">
+
+                        <div class="row g-3 align-items-end">
+
+                            {{-- From Date --}}
+                            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                                <label class="form-label text-dark fw-semibold">{{ __('من') }}</label>
+                                <input type="datetime-local" name="date" class="form-control date shadow-sm" step="1">
+                            </div>
+
+                            {{-- To Date --}}
+                            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                                <label class="form-label text-dark fw-semibold">{{ __('إلى') }}</label>
+                                <input type="datetime-local" name="date2" class="form-control date2 shadow-sm" step="1">
+                            </div>
+
+                            {{-- Payment Method --}}
+                            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                                <label class="form-label text-dark fw-semibold">{{ __('طريقة الدفع') }}</label>
+                                <select class="select2 payment_method form-control shadow-sm" name="payment_method">
+                                    <option value="all" selected>{{ __('dash.all') }}</option>
+                                    <option value="cache">{!! __('api.payment_method_cach') !!}</option>
+                                    <option value="wallet">{!! __('api.payment_method_wallet') !!}</option>
+                                    <option value="visa">{!! __('api.payment_method_visa') !!}</option>
+                                    <option value="mada">{!! __('api.payment_method_network') !!}</option>
+                                </select>
+                            </div>
+
+                            {{-- Service --}}
+                            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                                <label class="form-label text-dark fw-semibold">{{ __('dash.service') }}</label>
+                                <select class="select2 service_filter form-control shadow-sm" name="service_filter">
+                                    <option value="all" selected>{{ __('dash.all') }}</option>
+                                    @foreach ($services as $id => $title)
+                                    <option value="{{ $id }}">{{ $title }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            {{-- Technician --}}
+                            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                                <label class="form-label text-dark fw-semibold">{{ __('الفني') }}</label>
+                                <select class="select2 tech_filter form-control shadow-sm" name="tech_filter">
+                                    <option value="all" selected>{{ __('dash.all') }}</option>
+                                    @foreach ($groups as $group)
+                                    <option value="{{ $group->id }}">
+                                        {{ app()->getLocale() === 'ar' ? $group->name_ar : $group->name_en }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
                         </div>
                     </div>
-                    <br>
-                    <div class="row">
-
-                        <div class="col-md-1">
-                            <label for="inputEmail4">طريقه الدفع</label>
-                        </div>
-                        <div class="col-md-4">
-                            <select class="select2 payment_method form-control" name="payment_method">
-                                <option selected value="all">{{ __('dash.all') }}</option>
-
-                                <option value="cache">{!! __('api.payment_method_cach') !!}</option>
-                                <option value="wallet">{!! __('api.payment_method_wallet') !!}</option>
-                                <option value="visa">{!! __('api.payment_method_visa') !!}</option>
-                                <option value="mada">{!! __('api.payment_method_network') !!}</option>
-
-                            </select>
-                        </div>
-                        <div class="col-md-1">
-
-                        </div>
-                        <div class="col-md-1">
-                            <label for="inputEmail4">{{ __('dash.service') }}</label>
-                        </div>
-                        <div class="col-md-4">
-                            <select class="select2 service_filter form-control" name="service_filter">
-                                <option value="all" selected>{{ __('dash.all') }}</option>
-                                @foreach ($services as $id => $title)
-                                <option value="{{ $id }}">{{ $title }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                    </div>
-
                 </div>
-                <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
-                    <thead>
+
+
+                {{-- DataTable --}}
+                <div class="table-responsive">
+                    <table id="html5-extension" class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>رقم الطلب</th>
+                                <th>رقم الحجز</th>
+                                <th>اسم الفني</th>
+                                <th>اسم العميل</th>
+                                <th>الخدمة</th>
+                                <th>عدد الخدمات</th>
+                                <th>المبلغ</th>
+                                <th>طريقة الدفع</th>
+                                <th>المنطقة</th>
+                                <th>التاريخ</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+
+                {{-- Summary --}}
+                <table class="table table-bordered mt-4 bg-white">
+                    <tbody>
                         <tr>
-                            <th>رقم الطلب</th>
-                            <th>اسم العميل</th>
-                            <th>التاريخ</th>
-                            <th>الخدمة</th>
-                            <th>عدد الخدمات</th>
-                            <th>المبلغ</th>
-                            <th>طريقة الدفع</th>
-                            <th> المنطقة</th>
+                            <th width="50%" class="bg-light">إجمالي المبيعات بدون ضريبة</th>
+                            <td id="total">0</td>
                         </tr>
-                    </thead>
+                        <tr>
+                            <th class="bg-light">إجمالي الضريبة %15</th>
+                            <td id="tax">0</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">إجمالي المبيعات</th>
+                            <td id="tax_total">0</td>
+                        </tr>
+                    </tbody>
                 </table>
 
-
             </div>
-
-            <table class="table table-bordered nowrap">
-
-                <thead>
-                    <tr>
-                        <th width="50%">إجمالي المبيعات بدون ضريبة</th>
-                        <td id="total">0</td>
-                    </tr>
-
-                    <tr>
-                        <th>إجمالي الضريبة %15</th>
-                        <td id="tax">0</td>
-                    </tr>
-
-                    <tr>
-                        <th>إجمالي المبيعات</th>
-                        <td id="tax_total">0</td>
-                    </tr>
-
-                </thead>
-
-            </table><!-- end of table -->
         </div>
-
     </div>
-
 </div>
 @endsection
 
 @push('script')
 <script type="text/javascript">
-    $(document).ready(function() {
-            updateSummary();
-            var table = $('#html5-extension').DataTable({
-                dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
-                    "<'table-responsive'tr>" +
-                    "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
+    const formatDateTimeForInput = (date) => {
+        const pad = (num) => String(num).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    };
 
-                lengthMenu: [
-                    [10, 25, 50, 100, 200, 500 ,1000 ,2000,5000],
-                    [10, 25, 50, 100, 200, 500 ,1000 ,2000 ,5000] // Dropdown options
-                ],
-                pageLength: 10, // Default rows per page
-                order: [
-                    [0, 'desc']
-                ],
-                language: {
-                    url: "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
-                },
-                buttons: {
-                    buttons: [{
-                            extend: 'copy',
-                            className: 'btn btn-sm',
-                            text: 'نسخ'
-                        },
-                        {
-                            extend: 'csv',
-                            className: 'btn btn-sm',
-                            text: 'تصدير إلى CSV'
-                        },
-                        {
-                            extend: 'excel',
-                            className: 'btn btn-sm',
-                            text: 'تصدير إلى Excel'
-                        },
-                        {
-                            extend: 'print',
-                            className: 'btn btn-sm',
-                            text: 'طباعة'
-                        }
-                    ]
-                },
-                processing: true,
-                serverSide: true,
-                ajax: '{{ route('dashboard.report.sales') }}',
-                columns: [{
-                        data: 'order_number',
-                        name: 'order_number',
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: 'user_name',
-                        name: 'user_name',
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: 'created_at',
-                        name: 'created_at',
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: 'service',
-                        name: 'service',
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: 'service_number',
-                        name: 'service_number',
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: 'price',
-                        name: 'price',
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: 'payment_method',
-                        name: 'payment_method',
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: 'region',
-                        name: 'region',
-                        orderable: true,
-                        searchable: true
-                    },
-                ]
-            });
+    const setDefaultDateTimeInputs = () => {
+        const dateInput = document.querySelector('input[name="date"]');
+        const date2Input = document.querySelector('input[name="date2"]');
 
+        if (!dateInput.value && !date2Input.value) {
+            const nowKSA = new Date().toLocaleString("en-US", { timeZone: "Asia/Riyadh" });
+            const ksaNow = new Date(nowKSA);
 
-            function updateTableData() {
-                var date = $('.date').val();
-                var date2 = $('.date2').val();
-                var payment_method = $('.payment_method').val();
-                var service_filter = $('.service_filter').val();
-                var url = '{{ route('dashboard.report.sales') }}';
+            const startOfDay = new Date(ksaNow);
+            startOfDay.setHours(0, 0, 0, 0);
 
-                if (date) {
-                    url += '?date=' + date;
-                }
-                if (date2) {
-                    url += (date ? '&' : '?') + 'date2=' + date2;
-                }
-                if (payment_method && payment_method !== 'all') {
-                    url += (date ? '&' : date2 ? '&' : '?') + 'payment_method=' + payment_method;
-                }
+            const endOfDay = new Date(ksaNow);
+            endOfDay.setHours(23, 59, 59, 999);
 
-                if (service_filter && service_filter !== 'all') {
-                    url += (date ? '&' : date2 ? '&' : payment_method ? '&' : '?') + 'service=' + service_filter;
-                }
+            dateInput.value = formatDateTimeForInput(startOfDay);
+            date2Input.value = formatDateTimeForInput(endOfDay);
+        }
+    };
 
-                // Update table data
-                table.ajax.url(url).load();
-
-                // Update summary
-                updateSummary();
-
+    const updateSummary = () => {
+        $.ajax({
+            url: '{{ route('dashboard.report.updateSummary') }}',
+            type: 'GET',
+            data: {
+                date: $('.date').val(),
+                date2: $('.date2').val(),
+                payment_method: $('.payment_method').val(),
+                service: $('.service_filter').val(),
+                tech_filter: $('.tech_filter').val(), // ✅ Include tech_filter here
+            },
+            success: function (data) {
+                $('#total').text(data.total.toFixed(2));
+                $('#tax').text(data.tax.toFixed(2));
+                $('#tax_total').text(data.taxTotal.toFixed(2));
             }
-
-            function updateSummary() {
-
-                $.ajax({
-                    url: '{{ route('dashboard.report.updateSummary') }}',
-                    type: 'GET',
-                    data: {
-                        date: $('.date').val(),
-                        date2: $('.date2').val(),
-                        payment_method: $('.payment_method').val(),
-                        service: $('.service_filter').val(),
-                    },
-                    success: function(data) {
-
-                        $('#total').text(data.total.toFixed(2));
-                        $('#tax').text(data.tax.toFixed(2));
-                        $('#tax_total').text(data.taxTotal.toFixed(2));
-                    }
-                });
-            }
-
-            // Attach event handlers
-            $('.date, .date2, .payment_method, .service_filter').change(function() {
-                updateTableData();
-            });
-
-            // Call the initial update
-            //  updateTableData();
         });
+    };
+
+    const updateTableData = (table) => {
+        const params = new URLSearchParams();
+
+        const date = $('.date').val();
+        const date2 = $('.date2').val();
+        const payment_method = $('.payment_method').val();
+        const service_filter = $('.service_filter').val();
+        const tech_filter = $('.tech_filter').val();
+
+        if (date) params.append('date', date);
+        if (date2) params.append('date2', date2);
+        if (payment_method && payment_method !== 'all') params.append('payment_method', payment_method);
+        if (service_filter && service_filter !== 'all') params.append('service', service_filter);
+        if (tech_filter && tech_filter !== 'all') params.append('tech_filter', tech_filter); // ✅ Include tech_filter
+
+        const url = '{{ route('dashboard.report.sales') }}' + '?' + params.toString();
+        table.ajax.url(url).load();
+        updateSummary();
+    };
+
+    $(document).ready(function () {
+        setDefaultDateTimeInputs();
+        updateSummary();
+
+        const table = $('#html5-extension').DataTable({
+            dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
+                "<'table-responsive'tr>" +
+                "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
+                lengthMenu: [
+    [10, 25, 50, 100, 200, -1],
+    [10, 25, 50, 100, 200, "الكل"]
+],
+
+            pageLength: 10,
+            order: [[0, 'desc']],
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            language: {
+                url: "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
+            },
+            buttons: [
+    {
+        extend: 'copy',
+        className: 'btn btn-sm',
+        text: 'نسخ',
+        exportOptions: {
+            modifier: {
+                page: 'all'
+            },
+            columns: ':visible'
+        }
+    },
+    {
+        extend: 'csv',
+        className: 'btn btn-sm',
+        text: 'CSV',
+        exportOptions: {
+            modifier: {
+                page: 'all'
+            },
+            columns: ':visible'
+        }
+    },
+    {
+        extend: 'excel',
+        className: 'btn btn-sm',
+        text: 'Excel',
+        exportOptions: {
+            modifier: {
+                page: 'all'
+            },
+            columns: ':visible'
+        }
+    },
+    {
+        extend: 'print',
+        className: 'btn btn-sm',
+        text: 'طباعة',
+        exportOptions: {
+            modifier: {
+                page: 'all'
+            },
+            columns: ':visible'
+        }
+    }
+            ],
+
+            ajax: {
+                url: '{{ route('dashboard.report.sales') }}',
+                data: function (d) {
+                    d.start = d.start;
+                    d.length = d.length;
+                }
+            },
+            pagingType: 'full_numbers',
+            columns: [
+                { data: 'id', name: 'id' },
+                { data: 'booking_id', name: 'booking_id' },
+                { data: 'tech_name', name: 'tech_name' },
+                { data: 'user_name', name: 'user_name' },
+                { data: 'service', name: 'service' },
+                { data: 'service_number', name: 'service_number' },
+                { data: 'price', name: 'price' },
+                { data: 'payment_method', name: 'payment_method' },
+                { data: 'region', name: 'region' },
+                { data: 'created_at', name: 'created_at' },
+            ]
+        });
+
+        $('.date, .date2, .payment_method, .service_filter, .tech_filter').on('change', () => updateTableData(table));
+    });
 </script>
 @endpush
