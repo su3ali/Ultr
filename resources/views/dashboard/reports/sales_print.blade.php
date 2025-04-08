@@ -9,6 +9,40 @@
         body {
             font-family: 'Arial', sans-serif;
             direction: rtl;
+            margin: 40px;
+            color: #333;
+        }
+
+        h3 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 10px 6px;
+            font-size: 14px;
+            word-wrap: break-word;
+            white-space: normal;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f3f3f3;
+            font-weight: bold;
+        }
+
+        i {
+            margin-inline-end: 5px;
         }
 
         @media print {
@@ -17,38 +51,16 @@
             i.fab {
                 display: none !important;
             }
-        }
 
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 30px;
-            table-layout: fixed;
-            /* ✅ Force equal column widths */
-        }
-
-        th,
-        td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            word-wrap: break-word;
-            /* ✅ Allow wrapping */
-            white-space: normal;
-            text-align: center;
-        }
-
-        th {
-            background: #f2f2f2;
-        }
-
-        i {
-            margin-inline-end: 5px;
+            body {
+                margin: 0;
+            }
         }
     </style>
 </head>
 
-
 <body>
+
     <h3>تقرير المبيعات</h3>
 
     <table>
@@ -69,17 +81,17 @@
         <tbody>
             @foreach ($orders as $row)
             <tr>
-                <td style="text-align: center;">{{ $row->id }}</td>
-                <td style="text-align: center;">{{ $row->bookings->first()->id ?? '' }}</td>
-                <td>{{ $row->bookings->first()?->visit?->group?->name_ar }}</td>
+                <td>{{ $row->id }}</td>
+                <td>{{ $row->bookings->first()->id ?? '-' }}</td>
+                <td>{{ $row->bookings->first()?->visit?->group?->name_ar ?? '-' }}</td>
                 <td>{{ $row->user?->first_name }} {{ $row->user?->last_name }}</td>
                 <td>
                     @foreach($row->services as $service)
                     {{ $service->title_ar }}{{ !$loop->last ? ' | ' : '' }}
                     @endforeach
                 </td>
-                <td style="text-align: center;">{{ $row->services->count() }}</td>
-                <td style="text-align: center;">{{ number_format(($row->total / 115 * 100), 2) }}</td>
+                <td>{{ $row->services->count() }}</td>
+                <td>{{ number_format(($row->total / 115 * 100), 2) }}</td>
                 <td>
                     @php
                     $method = $row->transaction?->payment_method ?? 'visa';
@@ -95,21 +107,17 @@
                     'cash' => 'دفع نقداً',
                     'wallet' => 'الدفع من المحفظة',
                     'mada' => 'دفع عبر مدى',
-                    'visa' => 'دفع ببطاقة ائتمان (فيزا، ماستر كارد، إلخ)',
+                    'visa' => 'دفع ببطاقة ائتمان',
                     ];
                     $iconClass = $icons[$method] ?? 'fas fa-credit-card text-secondary';
                     $title = $titles[$method] ?? 'وسيلة دفع';
                     $label = __('api.payment_method_' . $method);
                     @endphp
 
-                    {!! '<i class="' . $iconClass . '" title="' . $title . '"
-                        style="font-size: 1.2em; transition: transform 0.3s;"
-                        onmouseover="this.style.transform=\'scale(1.1)\';"
-                        onmouseout="this.style.transform=\'scale(1)\';"></i> ' . $label !!}
+                    {!! '<i class="' . $iconClass . '" title="' . $title . '"></i>' . $label !!}
                 </td>
-
-                <td>{{ $row->userAddress?->region?->title }}</td>
-                <td style="text-align: center;">{{ $row->created_at->format('Y-m-d') }}</td>
+                <td>{{ $row->userAddress?->region?->title ?? '-' }}</td>
+                <td>{{ $row->created_at->format('Y-m-d') }}</td>
             </tr>
             @endforeach
         </tbody>
