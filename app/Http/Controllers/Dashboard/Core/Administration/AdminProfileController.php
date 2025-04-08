@@ -1,18 +1,14 @@
 <?php
-
 namespace App\Http\Controllers\Dashboard\Core\Administration;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Dashboard\Administration\AdminRequest;
 use App\Http\Requests\Dashboard\Administration\ProfileRequest;
 use App\Models\Admin;
 use App\Models\User;
 use App\Support\Crud\WithCrud;
-use Collective\Html\FormFacade;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Auth;
 
 class AdminProfileController extends Controller
 {
@@ -20,7 +16,8 @@ class AdminProfileController extends Controller
     protected string $path = 'dashboard.core.administration.profile';
 
     protected string $model = Admin::class;
-    public function __construct() {
+    public function __construct()
+    {
         $this->middleware('permission:admin_profile');
     }
     public function index(): View

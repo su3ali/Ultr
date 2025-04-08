@@ -75,6 +75,7 @@ $permissions = [
     ['id' => 101, 'name' => 'update_complaint_type', 'guard_name' => 'dashboard', 'name_ar' => 'تعديل نوع الشكوى', 'name_en' => 'Update Complaint Type'],
     ['id' => 102, 'name' => 'delete_complaint_type', 'guard_name' => 'dashboard', 'name_ar' => 'حذف نوع الشكوى', 'name_en' => 'Delete Complaint Type'],
     ['id' => 103, 'name' => 'create_complaint_type', 'guard_name' => 'dashboard', 'name_ar' => 'اضافة نوع الشكوى', 'name_en' => 'Create Complaint Type'],
+    ['id' => 104, 'name' => 'view_Reschedule_orders', 'guard_name' => 'dashboard', 'name_ar' => 'امكانية جدولة الطلبات', 'name_en' => 'view Reschedule Orders'],
 
 ];
 
