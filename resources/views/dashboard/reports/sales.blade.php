@@ -114,6 +114,29 @@
                     </div>
                 </div>
 
+                {{-- Custom Export Buttons --}}
+                <div class="d-flex justify-content-center mb-4">
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="#" id="exportExcel"
+                            class="btn btn-outline-success shadow-sm d-inline-flex align-items-center rounded"
+                            title="تصدير البيانات كـ Excel">
+                            <i class="fas fa-file-excel fs-5" style="margin-inline-end: 3px;"></i>
+                            <span class="fw-bold">تصدير</span>
+                        </a>
+
+
+                        <a href="#" id="printReport"
+                            class="btn btn-outline-primary shadow-sm d-inline-flex align-items-center rounded"
+                            title="طباعة التقرير">
+                            <i class="fas fa-print fs-5" style="margin-inline-end: 3px;"></i>
+                            <span class="fw-bold">طباعة</span>
+                        </a>
+
+                    </div>
+                </div>
+
+
+
 
                 {{-- DataTable --}}
                 <div class="table-responsive">
@@ -166,22 +189,30 @@
         return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
     };
 
+    const getDefaultKsaDates = () => {
+        const nowKSA = new Date().toLocaleString("en-US", { timeZone: "Asia/Riyadh" });
+        const today = new Date(nowKSA);
+
+        const startOfDay = new Date(today);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(today);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        return {
+            start: formatDateTimeForInput(startOfDay),
+            end: formatDateTimeForInput(endOfDay)
+        };
+    };
+
     const setDefaultDateTimeInputs = () => {
         const dateInput = document.querySelector('input[name="date"]');
         const date2Input = document.querySelector('input[name="date2"]');
 
-        if (!dateInput.value && !date2Input.value) {
-            const nowKSA = new Date().toLocaleString("en-US", { timeZone: "Asia/Riyadh" });
-            const ksaNow = new Date(nowKSA);
-
-            const startOfDay = new Date(ksaNow);
-            startOfDay.setHours(0, 0, 0, 0);
-
-            const endOfDay = new Date(ksaNow);
-            endOfDay.setHours(23, 59, 59, 999);
-
-            dateInput.value = formatDateTimeForInput(startOfDay);
-            date2Input.value = formatDateTimeForInput(endOfDay);
+        if (!dateInput.value || !date2Input.value) {
+            const { start, end } = getDefaultKsaDates();
+            dateInput.value = start;
+            date2Input.value = end;
         }
     };
 
@@ -194,7 +225,7 @@
                 date2: $('.date2').val(),
                 payment_method: $('.payment_method').val(),
                 service: $('.service_filter').val(),
-                tech_filter: $('.tech_filter').val(), // ✅ Include tech_filter here
+                tech_filter: $('.tech_filter').val(),
             },
             success: function (data) {
                 $('#total').text(data.total.toFixed(2));
@@ -207,17 +238,27 @@
     const updateTableData = (table) => {
         const params = new URLSearchParams();
 
-        const date = $('.date').val();
-        const date2 = $('.date2').val();
+        let date = $('.date').val();
+        let date2 = $('.date2').val();
+
+        if (!date || !date2) {
+            const { start, end } = getDefaultKsaDates();
+            date = start;
+            date2 = end;
+            $('.date').val(start);
+            $('.date2').val(end);
+        }
+
+        params.append('date', date);
+        params.append('date2', date2);
+
         const payment_method = $('.payment_method').val();
         const service_filter = $('.service_filter').val();
         const tech_filter = $('.tech_filter').val();
 
-        if (date) params.append('date', date);
-        if (date2) params.append('date2', date2);
         if (payment_method && payment_method !== 'all') params.append('payment_method', payment_method);
         if (service_filter && service_filter !== 'all') params.append('service', service_filter);
-        if (tech_filter && tech_filter !== 'all') params.append('tech_filter', tech_filter); // ✅ Include tech_filter
+        if (tech_filter && tech_filter !== 'all') params.append('tech_filter', tech_filter);
 
         const url = '{{ route('dashboard.report.sales') }}' + '?' + params.toString();
         table.ajax.url(url).load();
@@ -225,18 +266,11 @@
     };
 
     $(document).ready(function () {
-        setDefaultDateTimeInputs();
-        updateSummary();
-
         const table = $('#html5-extension').DataTable({
-            dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
+            dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l><'col-sm-12 col-md-4 d-flex justify-content-center'><'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
                 "<'table-responsive'tr>" +
                 "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
-                lengthMenu: [
-    [10, 25, 50, 100, 200, -1],
-    [10, 25, 50, 100, 200, "الكل"]
-],
-
+            lengthMenu: [[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "الكل"]],
             pageLength: 10,
             order: [[0, 'desc']],
             processing: true,
@@ -245,53 +279,6 @@
             language: {
                 url: "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
             },
-            buttons: [
-    {
-        extend: 'copy',
-        className: 'btn btn-sm',
-        text: 'نسخ',
-        exportOptions: {
-            modifier: {
-                page: 'all'
-            },
-            columns: ':visible'
-        }
-    },
-    {
-        extend: 'csv',
-        className: 'btn btn-sm',
-        text: 'CSV',
-        exportOptions: {
-            modifier: {
-                page: 'all'
-            },
-            columns: ':visible'
-        }
-    },
-    {
-        extend: 'excel',
-        className: 'btn btn-sm',
-        text: 'Excel',
-        exportOptions: {
-            modifier: {
-                page: 'all'
-            },
-            columns: ':visible'
-        }
-    },
-    {
-        extend: 'print',
-        className: 'btn btn-sm',
-        text: 'طباعة',
-        exportOptions: {
-            modifier: {
-                page: 'all'
-            },
-            columns: ':visible'
-        }
-    }
-            ],
-
             ajax: {
                 url: '{{ route('dashboard.report.sales') }}',
                 data: function (d) {
@@ -314,7 +301,37 @@
             ]
         });
 
-        $('.date, .date2, .payment_method, .service_filter, .tech_filter').on('change', () => updateTableData(table));
+        // Set default date inputs and load table with today's data
+        setDefaultDateTimeInputs();
+        updateTableData(table);
+
+        // Trigger filter changes
+        $('.date, .date2, .payment_method, .service_filter, .tech_filter')
+            .on('change', () => updateTableData(table));
+
+        // Export Excel
+        $('#exportExcel').click(function () {
+            const params = new URLSearchParams({
+                date: $('.date').val(),
+                date2: $('.date2').val(),
+                payment_method: $('.payment_method').val(),
+                service: $('.service_filter').val(),
+                tech_filter: $('.tech_filter').val(),
+            }).toString();
+            window.location.href = '{{ route("dashboard.report.sales.export.excel") }}' + '?' + params;
+        });
+
+        // Print
+        $('#printReport').click(function () {
+            const params = new URLSearchParams({
+                date: $('.date').val(),
+                date2: $('.date2').val(),
+                payment_method: $('.payment_method').val(),
+                service: $('.service_filter').val(),
+                tech_filter: $('.tech_filter').val(),
+            }).toString();
+            window.open('{{ route("dashboard.report.sales.export.print") }}' + '?' + params, '_blank');
+        });
     });
 </script>
 @endpush
