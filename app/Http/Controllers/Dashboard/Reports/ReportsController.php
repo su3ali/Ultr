@@ -1,116 +1,115 @@
 <?php
 namespace App\Http\Controllers\Dashboard\Reports;
 
-use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\Group;
+use App\Models\Order;
+use App\Models\Visit;
 use App\Models\Booking;
-use App\Models\BookingSetting;
+use App\Models\Service;
 use App\Models\Category;
 use App\Models\Contract;
-use App\Models\Order;
-use App\Models\OrderService;
-use App\Models\Service;
 use App\Models\Technician;
-use App\Models\User;
-use App\Models\Visit;
+use App\Models\OrderService;
 use Illuminate\Http\Request;
+use App\Models\BookingSetting;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 
 class ReportsController extends Controller
 {
 
     protected function sales(Request $request)
     {
+        if ($request->ajax()) {
+            $date           = $request->query('date');
+            $date2          = $request->query('date2');
+            $service        = $request->query('service');
+            $payment_method = $request->query('payment_method');
+            $tech_id        = $request->query('tech_filter');
 
-        if (request()->ajax()) {
-            $date           = $request->date;
-            $date2          = $request->date2;
-            $service        = $request->service;
-            $payment_method = $request->payment_method;
+            if (! $date && ! $date2) {
+                return DataTables::of(collect())->make(true);
+            }
 
-            // Start the query
-            $orderQuery = Order::with(['services.category', 'user', 'transaction', 'userAddress.region'])
+            $orderQuery = Order::with([
+                'services.category',
+                'user',
+                'transaction',
+                'userAddress.region',
+                'bookings.visit.group',
+            ])
                 ->where('is_active', 1)
                 ->where(function ($query) {
                     $query->where('status_id', 4)
-                        ->orWhereHas('transaction', function ($q) {
-                            $q->where('payment_method', '!=', 'cache');
-                        });
-                });
+                        ->orWhereHas('transaction', fn($q) => $q->where('payment_method', '!=', 'cache'));
+                })
+                ->when($payment_method && $payment_method !== 'all', fn($q) =>
+                    $q->whereHas('transaction', fn($q2) => $q2->where('payment_method', $payment_method))
+                )
+                ->when($service && $service !== 'all', fn($q) =>
+                    $q->whereHas('services', fn($q2) => $q2->where('service_id', $service))
+                )
+                ->when($tech_id && $tech_id !== 'all', fn($q) =>
+                    $q->whereHas('bookings.visit.group', fn($q2) => $q2->where('id', $tech_id))
+                )
+                ->when($date && $date2, function ($q) use ($date, $date2) {
+                    $start = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh')->startOfDay();
+                    $end   = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh')->endOfDay();
+                    $q->whereBetween('created_at', [$start, $end]);
+                })
+                ->when($date && ! $date2, fn($q) =>
+                    $q->where('created_at', '>=', \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh')->startOfDay())
+                )
+                ->when(! $date && $date2, fn($q) =>
+                    $q->where('created_at', '<=', \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh')->endOfDay())
+                );
 
-            // Apply date filters
-            if ($date) {
-                $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
-                $orderQuery->where('created_at', '>=', $carbonDate->startOfDay());
-            }
-
-            if ($date2) {
-                $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
-                $orderQuery->where('created_at', '<=', $carbonDate2->endOfDay());
-            }
-
-            // Apply payment method filter
-            if ($payment_method) {
-                $orderQuery->whereHas('transaction', function ($q) use ($payment_method) {
-                    $q->where('payment_method', $payment_method);
-                });
-            }
-
-            // Apply service filter
-            if ($service) {
-                $orderQuery->whereHas('services', function ($q) use ($service) {
-                    $q->where('service_id', $service);
-                });
-            }
-
-            // Initialize the DataTables collection
-            $data = collect();
-
-            // Execute the query and fetch results in chunks
-            $orderQuery->chunk(100, function ($orders) use ($data) {
-                foreach ($orders as $row) {
-                    $data->push([
-                        'order_number'   => $row->id,
-                        'user_name'      => $row->user?->first_name . ' ' . $row->user?->last_name,
-                        'created_at'     => Carbon::parse($row->created_at)->timezone('Asia/Riyadh')->format('Y-m-d'),
-
-                        'service'        => $row->services->map(fn($item) => '<button class="btn-sm btn-primary">' . $item->title_ar . '</button>')->join(' '),
-                        'service_number' => $row->services->count(),
-                        'price'          => number_format(($row->total / 115 * 100), 2),
-                        'payment_method' => match ($row->transaction?->payment_method ?? '') {
-                            'cache', 'cash' => __('api.payment_method_cach'),
-                            'wallet'         => __('api.payment_method_wallet'),
-                            'mada'           => __('api.payment_method_network'),
-                            default          => __('api.payment_method_visa'),
-                        },
-                        'total'          => $row->total,
-                        'region'         => $row->userAddress?->region?->title ?? '',
-                    ]);
-                }
-            });
-
-            // Return the data in DataTables format
-            return DataTables::of($data)
+            return DataTables::of($orderQuery)
+                ->addColumn('id', fn($row) => $row->id)
+                ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id ?? '')
+                ->addColumn('tech_name', fn($row) =>
+                    optional($row->bookings->first())->visit?->group?->{app()->getLocale() === 'ar' ? 'name_ar' : 'name_en'} ?? ''
+                )
+                ->addColumn('user_name', fn($row) => $row->user?->first_name . ' ' . $row->user?->last_name)
+                ->addColumn('created_at', fn($row) =>
+                    \Carbon\Carbon::parse($row->created_at)->timezone('Asia/Riyadh')->format('Y-m-d')
+                )
+                ->addColumn('service', fn($row) =>
+                    $row->services->map(fn($item) =>
+                        '<button class="btn-sm btn-primary">' . $item->title_ar . '</button>'
+                    )->implode(' ')
+                )
+                ->addColumn('service_number', fn($row) => $row->services->count())
+                ->addColumn('price', fn($row) => number_format(($row->total / 115 * 100), 2))
+                ->addColumn('payment_method', fn($row) => match ($row->transaction?->payment_method ?? '') {
+                    'cache', 'cash' => __('api.payment_method_cach'),
+                    'wallet' => __('api.payment_method_wallet'),
+                    'mada'   => __('api.payment_method_network'),
+                    default  => __('api.payment_method_visa'),
+                })
+                ->addColumn('total', fn($row) => $row->total)
+                ->addColumn('region', fn($row) => optional($row->userAddress?->region)->title ?? '')
                 ->rawColumns([
-                    'order_number', 'user_name', 'created_at', 'service', 'service_number', 'price', 'payment_method', 'total', 'region',
+                    'booking_id', 'tech_name', 'user_name', 'created_at', 'service', 'service_number',
+                    'price', 'payment_method', 'total', 'region',
                 ])
                 ->make(true);
         }
 
-        // Calculate total and tax for non-AJAX request
         $total = Order::where('is_active', 1)
-            ->where(function ($query) {
-                $query->where('status_id', 4)
-                    ->orWhereHas('transaction', function ($q) {
-                        $q->where('payment_method', '!=', 'cache');
-                    });
+            ->where(function ($q) {
+                $q->where('status_id', 4)
+                    ->orWhereHas('transaction', fn($q2) => $q2->where('payment_method', '!=', 'cache'));
             })->sum('total');
 
         $tax      = $total * 0.15;
-        $services = Service::all()->pluck('title', 'id');
+        $services = Service::pluck(app()->getLocale() == 'ar' ? 'title_ar' : 'title_en', 'id');
+        $groups   = Group::select('id', 'name_ar', 'name_en')->orderBy('name_ar')->get();
 
-        return view('dashboard.reports.sales', compact('total', 'tax', 'services'));
+        return view('dashboard.reports.sales', compact('total', 'tax', 'services', 'groups'));
     }
 
     protected function updateSummary(Request $request)
