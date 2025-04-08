@@ -102,6 +102,7 @@ class CustomerController extends Controller
         // Return Blade view for non-AJAX request
         return view('dashboard.core.customers.index');
     }
+
     // just  clints have orders on system
     public function withOrders(Request $request)
     {

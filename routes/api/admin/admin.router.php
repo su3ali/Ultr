@@ -1,12 +1,13 @@
 <?php
 
-use App\Http\Controllers\Api\Admin\Auth\AdminProfileController;
-use App\Http\Controllers\Api\Admin\Auth\AuthController;
-use App\Http\Controllers\Api\Admin\home\VisitsController;
-use App\Http\Controllers\Api\Admin\lang\LangController;
-use App\Http\Controllers\Api\Settings\SettingsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Admin\Auth\AuthController;
+use App\Http\Controllers\Api\Admin\lang\LangController;
+use App\Http\Controllers\Api\Checkout\v2\CartController;
+use App\Http\Controllers\Api\Admin\home\VisitsController;
+use App\Http\Controllers\Api\Settings\SettingsController;
+use App\Http\Controllers\Api\Admin\Auth\AdminProfileController;
 
 /*
 |--------------------------------------------------------------------------

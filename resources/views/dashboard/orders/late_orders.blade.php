@@ -89,12 +89,12 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>رقم الطلب</th>
-                                    <th>رقم الحجز</th>
+                                    {{-- <th>رقم الحجز</th> --}}
                                     <th>{{ __('dash.customer_name') }}</th>
                                     <th>{{ __('dash.phone') }}</th>
                                     <th>{{ __('dash.service') }}</th>
                                     <th>{{ __('dash.quantity') }}</th>
-                                    <th>{{ __('dash.cancelled_by') }}</th>
+                                    {{-- <th>{{ __('dash.cancelled_by') }}</th> --}}
                                     <th>{{ __('dash.price_value') }}</th>
                                     <th>طريقة الدفع</th>
                                     <th>{{ __('dash.zone') }}</th>
@@ -118,6 +118,10 @@
 @endsection
 @push('script')
 <script type="text/javascript">
+    $(function () {
+    $('[title]').tooltip();
+});
+
     $(document).ready(function () {
         var table = $('#html5-extension').DataTable({
             dom: "<'dt--top-section d-flex justify-content-between align-items-center'<'col-sm-12 col-md-4 d-flex justify-content-start'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-end'f>>" +
@@ -182,12 +186,12 @@
 
             columns: [
                 { data: 'id', name: 'id' },
-                { data: 'booking_id', name: 'booking_id' },
+                // { data: 'booking_id', name: 'booking_id' },
                 { data: 'user', name: 'user' },
                 { data: 'phone', name: 'phone' },
                 { data: 'service', name: 'service' },
                 { data: 'quantity', name: 'quantity' },
-                { data: 'cancelled_by', name: 'cancelled_by' },
+                // { data: 'cancelled_by', name: 'cancelled_by' },
                 { data: 'total', name: 'total' },
                 { data: 'payment_method', name: 'payment_method' },
                 { data: 'region', name: 'region' },

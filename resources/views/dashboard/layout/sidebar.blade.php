@@ -3,6 +3,7 @@
 
     <nav id="sidebar">
         <div class="shadow-bottom"></div>
+        {{-- {{ dump(auth()->user()->can('view_complaint_type')) }} --}}
 
         <ul class="list-unstyled menu-categories" id="accordionExample">
 
@@ -20,7 +21,7 @@
                 </a>
             </li>
 
-            @can('view_visits')
+            @can('view_tech_orders')
             <li class="menu">
                 <a href="#visits" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -43,25 +44,17 @@
                     </div>
                 </a>
                 <ul class="collapse submenu list-unstyled" id="visits" data-parent="#accordionExample">
-                    @can('view_visits')
+                    @can('view_tech_orders')
                     <li>
                         <a href="{{ route('dashboard.visits.index') }}"> {{ __('dash.tech_orders') }}</a>
                     </li>
                     @endcan
-                    @can('view_visits')
+                    @can('view_today_tech_orders')
                     <li>
                         <a href="{{ route('dashboard.visits.visitsToday') }}"> {{ __('dash.tech_orders_today') }}</a>
                     </li>
                     @endcan
-                    @can('update_visits')
-                    <li>
-                        <a href="{{ route('dashboard.visits_statuses.index') }}"> {{ __('dash.orders_status') }}</a>
-                    </li>
-                    <li>
-                        <a href="{{ route('dashboard.reason_cancel.index') }}"> {{ __('dash.cancellation_reasons') }}
-                        </a>
-                    </li>
-                    @endcan
+
                 </ul>
             </li>
             @endcan
@@ -228,7 +221,7 @@
 
 
 
-            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_admins'))
+            @can('view_admins')
             <li class="menu">
                 <a href="#app" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -264,7 +257,9 @@
                 </ul>
 
             </li>
-            @endif
+            @endcan
+
+
             @can('view_categories')
             <li class="menu">
                 <a href="#admin" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
@@ -361,9 +356,10 @@
             @endif
 
 
-            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_companys_services_management') ||
-            (auth()->user()->hasRole('التسويق') ))
 
+
+
+            @if(auth()->user()->can('view_companys_services_management') || auth()->user()->hasRole(['admin', 'super']))
             <li class="menu">
                 <a href="#contact" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
@@ -381,17 +377,26 @@
                     </div>
                 </a>
                 <ul class="collapse submenu list-unstyled" id="contact" data-parent="#accordionExample">
+                    @if(auth()->user()->can('view_companys_services') || auth()->user()->hasRole(['admin', 'super']))
+
                     <li>
                         <a href="{{ route('dashboard.core.contact.index') }}">{{ __('dash.companys_services') }}</a>
                     </li>
+                    @endif
+
+                    @if(auth()->user()->can('view_companys_services_orders') || auth()->user()->hasRole(['admin',
+                    'super']))
+
                     <li>
                         <a href="{{ route('dashboard.core.order_contract.index') }}">{{ __('dash.services_requests')
                             }}</a>
                     </li>
+                    @endif
+
                 </ul>
             </li>
-
             @endif
+
 
 
 
@@ -401,7 +406,7 @@
                     <div class="">
                         <div class="icon-container">
                             <i data-feather="users"></i>
-                            <span class="icon-name">{{ __('dash.technicians') }}</span>
+                            <span class="icon-name">{{ __('dash.technicians_manage') }}</span>
                         </div>
                     </div>
                     <div>
@@ -416,13 +421,20 @@
                     <li>
                         <a href="{{ route('dashboard.core.technician.index') }}"> {{ __('dash.technicians') }} </a>
                     </li>
+
+                    @can('view_technicians_groups')
                     <li>
                         <a href="{{ route('dashboard.core.group.index') }}"> {{ __('dash.technicians_groups') }} </a>
                     </li>
+                    @endcan
+
+                    @can('view_tech_specializations')
                     <li>
-                        <a href="{{ route('dashboard.core.tech_specializations.index') }}"> {{
-                            __('dash.tech_specializations') }} </a>
+                        <a href="{{ route('dashboard.core.tech_specializations.index') }}">
+                            {{ __('dash.tech_specializations') }} </a>
                     </li>
+                    @endcan
+
                 </ul>
             </li>
             @endcan
@@ -694,6 +706,43 @@
             @endcan
 
 
+            {{-- Public Setting --}}
+            @can('view_public_setting')
+            <li class="menu">
+                <a href="#orders-setting" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    <div class="">
+                        <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 20H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h2.429M7 8h3M8 8V4h4v2m4 0V5h-4m3 4v3a1 1 0 0 1-1 1h-3m9-3v9a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-6.397a1 1 0 0 1 .27-.683l2.434-2.603a1 1 0 0 1 .73-.317H19a1 1 0 0 1 1 1Z" />
+                        </svg>
+                        <span>{{ __('dash.public_settings') }}</span>
+                    </div>
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-chevron-right">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </a>
+                <ul class="collapse submenu list-unstyled" id="orders-setting" data-parent="#accordionExample">
+                    @can('view_orders_status')
+                    <li>
+                        <a href="{{ route('dashboard.visits_statuses.index') }}"> {{ __('dash.orders_status') }}</a>
+                    </li>
+                    @endcan
+                    @can('view_cancel_reasons')
+                    <li>
+                        <a href="{{ route('dashboard.reason_cancel.index') }}"> {{ __('dash.cancellation_reasons') }}
+                        </a>
+                    </li>
+                    @endcan
+                </ul>
+            </li>
+            @endcan
+
+
             @can('view_setting')
             <li class="menu">
                 <a href="#setting" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
@@ -728,13 +777,28 @@
                     <li>
                         <a href="{{ route('dashboard.city.index') }}"> {{ __('dash.Cities') }} </a>
                     </li>
+
+                    @if(auth()->user()->can('view_complaint_type') || auth()->user()->hasRole(['admin', 'super']))
+
+
+
+
+
+                    <li>
+                        <a href="{{ route('dashboard.complaint_type.index') }}"> {{ __('dash.complaint_type') }} </a>
+                    </li>
+
+                    @endif
+
                     <li>
                         <a href="{{ route('dashboard.core.measurements.index') }}"> {{ __('dash.measurements_units') }}
                         </a>
                     </li>
+
                     <li>
-                        <a href="{{ route('dashboard.faqs.index') }}">الأسئلة الشائعة</a>
+                        <a href="{{ route('dashboard.faqs.index') }}"> {{ __('dash.frequently_questions') }}</a>
                     </li>
+
                 </ul>
             </li>
             @endcan

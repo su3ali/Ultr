@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\Dashboard\SettingsController;
+use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'settings'], function () {
     Route::get('/', [SettingsController::class, 'index'])->name('settings')->middleware('permission:view_setting');
     Route::post('/', [SettingsController::class, 'update'])->middleware('permission:update_setting');
+
 
     Route::get('country/change_status', 'Settings\CountryController@change_status')->name('country.change_status');
     Route::resource('country', 'Settings\CountryController');
