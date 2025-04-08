@@ -206,7 +206,7 @@
             dateInput.value = formatDateTimeForInput(startOfDay);
             date2Input.value = formatDateTimeForInput(endOfDay);
 
-            // updateTableData(table);
+            updateTableData(table);
             // updateSummary(table);
         }
     };
@@ -231,24 +231,46 @@
     };
 
     const updateTableData = (table) => {
-        const params = new URLSearchParams();
+    const params = new URLSearchParams();
 
-        const date = $('.date').val();
-        const date2 = $('.date2').val();
-        const payment_method = $('.payment_method').val();
-        const service_filter = $('.service_filter').val();
-        const tech_filter = $('.tech_filter').val();
+    let date = $('.date').val();
+    let date2 = $('.date2').val();
 
-        if (date) params.append('date', date);
-        if (date2) params.append('date2', date2);
-        if (payment_method && payment_method !== 'all') params.append('payment_method', payment_method);
-        if (service_filter && service_filter !== 'all') params.append('service', service_filter);
-        if (tech_filter && tech_filter !== 'all') params.append('tech_filter', tech_filter); 
+    // ⏰ Use today only if either date is missing
+    if (!date || !date2) {
+        const nowKSA = new Date().toLocaleString("en-US", { timeZone: "Asia/Riyadh" });
+        const today = new Date(nowKSA);
 
-        const url = '{{ route('dashboard.report.sales') }}' + '?' + params.toString();
-        table.ajax.url(url).load();
-        updateSummary();
-    };
+        const startOfDay = new Date(today);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(today);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        // Format and update both inputs
+        date = formatDateTimeForInput(startOfDay);
+        date2 = formatDateTimeForInput(endOfDay);
+
+        $('input[name="date"]').val(date);
+        $('input[name="date2"]').val(date2);
+    }
+
+    params.append('date', date);
+    params.append('date2', date2);
+
+    const payment_method = $('.payment_method').val();
+    const service_filter = $('.service_filter').val();
+    const tech_filter = $('.tech_filter').val();
+
+    if (payment_method && payment_method !== 'all') params.append('payment_method', payment_method);
+    if (service_filter && service_filter !== 'all') params.append('service', service_filter);
+    if (tech_filter && tech_filter !== 'all') params.append('tech_filter', tech_filter);
+
+    const url = '{{ route('dashboard.report.sales') }}' + '?' + params.toString();
+    table.ajax.url(url).load();
+    updateSummary();
+};
+
 
     $(document).ready(function () {
         setDefaultDateTimeInputs();
