@@ -62,4 +62,10 @@ return [
     'payment_method_cach'                                                             => '<i class="fas fa-money-bill-wave text-success" title="Cash Payment (Cash or Physical Money)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> Cash',
     'booking_not_found'                                                               => 'Sorry, booking not found.',
 
+    'payment_method_cache'                                                            => 'payment_method_cash',
+    'payment_method_cash'                                                             => 'payment_method_cash',
+    'payment_method_wallet'                                                           => 'payment_method_wallet',
+    'payment_method_mada'                                                             => 'payment_method_network',
+    'payment_method_visa'                                                             => 'payment_method_visa',
+
 ];

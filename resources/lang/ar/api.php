@@ -59,7 +59,13 @@ return [
     'payment_method_network'                                                          => '<i class="fas fa-wifi text-success" title="دفع مدى (شبكة المدفوعات السعودية)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> مدى',
     'payment_method_wallet'                                                           => '<i class="fas fa-wallet text-primary" title="دفع المحفظة (مثل المحفظة الرقمية)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> محفظة',
     'payment_method_visa'                                                             => '<i class="fas fa-credit-card text-warning" title="دفع ببطاقة ائتمان (فيزا، ماستر كارد، إلخ)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> فيزا',
-    'payment_method_cach'                                                            => '<i class="fas fa-money-bill-wave text-success" title="الدفع النقدي (النقد أو الأموال الفعلية)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> نقدا',
-    'booking_not_found' => 'عذراً، لم يتم العثور على الحجز.',
+    'payment_method_cach'                                                             => '<i class="fas fa-money-bill-wave text-success" title="الدفع النقدي (النقد أو الأموال الفعلية)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> نقدا',
+    'booking_not_found'                                                               => 'عذراً، لم يتم العثور على الحجز.',
+
+    'payment_method_cache'                                                            => 'دفع نقداً',
+    'payment_method_cash'                                                             => 'دفع نقداً',
+    'payment_method_wallet'                                                           => 'الدفع من المحفظة',
+    'payment_method_mada'                                                             => 'دفع عبر مدى',
+    'payment_method_visa'                                                             => 'دفع ببطاقة ائتمان',
 
 ];
