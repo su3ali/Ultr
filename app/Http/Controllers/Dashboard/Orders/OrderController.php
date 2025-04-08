@@ -164,7 +164,7 @@ class OrderController extends Controller
                     // Reschedule (Super Admin or permission)
                     if (
                         (auth()->user()->id == 1 && auth()->user()->first_name == 'Super Admin') ||
-                        auth()->user()->can('delete_orders')
+                        auth()->user()->can('view_Reschedule_orders')
                     ) {
                         $html .= '<a href="javascript:void(0);"
                                     class="btn btn-outline-warning btn-sm mr-2 open-reschedule"
