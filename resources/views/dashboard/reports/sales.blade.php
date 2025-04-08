@@ -189,28 +189,27 @@
         return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
     };
 
-    const setDefaultDateTimeInputs = (table) => {
-    const dateInput = document.querySelector('input[name="date"]');
-    const date2Input = document.querySelector('input[name="date2"]');
+    const setDefaultDateTimeInputs = () => {
+        const dateInput = document.querySelector('input[name="date"]');
+        const date2Input = document.querySelector('input[name="date2"]');
 
-    if (!dateInput.value && !date2Input.value) {
-        const nowKSA = new Date().toLocaleString("en-US", { timeZone: "Asia/Riyadh" });
-        const ksaNow = new Date(nowKSA);
+        if (!dateInput.value && !date2Input.value) {
+            const nowKSA = new Date().toLocaleString("en-US", { timeZone: "Asia/Riyadh" });
+            const ksaNow = new Date(nowKSA);
 
-        const startOfDay = new Date(ksaNow);
-        startOfDay.setHours(0, 0, 0, 0);
+            const startOfDay = new Date(ksaNow);
+            startOfDay.setHours(0, 0, 0, 0);
 
-        const endOfDay = new Date(ksaNow);
-        endOfDay.setHours(23, 59, 59, 999);
+            const endOfDay = new Date(ksaNow);
+            endOfDay.setHours(23, 59, 59, 999);
 
-        dateInput.value = formatDateTimeForInput(startOfDay);
-        date2Input.value = formatDateTimeForInput(endOfDay);
+            dateInput.value = formatDateTimeForInput(startOfDay);
+            date2Input.value = formatDateTimeForInput(endOfDay);
 
-        //  Trigger table reload immediately after setting defaults
-        updateTableData(table);
-    }
-};
-
+            // updateTableData(table);
+            // updateSummary(table);
+        }
+    };
 
     const updateSummary = () => {
         $.ajax({
@@ -254,6 +253,10 @@
     $(document).ready(function () {
         setDefaultDateTimeInputs();
         updateSummary();
+
+
+    $('.date, .date2, .payment_method, .service_filter, .tech_filter')
+        .on('change', () => updateTableData(table));
 
         const table = $('#html5-extension').DataTable({
             dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
