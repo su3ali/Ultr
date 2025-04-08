@@ -1,24 +1,24 @@
 <?php
 namespace App\Http\Controllers\Dashboard\Reports;
 
-use App\Models\User;
-use App\Models\Group;
-use App\Models\Order;
-use App\Models\Visit;
+use App\Exports\SalesExport;
+use App\Http\Controllers\Controller;
 use App\Models\Booking;
-use App\Models\Service;
+use App\Models\BookingSetting;
 use App\Models\Category;
 use App\Models\Contract;
-use App\Models\Technician;
-use App\Exports\SalesExport;
+use App\Models\Group;
+use App\Models\Order;
 use App\Models\OrderService;
+use App\Models\Service;
+use App\Models\Technician;
+use App\Models\User;
+use App\Models\Visit;
 use Illuminate\Http\Request;
-use App\Models\BookingSetting;
 use Illuminate\Support\Carbon;
-use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
 use Maatwebsite\Excel\Facades\Excel;
+use Yajra\DataTables\DataTables;
 
 class ReportsController extends Controller
 {
@@ -33,7 +33,17 @@ class ReportsController extends Controller
             $tech_id        = $request->query('tech_filter');
 
             if (! $date && ! $date2) {
-                return DataTables::of(collect())->make(true);
+                $nowKSA = now('Asia/Riyadh');
+                $start  = $nowKSA->copy()->startOfDay();
+                $end    = $nowKSA->copy()->endOfDay();
+
+                $request->merge([
+                    'date'  => $start->toDateTimeString(),
+                    'date2' => $end->toDateTimeString(),
+                ]);
+
+                $date  = $start;
+                $date2 = $end;
             }
 
             $orderQuery = Order::with([
