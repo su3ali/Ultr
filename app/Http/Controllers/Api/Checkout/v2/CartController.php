@@ -564,7 +564,6 @@ class CartController extends Controller
 
     public function changeOrderSchedule(Request $request)
     {
-        // return self::apiResponse(402, $request->all(), $this->body);
         DB::beginTransaction();
 
         try {
@@ -589,7 +588,6 @@ class CartController extends Controller
                 }
 
                 $time = $bookingDateTime->format('H:i:s');
-
             } catch (\Exception $e) {
                 return self::apiResponse(400, 'تنسيق الوقت غير صحيح. يرجى استخدام تنسيق مثل 02:30 PM');
             }
@@ -624,11 +622,14 @@ class CartController extends Controller
 
             // Duration calculation
             $bookSetting = BookingSetting::where('service_id', $serviceIds[0] ?? null)->first();
+            if (! $bookSetting) {
+                DB::rollBack();
+                return self::apiResponse(400, 'إعدادات الخدمة غير متوفرة.');
+            }
 
             $serviceDuration = (int) $bookSetting->service_duration;
             $bufferTime      = (int) $bookSetting->buffering_time;
-
-            $duration = ($serviceDuration + $bufferTime) * $quantity;
+            $duration        = ($serviceDuration + $bufferTime) * $quantity;
 
             if ($duration <= 0) {
                 DB::rollBack();
@@ -681,41 +682,43 @@ class CartController extends Controller
                 return self::apiResponse(400, __('api.This Time is not available'));
             }
 
-            $groupWithLeastVisits = $availableGroups->sortBy(function ($group) {
-                return Visit::where('assign_to_id', $group->id)->count();
-            })->first();
-
-            $assign_to_id = $groupWithLeastVisits->id;
+            $groupWithLeastVisits = $availableGroups->sortBy(fn($group) => Visit::where('assign_to_id', $group->id)->count())->first();
+            $assign_to_id         = $groupWithLeastVisits->id;
 
             // Update visit with assigned group and time info
             $visit->update([
                 'assign_to_id' => $assign_to_id,
+                'created_at'   => Carbon::parse($newDate)->setTimeFrom($startTime),
                 'start_time'   => $startTime->format('H:i:s'),
                 'end_time'     => $startTime->copy()->addMinutes($duration)->format('H:i:s'),
             ]);
 
             // Notifications
-            $technicians = Technician::where('group_id', $assign_to_id)->whereNotNull('fcm_token')->get();
+            try {
+                $technicians = Technician::where('group_id', $assign_to_id)->whereNotNull('fcm_token')->get();
 
-            if ($technicians->isNotEmpty()) {
-                $title   = 'موعد زيارة جديد';
-                $message = 'لديك موعد زياره جديد';
+                if ($technicians->isNotEmpty()) {
+                    $title   = 'موعد زيارة جديد';
+                    $message = 'لديك موعد زياره جديد';
 
-                foreach ($technicians as $tech) {
-                    Notification::send($tech, new SendPushNotification($title, $message));
+                    foreach ($technicians as $tech) {
+                        Notification::send($tech, new SendPushNotification($title, $message));
+                    }
+
+                    $fcmTokens = $technicians->pluck('fcm_token')
+                        ->merge(Admin::whereNotNull('fcm_token')->pluck('fcm_token'))
+                        ->toArray();
+
+                    $this->pushNotification([
+                        'device_token' => $fcmTokens,
+                        'title'        => $title,
+                        'message'      => $message,
+                        'type'         => 'technician',
+                        'code'         => 1,
+                    ]);
                 }
-
-                $fcmTokens = $technicians->pluck('fcm_token')
-                    ->merge(Admin::whereNotNull('fcm_token')->pluck('fcm_token'))
-                    ->toArray();
-
-                $this->pushNotification([
-                    'device_token' => $fcmTokens,
-                    'title'        => $title,
-                    'message'      => $message,
-                    'type'         => 'technician',
-                    'code'         => 1,
-                ]);
+            } catch (\Exception $e) {
+                Log::error('FCM send failed: ' . $e->getMessage());
             }
 
             DB::commit();
@@ -724,7 +727,6 @@ class CartController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return self::apiResponse(500, 'حدث خطأ أثناء معالجة الطلب: ' . $e->getMessage());
-
         }
     }
 
