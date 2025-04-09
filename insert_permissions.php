@@ -70,12 +70,13 @@ $permissions = [
     ['id' => 98, 'name' => 'update_technicians_groups', 'guard_name' => 'dashboard', 'name_ar' => 'تعديل  مجموعات الفنيين ', 'name_en' => 'Update Technicians Groups'],
     ['id' => 99, 'name' => 'delete_technicians_groups', 'guard_name' => 'dashboard', 'name_ar' => 'حذف  مجموعات الفنيين', 'name_en' => 'Delete Technicians Groups'],
 
-    //  complaint_type
+    //  complaint_type done
     ['id' => 100, 'name' => 'view_complaint_type', 'guard_name' => 'dashboard', 'name_ar' => 'عرض نوع الشكوى', 'name_en' => 'View Complaint Type'],
     ['id' => 101, 'name' => 'update_complaint_type', 'guard_name' => 'dashboard', 'name_ar' => 'تعديل نوع الشكوى', 'name_en' => 'Update Complaint Type'],
     ['id' => 102, 'name' => 'delete_complaint_type', 'guard_name' => 'dashboard', 'name_ar' => 'حذف نوع الشكوى', 'name_en' => 'Delete Complaint Type'],
     ['id' => 103, 'name' => 'create_complaint_type', 'guard_name' => 'dashboard', 'name_ar' => 'اضافة نوع الشكوى', 'name_en' => 'Create Complaint Type'],
     ['id' => 104, 'name' => 'view_Reschedule_orders', 'guard_name' => 'dashboard', 'name_ar' => 'امكانية جدولة الطلبات', 'name_en' => 'view Reschedule Orders'],
+    ['id' => 105, 'name' => 'appointment_settings_manage', 'guard_name' => 'dashboard', 'name_ar' => 'إدارةإعدادات المواعيد	', 'name_en' => 'Appointment Settings Manage'],
 
 ];
 

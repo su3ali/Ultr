@@ -181,7 +181,7 @@
                 </ul>
             </li>
             @endcan
-            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_admins'))
+            @if (auth()->user()->hasRole('admin') || auth()->user()->can('appointment_settings_manage'))
 
             {{-- Beginning of appointments --}}
 
@@ -439,7 +439,7 @@
             </li>
             @endcan
 
-            @if (auth()->user()->hasRole('admin') || auth()->user()->can('create_trainees'))
+            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_trainees'))
             <li class="menu">
                 <a href="#trainees" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
