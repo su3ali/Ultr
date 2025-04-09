@@ -104,7 +104,7 @@
                     <thead>
                         <tr>
                             <th>{{ __('dash.order_number') }}</th>
-                            <th>{{ __('dash.booking_number') }}</th>
+                            {{-- <th>{{ __('dash.booking_number') }}</th> --}}
                             <th>{{ __('dash.customer_name') }}</th>
                             <th>{{ __('dash.phone') }}</th>
                             <th>{{ __('dash.service') }}</th>
@@ -168,7 +168,7 @@
         pagingType: 'full_numbers',
         columns: [
             { data: 'id', name: 'id' },
-            { data: 'booking_id', name: 'booking_id' },
+           
             { data: 'user', name: 'user' },
             { data: 'phone', name: 'phone' },
             { data: 'service', name: 'service' },

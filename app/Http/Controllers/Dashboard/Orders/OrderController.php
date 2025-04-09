@@ -88,7 +88,7 @@ class OrderController extends Controller
             }
 
             return DataTables::of($ordersQuery)
-                ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id ?? '')
+                // ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id ?? '')
                 ->addColumn('user', fn($row) => $row->user?->first_name . ' ' . $row->user?->last_name)
                 ->addColumn('phone', fn($row) => $row->user?->phone
                     ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->user->phone . '</a>'
@@ -137,7 +137,7 @@ class OrderController extends Controller
                     }
                     return $html;
                 })
-                ->rawColumns(['booking_id', 'user', 'phone', 'service', 'quantity', 'total', 'payment_method', 'region', 'status', 'created_at', 'control'])
+                ->rawColumns([ 'user', 'phone', 'service', 'quantity', 'total', 'payment_method', 'region', 'status', 'created_at', 'control'])
                 ->make(true);
         }
 
