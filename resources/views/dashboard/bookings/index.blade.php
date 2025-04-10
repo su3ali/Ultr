@@ -244,7 +244,10 @@ $type = 'package';
                 ajax: '{{ url('admin/bookings?type=' . $type) }}',
                 columns: [
                 
-
+                  {
+                        data: 'id',
+                        name: 'id'
+                    },
                     {
                         data: 'order',
                         name: 'order'

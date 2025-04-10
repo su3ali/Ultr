@@ -2,7 +2,7 @@
     <thead>
         <tr>
             {{-- <th>رقم اتسلسلي</th> --}}
-            {{-- <th> {{ __('dash.booking_number') }}</th> --}}
+            <th> {{ __('dash.booking_number') }}</th>
             <th> {{ __('dash.order_number') }}</th>
             {{-- <th>رقم طلب الفني</th>
             <th>رقم طلب العميل</th> --}}

@@ -185,7 +185,8 @@
                 serverSide: true,
                 ajax: ajaxUrl, // Use the dynamically generated URL for AJAX
 
-                columns: [{
+                columns: [
+                    {
                         data: 'id',
                         name: 'id'
                     },
