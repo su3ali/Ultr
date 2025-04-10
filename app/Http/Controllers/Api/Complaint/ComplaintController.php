@@ -27,12 +27,14 @@ class ComplaintController extends Controller
 
     protected function store(Request $request)
     {
+
         $rules = [
             'text'                          => 'required|string',
             'video'                         => 'nullable',
             'images'                        => 'nullable|array',
             'images.*'                      => 'nullable|image|mimes:jpeg,jpg,png,gif',
             'order_id'                      => 'required|exists:orders,id',
+            'complaint_type_id'             => 'nullable|exists:complaint_types,id',
             'customer_complaints_status_id' => 'nullable|exists:customer_complaint_statuses,id',
         ];
 

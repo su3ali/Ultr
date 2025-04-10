@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Dashboard\Reports;
 
+use App\Exports\SalesExport;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingSetting;
@@ -16,6 +17,7 @@ use App\Models\Visit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\DataTables;
 
 class ReportsController extends Controller
@@ -175,6 +177,56 @@ class ReportsController extends Controller
             'tax'      => $tax,
             'taxTotal' => $taxTotal,
         ]);
+    }
+
+    // exportExcel
+    public function exportExcel(Request $request)
+    {
+        return Excel::download(new SalesExport($request), 'sales-report.xlsx');
+    }
+
+    // Export PDF to Print
+    public function exportPrint(Request $request)
+    {
+        $orders = $this->getFilteredOrders($request);
+        return view('dashboard.reports.sales_print', compact('orders'));
+    }
+
+    private function getFilteredOrders(Request $request)
+    {
+        $query = Order::with([
+            'services.category',
+            'user',
+            'transaction',
+            'userAddress.region',
+            'bookings.visit.group',
+        ])->where('is_active', 1)
+            ->where(function ($q) {
+                $q->where('status_id', 4)
+                    ->orWhereHas('transaction', fn($q2) => $q2->where('payment_method', '!=', 'cache'));
+            });
+
+        if ($request->filled('date')) {
+            $query->where('created_at', '>=', \Carbon\Carbon::parse($request->date)->timezone('Asia/Riyadh')->startOfDay());
+        }
+
+        if ($request->filled('date2')) {
+            $query->where('created_at', '<=', \Carbon\Carbon::parse($request->date2)->timezone('Asia/Riyadh')->endOfDay());
+        }
+
+        if ($request->filled('payment_method') && $request->payment_method != 'all') {
+            $query->whereHas('transaction', fn($q) => $q->where('payment_method', $request->payment_method));
+        }
+
+        if ($request->filled('service') && $request->service != 'all') {
+            $query->whereHas('services', fn($q) => $q->where('service_id', $request->service));
+        }
+
+        if ($request->filled('tech_filter') && $request->tech_filter != 'all') {
+            $query->whereHas('bookings.visit.group', fn($q) => $q->where('id', $request->tech_filter));
+        }
+
+        return $query->get();
     }
 
     protected function contractSales(Request $request)

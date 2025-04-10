@@ -38,6 +38,17 @@ class Handler extends ExceptionHandler
         });
     }
 
+    // protected function unauthenticated($request, AuthenticationException $exception)
+    // {
+    //     // Check if the request is expecting JSON (API request)
+    //     if ($request->expectsJson()) {
+    //         return response()->json([
+    //             'message' => 'Unauthorized. Please provide a valid token.',
+    //         ], 401);
+    //     }
+
+    // }
+
     public function render($request, Throwable $exception)
     {
         // Handle specific HTTP exceptions

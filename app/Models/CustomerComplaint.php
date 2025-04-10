@@ -1,10 +1,15 @@
 <?php
 namespace App\Models;
 
+use App\Models\User;
+use App\Models\Order;
+use App\Models\Visit;
+use App\Models\Booking;
+use App\Models\CustomerComplaintImage;
 use App\Models\CustomerComplaintReply;
 use App\Models\CustomerComplaintStatus;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class CustomerComplaint extends Model
 {

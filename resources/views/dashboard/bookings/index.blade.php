@@ -242,10 +242,8 @@ $type = 'package';
                 responsive: true,
                 serverSide: true,
                 ajax: '{{ url('admin/bookings?type=' . $type) }}',
-                columns: [{
-                        data: 'id',
-                        name: 'id'
-                    },
+                columns: [
+                
 
                     {
                         data: 'order',

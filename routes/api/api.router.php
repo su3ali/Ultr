@@ -1,8 +1,10 @@
 <?php
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Checkout\v2\CartController as CartControllerV2;
 use App\Http\Controllers\Api\Core\HomeController;
 use App\Http\Controllers\Api\Core\ServiceController;
 use App\Http\Controllers\Api\Coupons\CouponsController;
+use App\Http\Controllers\Api\Orders\OrdersController;
 use App\Http\Controllers\Api\Settings\SettingsController;
 use App\Http\Controllers\VersionController;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +25,11 @@ Route::post('check_update', [VersionController::class, 'checkUpdate'])->name('ch
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::post('/verify', [AuthController::class, 'verify']);
+
+Route::get('/get_avail_times_from_date', [CartControllerV2::class, 'getAvailableTimesFromDate']);
+Route::post('/changeOrderSchedule', [CartControllerV2::class, 'changeOrderSchedule'])->name('changeOrderSchedule');
+
+Route::get('/getOrderData/{order_id}', [OrdersController::class, 'getOrderData'])->name('getOrderData');
 
 //Route::post('/payment-callback/{type?}',[CheckoutController::class,'callbackPayment']);
 

@@ -1007,7 +1007,13 @@ return [
     'lateOrderCountWeek'                    => 'عدد الطلبات المتأخرة هذا الأسبوع',
     'lateOrderCountTotal'                   => 'عدد الطلبات المتأخرة الكلي',
     'lateOrderCountMonth'                   => 'عدد الطلبات المتأخرة هذا الشهر',
+    'booking_not_found'                     => 'عذراً، لم يتم العثور على الحجز.',
     'filters'                               => 'عوامل التصفية',
 
+    'booking_not_found'                     => 'عذراً، لم يتم العثور على الحجز.',
+    'appointment_settings_manage'           => 'إدارة إعدادات المواعيد',
+    'appointment_settings'                  => 'إعدادات المواعيد',
+
+    'shift_settings'                        => 'إعدادات المناوبات',
 
 ];

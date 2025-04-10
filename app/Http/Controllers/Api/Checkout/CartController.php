@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Api\Checkout;
 
 use App\Bll\ControlCart;
@@ -47,11 +46,11 @@ class CartController extends Controller
                     }
                     for ($i = 0; $i < $package->visit_number; $i++) {
                         Cart::query()->create([
-                            'user_id' => auth()->user()->id,
+                            'user_id'             => auth()->user()->id,
                             'contract_package_id' => $package->id,
-                            'price' => $package->price,
-                            'quantity' => $package->visit_number,
-                            'type' => 'package',
+                            'price'               => $package->price,
+                            'quantity'            => $package->visit_number,
+                            'type'                => 'package',
                         ]);
                     }
                     //                $carts = Cart::query()->where('user_id', auth()->user()->id)->count();
@@ -71,8 +70,8 @@ class CartController extends Controller
                     if (auth()->user()->carts->where('type', 'package')->first()) {
                         return self::apiResponse(400, __('api.finish current order first or clear the cart'), $this->body);
                     }
-                    $price = $service->price;
-                    $now = Carbon::now('Asia/Riyadh');
+                    $price                = $service->price;
+                    $now                  = Carbon::now('Asia/Riyadh');
                     $contractPackagesUser = ContractPackagesUser::where('user_id', auth()->user()->id)
                         ->whereDate('end_date', '>=', $now)
                         ->where(function ($query) use ($service) {
@@ -102,29 +101,29 @@ class CartController extends Controller
                     }
 
                     Cart::query()->create([
-                        'user_id' => auth()->user()->id,
-                        'service_id' => $service->id,
-                        'icon_ids' => json_encode($request->icon_ids),
+                        'user_id'     => auth()->user()->id,
+                        'service_id'  => $service->id,
+                        'icon_ids'    => json_encode($request->icon_ids),
                         'category_id' => $service->category->id,
-                        'price' => $price,
-                        'quantity' => $request->quantity,
-                        'type' => 'service',
+                        'price'       => $price,
+                        'quantity'    => $request->quantity,
+                        'type'        => 'service',
                     ]);
-                    $carts = Cart::query()->where('user_id', auth()->user()->id)->count();
+                    $carts                             = Cart::query()->where('user_id', auth()->user()->id)->count();
                     $this->body['total_items_in_cart'] = $carts;
 
                     activity()
                         ->causedBy(auth()->user()) // Action performed by the authenticated user
                         ->withProperties([
-                            'title' => 'A Added  service to Cart', // Descriptive title of the action
-                            'user_id' => auth()->user()->id, // User’s ID for identification
-                            'user_name' => auth()->user()->first_name, // User’s name for clarity
-                            'region_id' => Cart::where('user_id', auth()->user()->id)->pluck('region_id')->first(),
-                            'date' => Cart::where('user_id', auth()->user()->id)->pluck('date')->first(),
-                            'time' => Cart::where('user_id', auth()->user()->id)->pluck('time')->first(),
-                            'price_in_cart' => Cart::where('user_id', auth()->user()->id)->pluck('price')->first(), // Total price of items in the cart (sum of prices)
-                            'quantity' => Cart::where('user_id', auth()->user()->id)->pluck('quantity')->first(), // Total quantity of items in the cart
-                            'current_url' => url()->current(), // URL of the page from which the action was triggered
+                            'title'         => 'A Added  service to Cart', // Descriptive title of the action
+                            'user_id'       => auth()->user()->id,         // User’s ID for identification
+                            'user_name'     => auth()->user()->first_name, // User’s name for clarity
+                            'region_id'     => Cart::where('user_id', auth()->user()->id)->pluck('region_id')->first(),
+                            'date'          => Cart::where('user_id', auth()->user()->id)->pluck('date')->first(),
+                            'time'          => Cart::where('user_id', auth()->user()->id)->pluck('time')->first(),
+                            'price_in_cart' => Cart::where('user_id', auth()->user()->id)->pluck('price')->first(),    // Total price of items in the cart (sum of prices)
+                            'quantity'      => Cart::where('user_id', auth()->user()->id)->pluck('quantity')->first(), // Total quantity of items in the cart
+                            'current_url'   => url()->current(),                                                       // URL of the page from which the action was triggered
                         ])
                         ->log('A service was added to the cart'); // Log description
 
@@ -139,12 +138,12 @@ class CartController extends Controller
                 ->causedBy(auth()->user()) // Log the user who caused the action
                 ->withProperties([
                     'exception_message' => $e->getMessage(),
-                    'exception_file' => $e->getFile(),
-                    'exception_line' => $e->getLine(),
-                    'url' => url()->current(),
-                    'user_id' => auth()->user()->id,
-                    'user_name' => auth()->user()->first_name,
-                    'cart_id' => Cart::where('user_id', auth()->user()->id)->pluck('id')->first(),
+                    'exception_file'    => $e->getFile(),
+                    'exception_line'    => $e->getLine(),
+                    'url'               => url()->current(),
+                    'user_id'           => auth()->user()->id,
+                    'user_name'         => auth()->user()->first_name,
+                    'cart_id'           => Cart::where('user_id', auth()->user()->id)->pluck('id')->first(),
 
                 ])
                 ->log('Exception while processing the add_to_cart endpoint');
@@ -162,17 +161,17 @@ class CartController extends Controller
         $cart = auth()->user()->carts->first();
         if ($cart) {
             $rules = [
-                'category_ids' => 'required|array',
+                'category_ids'   => 'required|array',
                 'category_ids.*' => 'required|exists:categories,id',
-                'date' => 'required|array',
-                'date.*' => 'required|date',
-                'time' => 'required|array',
-                'time.*' => 'required|date_format:h:i A',
-                'notes' => 'nullable|array',
-                'notes.*' => 'nullable|string|max:191',
+                'date'           => 'required|array',
+                'date.*'         => 'required|date',
+                'time'           => 'required|array',
+                'time.*'         => 'required|date_format:h:i A',
+                'notes'          => 'nullable|array',
+                'notes.*'        => 'nullable|string|max:191',
             ];
             $request->validate($rules, $request->all());
-            if ($cart->type == 'service' || !$cart->type) {
+            if ($cart->type == 'service' || ! $cart->type) {
                 $cartCategoryCount = count(array_unique(auth()->user()->carts->pluck('category_id')->toArray()));
                 if (
                     count($request->category_ids) < $cartCategoryCount
@@ -199,8 +198,8 @@ class CartController extends Controller
 
                     Cart::query()->where('user_id', auth('sanctum')->user()->id)
                         ->where('category_id', $category_id)->update([
-                        'date' => $request->date[$key],
-                        'time' => Carbon::parse($request->time[$key])->timezone('Asia/Riyadh')->toTimeString(),
+                        'date'  => $request->date[$key],
+                        'time'  => Carbon::parse($request->time[$key])->timezone('Asia/Riyadh')->toTimeString(),
                         'notes' => $request->notes ? array_key_exists($key, $request->notes) ? $request->notes[$key] : '' : '',
                     ]);
                 }
@@ -234,8 +233,8 @@ class CartController extends Controller
                     error_log($cart->id);
 
                     $cart->update([
-                        'date' => $request->date[$key],
-                        'time' => Carbon::parse($request->time[$key])->timezone('Asia/Riyadh')->toTimeString(),
+                        'date'  => $request->date[$key],
+                        'time'  => Carbon::parse($request->time[$key])->timezone('Asia/Riyadh')->toTimeString(),
                         'notes' => $request->notes ? array_key_exists($key, $request->notes) ? $request->notes[$key] : '' : '',
                     ]);
                 }
@@ -262,12 +261,12 @@ class CartController extends Controller
             $service = service::query()->where('id', $cart->service_id)->first();
             if ($service) {
                 $controlClass = new ControlCart();
-                $response = $controlClass->makeAction($request->action, $cart, $service);
+                $response     = $controlClass->makeAction($request->action, $cart, $service);
 
                 $carts = Cart::query()->where('user_id', auth()->user()->id)->get();
 
-                $tempTotal = $this->calc_total($carts);
-                $now = Carbon::now('Asia/Riyadh');
+                $tempTotal            = $this->calc_total($carts);
+                $now                  = Carbon::now('Asia/Riyadh');
                 $contractPackagesUser = ContractPackagesUser::where('user_id', auth()->user()->id)
                     ->whereDate('end_date', '>=', $now)
                     ->where(function ($query) use ($service) {
@@ -287,18 +286,18 @@ class CartController extends Controller
                     }
                 }
 
-                $total = number_format($tempTotal, 2);
+                $total   = number_format($tempTotal, 2);
                 $cat_ids = $carts->pluck('category_id');
                 if (key_exists('success', $response)) {
                     $this->body['total'] = $total;
                     $this->body['carts'] = [];
-                    $cat_ids = array_unique($cat_ids->toArray());
+                    $cat_ids             = array_unique($cat_ids->toArray());
                     foreach ($cat_ids as $cat_id) {
                         if ($cat_id) {
                             $this->body['carts'][] = [
-                                'category_id' => $cat_id ?? 0,
+                                'category_id'    => $cat_id ?? 0,
                                 'category_title' => Category::query()->find($cat_id)?->title ?? '',
-                                'cart-services' => CartResource::collection($carts->where('category_id', $cat_id)),
+                                'cart-services'  => CartResource::collection($carts->where('category_id', $cat_id)),
                             ];
                         }
                     }
@@ -326,12 +325,12 @@ class CartController extends Controller
     public function getAvailableTimesFromDate(Request $request)
     {
         $rules = [
-            'services' => 'required|array',
-            'services.*.id' => 'required|exists:services,id',
+            'services'          => 'required|array',
+            'services.*.id'     => 'required|exists:services,id',
             'services.*.amount' => 'required|numeric',
-            'region_id' => 'required|exists:regions,id',
-            'package_id' => 'required',
-            'page_number' => 'required|numeric',
+            'region_id'         => 'required|exists:regions,id',
+            'package_id'        => 'required',
+            'page_number'       => 'required|numeric',
         ];
         $request->validate($rules, $request->all());
 
@@ -720,48 +719,48 @@ class CartController extends Controller
      */
     protected function handleCartResponse(): void
     {
-        $carts = Cart::with('coupon')->where('user_id', auth()->user()->id)->where('type', 'service')->orWhereNull('type')->get();
-        $cat_ids = $carts->pluck('category_id');
+        $carts                   = Cart::with('coupon')->where('user_id', auth()->user()->id)->where('type', 'service')->orWhereNull('type')->get();
+        $cat_ids                 = $carts->pluck('category_id');
         $this->body['cart_type'] = auth()->user()->carts->first()?->type;
-        $this->body['carts'] = [];
-        $cat_ids = array_unique($cat_ids->toArray());
+        $this->body['carts']     = [];
+        $cat_ids                 = array_unique($cat_ids->toArray());
         foreach ($cat_ids as $cat_id) {
             if ($cat_id) {
                 $this->body['carts'][] = [
-                    'category_id' => $cat_id ?? 0,
+                    'category_id'    => $cat_id ?? 0,
                     'category_title' => Category::query()->find($cat_id)?->title ?? '',
-                    'cart-services' => CartResource::collection($carts->where('category_id', $cat_id)),
+                    'cart-services'  => CartResource::collection($carts->where('category_id', $cat_id)),
                 ];
             }
         }
-        $total = number_format($this->calc_total($carts), 2, '.', '');
-        $this->body['total'] = $total;
+        $total                             = number_format($this->calc_total($carts), 2, '.', '');
+        $this->body['total']               = $total;
         $this->body['total_items_in_cart'] = auth()->user()->carts->count();
 
         //packages
         $cart_package = Cart::with('coupon')->where('user_id', auth()->user()->id)->where('type', 'package')->first();
         if ($cart_package) {
-            $this->body['total'] = $cart_package->price;
+            $this->body['total']               = $cart_package->price;
             $this->body['total_items_in_cart'] = 1;
-            $cat_id = $cart_package->category_id;
-            $this->body['cart_package'][] = [
-                'category_id' => $cat_id ?? 0,
+            $cat_id                            = $cart_package->category_id;
+            $this->body['cart_package'][]      = [
+                'category_id'    => $cat_id ?? 0,
                 'category_title' => Category::query()->find($cat_id)?->title ?? '',
-                'cart-services' => CartResource::make($cart_package),
+                'cart-services'  => CartResource::make($cart_package),
             ];
         } else {
             $this->body['cart_package'] = null;
         }
         $this->body['coupon'] = null;
-        $coupon = $carts->first()?->coupon;
+        $coupon               = $carts->first()?->coupon;
         if ($coupon) {
-            $match_response = CouponCheck::check_coupon_services_match($coupon, $total, $carts);
-            $discount_value = $match_response['discount'];
+            $match_response       = CouponCheck::check_coupon_services_match($coupon, $total, $carts);
+            $discount_value       = $match_response['discount'];
             $this->body['coupon'] = [
-                'code' => $coupon->code,
+                'code'                  => $coupon->code,
                 'total_before_discount' => $total,
-                'discount_value' => $discount_value,
-                'total_after_discount' => $total - $discount_value,
+                'discount_value'        => $discount_value,
+                'total_after_discount'  => $total - $discount_value,
             ];
         }
     }

@@ -1,33 +1,22 @@
 <?php
-
 namespace App\Http\Controllers\Dashboard\Contracts;
 
 use App\Http\Controllers\Controller;
-use App\Models\Booking;
-use App\Models\BookingStatus;
 use App\Models\ContractPackage;
 use App\Models\ContractPackagesService;
-use App\Models\Group;
-use App\Models\Order;
 use App\Models\Service;
-use App\Models\User;
 use App\Traits\imageTrait;
-use Carbon\Carbon;
-use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Http\RedirectResponse;
-
 use Illuminate\Http\Request;
-
-use Illuminate\Support\Facades\Validator;
-
 use Illuminate\Validation\ValidationException;
-
+use Yajra\DataTables\Facades\DataTables;
 
 class ContractPackagesController extends Controller
 {
     use imageTrait;
     public function index()
     {
+       
         if (request()->ajax()) {
             $ContractPackage = ContractPackage::query()->get();
             return DataTables::of($ContractPackage)
@@ -36,7 +25,7 @@ class ContractPackagesController extends Controller
                 })
                 ->addColumn('services', function ($row) {
                     $services_ids = $row->ContractPackagesServices->pluck('service_id');
-                    $html = '';
+                    $html         = '';
                     foreach ($services_ids as $service_id) {
                         $service = Service::where('id', $service_id)->first();
                         $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
@@ -73,7 +62,7 @@ class ContractPackagesController extends Controller
                     'services',
                     'visit_number',
                     'status',
-                    'control'
+                    'control',
                 ])
 
                 ->make(true);
@@ -95,31 +84,31 @@ class ContractPackagesController extends Controller
     protected function store(Request $request): RedirectResponse
     {
         $request->validate = ([
-            'name_ar' => 'required',
-            'name_en' => 'required',
-            'avatar' => 'nullable|image|mimes:jpeg,jpg,png,gif',
+            'name_ar'        => 'required',
+            'name_en'        => 'required',
+            'avatar'         => 'nullable|image|mimes:jpeg,jpg,png,gif',
             'description_ar' => 'required',
             'description_en' => 'required',
-            'service_ids' => 'required|array',
-            'service_ids.*' => 'required',
-            'price' => 'required|numeric',
-            'time' => 'required|string',
-            'visit_number' => 'required|numeric',
+            'service_ids'    => 'required|array',
+            'service_ids.*'  => 'required',
+            'price'          => 'required|numeric',
+            'time'           => 'required|string',
+            'visit_number'   => 'required|numeric',
 
         ]);
         $data = $request->except('_token', 'avatar', 'service_ids');
 
         if ($request->has('avatar')) {
-            $image = $this->storeImages($request->avatar, 'contract_packages');
+            $image         = $this->storeImages($request->avatar, 'contract_packages');
             $data['image'] = 'storage/images/contract_packages' . '/' . $image;
         }
 
         $ContractPackage = ContractPackage::updateOrCreate($data);
-        $services_ids = $request->service_ids;
-        foreach ($services_ids as   $services_id) {
+        $services_ids    = $request->service_ids;
+        foreach ($services_ids as $services_id) {
             ContractPackagesService::create([
                 'contract_packages_id' => $ContractPackage->id,
-                'service_id' => $services_id,
+                'service_id'           => $services_id,
             ]);
         }
 
@@ -129,46 +118,43 @@ class ContractPackagesController extends Controller
 
     protected function edit($id)
     {
-        $ContractPackage = ContractPackage::query()->where('id', $id)->first();
-        $services = Service::where('active', 1)->get()->pluck('title', 'id');
+        $ContractPackage  = ContractPackage::query()->where('id', $id)->first();
+        $services         = Service::where('active', 1)->get()->pluck('title', 'id');
         $selectedServices = ContractPackagesService::where('contract_packages_id', $id)->pluck('service_id');
         return view('dashboard.contract_packages.edit', compact('ContractPackage', 'services', 'selectedServices'));
     }
     protected function update(Request $request, $id)
     {
         $request->validate = ([
-            'name_ar' => 'required',
-            'name_en' => 'required',
-            'avatar' => 'nullable|image|mimes:jpeg,jpg,png,gif',
+            'name_ar'        => 'required',
+            'name_en'        => 'required',
+            'avatar'         => 'nullable|image|mimes:jpeg,jpg,png,gif',
             'description_ar' => 'required',
             'description_en' => 'required',
-            'service_ids' => 'required|array',
-            'service_ids.*' => 'required',
-            'price' => 'required|numeric',
-            'time' => 'required|string',
-            'visit_number' => 'required|numeric',
+            'service_ids'    => 'required|array',
+            'service_ids.*'  => 'required',
+            'price'          => 'required|numeric',
+            'time'           => 'required|string',
+            'visit_number'   => 'required|numeric',
 
         ]);
         $ContractPackage = ContractPackage::find($id);
-        $data = $request->except('_token', 'avatar', 'service_ids');
+        $data            = $request->except('_token', 'avatar', 'service_ids');
 
         if ($request->has('avatar')) {
-            $image = $this->storeImages($request->avatar, 'contract_packages');
+            $image         = $this->storeImages($request->avatar, 'contract_packages');
             $data['image'] = 'storage/images/contract_packages' . '/' . $image;
         }
 
         ContractPackagesService::where('contract_packages_id', $id)->delete();
 
         $services_ids = $request->service_ids;
-        foreach ($services_ids as   $services_id) {
+        foreach ($services_ids as $services_id) {
             ContractPackagesService::create([
                 'contract_packages_id' => $ContractPackage->id,
-                'service_id' => $services_id,
+                'service_id'           => $services_id,
             ]);
         }
-
-
-
 
         $ContractPackage->update($data);
 
@@ -182,7 +168,7 @@ class ContractPackagesController extends Controller
         $ContractPackage->delete();
         return [
             'success' => true,
-            'msg' => __("dash.deleted_success")
+            'msg'     => __("dash.deleted_success"),
         ];
     }
 

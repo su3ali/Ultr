@@ -1080,5 +1080,11 @@ return [
     'lateOrderCountWeek'                    => ' late Orders Count Week',
     'lateOrderCountTotal'                   => ' late Orders Count Total',
     'lateOrderCountMonth'                   => ' late Orders Count Month',
+    'booking_not_found'                     => 'Sorry, booking not found.',
+    'filters'                               => 'Filters',
+    'appointment_settings'                  => 'Appointment Settings',
+    'appointment_settings_manage'           => 'Appointment Settings Manage',
+    'shift_settings'                        => 'Shift Settings',
+    'shift_settings_manage'                 => 'Shift Settings Manage',
 
 ];
