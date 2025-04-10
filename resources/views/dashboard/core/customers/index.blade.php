@@ -181,12 +181,12 @@
             ]
         });
 
-        // 🔁 Reload on date change
+        //  Reload on date change
         $('#date_from, #date_to').on('change', function () {
             table.ajax.reload();
         });
 
-        // ✅ Toggle customer status
+        //  Toggle customer status
         $('body').on('change', '#customSwitch4', function () {
             const active = $(this).is(':checked');
             const id = $(this).data('id');

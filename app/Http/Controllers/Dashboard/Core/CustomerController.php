@@ -15,57 +15,55 @@ class CustomerController extends Controller
         $date  = $request->query('date');
         $date2 = $request->query('date2');
 
-        // Start building the users query
-        $usersQuery = User::select('id', 'first_name', 'last_name', 'active', 'city_id', 'phone', 'created_at')
-            ->with('city');
+        $usersQuery = User::query()
+            ->leftJoin('cities', 'cities.id', '=', 'users.city_id')
+            ->select([
+                'users.id',
+                'users.first_name',
+                'users.last_name',
+                'users.phone',
+                'users.active',
+                'users.created_at',
+                'cities.title_ar as city_name',
+            ]);
 
-        //  Filter for today's date if request has page param (optional)
         if ($request->has('page')) {
             $now = Carbon::now('Asia/Riyadh')->toDateString();
-            $usersQuery->whereDate('created_at', '=', $now);
+            $usersQuery->whereDate('users.created_at', $now);
         }
 
-        //  Filter by date range
         if ($date && $date2) {
-            $start = Carbon::parse($date)->timezone('Asia/Riyadh')->startOfDay();
-            $end   = Carbon::parse($date2)->timezone('Asia/Riyadh')->endOfDay();
-            $usersQuery->whereBetween('created_at', [$start, $end]);
+            $start = Carbon::parse($date)->startOfDay()->timezone('Asia/Riyadh');
+            $end   = Carbon::parse($date2)->endOfDay()->timezone('Asia/Riyadh');
+            $usersQuery->whereBetween('users.created_at', [$start, $end]);
         } elseif ($date) {
-            $start = Carbon::parse($date)->timezone('Asia/Riyadh')->startOfDay();
-            $usersQuery->where('created_at', '>=', $start);
+            $start = Carbon::parse($date)->startOfDay()->timezone('Asia/Riyadh');
+            $usersQuery->where('users.created_at', '>=', $start);
         } elseif ($date2) {
-            $end = Carbon::parse($date2)->timezone('Asia/Riyadh')->endOfDay();
-            $usersQuery->where('created_at', '<=', $end);
+            $end = Carbon::parse($date2)->endOfDay()->timezone('Asia/Riyadh');
+            $usersQuery->where('users.created_at', '<=', $end);
         }
 
-        // AJAX request (DataTables)
         if ($request->ajax()) {
-            // Search filter
             if ($request->filled('search.value')) {
                 $search = $request->input('search.value');
-
                 $usersQuery->where(function ($query) use ($search) {
-                    $query->where('id', 'LIKE', "%$search%")
-                        ->orWhere('first_name', 'LIKE', "%$search%")
-                        ->orWhere('last_name', 'LIKE', "%$search%")
-                        ->orWhere('phone', 'LIKE', "%$search%")
-                        ->orWhereHas('city', function ($cityQuery) use ($search) {
-                            $cityQuery->where('title_ar', 'LIKE', "%$search%");
-                        });
+                    $query->where('users.id', 'LIKE', "%$search%")
+                        ->orWhere('users.first_name', 'LIKE', "%$search%")
+                        ->orWhere('users.last_name', 'LIKE', "%$search%")
+                        ->orWhere('users.phone', 'LIKE', "%$search%")
+                        ->orWhere('cities.title_ar', 'LIKE', "%$search%");
                 });
             }
 
-            // Total records before pagination
-            $totalRecords = $usersQuery->count();
+            $totalRecords = (clone $usersQuery)->count();
 
-            // Apply pagination and ordering
             $users = $usersQuery
-                ->orderBy('created_at', 'desc')
+                ->orderBy('users.created_at', 'desc')
                 ->skip($request->input('start', 0))
                 ->take($request->input('length', 10))
                 ->get();
 
-            // Format for DataTables
             return response()->json([
                 'draw'            => $request->input('draw'),
                 'recordsTotal'    => $totalRecords,
@@ -74,15 +72,15 @@ class CustomerController extends Controller
                     return [
                         'id'         => $user->id,
                         'name'       => $user->first_name . ' ' . $user->last_name,
-                        'city_name'  => $user->city?->title ?? 'N/A',
+                        'city_name'  => $user->city_name ?? 'N/A',
                         'phone'      => $user->phone
                         ? '<a href="https://api.whatsapp.com/send?phone=' . $user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $user->phone . '</a>'
                         : 'N/A',
-                        'created_at' => $user->created_at?->format('Y-m-d'),
+                        'created_at' => optional($user->created_at)->format('Y-m-d'),
                         'status'     => '<label class="switch s-outline s-outline-info mb-4 mr-2">
-                                    <input type="checkbox" id="customSwitch4" data-id="' . $user->id . '" ' . ($user->active ? 'checked' : '') . '>
-                                    <span class="slider round"></span>
-                                </label>',
+                                        <input type="checkbox" id="customSwitch4" data-id="' . $user->id . '" ' . ($user->active ? 'checked' : '') . '>
+                                        <span class="slider round"></span>
+                                    </label>',
                         'controll'   => '
                         <a href="' . route('dashboard.core.address.index', ['id' => $user->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
                             <i class="far fa-address-book fa-2x"></i>
@@ -93,13 +91,11 @@ class CustomerController extends Controller
                         <a data-href="' . route('dashboard.core.customer.destroy', $user->id) . '" data-id="' . $user->id . '" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
                             <i class="far fa-trash-alt fa-2x"></i>
                         </a>',
-
                     ];
                 }),
             ]);
         }
 
-        // Return Blade view for non-AJAX request
         return view('dashboard.core.customers.index');
     }
 
