@@ -115,7 +115,7 @@
                 </div>
 
                 {{-- Custom Export Buttons --}}
-                <div class="d-flex justify-content-center mb-4">
+                {{-- <div class="d-flex justify-content-center mb-4">
                     <div class="d-flex flex-wrap gap-2">
                         <a href="#" id="exportExcel"
                             class="btn btn-outline-success shadow-sm d-inline-flex align-items-center rounded"
@@ -133,7 +133,7 @@
                         </a>
 
                     </div>
-                </div>
+                </div> --}}
 
 
 
@@ -267,9 +267,10 @@
 
     $(document).ready(function () {
         const table = $('#html5-extension').DataTable({
-            dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l><'col-sm-12 col-md-4 d-flex justify-content-center'><'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
-                "<'table-responsive'tr>" +
-                "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
+            dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
+     "<'table-responsive'tr>" +
+     "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
+
             lengthMenu: [[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "الكل"]],
             pageLength: 10,
             order: [[0, 'desc']],
@@ -286,6 +287,29 @@
                     d.length = d.length;
                 }
             },
+          
+                    buttons: [{
+                            extend: 'copy',
+                            className: 'btn btn-sm',
+                            text: 'نسخ'
+                        },
+                        {
+                            extend: 'csv',
+                            className: 'btn btn-sm',
+                            text: 'تصدير إلى CSV'
+                        },
+                        {
+                            extend: 'excel',
+                            className: 'btn btn-sm',
+                            text: 'تصدير إلى Excel'
+                        },
+                        {
+                            extend: 'print',
+                            className: 'btn btn-sm',
+                            text: 'طباعة'
+                        }
+                    ],
+                
             pagingType: 'full_numbers',
             columns: [
                 { data: 'id', name: 'id' },
@@ -307,7 +331,11 @@
 
         // Trigger filter changes
         $('.date, .date2, .payment_method, .service_filter, .tech_filter')
-            .on('change', () => updateTableData(table));
+            .on('change', () => {
+                updateTableData(table);     // Then update the table data
+                updateSummary();
+            });
+
 
         // Export Excel
         $('#exportExcel').click(function () {

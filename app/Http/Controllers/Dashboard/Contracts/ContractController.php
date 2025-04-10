@@ -28,6 +28,7 @@ class ContractController extends Controller
     
     public function index()
     {
+       
         if (request()->ajax()) {
             $contracts = Contract::query()->get();
             return DataTables::of($contracts)

@@ -133,7 +133,7 @@
                 </div>
                 @endif
 
-                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_tech_orders'))
                 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
                     <a href="{{ route('dashboard.visits.index') }}" class="text-decoration-none">
                         <div style="
@@ -161,6 +161,52 @@
                     </a>
                 </div>
                 @endif
+
+
+                {{-- Visits Today --}}
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_today_tech_orders'))
+
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.visits.visitsToday') }}" class="text-decoration-none">
+                        <div style="
+                                 display: flex;
+                                 align-items: center;
+                                 background-color: #ffffff;
+                                 border-left: 5px solid #0ea5e9;
+                                 border-radius: 10px;
+                                 padding: 16px 20px;
+                                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                                 transition: 0.3s;
+                             ">
+                            <div style="flex-grow: 1;">
+                                <!-- Main Number -->
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                                    {{ $tech_visits_today }}
+                                </div>
+                                <!-- Label -->
+                                <div style="font-size: 14px; color: #64748b;">
+                                    {{ __('dash.tech_orders_today') }}
+                                </div>
+                            </div>
+
+                            <!-- Small Icon (optional) -->
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-clipboard-check">
+                                    <path d="M9 2H15V6H9z" />
+                                    <path d="M9 10H15V14H9z" />
+                                    <path d="M9 18H15V22H9z" />
+                                    <path d="M18 2L22 6" />
+                                    <path d="M18 6L22 2" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                @endif
+
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
 
                 <!-- Canceled Orders -->
@@ -289,49 +335,9 @@
 
 
 
-                {{-- Visits Today --}}
-                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
 
-                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
-                    <a href="{{ route('dashboard.visits.visitsToday') }}" class="text-decoration-none">
-                        <div style="
-                            display: flex;
-                            align-items: center;
-                            background-color: #ffffff;
-                            border-left: 5px solid #0ea5e9;
-                            border-radius: 10px;
-                            padding: 16px 20px;
-                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-                            transition: 0.3s;
-                        ">
-                            <div style="flex-grow: 1;">
-                                <!-- Main Number -->
-                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
-                                    {{ $tech_visits_today }}
-                                </div>
-                                <!-- Label -->
-                                <div style="font-size: 14px; color: #64748b;">
-                                    {{ __('dash.tech_orders_today') }}
-                                </div>
-                            </div>
 
-                            <!-- Small Icon (optional) -->
-                            <div>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
-                                    stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                    class="feather feather-clipboard-check">
-                                    <path d="M9 2H15V6H9z" />
-                                    <path d="M9 10H15V14H9z" />
-                                    <path d="M9 18H15V22H9z" />
-                                    <path d="M18 2L22 6" />
-                                    <path d="M18 6L22 2" />
-                                </svg>
-                            </div>
-                        </div>
-                    </a>
-                </div>
 
-                @endif
 
                 {{-- Finished Visits Today --}}
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
@@ -417,14 +423,14 @@
                 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
                     <a href="{{ route('dashboard.core.customer.orders') }}" class="text-decoration-none">
                         <div style="
-            display: flex;
-            align-items: center;
-            background-color: #ffffff;
-            border-left: 5px solid #6366f1;
-            border-radius: 10px;
-            padding: 16px 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            transition: 0.3s;">
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #6366f1;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            transition: 0.3s;">
                             <div style="flex-grow: 1;">
                                 <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
                                     {{ $customersHaveOrders }}
@@ -445,10 +451,8 @@
                 </div>
                 @endif
 
-                
-
-
-                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_customer_complaints') || auth()->user()->hasRole('خدمة العملاء'))
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_customer_complaints') ||
+                auth()->user()->hasRole('خدمة العملاء'))
 
                 {{-- Total Complaints --}}
                 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
@@ -564,19 +568,62 @@
 
                 @endif
 
+                {{-- All bookings --}}
+        @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_bookings'))
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+            <a href="{{  url('admin/bookings?type=service&page=home') }}" class="text-decoration-none">
+                <div style="
+                                display: flex;
+                                align-items: center;
+                                background-color: #ffffff;
+                                border-left: 5px solid #6366f1;
+                                border-radius: 10px;
+                                padding: 16px 20px;
+                                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                                transition: 0.3s;
+                            ">
+                    <div style="flex-grow: 1;">
+                        <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                            {{ $bookings_count }}
+                        </div>
+                        <div style="font-size: 14px; color: #64748b;">
+                            {{ __('dash.bookings') }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="#6366f1"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-map-pin">
+                            <path d="M21 10c0 6-9 13-9 13s-9-7-9-13a9 9 0 0118 0z" />
+                            <circle cx="12" cy="10" r="3" />
+                        </svg>
+                    </div>
+                </div>
+            </a>
+        </div>
+        @endif
+
             </div>
+            
         </div>
 
+
+
+
+        
+    </div>
+
+
+    <div class="row m-1 layout-top-spacing">
         {{-- Bookings Today --}}
         @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_bookings'))
-
-        <div class="col-xl-6 col-lg-12 col-sm-12 mb-4">
+        <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12">
             <div
                 style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); padding: 20px;">
                 <div class="mb-3">
                     <h5 style="color: #1e293b; font-weight: 600;">{{ __('dash.bookings_today') }}</h5>
                 </div>
-
                 <div class="table-responsive">
                     <table id="html5-extension-bookings" class="table table-hover align-middle mb-0">
                         <thead>
@@ -595,21 +642,16 @@
                 </div>
             </div>
         </div>
-
         @endif
-
-
 
         {{-- Client Orders Today --}}
         @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
-
-        <div class="col-xl-6 col-lg-12 col-sm-12 mb-4">
+        <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12">
             <div
                 style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); padding: 20px;">
                 <div class="mb-3">
                     <h5 style="color: #1e293b; font-weight: 600;">{{ __('dash.client_orders_today') }}</h5>
                 </div>
-
                 <div class="table-responsive">
                     <table id="html5-extension-order" class="table table-hover align-middle mb-0">
                         <thead>
@@ -627,14 +669,15 @@
                 </div>
             </div>
         </div>
-
         @endif
-
-
-
-
-
     </div>
+
+
+
+
+
+
+
     @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_orders'))
     <!-- sales chart start -->
     <div class="row">

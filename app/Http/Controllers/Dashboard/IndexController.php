@@ -5,6 +5,7 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\Visit;
+use App\Models\Booking;
 use App\Models\Technician;
 use App\Charts\CommonChart;
 use App\Models\CustomerComplaint;
@@ -94,6 +95,13 @@ class IndexController extends Controller
             })
             ->count();
 
+        $bookings_count = Booking::whereHas('address', function ($query) use ($regionIds) {
+            $query->whereIn('region_id', $regionIds);
+        })
+            ->where('is_active', 1)
+            ->where('type', 'service')
+            ->count();
+
         // Get the sales data for the past 7 days
         $sevenDaysAgo = Carbon::now('Asia/Riyadh')->subDays(8);
         $dateRange    = [];
@@ -173,7 +181,7 @@ class IndexController extends Controller
             'canceled_orders', 'complaints_resolved', 'complaints_unresolved', 'todayCustomerComplaints',
             'customersHaveOrders', 'canceled_orders_today', 'tech_visits_today', 'finished_visits_today',
             'total_trainees', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers',
-            'client_orders', 'technicians', 'tech_visits', 'customer_complaints','lateOrderCount',
+            'client_orders', 'technicians', 'tech_visits', 'customer_complaints', 'lateOrderCount', 'bookings_count',
         ));
     }
 

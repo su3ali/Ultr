@@ -477,7 +477,12 @@
         try {
             const res = await fetch(`${BASE_URL}/api/changeOrderSchedule`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    
+                    'Content-Type': 'application/json' ,
+                    'Accept': 'application/json',
+
+                },
                 body: JSON.stringify({
                     order_id: orderId,
                     date: selectedDay,
@@ -487,6 +492,7 @@
             });
 
             const result = await res.json();
+            debugger;
 
             if (res.ok && result.status) {
                 toastr.success('تم تحديث الموعد بنجاح!');

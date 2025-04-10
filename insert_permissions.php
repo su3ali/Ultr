@@ -16,65 +16,68 @@ $kernel->bootstrap();
 
 // Define the permissions
 $permissions = [
+
+    // Suppliers
     ['id' => 72, 'name' => 'create_suppliers', 'guard_name' => 'dashboard', 'name_ar' => 'إضافة المورد', 'name_en' => 'Add new Suppliers'],
     ['id' => 73, 'name' => 'view_suppliers', 'guard_name' => 'dashboard', 'name_ar' => 'عرض المورد', 'name_en' => 'View Suppliers'],
     ['id' => 74, 'name' => 'delete_suppliers', 'guard_name' => 'dashboard', 'name_ar' => 'حذف المورد', 'name_en' => 'Delete Suppliers'],
-    ['id' => 75, 'name' => 'update_suppliers', 'guard_name' => 'dashboard', 'name_ar' => 'إضافة المورد', 'name_en' => 'Add new Suppliers'],
+    ['id' => 75, 'name' => 'update_suppliers', 'guard_name' => 'dashboard', 'name_ar' => 'إضافة المورد', 'name_en' => 'Add new Suppliers'], // likely duplicate
     ['id' => 76, 'name' => 'update_suppliers', 'guard_name' => 'dashboard', 'name_ar' => 'تحديث المورد', 'name_en' => 'Update Suppliers'],
+
+    // Reports & Complaints
     ['id' => 77, 'name' => 'view_financial_reports', 'guard_name' => 'dashboard', 'name_ar' => 'عرض التقارير المالية', 'name_en' => 'View Financial Reports'],
     ['id' => 78, 'name' => 'view_customer_complaints', 'guard_name' => 'dashboard', 'name_ar' => 'عرض شكاوي العملاء ', 'name_en' => ' View Customer Complaints '],
-    ['id' => 79, 'name' => 'view_customer_complaints', 'guard_name' => 'dashboard', 'name_ar' => 'عرض شكاوي العملاء ', 'name_en' => ' View Customer Complaints '],
+    ['id' => 79, 'name' => 'view_customer_complaints', 'guard_name' => 'dashboard', 'name_ar' => 'عرض شكاوي العملاء ', 'name_en' => ' View Customer Complaints '], // duplicate
 
-    // start Tech Orders
+    // Technician Orders
     ['id' => 80, 'name' => 'view_tech_orders', 'guard_name' => 'dashboard', 'name_ar' => 'عرض طلبات الفنيين', 'name_en' => 'View Technician Orders'],
     ['id' => 81, 'name' => 'update_tech_orders', 'guard_name' => 'dashboard', 'name_ar' => 'تعديل طلبات الفنيين', 'name_en' => 'Update Technician Orders'],
     ['id' => 82, 'name' => 'delete_tech_orders', 'guard_name' => 'dashboard', 'name_ar' => 'حذف طلبات الفنيين', 'name_en' => 'Delete Technician Orders'],
-
     ['id' => 83, 'name' => 'view_today_tech_orders', 'guard_name' => 'dashboard', 'name_ar' => ' عرض طلبات الفنيين اليوم', 'name_en' => 'View Technician Orders'],
-    // End Tech Orders
 
-    // cancel reasons
-
+    // Cancel Reasons
     ['id' => 84, 'name' => 'view_cancel_reasons', 'guard_name' => 'dashboard', 'name_ar' => 'عرض  اسباب الإلغاء', 'name_en' => 'View Cancel Reasons'],
     ['id' => 85, 'name' => 'update_cancel_reasons', 'guard_name' => 'dashboard', 'name_ar' => 'تعديل اسباب الإلغاء ', 'name_en' => 'Update Cancel Reasons'],
     ['id' => 86, 'name' => 'delete_cancel_reasons', 'guard_name' => 'dashboard', 'name_ar' => 'حذف  اسباب الإلغاء', 'name_en' => 'Delete Cancel Reasons'],
 
-    // End cancel reasons
-
-    // Orders  Status
-
+    // Order Status
     ['id' => 87, 'name' => 'view_orders_status', 'guard_name' => 'dashboard', 'name_ar' => 'عرض حالات الطلبات', 'name_en' => 'View Orders Status'],
     ['id' => 88, 'name' => 'update_orders_status', 'guard_name' => 'dashboard', 'name_ar' => 'تعديل حالات الطلبات ', 'name_en' => 'Update Orders Status'],
     ['id' => 89, 'name' => 'delete_orders_status', 'guard_name' => 'dashboard', 'name_ar' => 'حذف حالات الطلبات', 'name_en' => 'Delete Orders Status'],
 
-    // End Orders  Status
-
-    //Public Setting
-
+    // Public Settings
     ['id' => 90, 'name' => 'view_public_setting', 'guard_name' => 'dashboard', 'name_ar' => 'عرض الإعدادات العامة ', 'name_en' => 'View Public Setting'],
 
-    // End Public Setting
-
-    // companys services management
-
+    // Company Services Management
     ['id' => 91, 'name' => 'view_companys_services_management', 'guard_name' => 'dashboard', 'name_ar' => 'إدارة خدمات الشركات', 'name_en' => 'View Companys Services Management'],
     ['id' => 92, 'name' => 'view_companys_services', 'guard_name' => 'dashboard', 'name_ar' => 'عرض خدمات الشركات', 'name_en' => 'View Companys Services'],
     ['id' => 93, 'name' => 'update_companys_services', 'guard_name' => 'dashboard', 'name_ar' => 'تعديل خدمات الشركات', 'name_en' => 'Update Companys Services'],
     ['id' => 94, 'name' => 'delete_companys_services', 'guard_name' => 'dashboard', 'name_ar' => 'حذف خدمات الشركات', 'name_en' => 'Delete Companys Services'],
-
     ['id' => 95, 'name' => 'view_companys_services_orders', 'guard_name' => 'dashboard', 'name_ar' => 'عرض طلبات خدمات الشركات', 'name_en' => 'View Companys Services Orders'],
     ['id' => 96, 'name' => 'delete_companys_services_orders', 'guard_name' => 'dashboard', 'name_ar' => 'حذف طلبات خدمات الشركات', 'name_en' => 'Delete Companys Services Orders'],
 
-    // view_technicians_groups
+    // Technician Groups
     ['id' => 97, 'name' => 'view_technicians_groups', 'guard_name' => 'dashboard', 'name_ar' => 'عرض  مجموعات الفنيين', 'name_en' => 'View Technicians Groups'],
     ['id' => 98, 'name' => 'update_technicians_groups', 'guard_name' => 'dashboard', 'name_ar' => 'تعديل  مجموعات الفنيين ', 'name_en' => 'Update Technicians Groups'],
     ['id' => 99, 'name' => 'delete_technicians_groups', 'guard_name' => 'dashboard', 'name_ar' => 'حذف  مجموعات الفنيين', 'name_en' => 'Delete Technicians Groups'],
 
-    //  complaint_type
+    // Complaint Types
     ['id' => 100, 'name' => 'view_complaint_type', 'guard_name' => 'dashboard', 'name_ar' => 'عرض نوع الشكوى', 'name_en' => 'View Complaint Type'],
     ['id' => 101, 'name' => 'update_complaint_type', 'guard_name' => 'dashboard', 'name_ar' => 'تعديل نوع الشكوى', 'name_en' => 'Update Complaint Type'],
     ['id' => 102, 'name' => 'delete_complaint_type', 'guard_name' => 'dashboard', 'name_ar' => 'حذف نوع الشكوى', 'name_en' => 'Delete Complaint Type'],
     ['id' => 103, 'name' => 'create_complaint_type', 'guard_name' => 'dashboard', 'name_ar' => 'اضافة نوع الشكوى', 'name_en' => 'Create Complaint Type'],
+
+    // Rescheduling Orders
+    ['id' => 104, 'name' => 'view_Reschedule_orders', 'guard_name' => 'dashboard', 'name_ar' => 'امكانية جدولة الطلبات', 'name_en' => 'view Reschedule Orders'],
+
+    // Appointment Settings
+    ['id' => 105, 'name' => 'appointment_settings_manage', 'guard_name' => 'dashboard', 'name_ar' => 'إدارةإعدادات المواعيد', 'name_en' => 'Appointment Settings Manage'],
+
+    // Shifts
+    ['id' => 106, 'name' => 'view_shifts', 'guard_name' => 'dashboard', 'name_ar' => 'عرض المناوبات', 'name_en' => 'View Shifts'],
+    ['id' => 107, 'name' => 'create_shifts', 'guard_name' => 'dashboard', 'name_ar' => 'إضافة المناوبات', 'name_en' => 'Create Shift'],
+    ['id' => 108, 'name' => 'edit_shifts', 'guard_name' => 'dashboard', 'name_ar' => 'تعديل المناوبات', 'name_en' => 'Edit Shift'],
+    ['id' => 109, 'name' => 'delete_shifts', 'guard_name' => 'dashboard', 'name_ar' => 'حذف المناوبات', 'name_en' => 'Delete Shift'],
 
 ];
 

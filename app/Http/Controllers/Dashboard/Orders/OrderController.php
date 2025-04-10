@@ -88,7 +88,7 @@ class OrderController extends Controller
             }
 
             return DataTables::of($ordersQuery)
-            // ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id ?? '')
+                ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id ?? '')
                 ->addColumn('user', fn($row) => $row->user?->first_name . ' ' . $row->user?->last_name)
                 ->addColumn('phone', fn($row) => $row->user?->phone
                     ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->user->phone . '</a>'
@@ -164,7 +164,7 @@ class OrderController extends Controller
                     // Reschedule (Super Admin or permission)
                     if (
                         (auth()->user()->id == 1 && auth()->user()->first_name == 'Super Admin') ||
-                        auth()->user()->can('delete_orders')
+                        auth()->user()->can('view_Reschedule_orders')
                     ) {
                         $html .= '<a href="javascript:void(0);"
                                     class="btn btn-outline-warning btn-sm mr-2 open-reschedule"
@@ -179,7 +179,7 @@ class OrderController extends Controller
                     return $html;
                 })
 
-                ->rawColumns(['user', 'phone', 'service', 'quantity', 'total', 'payment_method', 'region', 'status', 'created_at', 'control'])
+                ->rawColumns(['booking_id','user', 'phone', 'service', 'quantity', 'total', 'payment_method', 'region', 'status', 'created_at', 'control'])
                 ->make(true);
         }
 
