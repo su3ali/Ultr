@@ -1087,4 +1087,6 @@ return [
     'shift_settings'                        => 'Shift Settings',
     'shift_settings_manage'                 => 'Shift Settings Manage',
 
+    'reset_filters'                         => 'Reset Filters',
+
 ];

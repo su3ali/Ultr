@@ -14,7 +14,7 @@
   array (
     'name' => 'Laravel',
     'env' => 'local',
-    'debug' => false,
+    'debug' => true,
     'url' => 'https://cp.ultragold.sa',
     'url_local' => 'http://127.0.0.1:8000',
     'url_dev' => 'https://dev.ultragold.sa',

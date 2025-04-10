@@ -1,15 +1,16 @@
 <?php
 namespace App\Models;
 
-use App\Models\User;
-use App\Models\Order;
-use App\Models\Visit;
 use App\Models\Booking;
+use App\Models\ComplaintType;
 use App\Models\CustomerComplaintImage;
 use App\Models\CustomerComplaintReply;
 use App\Models\CustomerComplaintStatus;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Order;
+use App\Models\User;
+use App\Models\Visit;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class CustomerComplaint extends Model
 {
@@ -42,6 +43,11 @@ class CustomerComplaint extends Model
     public function status()
     {
         return $this->belongsTo(CustomerComplaintStatus::class, 'customer_complaints_status_id');
+    }
+
+    public function complaintType()
+    {
+        return $this->belongsTo(ComplaintType::class, 'complaint_type_id');
     }
 
     public function complaintReply()

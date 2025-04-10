@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\BookingSetting;
 use App\Models\Category;
 use App\Models\City;
+use App\Models\ComplaintType;
 use App\Models\CustomerComplaint;
 use App\Models\CustomerComplaintImage;
 use App\Models\CustomerComplaintReply;
@@ -88,7 +89,7 @@ class OrderController extends Controller
             }
 
             return DataTables::of($ordersQuery)
-                // ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id ?? '')
+            // ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id ?? '')
                 ->addColumn('user', fn($row) => $row->user?->first_name . ' ' . $row->user?->last_name)
                 ->addColumn('phone', fn($row) => $row->user?->phone
                     ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->user->phone . '</a>'
@@ -179,7 +180,7 @@ class OrderController extends Controller
                     return $html;
                 })
 
-                ->rawColumns(['booking_id','user', 'phone', 'service', 'quantity', 'total', 'payment_method', 'region', 'status', 'created_at', 'control'])
+                ->rawColumns(['booking_id', 'user', 'phone', 'service', 'quantity', 'total', 'payment_method', 'region', 'status', 'created_at', 'control'])
                 ->make(true);
         }
 
@@ -943,67 +944,102 @@ class OrderController extends Controller
 
         return view('dashboard.orders.show_complaint', compact('categories', 'statuses', 'customerComplaint', 'customerComplaintImages', 'user', 'order'));
     }
-    public function complaints()
+    public function complaints(Request $request)
     {
-        if (request()->ajax()) {
-            // تحميل العلاقات الضرورية دفعة واحدة لتقليل الاستعلامات
-            $customerComplaints = CustomerComplaint::with([
-                'user',
-                'order.bookings.visits.group',
-                'order.bookings.address.region',
-            ])->orderBy('created_at', 'desc')->get();
+        $withRelations = [
+            'user',
+            'complaintType',
+            'status',
+            'order.bookings.visits.group',
+            'order.bookings.address.region',
+        ];
+
+        if ($request->ajax()) {
+            $customerComplaints = CustomerComplaint::with($withRelations)
+                ->when($request->complaintType, fn($query) =>
+                    $query->where('complaint_type_id', $request->complaintType)
+                )
+                ->when($request->status, fn($query) =>
+                    $query->where('customer_complaints_status_id', $request->status)
+                )
+                ->when($request->date, fn($query) =>
+                    $query->whereDate('created_at', $request->date)
+                )
+                ->orderBy('created_at', 'desc')
+                ->get();
 
             return DataTables::of($customerComplaints)
                 ->addColumn('order_id', fn($row) => $row->order_id ?? 'N/A')
 
-                ->addColumn('booking_no', function ($row) {
-                    return optional($row->order?->bookings?->first())->id ?? 'N/A';
-                })
+                ->addColumn('booking_no', fn($row) =>
+                    optional($row->order?->bookings?->first())->id ?? 'N/A'
+                )
 
-                ->addColumn('zone_name', function ($row) {
-                    return optional($row->order?->bookings?->first()?->address?->region)->title ?? 'N/A';
-                })
+                ->addColumn('zone_name', fn($row) =>
+                    optional($row->order?->bookings?->first()?->address?->region)->title ?? 'N/A'
+                )
 
-                ->addColumn('customer_name', function ($row) {
-                    return $row->user ? $row->user->first_name . ' ' . $row->user->last_name : 'N/A';
-                })
+                ->addColumn('customer_name', fn($row) =>
+                    $row->user ? $row->user->first_name . ' ' . $row->user->last_name : 'N/A'
+                )
 
-                ->addColumn('tech_name', function ($row) {
-                    return optional($row->order?->bookings?->first()?->visits?->first()?->group)->name ?? 'N/A';
-                })
+                ->addColumn('tech_name', fn($row) =>
+                    optional($row->order?->bookings?->first()?->visits?->first()?->group)->name ?? 'N/A'
+                )
 
                 ->addColumn('customer_phone', function ($row) {
                     $phone = $row->user?->phone ?? 'N/A';
                     return $phone !== 'N/A'
                     ? '<a href="https://wa.me/' . $phone . '" target="_blank" class="whatsapp-link" title="فتح الواتساب">
-                                <span class="phone-number">' . $phone . '</span>
-                                <i class="fab fa-whatsapp whatsapp-icon"></i>
-                            </a>'
+                            <span class="phone-number">' . $phone . '</span>
+                            <i class="fab fa-whatsapp whatsapp-icon"></i>
+                        </a>'
                     : $phone;
                 })
 
-                ->addColumn('status', function ($row) {
-                    return $row->status?->name_ar ?? 'N/A';
-                })
+                ->addColumn('status', fn($row) => $row->status?->name_ar ?? 'N/A')
+
+                ->addColumn('complaintType', fn($row) => $row->complaintType?->name_ar ?? 'N/A')
 
                 ->addColumn('complaint_text', fn($row) => $row->text ?? 'No text provided')
 
-                ->addColumn('complaint_images', fn($row) => $row->images ? implode(', ', $row->images) : 'No images')
+                ->addColumn('complaint_images', fn($row) =>
+                    $row->images ? implode(', ', $row->images) : 'No images'
+                )
 
                 ->addColumn('complaint_video', fn($row) => $row->video ?? 'No video')
 
-                ->addColumn('created_at', fn($row) => $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d"))
+                ->addColumn('created_at', fn($row) =>
+                    $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d")
+                )
 
-                ->addColumn('control', function ($row) {
-                    return '<a href="' . route('dashboard.order.complaintDetails', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                                <i class="far fa-eye fa-2x"></i>
-                            </a>';
-                })
-                ->rawColumns(['customer_name', 'customer_phone', 'status', 'complaint_text', 'complaint_images', 'complaint_video', 'created_at', 'control'])
+                ->addColumn('control', fn($row) =>
+                    '<a href="' . route('dashboard.order.complaintDetails', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                    <i class="far fa-eye fa-2x"></i>
+                </a>'
+                )
+
+                ->rawColumns([
+                    'customer_name',
+                    'customer_phone',
+                    'status',
+                    'complaintType',
+                    'complaint_text',
+                    'complaint_images',
+                    'complaint_video',
+                    'created_at',
+                    'control',
+                ])
                 ->make(true);
         }
 
-        return view('dashboard.orders.complaints');
+        $locale        = app()->getLocale();
+        $orderByColumn = $locale === 'ar' ? 'name_ar' : 'name_en';
+
+        $complaintTypes = ComplaintType::orderBy($orderByColumn)->get();
+        $statuses       = CustomerComplaintStatus::orderBy($orderByColumn)->get();
+
+        return view('dashboard.orders.complaints', compact('complaintTypes', 'statuses'));
     }
 
     public function complaintsToday()
