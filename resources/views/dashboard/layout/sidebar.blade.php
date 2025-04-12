@@ -422,18 +422,20 @@
                         <a href="{{ route('dashboard.core.technician.index') }}"> {{ __('dash.technicians') }} </a>
                     </li>
 
-                    @can('view_technicians_groups')
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_technicians_groups'))
+
                     <li>
                         <a href="{{ route('dashboard.core.group.index') }}"> {{ __('dash.technicians_groups') }} </a>
                     </li>
-                    @endcan
+                    @endif
 
-                    @can('view_tech_specializations')
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_tech_specializations'))
+
                     <li>
                         <a href="{{ route('dashboard.core.tech_specializations.index') }}">
                             {{ __('dash.tech_specializations') }} </a>
                     </li>
-                    @endcan
+                    @endif
 
                 </ul>
             </li>
