@@ -69,17 +69,18 @@ class Order extends Model
         return $this->hasMany(OrderService::class, 'order_id'); // Relating orders to order_services
     }
 
-    public function scopeLateToServe($query)
+    public function scopeLateToServe($query, $now = null)
     {
+        $now = $now ?: Carbon::now('Asia/Riyadh')->format('Y-m-d H:i:s');
+
         return $query->where('status_id', 1)
-            ->whereHas('bookings', function ($bookingQuery) {
+            ->whereHas('bookings', function ($bookingQuery) use ($now) {
                 $bookingQuery->where('booking_status_id', 1)
-                    ->whereHas('visits', function ($visitQuery) {
-                        $visitQuery->where('visits_status_id', 1);
-                    })
-                    ->whereRaw("STR_TO_DATE(CONCAT(bookings.date, ' ', bookings.time), '%Y-%m-%d %H:%i:%s') < ?", [
-                        Carbon::now('Asia/Riyadh')->format('Y-m-d H:i:s'),
-                    ]);
+                    ->whereRaw("STR_TO_DATE(CONCAT(bookings.date, ' ', bookings.time), '%Y-%m-%d %H:%i:%s') < ?", [$now])
+                    ->whereHas('visits', function ($visitQuery) use ($now) {
+                        $visitQuery->where('visits_status_id', 1)
+                            ->where('created_at', '<', $now);
+                    });
             });
     }
 

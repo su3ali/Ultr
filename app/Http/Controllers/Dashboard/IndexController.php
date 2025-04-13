@@ -1,16 +1,15 @@
 <?php
 namespace App\Http\Controllers\Dashboard;
 
-use Carbon\Carbon;
-use App\Models\User;
-use App\Models\Order;
-use App\Models\Visit;
-use App\Models\Booking;
-use App\Models\Technician;
 use App\Charts\CommonChart;
-use App\Models\CustomerComplaint;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cache;
+use App\Models\Booking;
+use App\Models\CustomerComplaint;
+use App\Models\Order;
+use App\Models\Technician;
+use App\Models\User;
+use App\Models\Visit;
+use Carbon\Carbon;
 
 class IndexController extends Controller
 {
@@ -22,9 +21,8 @@ class IndexController extends Controller
         // Get the late orders
         // $lateOrders = Order::lateToServe()->get();
 
-        $lateOrderCount = Cache::remember('late_order_count', now()->addMinutes(30), function () {
-            return Order::lateToServe()->count();
-        });
+        $now            = Carbon::now('Asia/Riyadh');
+        $lateOrderCount = Order::lateToServe($now)->count();
 
         // dd($lateOrderCount);
 

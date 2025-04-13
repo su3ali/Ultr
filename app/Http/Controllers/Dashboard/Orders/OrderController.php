@@ -556,13 +556,12 @@ class OrderController extends Controller
         $date  = $request->query('date');
         $date2 = $request->query('date2');
 
-        //  Create a unique cache key based on filters
-        $cacheKey = 'late_order_query';
+        // Unique cache key based on time + filters
+        $cacheKey = 'late_order_query_' . now('Asia/Riyadh')->format('Y_m_d_H');
         if ($date || $date2) {
             $cacheKey .= '_' . ($date ?? 'null') . '_' . ($date2 ?? 'null');
         }
 
-        //  Cache per filter
         $ordersQuery = Cache::remember($cacheKey, now()->addMinutes(30), function () {
             return Order::lateToServe()
                 ->with([
@@ -575,10 +574,9 @@ class OrderController extends Controller
                 ])->get();
         });
 
-        // Convert to collection
         $ordersQuery = collect($ordersQuery);
 
-        //  Additional filtering (again for safety if cache was broader)
+        // Additional filtering by date range (if requested)
         if ($date && $date2) {
             $carbonDate  = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
             $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
@@ -602,9 +600,7 @@ class OrderController extends Controller
                     return false;
                 }
 
-                return \Carbon\Carbon::parse($booking->date)
-                    ->timezone('Asia/Riyadh')
-                    ->isSameDay($carbonDate);
+                return \Carbon\Carbon::parse($booking->date)->timezone('Asia/Riyadh')->isSameDay($carbonDate);
             });
 
         } elseif ($date2) {
@@ -616,9 +612,7 @@ class OrderController extends Controller
                     return false;
                 }
 
-                return \Carbon\Carbon::parse($booking->date)
-                    ->timezone('Asia/Riyadh')
-                    ->lte($carbonDate2->endOfDay());
+                return \Carbon\Carbon::parse($booking->date)->timezone('Asia/Riyadh')->lte($carbonDate2->endOfDay());
             });
         }
 
@@ -639,7 +633,6 @@ class OrderController extends Controller
             }
 
             return DataTables::of($filteredOrders)
-            // ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id)
                 ->addColumn('user', fn($row) => optional($row->user)->first_name . ' ' . optional($row->user)->last_name)
                 ->addColumn('phone', fn($row) => $row->user?->phone
                     ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link">' . $row->user->phone . '</a>'
@@ -650,17 +643,12 @@ class OrderController extends Controller
                     return $services->map(fn($s) => '<button class="btn-sm btn-primary">' . $s->title . '</button>')->implode('');
                 })
                 ->addColumn('quantity', fn($row) => $row->orderServices->sum('quantity'))
-            // ->addColumn('cancelled_by', function ($row) {
-            //     $reason = optional(optional($row->bookings->first())->visit)->cancelReason;
-            //     return $reason?->is_for_tech === 1 ? "الفني" : "العميل";
-            // })
                 ->addColumn('total', fn($row) => $row->total ? (fmod($row->total, 1) == 0 ? (int) $row->total : number_format($row->total, 2)) : '')
                 ->addColumn('status', fn($row) => app()->getLocale() === 'ar'
                     ? optional($row->bookings?->first()?->visit?->status)->name_ar
                     : optional($row->bookings?->first()?->visit?->status)->name_en)
                 ->addColumn('date', function ($row) {
                     $booking = $row->bookings->first();
-
                     if (! $booking || ! $booking->date) {
                         return '-';
                     }
@@ -670,7 +658,6 @@ class OrderController extends Controller
                         ->timezone('Asia/Riyadh')
                         ->format('Y-m-d');
                 })
-
                 ->addColumn('payment_method', function ($row) {
                     $payment_method = $row->transaction?->payment_method;
                     return match ($payment_method) {
@@ -683,35 +670,28 @@ class OrderController extends Controller
                 ->addColumn('control', function ($row) {
                     $html = '';
 
-                    // Confirm button
                     if ($row->status_id == 2) {
                         $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="تأكيد الطلب">
-                            <i class="far fa-thumbs-up fa-2x mx-1"></i>
-                        </a>';
+                        <i class="far fa-thumbs-up fa-2x mx-1"></i>
+                    </a>';
                     }
 
-                    // View order details
                     $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="عرض تفاصيل الطلب">
-                        <i class="far fa-eye fa-2x"></i>
-                    </a>';
+                    <i class="far fa-eye fa-2x"></i>
+                </a>';
 
-                    // Show services - updated icon to fa-tools
                     $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="عرض الخدمات">
-                        <i class="fas fa-tools fa-2x"></i>
-                    </a>';
-
-                    // Delete
+                    <i class="fas fa-tools fa-2x"></i>
+                </a>';
 
                     if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
-
                         $html .= '<a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech" title="حذف الطلب">
                         <i class="far fa-trash-alt fa-2x"></i>
                     </a>';
-
-                        return $html;
                     }
-                })
 
+                    return $html;
+                })
                 ->rawColumns(['user', 'phone', 'service', 'quantity', 'total', 'status', 'date', 'payment_method', 'region', 'control'])
                 ->with([
                     'recordsTotal'    => $totalOrders,
@@ -723,6 +703,181 @@ class OrderController extends Controller
         $statuses = OrderStatus::pluck('name_' . app()->getLocale(), 'id');
         return view('dashboard.orders.late_orders', compact('statuses'));
     }
+    
+    // public function lateOrders(Request $request)
+    // {
+    //     $regionIds = auth()->user()->regions->pluck('region_id')->toArray();
+
+    //     $date  = $request->query('date');
+    //     $date2 = $request->query('date2');
+
+    //     //  Create a unique cache key based on filters
+    //     $cacheKey = 'late_order_query';
+    //     if ($date || $date2) {
+    //         $cacheKey .= '_' . ($date ?? 'null') . '_' . ($date2 ?? 'null');
+    //     }
+
+    //     //  Cache per filter
+    //     $ordersQuery = Cache::remember($cacheKey, now()->addMinutes(30), function () {
+    //         return Order::lateToServe()
+    //             ->with([
+    //                 'user',
+    //                 'bookings.visits',
+    //                 'status',
+    //                 'userAddress.region',
+    //                 'orderServices',
+    //                 'transaction',
+    //             ])->get();
+    //     });
+
+    //     // Convert to collection
+    //     $ordersQuery = collect($ordersQuery);
+
+    //     //  Additional filtering (again for safety if cache was broader)
+    //     if ($date && $date2) {
+    //         $carbonDate  = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
+    //         $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
+
+    //         $ordersQuery = $ordersQuery->filter(function ($order) use ($carbonDate, $carbonDate2) {
+    //             $booking = $order->bookings->first();
+    //             if (! $booking || ! $booking->date) {
+    //                 return false;
+    //             }
+
+    //             $bookingDate = \Carbon\Carbon::parse($booking->date)->timezone('Asia/Riyadh');
+    //             return $bookingDate->between($carbonDate->startOfDay(), $carbonDate2->endOfDay());
+    //         });
+
+    //     } elseif ($date) {
+    //         $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
+
+    //         $ordersQuery = $ordersQuery->filter(function ($order) use ($carbonDate) {
+    //             $booking = $order->bookings->first();
+    //             if (! $booking || ! $booking->date) {
+    //                 return false;
+    //             }
+
+    //             return \Carbon\Carbon::parse($booking->date)
+    //                 ->timezone('Asia/Riyadh')
+    //                 ->isSameDay($carbonDate);
+    //         });
+
+    //     } elseif ($date2) {
+    //         $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
+
+    //         $ordersQuery = $ordersQuery->filter(function ($order) use ($carbonDate2) {
+    //             $booking = $order->bookings->first();
+    //             if (! $booking || ! $booking->date) {
+    //                 return false;
+    //             }
+
+    //             return \Carbon\Carbon::parse($booking->date)
+    //                 ->timezone('Asia/Riyadh')
+    //                 ->lte($carbonDate2->endOfDay());
+    //         });
+    //     }
+
+    //     $totalOrders = $ordersQuery->count();
+
+    //     if ($request->ajax()) {
+    //         $filteredOrders = $ordersQuery;
+
+    //         if ($request->status) {
+    //             $filteredOrders = $filteredOrders->where('status_id', $request->status);
+    //         }
+
+    //         if ($request->page) {
+    //             $now            = Carbon::now('Asia/Riyadh')->toDateString();
+    //             $filteredOrders = $filteredOrders->filter(fn($order) =>
+    //                 Carbon::parse($order->created_at)->toDateString() === $now
+    //             );
+    //         }
+
+    //         return DataTables::of($filteredOrders)
+    //         // ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id)
+    //             ->addColumn('user', fn($row) => optional($row->user)->first_name . ' ' . optional($row->user)->last_name)
+    //             ->addColumn('phone', fn($row) => $row->user?->phone
+    //                 ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link">' . $row->user->phone . '</a>'
+    //                 : 'N/A')
+    //             ->addColumn('service', function ($row) {
+    //                 $serviceIds = $row->orderServices->pluck('service_id')->unique();
+    //                 $services   = \App\Models\Service::whereIn('id', $serviceIds)->get();
+    //                 return $services->map(fn($s) => '<button class="btn-sm btn-primary">' . $s->title . '</button>')->implode('');
+    //             })
+    //             ->addColumn('quantity', fn($row) => $row->orderServices->sum('quantity'))
+    //         // ->addColumn('cancelled_by', function ($row) {
+    //         //     $reason = optional(optional($row->bookings->first())->visit)->cancelReason;
+    //         //     return $reason?->is_for_tech === 1 ? "الفني" : "العميل";
+    //         // })
+    //             ->addColumn('total', fn($row) => $row->total ? (fmod($row->total, 1) == 0 ? (int) $row->total : number_format($row->total, 2)) : '')
+    //             ->addColumn('status', fn($row) => app()->getLocale() === 'ar'
+    //                 ? optional($row->bookings?->first()?->visit?->status)->name_ar
+    //                 : optional($row->bookings?->first()?->visit?->status)->name_en)
+    //             ->addColumn('date', function ($row) {
+    //                 $booking = $row->bookings->first();
+
+    //                 if (! $booking || ! $booking->date) {
+    //                     return '-';
+    //                 }
+
+    //                 return \Carbon\Carbon::parse($booking->date)
+    //                     ->locale('ar')
+    //                     ->timezone('Asia/Riyadh')
+    //                     ->format('Y-m-d');
+    //             })
+
+    //             ->addColumn('payment_method', function ($row) {
+    //                 $payment_method = $row->transaction?->payment_method;
+    //                 return match ($payment_method) {
+    //                     "cache", "cash" => __('api.payment_method_network'),
+    //                     "wallet" => __('api.payment_method_wallet'),
+    //                     default  => __('api.payment_method_visa'),
+    //                 };
+    //             })
+    //             ->addColumn('region', fn($row) => optional($row->userAddress?->region)->title)
+    //             ->addColumn('control', function ($row) {
+    //                 $html = '';
+
+    //                 // Confirm button
+    //                 if ($row->status_id == 2) {
+    //                     $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="تأكيد الطلب">
+    //                         <i class="far fa-thumbs-up fa-2x mx-1"></i>
+    //                     </a>';
+    //                 }
+
+    //                 // View order details
+    //                 $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="عرض تفاصيل الطلب">
+    //                     <i class="far fa-eye fa-2x"></i>
+    //                 </a>';
+
+    //                 // Show services - updated icon to fa-tools
+    //                 $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="عرض الخدمات">
+    //                     <i class="fas fa-tools fa-2x"></i>
+    //                 </a>';
+
+    //                 // Delete
+
+    //                 if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
+
+    //                     $html .= '<a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech" title="حذف الطلب">
+    //                     <i class="far fa-trash-alt fa-2x"></i>
+    //                 </a>';
+
+    //                     return $html;
+    //                 }
+    //             })
+
+    //             ->rawColumns(['user', 'phone', 'service', 'quantity', 'total', 'status', 'date', 'payment_method', 'region', 'control'])
+    //             ->with([
+    //                 'recordsTotal'    => $totalOrders,
+    //                 'recordsFiltered' => $filteredOrders->count(),
+    //             ])
+    //             ->make(true);
+    //     }
+
+    //     $statuses = OrderStatus::pluck('name_' . app()->getLocale(), 'id');
+    //     return view('dashboard.orders.late_orders', compact('statuses'));
+    // }
     public function canceledOrders(Request $request)
     {
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();

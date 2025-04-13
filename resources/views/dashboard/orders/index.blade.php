@@ -492,7 +492,6 @@
             });
 
             const result = await res.json();
-            debugger;
 
             if (res.ok && result.status) {
                 toastr.success('تم تحديث الموعد بنجاح!');

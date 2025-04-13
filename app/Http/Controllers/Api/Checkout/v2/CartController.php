@@ -1,38 +1,38 @@
 <?php
 namespace App\Http\Controllers\Api\Checkout\v2;
 
-use App\Models\Cart;
-use App\Models\Icon;
-use App\Models\Admin;
-use App\Models\Group;
-use App\Models\Order;
-use App\Models\Shift;
-use App\Models\Visit;
-use App\Models\Booking;
-use App\Models\Service;
 use App\Bll\ControlCart;
 use App\Bll\CouponCheck;
-use App\Models\Category;
-use App\Models\Technician;
-use App\Models\GroupRegion;
-use Illuminate\Http\Request;
-use App\Models\CategoryGroup;
-use App\Models\UserAddresses;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\Checkout\CartResource;
+use App\Models\Admin;
+use App\Models\Booking;
 use App\Models\BookingSetting;
-use App\Traits\schedulesTrait;
-use Illuminate\Support\Carbon;
+use App\Models\Cart;
+use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\ContractPackage;
+use App\Models\ContractPackagesUser;
+use App\Models\Group;
+use App\Models\GroupRegion;
+use App\Models\Icon;
+use App\Models\Order;
+use App\Models\Service;
+use App\Models\Shift;
+use App\Models\Technician;
+use App\Models\UserAddresses;
+use App\Models\Visit;
+use App\Notifications\SendPushNotification;
 use App\Services\v2\Appointment;
 use App\Support\Api\ApiResponse;
+use App\Traits\schedulesTrait;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
-use App\Models\ContractPackagesUser;
-use Illuminate\Support\Facades\Validator;
-use App\Notifications\SendPushNotification;
 use Illuminate\Support\Facades\Notification;
-use App\Http\Resources\Checkout\CartResource;
+use Illuminate\Support\Facades\Validator;
 
 class CartController extends Controller
 {
@@ -687,6 +687,8 @@ class CartController extends Controller
 
             $groupWithLeastVisits = $availableGroups->sortBy(fn($group) => Visit::where('assign_to_id', $group->id)->count())->first();
             $assign_to_id         = $groupWithLeastVisits->id;
+
+            // dd($startTime);
 
             // Update visit with assigned group and time info
             $visit->update([
