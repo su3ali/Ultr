@@ -562,7 +562,7 @@ class OrderController extends Controller
             $cacheKey .= '_' . ($date ?? 'null') . '_' . ($date2 ?? 'null');
         }
 
-        $ordersQuery = Cache::remember($cacheKey, now()->addMinutes(30), function () {
+        $ordersQuery = Cache::remember($cacheKey, now()->addMinutes(1), function () {
             return Order::lateToServe()
                 ->with([
                     'user',
@@ -703,7 +703,7 @@ class OrderController extends Controller
         $statuses = OrderStatus::pluck('name_' . app()->getLocale(), 'id');
         return view('dashboard.orders.late_orders', compact('statuses'));
     }
-    
+
     // public function lateOrders(Request $request)
     // {
     //     $regionIds = auth()->user()->regions->pluck('region_id')->toArray();
