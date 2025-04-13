@@ -526,12 +526,18 @@
 
         if (choice === 'new') {
             $('#newTimeContainer').removeClass('d-none');
+
+            pageNumber = 0;
+            loadingData = false;
+            $('#timeButtonsContainer').empty();
+
             await fetchAvailableTimes();
         } else {
             $('#newTimeContainer').addClass('d-none');
             await fetchOrderInfo();
         }
     });
+
 
     $('#confirmButton').click(async function () {
     const selectedChoice = $('input[name="timeChoice"]:checked').val();
