@@ -611,10 +611,9 @@ class CartController extends Controller
             $visit->save();
 
             // Reset order status
-            if ($order->status_id === 5) {
-                $order->status_id = 1;
-                $order->save();
-            }
+
+            $order->status_id = 1;
+            $order->save();
 
             $serviceIds = $order->bookings->pluck('service_id')->toArray();
             $quantity   = $booking->quantity;
