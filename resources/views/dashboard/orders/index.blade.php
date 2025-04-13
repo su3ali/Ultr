@@ -496,7 +496,8 @@
             if (res.ok && result.status) {
                 toastr.success('تم تحديث الموعد بنجاح!');
                 successSound.play();
-            } else {
+            }
+             else {
                 toastr.error(result.message || 'فشل تحديث الموعد.');
                 errorSound.play();
             }
@@ -522,16 +523,22 @@
     });
 
     $('input[name="timeChoice"]').change(async function () {
-        const choice = $(this).val();
+    const choice = $(this).val();
 
         if (choice === 'new') {
             $('#newTimeContainer').removeClass('d-none');
+
+            pageNumber = 0;
+            loadingData = false;
+            $('#timeButtonsContainer').empty();
+
             await fetchAvailableTimes();
         } else {
             $('#newTimeContainer').addClass('d-none');
             await fetchOrderInfo();
         }
     });
+
 
     $('#confirmButton').click(async function () {
     const selectedChoice = $('input[name="timeChoice"]:checked').val();
