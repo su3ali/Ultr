@@ -703,7 +703,7 @@ class OrderController extends Controller
         $statuses = OrderStatus::pluck('name_' . app()->getLocale(), 'id');
         return view('dashboard.orders.late_orders', compact('statuses'));
     }
-    
+
     // public function lateOrders(Request $request)
     // {
     //     $regionIds = auth()->user()->regions->pluck('region_id')->toArray();
@@ -1117,9 +1117,20 @@ class OrderController extends Controller
                 ->when($request->status, fn($query) =>
                     $query->where('customer_complaints_status_id', $request->status)
                 )
-                ->when($request->date, fn($query) =>
-                    $query->whereDate('created_at', $request->date)
-                )
+                ->when($request->from_date && $request->to_date, function ($query) use ($request) {
+                    $from = Carbon::parse($request->from_date)->startOfDay();
+                    $to   = Carbon::parse($request->to_date)->endOfDay();
+                    $query->whereBetween('created_at', [$from, $to]);
+                })
+                ->when($request->from_date && ! $request->to_date, function ($query) use ($request) {
+                    $from = Carbon::parse($request->from_date)->startOfDay();
+                    $query->where('created_at', '>=', $from);
+                })
+                ->when(! $request->from_date && $request->to_date, function ($query) use ($request) {
+                    $to = Carbon::parse($request->to_date)->endOfDay();
+                    $query->where('created_at', '<=', $to);
+                })
+
                 ->orderBy('created_at', 'desc')
                 ->get();
 

@@ -105,9 +105,15 @@
                         </div>
 
                         <div class="col-md-3">
-                            <label for="dateFilter" class="form-label fw-bold">{{ __('dash.date') }}</label>
-                            <input type="date" id="dateFilter" class="form-control">
+                            <label for="fromDateFilter" class="form-label fw-bold">من تاريخ</label>
+                            <input type="date" id="fromDateFilter" class="form-control">
                         </div>
+
+                        <div class="col-md-3">
+                            <label for="toDateFilter" class="form-label fw-bold">إلى تاريخ</label>
+                            <input type="date" id="toDateFilter" class="form-control">
+                        </div>
+
 
                         {{-- <div class="col-md-3 d-flex align-items-end">
                             <button class="btn btn-outline-secondary w-100" id="resetFilters">
@@ -175,7 +181,8 @@
                 data: function (d) {
                     d.complaintType = $('#complaintTypeFilter').val();
                     d.status = $('#statusFilter').val();
-                    d.date = $('#dateFilter').val();
+                    d.from_date = $('#fromDateFilter').val();
+                    d.to_date = $('#toDateFilter').val();
                 }
             },
             columns: [
@@ -199,7 +206,7 @@
         });
 
         // Reload table on filter change
-        $('#complaintTypeFilter, #statusFilter, #dateFilter').on('change', function () {
+        $('#complaintTypeFilter, #statusFilter, #fromDateFilter, #toDateFilter').on('change', function () {
             table.ajax.reload();
         });
     });
@@ -208,9 +215,11 @@
     $('#resetFilters').on('click', function () {
     $('#complaintTypeFilter').val('');
     $('#statusFilter').val('');
-    $('#dateFilter').val('');
+    $('#fromDateFilter').val('');
+    $('#toDateFilter').val('');
     table.ajax.reload();
 });
+
 
 </script>
 @endpush

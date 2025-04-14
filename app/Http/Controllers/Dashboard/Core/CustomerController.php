@@ -12,6 +12,8 @@ class CustomerController extends Controller
 
     public function index(Request $request)
     {
+
+        
         $date  = $request->query('date');
         $date2 = $request->query('date2');
 
