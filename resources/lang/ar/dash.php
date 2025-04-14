@@ -1017,5 +1017,15 @@ return [
     'shift_settings'                        => 'إعدادات المناوبات',
 
     'reset_filters'                         => 'إعادة تعيين الفلاتر',
+    'select_project'                        => 'اختر المشروع',
+    'project_name'                          => 'اسم المشروع',
+    'project'                               => 'المشروع',
+    'project_brnaches'                      => 'فروع المشروع',
+    'filter_by_project'                     => 'تصفية حسب المشروع',
+    'branch_name'                           => 'اسم الفرع',
+    'filter_by_branch'                      => 'تصفية حسب الفرع',
+    'select_branch'                         => 'اختر الفرع',
+    'branch'                                => 'الفرع',
+    'project_floors'                        => 'أدوار المشروع',
 
 ];

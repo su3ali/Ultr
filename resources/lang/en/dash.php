@@ -1089,4 +1089,17 @@ return [
 
     'reset_filters'                         => 'Reset Filters',
 
+    'select_project'                        => 'Select Project',
+    'project_name'                          => 'Project Name',
+    'project'                               => 'Project',
+    'project_brnaches'                      => 'Project Branches',
+    'filter_by_project'                     => 'Filter by Project',
+    'branch_name'                           => 'Branch Name',
+    'filter_by_branch'                      => 'Filter by Branch',
+
+    'select_branch'                         => 'Select Branch',
+    'branch'                                => 'Branch',
+
+    'project_floors'                        => 'Project Floors',
+
 ];

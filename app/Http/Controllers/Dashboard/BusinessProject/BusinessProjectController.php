@@ -2,174 +2,130 @@
 namespace App\Http\Controllers\Dashboard\BusinessProject;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Dashboard\BusinessProject\StoreBusinessProjectRequest;
 use App\Models\BusinessProject\ClientProject;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Request;
-use Yajra\DataTables\Facades\DataTables;
+use App\Models\BusinessProject\ClientProjectBranch;
+use App\Traits\imageTrait;
+use Auth;
+use Illuminate\Http\Request;
+use Yajra\DataTables\DataTables;
 
 class BusinessProjectController extends Controller
 {
-    /**
-     * Show the form to create a new project with branches and floors
-     */
 
-    public function index(Request $request)
+    use imageTrait;
+    public function index()
     {
+        $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
 
-        return($request->all());
-        if ($request->ajax()) {
-            $projectsQuery = ClientProject::withCount('branches')
+        if (request()->ajax()) {
+            $projects = ClientProject::withCount('branches')
                 ->with('branches.floors')
-                ->when($request->search_value, function ($query, $searchTerm) {
-                    $query->where(function ($q) use ($searchTerm) {
-                        $q->where('name_ar', 'like', "%{$searchTerm}%")
-                            ->orWhere('name_en', 'like', "%{$searchTerm}%")
-                            ->orWhere('code', 'like', "%{$searchTerm}%");
-                    });
+                ->latest();
+
+            return DataTables::of($projects)
+                ->addColumn('name', function ($row) {
+                    return $row->name_ar . ' / ' . $row->name_en;
                 })
-                ->orderByDesc('created_at');
 
-            return DataTables::of($projectsQuery)
-                ->addColumn('branches_count', fn($row) => $row->branches_count)
-                ->addColumn('floors_count', fn($row) =>
-                    $row->branches->reduce(fn($carry, $branch) => $carry + $branch->floors->count(), 0)
-                )
-                ->addColumn('created_at', fn($row) => $row->created_at->format('Y-m-d'))
-                ->addColumn('control', function ($row) {
-                    $html = '<a href="' . route('business_projects.show', $row->id) . '"
-                             class="btn btn-sm btn-outline-info" title="عرض التفاصيل">
-                             <i class="fas fa-eye"></i>
-                          </a>';
+            // ->addColumn('branches_count', function ($row) {
+            //     return $row->branches_count;
+            // })
 
-                    $html .= '<a href="' . route('business_projects.edit', $row->id) . '"
-                             class="btn btn-sm btn-outline-primary ml-1" title="تعديل">
-                             <i class="fas fa-edit"></i>
-                          </a>';
+                ->addColumn('controll', function ($row) {
+                    $deleteUrl = route('dashboard.business_projects.destroy', $row->id);
 
-                    $html .= '<a href="javascript:void(0);"
-                             data-href="' . route('business_projects.destroy', $row->id) . '"
-                             class="btn btn-sm btn-outline-danger ml-1 btn-delete" title="حذف">
-                             <i class="fas fa-trash-alt"></i>
-                          </a>';
+                    return '
+                    <button type="button"
+                        class="btn btn-primary btn-sm mr-2 edit-project"
+                        data-id="' . $row->id . '"
+                        data-name_ar="' . e($row->name_ar) . '"
+                        data-name_en="' . e($row->name_en) . '"
+                        data-action="' . route('dashboard.business_projects.update', $row->id) . '"
+                        data-toggle="modal"
+                        data-target="#editModel"
+                        title="تعديل">
+                        <i class="far fa-edit fa-2x"></i>
+                    </button>
 
-                    return $html;
+                    <a href="javascript:void(0);"
+                        data-href="' . $deleteUrl . '"
+                        data-id="' . $row->id . '"
+                        class="btn btn-outline-danger btn-sm btn-delete"
+                        title="حذف">
+                        <i class="far fa-trash-alt fa-2x"></i>
+                    </a>
+                ';
                 })
-                ->rawColumns(['control'])
+
+                ->rawColumns(['name', 'controll'])
                 ->make(true);
         }
 
-        return view('dashboard.business_projects.index');
+        return view('dashboard.business_projects.index', compact('clientProjects'));
     }
+
     public function create()
     {
+        $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
+
         return view('dashboard.business_projects.create');
     }
-
-    /**
-     * Store the new project and its nested branches and floors
-     */
-    public function store(StoreBusinessProjectRequest $request)
-    {
-        DB::beginTransaction();
-
-        try {
-            // إنشاء المشروع (العمارة)
-            $project = ClientProject::create([
-                'name_ar'     => $request->name_ar,
-                'name_en'     => $request->name_en,
-                'description' => $request->description,
-                'active'      => true,
-                'created_by'  => auth()->id(),
-                'updated_by'  => auth()->id(),
-            ]);
-
-            // إنشاء الفروع والطوابق التابعة
-            foreach ($request->branches as $branchData) {
-                $branch = $project->branches()->create([
-                    'name_ar'  => $branchData['name_ar'],
-                    'name_en'  => $branchData['name_en'],
-                    'location' => $branchData['location'] ?? null,
-                    'active'   => true,
-                ]);
-
-                foreach ($branchData['floors'] ?? [] as $floorData) {
-                    $branch->floors()->create([
-                        'name_ar'      => $floorData['name_ar'],
-                        'name_en'      => $floorData['name_en'],
-                        'floor_number' => $floorData['floor_number'] ?? null,
-                        'type'         => $floorData['type'] ?? null,
-                        'active'       => true,
-                    ]);
-                }
-            }
-
-            DB::commit();
-            return redirect()->route('business_projects.create')->with('success', 'تم حفظ المشروع والفروع والطوابق بنجاح.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withErrors(['error' => 'حدث خطأ أثناء الحفظ: ' . $e->getMessage()]);
-        }
-    }
-
-    public function show($id)
-    {
-        $project = ClientProject::with('branches.floors')->findOrFail($id);
-        return view('dashboard.business_projects.show', compact('project'));
-    }
-
     public function edit($id)
     {
-        $project = ClientProject::with('branches.floors')->findOrFail($id);
-        return view('dashboard.business_projects.edit', compact('project'));
+
+        return view('dashboard.business_projects.edit');
     }
 
-    public function update(StoreBusinessProjectRequest $request, $id)
+    public function store(Request $request)
     {
-        DB::beginTransaction();
 
-        try {
-            $project = ClientProject::findOrFail($id);
-            $project->update([
-                'name_ar'     => $request->name_ar,
-                'name_en'     => $request->name_en,
-                'description' => $request->description,
-                'updated_by'  => auth()->id(),
-            ]);
+        $user = Auth::user();
 
-            // حذف القديم
-            $project->branches()->each(function ($branch) {
-                $branch->floors()->delete();
-            });
-            $project->branches()->delete();
+        $request->validate([
+            'name_ar'     => 'required|string|max:255',
+            'name_en'     => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
 
-            // إعادة الإدخال بنفس طريقة الإنشاء
-            foreach ($request->branches as $branchData) {
-                $branch = $project->branches()->create([
-                    'name_ar'  => $branchData['name_ar'],
-                    'name_en'  => $branchData['name_en'],
-                    'location' => $branchData['location'] ?? null,
-                    'active'   => true,
-                ]);
+        ClientProject::create([
+            'name_ar'     => $request->name_ar,
+            'name_en'     => $request->name_en,
+            'description' => $request->description ?? null,
+            'code'        => $request->code ?? null,
+            'active'      => true,
+            'created_by'  => $user->id,
+            'updated_by'  => $user->id,
+        ]);
 
-                foreach ($branchData['floors'] ?? [] as $floorData) {
-                    $branch->floors()->create([
-                        'name_ar'      => $floorData['name_ar'],
-                        'name_en'      => $floorData['name_en'],
-                        'floor_number' => $floorData['floor_number'] ?? null,
-                        'type'         => $floorData['type'] ?? null,
-                        'active'       => true,
-                    ]);
-                }
-            }
+        return redirect()->route('dashboard.business_projects.index')->with('success', 'تم إنشاء المشروع بنجاح.');
+    }
 
-            DB::commit();
-            return redirect()->route('business_projects.index')->with('success', 'تم تحديث المشروع بنجاح.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withErrors(['error' => 'حدث خطأ أثناء التحديث: ' . $e->getMessage()]);
+    public function showBranchesAndFloors($projectId)
+    {
+        $branches = ClientProjectBranch::with('floors')
+            ->where('client_project_id', $projectId)
+            ->get();
+
+        return view('dashboard.business_projects.branches_floors', compact('branches'));
+    }
+
+    public function destroy($id)
+    {
+        $project = ClientProject::with('branches.floors')->findOrFail($id);
+
+        // حذف الطوابق المرتبطة بكل فرع
+        foreach ($project->branches as $branch) {
+            $branch->floors()->delete();
         }
+
+        $project->branches()->delete();
+
+        $project->delete();
+
+        return [
+            'success' => true,
+            'msg'     => __("dash.deleted_success"),
+        ];
     }
 
 }

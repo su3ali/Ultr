@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel"> اضافة مشروع</h5>
+                <h5 class="modal-title" id="exampleModalLabel"> اضافة فرع</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -14,11 +14,28 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form action="{{route('dashboard.business_projects.store')}}" method="post" class="form-horizontal"
-                    enctype="multipart/form-data" id="demo-form" data-parsley-validate="">
+                <form action="{{route('dashboard.business-project-branches.store')}}" method="post"
+                    class="form-horizontal" enctype="multipart/form-data" id="demo-form" data-parsley-validate="">
                     @csrf
                     <div class="box-body">
                         <div class="form-row mb-3">
+
+                            <div class="form-group col-md-12">
+                                <label for="client_project_id">{{ __('dash.select_project') }}</label>
+                                <select name="client_project_id" class="form-control" id="client_project_id" required>
+                                    <option value="">{{ __('dash.select_project') }}</option>
+                                    @foreach($clientProjects as $project)
+                                    <option value="{{ $project->id }}">
+                                        {{ app()->getLocale() == 'ar' ? $project->name_ar : $project->name_en }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                                @error('client_project_id')
+                                <div class="alert alert-danger">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+
                             <div class="form-group col-md-6">
                                 <label for="inputEmail4">{{__('dash.name_ar')}}</label>
                                 <input type="text" name="name_ar" class="form-control" id="inputEmail4"

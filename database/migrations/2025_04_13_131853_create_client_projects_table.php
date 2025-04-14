@@ -20,14 +20,14 @@ class CreateClientProjectsTable extends Migration
             $table->string('code')->unique()->nullable();
             $table->text('description')->nullable();
             $table->boolean('active')->default(true);
-        
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
-        
+
+            $table->foreignId('created_by')->nullable()->constrained('admins')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('admins')->nullOnDelete();
+
             $table->timestamps();
             $table->softDeletes();
         });
-        
+
     }
 
     /**

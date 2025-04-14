@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ClientProjectBranchFloor extends Model
 {
     use SoftDeletes;
+    protected $casts = [
+        'active' => 'boolean',
+    ];
 
     protected $fillable = ['branch_id', 'name_ar', 'name_en', 'floor_number', 'type', 'notes', 'active'];
 

@@ -397,13 +397,18 @@
             </li>
             @endif
 
-            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_client_projects'))
+            @if (
+            auth()->user()->hasRole('admin') ||
+            auth()->user()->can('view_client_projects') ||
+            auth()->user()->can('view_client_projects_floors')
+            )
             <li class="menu">
-                <a href="#clientProjectsMenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                <a href="#businessProjectsSettings" data-toggle="collapse" aria-expanded="false"
+                    class="dropdown-toggle">
                     <div class="">
                         <div class="icon-container">
-                            <i data-feather="home"></i>
-                            <span class="icon-name">المشاريع</span>
+                            <i data-feather="settings"></i>
+                            <span class="icon-name"> مشاريع الأعمال</span>
                         </div>
                     </div>
                     <div>
@@ -414,13 +419,34 @@
                         </svg>
                     </div>
                 </a>
-                <ul class="collapse submenu list-unstyled" id="clientProjectsMenu" data-parent="#accordionExample">
+                <ul class="collapse submenu list-unstyled" id="businessProjectsSettings"
+                    data-parent="#accordionExample">
+
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_client_projects'))
                     <li>
                         <a href="{{ route('dashboard.business_projects.index') }}"> قائمة المشاريع </a>
                     </li>
+                    @endif
+
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_client_projects'))
+                    <li>
+                        <a href="{{ route('dashboard.business-project-branches.index') }}"> فروع المشاريع </a>
+                    </li>
+                    @endif
+
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_client_projects_floors'))
+                    <li>
+                        <a href="{{ route('dashboard.business-project-floors.index') }}"> طوابق الفروع </a>
+                    </li>
+                    @endif
+
                 </ul>
             </li>
             @endif
+
+
+
+
 
 
 
