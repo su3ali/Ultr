@@ -175,7 +175,8 @@
                 ]
             },
             processing: true,
-            serverSide: false,
+            serverSide: true,
+            responsive: true,
             ajax: {
                 url: '{{ route('dashboard.order.complaints') }}',
                 data: function (d) {
