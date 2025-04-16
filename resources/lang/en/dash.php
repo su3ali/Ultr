@@ -1109,5 +1109,7 @@ return [
     'customer'                              => 'Customer',
     'car'                                   => 'Car',
     'add_new_order'                         => 'Add New Order',
+    'floor'                                 => 'Floor',
+    'notes'                                 => 'Notes',
 
 ];

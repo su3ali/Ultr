@@ -1,6 +1,9 @@
 <?php
+use App\Http\Controllers\Dashboard\BusinessProject\BusinessProjectController;
 use App\Http\Controllers\Dashboard\BusinessProject\ProjectBranchController;
 use App\Http\Controllers\Dashboard\BusinessProject\ProjectFloorController;
+use App\Http\Controllers\Dashboard\Cars\CarClientController;
+use App\Http\Controllers\Dashboard\Core\CustomerController;
 use Illuminate\Support\Facades\Route;
 
 Route::resource('business_projects', 'BusinessProject\BusinessProjectController');
@@ -30,4 +33,11 @@ Route::resource('business_orders', 'BusinessProject\BusinessOrderController');
 
 // Get Price for service in project
 
-// Route::post('/get-service-price', [BusinessProjectController::class, 'getPrice'])->name('dashboard.get.service.price');
+Route::post('/get-service-price', [BusinessProjectController::class, 'getPrice'])->name('get.service.price');
+
+// Check if User  exists
+Route::post('customer/check', [CustomerController::class, 'checkPhone'])->name('customer.check');
+
+//
+
+Route::post('car_client/check', [CarClientController::class, 'checkCar'])->name('car_client.check');

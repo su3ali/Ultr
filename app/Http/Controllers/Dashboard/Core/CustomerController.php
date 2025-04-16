@@ -266,4 +266,23 @@ class CustomerController extends Controller
         $admin->save();
         return response()->json(['sucess' => true]);
     }
+    // Check if User  exists
+    public function checkPhone(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string|starts_with:966|digits:12',
+        ]);
+
+        $user = User::where('phone', $request->phone)->first();
+
+        if ($user) {
+            return response()->json([
+                'exists'  => true,
+                'user_id' => $user->id,
+            ]);
+        }
+
+        return response()->json(['exists' => false]);
+    }
+
 }

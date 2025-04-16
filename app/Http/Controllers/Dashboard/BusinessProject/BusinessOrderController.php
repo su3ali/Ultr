@@ -1,21 +1,21 @@
 <?php
 namespace App\Http\Controllers\Dashboard\BusinessProject;
 
-use App\Models\City;
-use App\Models\User;
-use App\Models\Group;
-use App\Models\CarType;
-use App\Models\Service;
-use App\Models\CarModel;
-use App\Models\Category;
-use App\Models\CarClient;
-use App\Models\ReasonCancel;
-use Illuminate\Http\Request;
-use App\Models\BusinessOrder;
-use App\Models\PaymentMethod;
-use Yajra\DataTables\DataTables;
 use App\Http\Controllers\Controller;
+use App\Models\BusinessOrder;
 use App\Models\BusinessProject\ClientProject;
+use App\Models\CarClient;
+use App\Models\CarModel;
+use App\Models\CarType;
+use App\Models\Category;
+use App\Models\City;
+use App\Models\Group;
+use App\Models\PaymentMethod;
+use App\Models\ReasonCancel;
+use App\Models\Service;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Yajra\DataTables\DataTables;
 
 class BusinessOrderController extends Controller
 {
@@ -83,7 +83,7 @@ class BusinessOrderController extends Controller
     {
         $request->validate([
             'user_id'           => 'required|exists:users,id',
-            'category_id'       => 'nullable|exists:categories,id',
+            'car_id'            => 'nullable|exists:car_clients,id',
             'service_id'        => 'required|exists:services,id',
             'status_id'         => 'nullable|exists:order_statuses,id',
             'car_id'            => 'nullable|exists:car_clients,id',
@@ -92,15 +92,19 @@ class BusinessOrderController extends Controller
             'payment_method_id' => 'nullable|exists:payment_methods,id',
             'price'             => 'required|numeric',
             'notes'             => 'nullable|string',
+            'client_project_id' => 'required|exists:client_projects,id',
+            'branch_id'         => 'required|exists:client_project_branches,id',
+            'floor_id'          => 'required|exists:client_project_branch_floors,id',
         ]);
 
-        $service = Service::find($request->service_id);
+        $data = $request->except('_token');
 
-        $data['status_id']   = 1;
-        $data['category_id'] = $service->category_id;
+        // Add fixed/default values
+        $data['category_id'] = 7;
+        $data['status_id']   = $request->status_id ?? 1;
         $data['total']       = $request->price;
 
-        BusinessOrder::create($request->except('_token'));
+        BusinessOrder::create($data);
 
         session()->flash('success');
         return redirect()->back();

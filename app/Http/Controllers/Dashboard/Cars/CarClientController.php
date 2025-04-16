@@ -159,4 +159,29 @@ class CarClientController extends Controller
 
     }
 
+    public function checkCar(Request $request)
+    {
+        $request->validate([
+            'user_id'      => 'required|exists:users,id',
+            'Plate_number' => 'required|string',
+        ]);
+
+        $plate = trim(strtolower($request->Plate_number)); // إزالة الفراغات وتحويل لحروف صغيرة
+
+        $car = CarClient::where('user_id', $request->user_id)
+            ->whereRaw('LOWER(Plate_number) = ?', [$plate])
+            ->first();
+
+        if ($car) {
+            return response()->json([
+                'exists' => true,
+                'car_id' => $car->id,
+                // 'type' => $car->type->name ?? null, // اختياري
+                // 'model' => $car->model->name ?? null, // اختياري
+            ]);
+        }
+
+        return response()->json(['exists' => false]);
+    }
+
 }
