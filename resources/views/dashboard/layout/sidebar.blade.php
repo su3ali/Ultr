@@ -58,6 +58,21 @@
                 </ul>
             </li>
             @endcan
+            {{-- view business orders --}}
+            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_business_orders'))
+            <li class="menu">
+                <a href="{{ route('dashboard.business_orders.index') }}" class="dropdown-toggle">
+                    <div class="">
+                        <div class="icon-container">
+                            <i data-feather="file-text"></i>
+                            <span class="icon-name">{{ __('dash.business_orders') }}</span>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            @endif
+
+
             @can('view_packages')
             <li class="menu">
                 <a href="#contract" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">

@@ -704,180 +704,6 @@ class OrderController extends Controller
         return view('dashboard.orders.late_orders', compact('statuses'));
     }
 
-    // public function lateOrders(Request $request)
-    // {
-    //     $regionIds = auth()->user()->regions->pluck('region_id')->toArray();
-
-    //     $date  = $request->query('date');
-    //     $date2 = $request->query('date2');
-
-    //     //  Create a unique cache key based on filters
-    //     $cacheKey = 'late_order_query';
-    //     if ($date || $date2) {
-    //         $cacheKey .= '_' . ($date ?? 'null') . '_' . ($date2 ?? 'null');
-    //     }
-
-    //     //  Cache per filter
-    //     $ordersQuery = Cache::remember($cacheKey, now()->addMinutes(30), function () {
-    //         return Order::lateToServe()
-    //             ->with([
-    //                 'user',
-    //                 'bookings.visits',
-    //                 'status',
-    //                 'userAddress.region',
-    //                 'orderServices',
-    //                 'transaction',
-    //             ])->get();
-    //     });
-
-    //     // Convert to collection
-    //     $ordersQuery = collect($ordersQuery);
-
-    //     //  Additional filtering (again for safety if cache was broader)
-    //     if ($date && $date2) {
-    //         $carbonDate  = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
-    //         $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
-
-    //         $ordersQuery = $ordersQuery->filter(function ($order) use ($carbonDate, $carbonDate2) {
-    //             $booking = $order->bookings->first();
-    //             if (! $booking || ! $booking->date) {
-    //                 return false;
-    //             }
-
-    //             $bookingDate = \Carbon\Carbon::parse($booking->date)->timezone('Asia/Riyadh');
-    //             return $bookingDate->between($carbonDate->startOfDay(), $carbonDate2->endOfDay());
-    //         });
-
-    //     } elseif ($date) {
-    //         $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
-
-    //         $ordersQuery = $ordersQuery->filter(function ($order) use ($carbonDate) {
-    //             $booking = $order->bookings->first();
-    //             if (! $booking || ! $booking->date) {
-    //                 return false;
-    //             }
-
-    //             return \Carbon\Carbon::parse($booking->date)
-    //                 ->timezone('Asia/Riyadh')
-    //                 ->isSameDay($carbonDate);
-    //         });
-
-    //     } elseif ($date2) {
-    //         $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
-
-    //         $ordersQuery = $ordersQuery->filter(function ($order) use ($carbonDate2) {
-    //             $booking = $order->bookings->first();
-    //             if (! $booking || ! $booking->date) {
-    //                 return false;
-    //             }
-
-    //             return \Carbon\Carbon::parse($booking->date)
-    //                 ->timezone('Asia/Riyadh')
-    //                 ->lte($carbonDate2->endOfDay());
-    //         });
-    //     }
-
-    //     $totalOrders = $ordersQuery->count();
-
-    //     if ($request->ajax()) {
-    //         $filteredOrders = $ordersQuery;
-
-    //         if ($request->status) {
-    //             $filteredOrders = $filteredOrders->where('status_id', $request->status);
-    //         }
-
-    //         if ($request->page) {
-    //             $now            = Carbon::now('Asia/Riyadh')->toDateString();
-    //             $filteredOrders = $filteredOrders->filter(fn($order) =>
-    //                 Carbon::parse($order->created_at)->toDateString() === $now
-    //             );
-    //         }
-
-    //         return DataTables::of($filteredOrders)
-    //         // ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id)
-    //             ->addColumn('user', fn($row) => optional($row->user)->first_name . ' ' . optional($row->user)->last_name)
-    //             ->addColumn('phone', fn($row) => $row->user?->phone
-    //                 ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link">' . $row->user->phone . '</a>'
-    //                 : 'N/A')
-    //             ->addColumn('service', function ($row) {
-    //                 $serviceIds = $row->orderServices->pluck('service_id')->unique();
-    //                 $services   = \App\Models\Service::whereIn('id', $serviceIds)->get();
-    //                 return $services->map(fn($s) => '<button class="btn-sm btn-primary">' . $s->title . '</button>')->implode('');
-    //             })
-    //             ->addColumn('quantity', fn($row) => $row->orderServices->sum('quantity'))
-    //         // ->addColumn('cancelled_by', function ($row) {
-    //         //     $reason = optional(optional($row->bookings->first())->visit)->cancelReason;
-    //         //     return $reason?->is_for_tech === 1 ? "الفني" : "العميل";
-    //         // })
-    //             ->addColumn('total', fn($row) => $row->total ? (fmod($row->total, 1) == 0 ? (int) $row->total : number_format($row->total, 2)) : '')
-    //             ->addColumn('status', fn($row) => app()->getLocale() === 'ar'
-    //                 ? optional($row->bookings?->first()?->visit?->status)->name_ar
-    //                 : optional($row->bookings?->first()?->visit?->status)->name_en)
-    //             ->addColumn('date', function ($row) {
-    //                 $booking = $row->bookings->first();
-
-    //                 if (! $booking || ! $booking->date) {
-    //                     return '-';
-    //                 }
-
-    //                 return \Carbon\Carbon::parse($booking->date)
-    //                     ->locale('ar')
-    //                     ->timezone('Asia/Riyadh')
-    //                     ->format('Y-m-d');
-    //             })
-
-    //             ->addColumn('payment_method', function ($row) {
-    //                 $payment_method = $row->transaction?->payment_method;
-    //                 return match ($payment_method) {
-    //                     "cache", "cash" => __('api.payment_method_network'),
-    //                     "wallet" => __('api.payment_method_wallet'),
-    //                     default  => __('api.payment_method_visa'),
-    //                 };
-    //             })
-    //             ->addColumn('region', fn($row) => optional($row->userAddress?->region)->title)
-    //             ->addColumn('control', function ($row) {
-    //                 $html = '';
-
-    //                 // Confirm button
-    //                 if ($row->status_id == 2) {
-    //                     $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="تأكيد الطلب">
-    //                         <i class="far fa-thumbs-up fa-2x mx-1"></i>
-    //                     </a>';
-    //                 }
-
-    //                 // View order details
-    //                 $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="عرض تفاصيل الطلب">
-    //                     <i class="far fa-eye fa-2x"></i>
-    //                 </a>';
-
-    //                 // Show services - updated icon to fa-tools
-    //                 $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="عرض الخدمات">
-    //                     <i class="fas fa-tools fa-2x"></i>
-    //                 </a>';
-
-    //                 // Delete
-
-    //                 if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
-
-    //                     $html .= '<a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech" title="حذف الطلب">
-    //                     <i class="far fa-trash-alt fa-2x"></i>
-    //                 </a>';
-
-    //                     return $html;
-    //                 }
-    //             })
-
-    //             ->rawColumns(['user', 'phone', 'service', 'quantity', 'total', 'status', 'date', 'payment_method', 'region', 'control'])
-    //             ->with([
-    //                 'recordsTotal'    => $totalOrders,
-    //                 'recordsFiltered' => $filteredOrders->count(),
-    //             ])
-    //             ->make(true);
-    //     }
-
-    //     $statuses = OrderStatus::pluck('name_' . app()->getLocale(), 'id');
-    //     return view('dashboard.orders.late_orders', compact('statuses'));
-    // }
     public function canceledOrders(Request $request)
     {
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
@@ -1117,9 +943,20 @@ class OrderController extends Controller
                 ->when($request->status, fn($query) =>
                     $query->where('customer_complaints_status_id', $request->status)
                 )
-                ->when($request->date, fn($query) =>
-                    $query->whereDate('created_at', $request->date)
-                )
+                ->when($request->from_date && $request->to_date, function ($query) use ($request) {
+                    $from = Carbon::parse($request->from_date)->startOfDay();
+                    $to   = Carbon::parse($request->to_date)->endOfDay();
+                    $query->whereBetween('created_at', [$from, $to]);
+                })
+                ->when($request->from_date && ! $request->to_date, function ($query) use ($request) {
+                    $from = Carbon::parse($request->from_date)->startOfDay();
+                    $query->where('created_at', '>=', $from);
+                })
+                ->when(! $request->from_date && $request->to_date, function ($query) use ($request) {
+                    $to = Carbon::parse($request->to_date)->endOfDay();
+                    $query->where('created_at', '<=', $to);
+                })
+
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -1197,176 +1034,140 @@ class OrderController extends Controller
         return view('dashboard.orders.complaints', compact('complaintTypes', 'statuses'));
     }
 
-    public function complaintsToday()
+    public function complaintsToday(Request $request)
     {
+        $withRelations = [
+            'user',
+            'complaintType',
+            'status',
+            'order.bookings.visits.group',
+            'order.bookings.address.region',
+        ];
 
-        if (request()->ajax()) {
+        if ($request->ajax()) {
+            $startOfToday = now()->startOfDay();
+            $endOfToday   = now()->endOfDay();
 
-            $startOfToday         = now()->startOfDay();
-            $endOfTodayPlus3Hours = now()->endOfDay()->addHours(3);
-
-            $customerComplaints = CustomerComplaint::with([
-                'user',
-                'order.bookings.visits.group',
-                'order.bookings.address.region',
-            ])
-                ->whereBetween('created_at', [$startOfToday, $endOfTodayPlus3Hours])
+            $customerComplaints = CustomerComplaint::with($withRelations)
+                ->whereBetween('created_at', [$startOfToday, $endOfToday])
+                ->when($request->complaintType, fn($query) =>
+                    $query->where('complaint_type_id', $request->complaintType)
+                )
+                ->when($request->status, fn($query) =>
+                    $query->where('customer_complaints_status_id', $request->status)
+                )
                 ->orderBy('created_at', 'desc')
                 ->get();
 
             return DataTables::of($customerComplaints)
                 ->addColumn('order_id', fn($row) => $row->order_id ?? 'N/A')
-
-                ->addColumn('booking_no', function ($row) {
-                    return optional($row->order?->bookings?->first())->id ?? 'N/A';
-                })
-
-                ->addColumn('zone_name', function ($row) {
-                    return optional($row->order?->bookings?->first()?->address?->region)->title ?? 'N/A';
-                })
-
-                ->addColumn('customer_name', function ($row) {
-                    return $row->user ? $row->user->first_name . ' ' . $row->user->last_name : 'N/A';
-                })
-
-                ->addColumn('tech_name', function ($row) {
-                    return optional($row->order?->bookings?->first()?->visits?->first()?->group)->name ?? 'N/A';
-                })
-
+                ->addColumn('booking_no', fn($row) =>
+                    optional($row->order?->bookings?->first())->id ?? 'N/A'
+                )
+                ->addColumn('zone_name', fn($row) =>
+                    optional($row->order?->bookings?->first()?->address?->region)->title ?? 'N/A'
+                )
+                ->addColumn('customer_name', fn($row) =>
+                    $row->user ? $row->user->first_name . ' ' . $row->user->last_name : 'N/A'
+                )
+                ->addColumn('tech_name', fn($row) =>
+                    optional($row->order?->bookings?->first()?->visits?->first()?->group)->name ?? 'N/A'
+                )
                 ->addColumn('customer_phone', function ($row) {
                     $phone = $row->user?->phone ?? 'N/A';
                     return $phone !== 'N/A'
                     ? '<a href="https://wa.me/' . $phone . '" target="_blank" class="whatsapp-link" title="فتح الواتساب">
-                                <span class="phone-number">' . $phone . '</span>
-                                <i class="fab fa-whatsapp whatsapp-icon"></i>
-                            </a>'
+                            <span class="phone-number">' . $phone . '</span>
+                            <i class="fab fa-whatsapp whatsapp-icon"></i>
+                        </a>'
                     : $phone;
                 })
-
+                ->addColumn('status', fn($row) => $row->status?->name_ar ?? 'N/A')
+                ->addColumn('complaintType', fn($row) => $row->complaintType?->name_ar ?? 'N/A')
                 ->addColumn('complaint_text', fn($row) => $row->text ?? 'No text provided')
-
-                ->addColumn('complaint_images', fn($row) => $row->images ? implode(', ', $row->images) : 'No images')
-
+                ->addColumn('complaint_images', fn($row) =>
+                    $row->images ? implode(', ', $row->images) : 'No images'
+                )
                 ->addColumn('complaint_video', fn($row) => $row->video ?? 'No video')
-
-                ->addColumn('created_at', fn($row) => $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d"))
-
-                ->addColumn('control', function ($row) {
-                    return '<a href="' . route('dashboard.order.complaintDetails', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                                <i class="far fa-eye fa-2x"></i>
-                            </a>';
-                })
-                ->rawColumns(['customer_name', 'customer_phone', 'complaint_text', 'complaint_images', 'complaint_video', 'created_at', 'control'])
-                ->make(true);
-        }
-
-        return view('dashboard.orders.complaints_today');
-    }
-
-    public function complaintsResolved()
-    {
-        if (request()->ajax()) {
-
-            $customerComplaints = CustomerComplaint::where('customer_complaints_status_id', 3)->with([
-                'user',
-                'complaintReply',
-                'order.bookings.visits.group',
-                'order.bookings.address.region',
-            ])->orderBy('created_at', 'desc')->get();
-
-            return DataTables::of($customerComplaints)
-                ->addColumn('order_id', fn($row) => $row->order_id ?? 'N/A')
-
-                ->addColumn('booking_no', function ($row) {
-                    return optional($row->order?->bookings?->first())->id ?? 'N/A';
-                })
-
-                ->addColumn('zone_name', function ($row) {
-                    return optional($row->order?->bookings?->first()?->address?->region)->title ?? 'N/A';
-                })
-
-                ->addColumn('customer_name', function ($row) {
-                    return $row->user ? $row->user->first_name . ' ' . $row->user->last_name : 'N/A';
-                })
-
-                ->addColumn('tech_name', function ($row) {
-                    return optional($row->order?->bookings?->first()?->visits?->first()?->group)->name ?? 'N/A';
-                })
-
-                ->addColumn('customer_phone', function ($row) {
-                    $phone = $row->user?->phone ?? 'N/A';
-                    return $phone !== 'N/A'
-                    ? '<a href="https://wa.me/' . $phone . '" target="_blank" class="whatsapp-link" title="فتح الواتساب">
-                                <span class="phone-number">' . $phone . '</span>
-                                <i class="fab fa-whatsapp whatsapp-icon"></i>
-                            </a>'
-                    : $phone;
-                })
-
-                ->addColumn('complaint_text', fn($row) => $row->text ?? 'No text provided')
-
-                ->addColumn('complaint_images', fn($row) => $row->images ? implode(', ', $row->images) : 'No images')
-
-                ->addColumn('complaint_video', fn($row) => $row->video ?? 'No video')
-
-                ->addColumn('emp_last_reply', function ($row) {
-                    $lastReply = $row->complaintReply->last();
-                    return $lastReply ? optional($lastReply->admin)->first_name . ' ' . optional($lastReply->admin)->last_name : '';
-                })
-
-                ->addColumn('last_reply_date', function ($row) {
-                    $lastReply = $row->complaintReply->last();
-                    return $lastReply && $lastReply->created_at
-                    ? $lastReply->created_at->timezone('Asia/Riyadh')->format("Y-m-d")
-                    : '';
-                })
-
-                ->addColumn('created_at', fn($row) => $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d"))
-
-                ->addColumn('control', function ($row) {
-                    return '<a href="' . route('dashboard.order.complaintDetails', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                                <i class="far fa-eye fa-2x"></i>
-                            </a>';
-                })
-                ->rawColumns(['customer_name', 'customer_phone', 'last_reply_date', 'complaint_text', 'complaint_images', 'complaint_video', 'created_at', 'control'])
-                ->make(true);
-        }
-
-        return view('dashboard.orders.complaints_resolved');
-    }
-
-    public function complaintsUnresolved()
-    {
-        if (request()->ajax()) {
-
-            $customerComplaints = CustomerComplaint::whereIn('customer_complaints_status_id', [1, null])
-                ->with([
-                    'user',
-                    'order.bookings.visits.group',
-                    'order.bookings.address.region',
+                ->addColumn('created_at', fn($row) =>
+                    $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d")
+                )
+                ->addColumn('control', fn($row) =>
+                    '<a href="' . route('dashboard.order.complaintDetails', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                    <i class="far fa-eye fa-2x"></i>
+                </a>'
+                )
+                ->rawColumns([
+                    'customer_name',
+                    'customer_phone',
+                    'status',
+                    'complaintType',
+                    'complaint_text',
+                    'complaint_images',
+                    'complaint_video',
+                    'created_at',
+                    'control',
                 ])
+                ->make(true);
+        }
+
+        $locale        = app()->getLocale();
+        $orderByColumn = $locale === 'ar' ? 'name_ar' : 'name_en';
+
+        $complaintTypes = ComplaintType::orderBy($orderByColumn)->get();
+        $statuses       = CustomerComplaintStatus::orderBy($orderByColumn)->get();
+
+        return view('dashboard.orders.complaints_today', compact('complaintTypes', 'statuses'));
+    }
+
+    // complaintsResolved
+    public function complaintsResolved(Request $request)
+    {
+
+        $withRelations = [
+            'user',
+            'complaintType',
+            'status',
+            'order.bookings.visits.group',
+            'order.bookings.address.region',
+        ];
+
+        if ($request->ajax()) {
+            $customerComplaints = CustomerComplaint::with($withRelations)
+                ->where('customer_complaints_status_id', 3)
+                ->when($request->complaintType, fn($query) =>
+                    $query->where('complaint_type_id', $request->complaintType)
+                )
+                ->when($request->from_date && $request->to_date, function ($query) use ($request) {
+                    $from = Carbon::parse($request->from_date)->startOfDay();
+                    $to   = Carbon::parse($request->to_date)->endOfDay();
+                    $query->whereBetween('created_at', [$from, $to]);
+                })
+                ->when($request->from_date && ! $request->to_date, function ($query) use ($request) {
+                    $from = Carbon::parse($request->from_date)->startOfDay();
+                    $query->where('created_at', '>=', $from);
+                })
+                ->when(! $request->from_date && $request->to_date, function ($query) use ($request) {
+                    $to = Carbon::parse($request->to_date)->endOfDay();
+                    $query->where('created_at', '<=', $to);
+                })
                 ->orderBy('created_at', 'desc')
                 ->get();
 
             return DataTables::of($customerComplaints)
                 ->addColumn('order_id', fn($row) => $row->order_id ?? 'N/A')
-
-                ->addColumn('booking_no', function ($row) {
-                    return optional($row->order?->bookings?->first())->id ?? 'N/A';
-                })
-
-                ->addColumn('zone_name', function ($row) {
-                    return optional($row->order?->bookings?->first()?->address?->region)->title ?? 'N/A';
-                })
-
-                ->addColumn('customer_name', function ($row) {
-                    return $row->user ? $row->user->first_name . ' ' . $row->user->last_name : 'N/A';
-                })
-
-                ->addColumn('tech_name', function ($row) {
-                    return optional($row->order?->bookings?->first()?->visits?->first()?->group)->name ?? 'N/A';
-                })
-
+                ->addColumn('booking_no', fn($row) =>
+                    optional($row->order?->bookings?->first())->id ?? 'N/A'
+                )
+                ->addColumn('zone_name', fn($row) =>
+                    optional($row->order?->bookings?->first()?->address?->region)->title ?? 'N/A'
+                )
+                ->addColumn('customer_name', fn($row) =>
+                    $row->user ? $row->user->first_name . ' ' . $row->user->last_name : 'N/A'
+                )
+                ->addColumn('tech_name', fn($row) =>
+                    optional($row->order?->bookings?->first()?->visits?->first()?->group)->name ?? 'N/A'
+                )
                 ->addColumn('customer_phone', function ($row) {
                     $phone = $row->user?->phone ?? 'N/A';
                     return $phone !== 'N/A'
@@ -1376,25 +1177,131 @@ class OrderController extends Controller
                             </a>'
                     : $phone;
                 })
-
+                ->addColumn('status', fn($row) => $row->status?->name_ar ?? 'N/A')
+                ->addColumn('complaintType', fn($row) => $row->complaintType?->name_ar ?? 'N/A')
                 ->addColumn('complaint_text', fn($row) => $row->text ?? 'No text provided')
-
                 ->addColumn('complaint_images', fn($row) => $row->images ? implode(', ', $row->images) : 'No images')
-
                 ->addColumn('complaint_video', fn($row) => $row->video ?? 'No video')
-
-                ->addColumn('created_at', fn($row) => $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d"))
-
-                ->addColumn('control', function ($row) {
-                    return '<a href="' . route('dashboard.order.complaintDetails', 'id=' . $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                                <i class="far fa-eye fa-2x"></i>
-                            </a>';
-                })
-                ->rawColumns(['customer_name', 'customer_phone', 'complaint_text', 'complaint_images', 'complaint_video', 'created_at', 'control'])
+                ->addColumn('created_at', fn($row) =>
+                    $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d")
+                )
+                ->addColumn('control', fn($row) =>
+                    '<a href="' . route('dashboard.order.complaintDetails', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                        <i class="far fa-eye fa-2x"></i>
+                    </a>'
+                )
+                ->rawColumns([
+                    'customer_name',
+                    'customer_phone',
+                    'status',
+                    'complaintType',
+                    'complaint_text',
+                    'complaint_images',
+                    'complaint_video',
+                    'created_at',
+                    'control',
+                ])
                 ->make(true);
         }
 
-        return view('dashboard.orders.complaints_unresolved');
+        $locale        = app()->getLocale();
+        $orderByColumn = $locale === 'ar' ? 'name_ar' : 'name_en';
+
+        $complaintTypes = ComplaintType::orderBy($orderByColumn)->get();
+        $statuses       = CustomerComplaintStatus::orderBy($orderByColumn)->get();
+
+        return view('dashboard.orders.complaints_resolved', compact('complaintTypes', 'statuses'));
+    }
+
+    public function complaintsUnresolved(Request $request)
+    {
+        $withRelations = [
+            'user',
+            'complaintType',
+            'status',
+            'order.bookings.visits.group',
+            'order.bookings.address.region',
+        ];
+
+        if ($request->ajax()) {
+            $customerComplaints = CustomerComplaint::with($withRelations)
+                ->whereIn('customer_complaints_status_id', [1, null])
+                ->when($request->complaintType, fn($query) =>
+                    $query->where('complaint_type_id', $request->complaintType)
+                )
+                ->when($request->from_date && $request->to_date, function ($query) use ($request) {
+                    $from = Carbon::parse($request->from_date)->startOfDay();
+                    $to   = Carbon::parse($request->to_date)->endOfDay();
+                    $query->whereBetween('created_at', [$from, $to]);
+                })
+                ->when($request->from_date && ! $request->to_date, function ($query) use ($request) {
+                    $from = Carbon::parse($request->from_date)->startOfDay();
+                    $query->where('created_at', '>=', $from);
+                })
+                ->when(! $request->from_date && $request->to_date, function ($query) use ($request) {
+                    $to = Carbon::parse($request->to_date)->endOfDay();
+                    $query->where('created_at', '<=', $to);
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return DataTables::of($customerComplaints)
+                ->addColumn('order_id', fn($row) => $row->order_id ?? 'N/A')
+                ->addColumn('booking_no', fn($row) =>
+                    optional($row->order?->bookings?->first())->id ?? 'N/A'
+                )
+                ->addColumn('zone_name', fn($row) =>
+                    optional($row->order?->bookings?->first()?->address?->region)->title ?? 'N/A'
+                )
+                ->addColumn('customer_name', fn($row) =>
+                    $row->user ? $row->user->first_name . ' ' . $row->user->last_name : 'N/A'
+                )
+                ->addColumn('tech_name', fn($row) =>
+                    optional($row->order?->bookings?->first()?->visits?->first()?->group)->name ?? 'N/A'
+                )
+                ->addColumn('customer_phone', function ($row) {
+                    $phone = $row->user?->phone ?? 'N/A';
+                    return $phone !== 'N/A'
+                    ? '<a href="https://wa.me/' . $phone . '" target="_blank" class="whatsapp-link" title="فتح الواتساب">
+                                <span class="phone-number">' . $phone . '</span>
+                                <i class="fab fa-whatsapp whatsapp-icon"></i>
+                            </a>'
+                    : $phone;
+                })
+                ->addColumn('status', fn($row) => $row->status?->name_ar ?? 'N/A')
+                ->addColumn('complaintType', fn($row) => $row->complaintType?->name_ar ?? 'N/A')
+                ->addColumn('complaint_text', fn($row) => $row->text ?? 'No text provided')
+                ->addColumn('complaint_images', fn($row) => $row->images ? implode(', ', $row->images) : 'No images')
+                ->addColumn('complaint_video', fn($row) => $row->video ?? 'No video')
+                ->addColumn('created_at', fn($row) =>
+                    $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d")
+                )
+                ->addColumn('control', fn($row) =>
+                    '<a href="' . route('dashboard.order.complaintDetails', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
+                        <i class="far fa-eye fa-2x"></i>
+                    </a>'
+                )
+                ->rawColumns([
+                    'customer_name',
+                    'customer_phone',
+                    'status',
+                    'complaintType',
+                    'complaint_text',
+                    'complaint_images',
+                    'complaint_video',
+                    'created_at',
+                    'control',
+                ])
+                ->make(true);
+        }
+
+        $locale        = app()->getLocale();
+        $orderByColumn = $locale === 'ar' ? 'name_ar' : 'name_en';
+
+        $complaintTypes = ComplaintType::orderBy($orderByColumn)->get();
+        $statuses       = CustomerComplaintStatus::orderBy($orderByColumn)->get();
+
+        return view('dashboard.orders.complaints_unresolved', compact('complaintTypes', 'statuses'));
     }
 
     public function complaintsAction(Request $request)

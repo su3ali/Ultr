@@ -107,7 +107,7 @@ class ProjectFloorController extends Controller
                     ';
                 })
 
-                ->rawColumns(['name','project_name', 'branch_name', 'status', 'controll'])
+                ->rawColumns(['name', 'project_name', 'branch_name', 'status', 'controll'])
                 ->make(true);
         }
 
@@ -219,6 +219,15 @@ class ProjectFloorController extends Controller
 
         return redirect()->route('dashboard.business-project-floors.index')
             ->with('success', 'تم إضافة الطابق بنجاح.');
+    }
+
+    public function getFloorsByBranch($branch_id)
+    {
+        $floors = ClientProjectBranchFloor::where('branch_id', $branch_id)
+            ->select('id', 'name_ar', 'name_en')
+            ->get();
+
+        return response()->json($floors);
     }
 
 }

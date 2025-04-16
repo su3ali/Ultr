@@ -1,7 +1,9 @@
 <?php
-
 namespace App\Models;
 
+use App\Models\BusinessProject\ClientProject;
+use App\Models\BusinessProject\ClientProjectBranchFloor;
+use App\Models\Models\BusinessProject\ClientProjectBranch;
 use App\Support\Traits\HasPassword;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -13,10 +15,10 @@ class Technician extends Authenticatable
 {
 
     public const TECHNICIAN = 0;
-    public const TRAINEE = 1;
+    public const TRAINEE    = 1;
 
     use HasApiTokens, HasPassword, HasFactory, HasRoles, Notifiable;
-    protected $guard = 'technician';
+    protected $guard   = 'technician';
     protected $guarded = [];
 
     protected $hidden = [
@@ -47,6 +49,26 @@ class Technician extends Authenticatable
     public function workingDays()
     {
         return $this->hasMany(TechnicianWorkingDay::class, 'technician_id', 'id');
+    }
+
+    public function clientProject()
+    {
+        return $this->belongsTo(ClientProject::class, 'client_project_id');
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(ClientProjectBranch::class, 'branch_id');
+    }
+
+    public function floors()
+    {
+        return $this->belongsToMany(
+            ClientProjectBranchFloor::class,
+            'technician_branch_floor',
+            'technician_id',
+            'floor_id'
+        )->withTimestamps();
     }
 
 }

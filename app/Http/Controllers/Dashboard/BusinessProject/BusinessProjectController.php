@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard\BusinessProject;
 use App\Http\Controllers\Controller;
 use App\Models\BusinessProject\ClientProject;
 use App\Models\BusinessProject\ClientProjectBranch;
+use App\Models\ClientProjectServicePrice;
 use App\Traits\imageTrait;
 use Auth;
 use Illuminate\Http\Request;
@@ -126,6 +127,24 @@ class BusinessProjectController extends Controller
             'success' => true,
             'msg'     => __("dash.deleted_success"),
         ];
+    }
+
+    public function getPrice(Request $request)
+    {
+        $request->validate([
+            'client_project_id' => 'required|exists:client_projects,id',
+            'service_id'        => 'required|exists:services,id',
+        ]);
+
+        $price = ClientProjectServicePrice::where('client_project_id', $request->client_project_id)
+            ->where('service_id', $request->service_id)
+            ->value('price');
+
+        if (is_null($price)) {
+            $price = Service::find($request->service_id)?->price;
+        }
+
+        return response()->json(['price' => $price]);
     }
 
 }

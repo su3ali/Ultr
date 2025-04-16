@@ -170,6 +170,57 @@
                             </div>
                         </div>
 
+                        <!-- Technician Type -->
+                        <div class="form-row mb-3">
+                            <div class="form-group col-md-6">
+                                <label class="font-weight-bold d-block mb-2">{{ __('dash.technician_type') }}</label>
+                                <div class="form-check form-check-inline mr-4">
+                                    <input class="form-check-input" type="radio" name="is_business" id="personalTech"
+                                        value="0" checked>
+                                    <label class="form-check-label" for="personalTech">
+                                        <i class="fas fa-user mr-1"></i> {{ __('dash.personal') }}
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="is_business" id="businessTech"
+                                        value="1">
+                                    <label class="form-check-label" for="businessTech">
+                                        <i class="fas fa-building mr-1"></i> {{ __('dash.business') }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Business Related Inputs -->
+                        <div id="businessFields" style="display: none;">
+                            <div class="form-row mb-3">
+                                <div class="form-group col-md-6">
+                                    <label for="client_project_id">{{ __('dash.project') }}</label>
+                                    <select id="client_project_id" name="client_project_id"
+                                        class="form-control select2">
+                                        <option value="">{{ __('dash.choose') }}</option>
+                                        @foreach($clientProjects as $project)
+                                        <option value="{{ $project->id }}">{{ $project->name_ar }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="branch_id">{{ __('dash.branch') }}</label>
+                                    <select id="branch_id" name="branch_id" class="form-control select2">
+                                        <option value="">{{ __('dash.choose') }}</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row mb-3">
+                                <div class="form-group col-md-12">
+                                    <label for="floor_ids">{{ __('dash.floors') }}</label>
+                                    <select id="floor_ids" name="floor_ids[]" class="form-control select2" multiple>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">{{ __('dash.save') }}</button>
@@ -187,6 +238,45 @@
 
 @push('script')
 <script>
-    let secondUpload = new FileUploadWithPreview('mySecondImage')
+    let secondUpload = new FileUploadWithPreview('mySecondImage');
+
+    $(document).ready(function () {
+        $('input[name="is_business"]').change(function () {
+            if ($('#businessTech').is(':checked')) {
+                $('#businessFields').slideDown();
+            } else {
+                $('#businessFields').slideUp();
+            }
+        });
+
+        $('#client_project_id').on('change', function () {
+            const projectId = $(this).val();
+            $('#branch_id').html('<option value="">{{ __('dash.loading') }}</option>');
+            $('#floor_ids').empty();
+
+            if (projectId) {
+                $.get(`/admin/get-project-branches/${projectId}`, function (branches) {
+
+                    $('#branch_id').html('<option value="">{{ __('dash.choose') }}</option>');
+                    $.each(branches, function (i, branch) {
+                        $('#branch_id').append(`<option value="${branch.id}">${branch.name_ar}</option>`);
+                    });
+                });
+            }
+        });
+
+        $('#branch_id').on('change', function () {
+            const branchId = $(this).val();
+            $('#floor_ids').empty();
+
+            if (branchId) {
+                $.get(`/admin/get-branch-floors/${branchId}`, function (floors) {
+                    $.each(floors, function (i, floor) {
+                        $('#floor_ids').append(`<option value="${floor.id}">${floor.name_ar}</option>`);
+                    });
+                });
+            }
+        });
+    });
 </script>
 @endpush

@@ -1027,5 +1027,14 @@ return [
     'select_branch'                         => 'اختر الفرع',
     'branch'                                => 'الفرع',
     'project_floors'                        => 'أدوار المشروع',
+    'floors'                                => 'الطوابق',
+    'personal'                              => 'افراد',
+    'business'                              => 'أعمال',
+    'technician_type'                       => 'نوع الفني',
+    'business_orders'                       => 'طلبات الأعمال',
+
+    'customer'                              => 'العميل',
+    'car'                                   => 'السيارة',
+    'add_new_order'                         => 'إضافة طلب جديد',
 
 ];

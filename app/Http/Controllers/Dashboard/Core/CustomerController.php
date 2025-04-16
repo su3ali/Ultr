@@ -12,6 +12,7 @@ class CustomerController extends Controller
 
     public function index(Request $request)
     {
+
         $date  = $request->query('date');
         $date2 = $request->query('date2');
 
@@ -165,6 +166,25 @@ class CustomerController extends Controller
         return view('dashboard.core.customers.create', compact('cities'));
     }
 
+    // public function store(Request $request)
+    // {
+    //     $request->validate([
+    //         'first_name' => 'required|string|max:100',
+    //         'last_name'  => 'required|string|max:100',
+    //         'email'      => 'nullable|email|max:255|unique:users,email',
+    //         'phone'      => 'required|numeric|unique:users,phone',
+    //         'active'     => 'nullable|in:on,off',
+    //         'city_id'    => 'nullable|exists:cities,id',
+    //     ]);
+
+    //     $data           = $request->except('_token', 'active');
+    //     $data['active'] = 1;
+    //     User::query()->create($data);
+
+    //     session()->flash('success');
+    //     return redirect()->route('dashboard.core.customer.index');
+    // }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -178,7 +198,16 @@ class CustomerController extends Controller
 
         $data           = $request->except('_token', 'active');
         $data['active'] = 1;
-        User::query()->create($data);
+
+        $user = User::create($data);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'status'  => true,
+                'user_id' => $user->id,
+                'message' => __('dash.saved_successfully'),
+            ]);
+        }
 
         session()->flash('success');
         return redirect()->route('dashboard.core.customer.index');

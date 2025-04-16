@@ -1101,5 +1101,13 @@ return [
     'branch'                                => 'Branch',
 
     'project_floors'                        => 'Project Floors',
+    'floors'                                => 'Floors',
+    'personal'                              => 'individual',
+    'business'                              => 'Business',
+    'technician_type'                       => 'Technician Type',
+    'business_orders'                       => 'Business Orders',
+    'customer'                              => 'Customer',
+    'car'                                   => 'Car',
+    'add_new_order'                         => 'Add New Order',
 
 ];

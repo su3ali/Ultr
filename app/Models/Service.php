@@ -1,7 +1,7 @@
 <?php
-
 namespace App\Models;
 
+use App\Models\BusinessProject\ClientProject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -70,6 +70,18 @@ class Service extends Model
     public function rates()
     {
         return $this->hasMany(RateService::class, 'service_id', 'id');
+    }
+
+    public function projectPrices()
+    {
+        return $this->hasMany(ClientProjectServicePrice::class);
+    }
+
+    public function clientProjects()
+    {
+        return $this->belongsToMany(ClientProject::class, 'client_project_service_prices')
+            ->withPivot('price')
+            ->withTimestamps();
     }
 
 }
