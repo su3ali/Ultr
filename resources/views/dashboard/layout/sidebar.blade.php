@@ -377,7 +377,8 @@
                     </div>
                 </a>
                 <ul class="collapse submenu list-unstyled" id="contact" data-parent="#accordionExample">
-                    @if(auth()->user()->can('view_companys_services') || auth()->user()->hasRole(['admin', 'super']))
+                    @if(auth()->user()->can('view_companys_services_management') || auth()->user()->hasRole(['admin',
+                    'super']))
 
                     <li>
                         <a href="{{ route('dashboard.core.contact.index') }}">{{ __('dash.companys_services') }}</a>
@@ -422,7 +423,7 @@
                         <a href="{{ route('dashboard.core.technician.index') }}"> {{ __('dash.technicians') }} </a>
                     </li>
 
-                    @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_technicians_groups'))
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_technicians'))
 
                     <li>
                         <a href="{{ route('dashboard.core.group.index') }}"> {{ __('dash.technicians_groups') }} </a>
