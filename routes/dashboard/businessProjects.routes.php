@@ -1,4 +1,6 @@
 <?php
+use App\Http\Controllers\Api\Coupons\CouponsController;
+use App\Http\Controllers\Dashboard\BusinessProject\BusinessOrderController;
 use App\Http\Controllers\Dashboard\BusinessProject\BusinessProjectController;
 use App\Http\Controllers\Dashboard\BusinessProject\ProjectBranchController;
 use App\Http\Controllers\Dashboard\BusinessProject\ProjectFloorController;
@@ -36,8 +38,18 @@ Route::resource('business_orders', 'BusinessProject\BusinessOrderController');
 Route::post('/get-service-price', [BusinessProjectController::class, 'getPrice'])->name('get.service.price');
 
 // Check if User  exists
-Route::post('customer/check', [CustomerController::class, 'checkPhone'])->name('customer.check');
+Route::post('check-customer', [CustomerController::class, 'checkPhone'])->name('customer.check');
 
 //
 
 Route::post('car_client/check', [CarClientController::class, 'checkCar'])->name('car_client.check');
+
+//
+Route::post('/orders/apply-coupon', [CouponsController::class, 'applyCoupon'])
+    ->name('orders.applyCoupon');
+
+Route::get('/technician-groups/{id}', [BusinessOrderController::class, 'getRelatedGroups'])
+    ->name('technician.groups');
+
+Route::put('/business-orders/{id}/change-group', [BusinessOrderController::class, 'changeGroup'])
+    ->name('business-orders.changeGroup');

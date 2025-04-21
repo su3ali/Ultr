@@ -7,7 +7,7 @@ use App\Models\Service;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ClientProject extends Model
+class   ClientProject extends Model
 {
     use SoftDeletes;
 

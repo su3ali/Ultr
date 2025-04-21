@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 
+use App\Models\BusinessOrderTechnicianHistory;
 use App\Models\BusinessProject\ClientProject;
 use App\Models\BusinessProject\ClientProjectBranchFloor;
 use App\Models\Models\BusinessProject\ClientProjectBranch;
@@ -69,6 +70,22 @@ class Technician extends Authenticatable
             'technician_id',
             'floor_id'
         )->withTimestamps();
+    }
+
+    public function orderHistories()
+    {
+        return $this->hasMany(BusinessOrderTechnicianHistory::class, 'technician_id');
+    }
+
+    public function scopeBusiness($query)
+    {
+        return $query->where('is_business', 1);
+    }
+
+    public function relatedGroups()
+    {
+        return Group::where('client_project_id', $this->client_project_id)
+            ->where('branch_id', $this->branch_id);
     }
 
 }

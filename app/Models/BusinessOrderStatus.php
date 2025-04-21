@@ -2,13 +2,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class PaymentMethod extends Model
+class BusinessOrderStatus extends Model
 {
-    use SoftDeletes;
-
-    protected $fillable = ['name_ar', 'name_en', 'active'];
+    protected $fillable = [
+        'name_ar',
+        'name_en',
+        'active',
+    ];
 
     public function getNameAttribute()
     {

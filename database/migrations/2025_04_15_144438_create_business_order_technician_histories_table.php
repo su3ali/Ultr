@@ -11,7 +11,8 @@ class CreateBusinessOrderTechnicianHistoriesTable extends Migration
         Schema::create('business_order_technician_histories', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('order_id')->constrained('business_orders')->cascadeOnDelete();
+            $table->foreignId('order_id')->constrained('business_orders')->cascadeOnDelete();
+
             $table->unsignedBigInteger('technician_id')->constrained('technicians')->cascadeOnDelete();
             $table->unsignedBigInteger('group_id')->nullable()->constrained('groups')->nullOnDelete();
 

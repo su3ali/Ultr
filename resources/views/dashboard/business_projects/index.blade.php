@@ -81,7 +81,7 @@
     </div>
 
 </div>
-@include('dashboard.business_projects.edit')
+@include('dashboard.business_orders.edit')
 
 @endsection
 
@@ -125,6 +125,20 @@
     $('#name_en').val(btn.data('name_en'));
     $('#demo-form-edit').attr('action', btn.data('action'));
 });
+
+function openEditModal(id) {
+    const btn = $('.edit-project[data-id="' + id + '"]');
+
+    const nameAr = btn.data('name_ar');
+    const nameEn = btn.data('name_en');
+    const action = btn.data('action');
+
+    $('#name_ar').val(nameAr);
+    $('#name_en').val(nameEn);
+    $('#demo-form-edit').attr('action', action);
+
+    $('#editModal').modal('show');
+}
 
 
 

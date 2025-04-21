@@ -82,33 +82,61 @@ class CarClientController extends Controller
     //     return redirect()->route('dashboard.car_client.index');
     // }
 
+    // public function store(Request $request)
+    // {
+
+    //     $request->validate([
+    //         'user_id'      => 'required|exists:users,id',
+    //         'type_id'      => 'required|exists:car_types,id',
+    //         'model_id'     => 'required|exists:car_models,id',
+    //         'color'        => 'required|string|max:100',
+    //         'Plate_number' => 'required|string|max:20',
+    //     ]);
+
+    //     $data = $request->only([
+    //         'user_id', 'type_id', 'model_id', 'color', 'Plate_number',
+    //     ]);
+
+    //     // Normalize plate
+    //     $data['Plate_number'] = strtoupper(trim($data['Plate_number']));
+
+    //     $car = CarClient::updateOrCreate(
+    //         ['Plate_number' => $data['Plate_number'], 'user_id' => $data['user_id']],
+    //         $data
+    //     );
+
+    //     if ($request->ajax()) {
+    //         return response()->json([
+    //             'status'  => true,
+    //             'car_id'  => $car->id,
+    //             'message' => __('dash.saved_successfully'),
+    //         ]);
+    //     }
+
+    //     session()->flash('success', __('dash.saved_successfully'));
+    //     return redirect()->route('dashboard.car_client.index');
+    // }
+
     public function store(Request $request)
     {
         $request->validate([
-            'user_id'      => 'required|exists:users,id',
+            'Plate_number' => 'required|string|max:255',
             'type_id'      => 'required|exists:car_types,id',
             'model_id'     => 'required|exists:car_models,id',
-            'color'        => 'required|string',
-            'Plate_number' => 'required|string',
+            'color'        => 'nullable|string|max:100',
+            'user_id'      => 'required|exists:users,id',
         ]);
 
-        $data = $request->except('_token');
+        $car = CarClient::create($request->only([
+            'Plate_number', 'type_id', 'model_id', 'color', 'user_id',
+        ]));
 
-        $car_client = CarClient::updateOrCreate(
-            ['Plate_number' => $data['Plate_number']], // شرط التحقق
-            $data
-        );
-
-        if ($request->ajax()) {
-            return response()->json([
-                'status'  => true,
-                'car_id'  => $car_client->id,
-                'message' => __('dash.saved_successfully'),
-            ]);
-        }
-
-        session()->flash('success');
-        return redirect()->route('dashboard.car_client.index');
+        return response()->json([
+            'status'  => true,
+            'car_id'  => $car->id,
+            'success' => true,
+            'message' => 'تم حفظ السيارة بنجاح',
+        ]);
     }
 
     public function edit($id)
@@ -166,22 +194,16 @@ class CarClientController extends Controller
             'Plate_number' => 'required|string',
         ]);
 
-        $plate = trim(strtolower($request->Plate_number)); // إزالة الفراغات وتحويل لحروف صغيرة
+        $plate = strtolower(trim($request->Plate_number));
 
         $car = CarClient::where('user_id', $request->user_id)
             ->whereRaw('LOWER(Plate_number) = ?', [$plate])
             ->first();
 
-        if ($car) {
-            return response()->json([
-                'exists' => true,
-                'car_id' => $car->id,
-                // 'type' => $car->type->name ?? null, // اختياري
-                // 'model' => $car->model->name ?? null, // اختياري
-            ]);
-        }
-
-        return response()->json(['exists' => false]);
+        return response()->json([
+            'exists' => (bool) $car,
+            'car_id' => $car?->id,
+        ]);
     }
 
 }

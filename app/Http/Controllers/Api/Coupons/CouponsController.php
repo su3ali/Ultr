@@ -119,4 +119,52 @@ class CouponsController extends Controller
         }
         return array_sum($total);
     }
+
+    public function applyCoupon(Request $request)
+    {
+        $request->validate([
+            'code'       => 'required|string',
+            'user_id'    => 'required|exists:users,id',
+            'service_id' => 'required|exists:services,id',
+            'price'      => 'required|numeric|min:0',
+        ]);
+
+        $coupon = Coupon::where('code', $request->code)->first();
+        if (! $coupon) {
+            return response()->json(['message' => 'الكوبون غير صالح'], 400);
+        }
+
+        // تحقق من الاستخدام السابق
+        $alreadyUsed = CouponUser::where('coupon_id', $coupon->id)
+            ->where('user_id', $request->user_id)
+            ->exists();
+
+        if ($alreadyUsed) {
+            return response()->json(['message' => 'لقد استخدمت هذا الكوبون مسبقاً'], 400);
+        }
+
+        // حساب الخصم
+        $discount = $coupon->type === 'percentage'
+        ? ($request->price * $coupon->value / 100)
+        : min($coupon->value, $request->price);
+
+        $sub_total = $request->price - $discount;
+
+        // تحديث عدد الاستخدامات
+        $coupon->increment('times_used');
+
+        // حفظ في جدول CouponUser
+        CouponUser::create([
+            'coupon_id' => $coupon->id,
+            'user_id'   => $request->user_id,
+        ]);
+
+        return response()->json([
+            'message'   => 'تم تطبيق الكوبون بنجاح',
+            'discount'  => $discount,
+            'sub_total' => $sub_total,
+            'coupon_id' => $coupon->id,
+        ]);
+    }
+
 }

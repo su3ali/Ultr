@@ -1111,5 +1111,14 @@ return [
     'add_new_order'                         => 'Add New Order',
     'floor'                                 => 'Floor',
     'notes'                                 => 'Notes',
+    'optional'                              => 'Optional',
+    'saved_successfully'                    => 'Saved Successfully',
+    'created_successfully'                  => 'Created Successfully',
+    'order_details'                         => 'Order Details',
+    'price_placeholder'                     => '0.00',
+    'add_car'                               => 'Add Car',
+    'edit_order'                            => 'Edit Order',
+    'save_changes'                          => 'Save Changes',
+    'coupon_code'                           => 'Coupon Code',
 
 ];

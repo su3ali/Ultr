@@ -1,14 +1,15 @@
 <?php
 namespace App\Http\Controllers\Dashboard\BusinessProject;
 
-use App\Http\Controllers\Controller;
-use App\Models\BusinessProject\ClientProject;
-use App\Models\BusinessProject\ClientProjectBranch;
-use App\Models\ClientProjectServicePrice;
-use App\Traits\imageTrait;
 use Auth;
+use App\Models\Service;
+use App\Traits\imageTrait;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
+use App\Http\Controllers\Controller;
+use App\Models\ClientProjectServicePrice;
+use App\Models\BusinessProject\ClientProject;
+use App\Models\BusinessProject\ClientProjectBranch;
 
 class BusinessProjectController extends Controller
 {
@@ -16,7 +17,8 @@ class BusinessProjectController extends Controller
     use imageTrait;
     public function index()
     {
-        $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
+        $projects = ClientProject::select('id', 'name_ar', 'name_en')->get();
+        $services = Service::all();
 
         if (request()->ajax()) {
             $projects = ClientProject::withCount('branches')
@@ -62,7 +64,7 @@ class BusinessProjectController extends Controller
                 ->make(true);
         }
 
-        return view('dashboard.business_projects.index', compact('clientProjects'));
+        return view('dashboard.business_projects.index', compact('projects', 'services'));
     }
 
     public function create()
@@ -131,20 +133,24 @@ class BusinessProjectController extends Controller
 
     public function getPrice(Request $request)
     {
-        $request->validate([
-            'client_project_id' => 'required|exists:client_projects,id',
-            'service_id'        => 'required|exists:services,id',
+        $validated = $request->validate([
+            'client_project_id' => ['required', 'exists:client_projects,id'],
+            'service_id'        => ['required', 'exists:services,id'],
         ]);
 
-        $price = ClientProjectServicePrice::where('client_project_id', $request->client_project_id)
-            ->where('service_id', $request->service_id)
+        $price = ClientProjectServicePrice::query()
+            ->where('client_project_id', $validated['client_project_id'])
+            ->where('service_id', $validated['service_id'])
             ->value('price');
 
+        // fallback: get default service price
         if (is_null($price)) {
-            $price = Service::find($request->service_id)?->price;
+            $price = Service::query()->where('id', $validated['service_id'])->value('price');
         }
 
-        return response()->json(['price' => $price]);
+        return response()->json([
+            'price' => $price,
+        ]);
     }
 
 }
