@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Api\Techn\Auth\AuthController;
 use App\Http\Controllers\Api\Techn\lang\LangController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,19 +15,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/getLang', [LangController::class, 'getLang']);
 
-
-
 //Route::post('/payment-callback/{type?}',[CheckoutController::class,'callbackPayment']);
 
-Route::middleware(['auth:sanctum','abilities:technician'])->group(function () {
+Route::middleware(['auth:sanctum', 'abilities:technician'])->group(function () {
     require __DIR__ . '/auth.router.php';
     require __DIR__ . '/home.router.php';
     require __DIR__ . '/visits.router.php';
     require __DIR__ . '/settings.router.php';
+    require __DIR__ . '/businessOrder.router.php';
 
 });
-

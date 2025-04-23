@@ -67,5 +67,7 @@ return [
     'payment_method_wallet'                                                           => 'payment_method_wallet',
     'payment_method_mada'                                                             => 'payment_method_network',
     'payment_method_visa'                                                             => 'payment_method_visa',
+    'validation error'                                                                => 'validation error',
+    'can_not_cancel'                                                                  => 'can not cancel',
 
 ];

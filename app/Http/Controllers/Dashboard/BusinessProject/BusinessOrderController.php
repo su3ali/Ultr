@@ -144,7 +144,7 @@ class BusinessOrderController extends Controller
 
         $data                = $request->except('_token', 'price');
         $data['category_id'] = 7;
-        $data['status_id']   = $request->status_id ?? 1; // 1 =  Pending
+        $data['status_id']   = BusinessOrder::STATUS_PENDING; // default status
         $data['sub_total']   = $request->price;
         $data['total']       = $request->price;
 

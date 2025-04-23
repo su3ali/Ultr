@@ -68,4 +68,7 @@ return [
     'payment_method_mada'                                                             => 'دفع عبر مدى',
     'payment_method_visa'                                                             => 'دفع ببطاقة ائتمان',
 
+    'validation error'                                                          => 'خطأ في التحقق من صحة البيانات',
+    'can_not_cancel'                                                                => 'لا يمكن إلغاء الطلب',
+
 ];

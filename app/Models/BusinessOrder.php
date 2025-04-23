@@ -30,6 +30,10 @@ class BusinessOrder extends Model
         'notes',
 
     ];
+    public const STATUS_PENDING     = 1;
+    public const STATUS_IN_PROGRESS = 2;
+    public const STATUS_COMPLETED   = 3;
+    public const STATUS_CANCELED    = 4;
 
     public function user()
     {
@@ -60,7 +64,6 @@ class BusinessOrder extends Model
     {
         return $this->belongsTo(Group::class, 'assign_to_id');
     }
-    
 
     public function reasonCancel()
     {
