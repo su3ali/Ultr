@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Dashboard\BusinessProject;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\BusinessOrder;
 use App\Models\BusinessOrderStatus;
 use App\Models\BusinessOrderTechnicianHistory;
@@ -17,8 +18,12 @@ use App\Models\ReasonCancel;
 use App\Models\Service;
 use App\Models\Technician;
 use App\Models\User;
+use App\Notifications\SendPushNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Yajra\DataTables\DataTables;
+use App\Traits\NotificationTrait;
+
 
 class BusinessOrderController extends Controller
 {
@@ -175,6 +180,32 @@ class BusinessOrderController extends Controller
                 'group_id'      => $technician->group_id,
                 // 'start_time'    => now(),
             ]);
+
+            // Notifications
+
+            if ($technician && filled($technician->fcm_token)) {
+                $title   = __('api.new_appointment');
+                $message = __('api.you_have_new_visit_appointment') . ' ' . $order->id;
+
+                // Send  notification
+                Notification::send($technician, new SendPushNotification($title, $message));
+
+                // Collect valid tokens
+                $adminTokens = Admin::whereNotNull('fcm_token')->pluck('fcm_token')->toArray();
+                $fcmTokens   = array_filter(array_unique(array_merge([$technician->fcm_token], $adminTokens)));
+
+                // Send push only if tokens exist
+                if (! empty($fcmTokens)) {
+                    $this->pushNotification([
+                        'device_token' => $fcmTokens,
+                        'title'        => $title,
+                        'message'      => $message,
+                        'type'         => 'technician',
+                        'code'         => 1,
+                    ]);
+                }
+            }
+
         }
 
         session()->flash('success', __('dash.created_successfully'));
@@ -279,9 +310,10 @@ class BusinessOrderController extends Controller
         $order->assign_to_id = $request->assign_to_id;
         $order->save();
 
-        $technicianId = optional(
-            Group::with('leader')->findOrFail($request->assign_to_id)->leader
-        )->id;
+        $group      = Group::with('leader')->findOrFail($request->assign_to_id);
+        $technician = $group->leader;
+
+        $technicianId = optional($technician)->id;
 
         BusinessOrderTechnicianHistory::updateOrCreate(
             [
@@ -295,6 +327,31 @@ class BusinessOrderController extends Controller
                 'notes'      => $request->note,
             ]
         );
+
+        //  Send notification if technician exists
+        if ($technician && filled($technician->fcm_token)) {
+            $title   = __('api.assignment_updated');
+            $message = __('api.you_have_been_assigned_to_order') . ' #' . $order->id;
+
+            // Laravel notification
+            Notification::send($technician, new SendPushNotification($title, $message));
+
+            // FCM + Admins
+            $fcmTokens = array_filter(array_unique(array_merge(
+                [$technician->fcm_token],
+                Admin::whereNotNull('fcm_token')->pluck('fcm_token')->toArray()
+            )));
+
+            if (! empty($fcmTokens)) {
+                $this->pushNotification([
+                    'device_token' => $fcmTokens,
+                    'title'        => $title,
+                    'message'      => $message,
+                    'type'         => 'technician',
+                    'code'         => 2,
+                ]);
+            }
+        }
 
         return response()->json(['success' => true]);
     }

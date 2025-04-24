@@ -118,8 +118,9 @@
     $(document).ready(function () {
         const allText = @json(__('dash.all'));
         const locale = '{{ app()->getLocale() }}';
+        const selectBranchText = @json(__('dash.select_branch'));
 
-        // Initialize DataTable
+        // DataTable setup
         table = $('#floors-table').DataTable({
             dom:
                 "<'row mb-3'<'col-12 text-center'B>>" +
@@ -150,98 +151,68 @@
             columns: [
                 { data: 'id', name: 'id' },
                 { data: 'name', name: 'name' },
-                {data:'project_name',name:'project_name'},
+                { data: 'project_name', name: 'project_name' },
                 { data: 'branch_name', name: 'branch_name' },
                 { data: 'status', name: 'status', orderable: false, searchable: false },
                 { data: 'controll', name: 'controll', orderable: false, searchable: false }
             ]
         });
 
-        // When project changes, reload branches
-        $('#project_filter').change(function () {
-            const projectId = $(this).val();
-
-            // Clear and reset branch filter
-            $('#branch_filter').html(`<option value="">${allText}</option>`);
-            table.ajax.reload();
-
+        // Unified branch loader
+        function loadBranches(projectId, targetSelect, selectedId = null) {
+            targetSelect.html(`<option value="">${selectBranchText}</option>`);
             if (projectId) {
                 $.ajax({
                     url: `/admin/get-project-branches/${projectId}`,
                     type: 'GET',
-                    
                     success: function (branches) {
-                        if (branches.length > 0) {
-                            $.each(branches, function (index, branch) {
-                                const name = locale === 'ar' ? branch.name_ar : branch.name_en;
-                                $('#branch_filter').append(`<option value="${branch.id}">${name}</option>`);
-                            });
-                            
-                        }
+                        $.each(branches, function (index, branch) {
+                            const name = locale === 'ar' ? branch.name_ar : branch.name_en;
+                            const selected = branch.id == selectedId ? 'selected' : '';
+                            targetSelect.append(`<option value="${branch.id}" ${selected}>${name}</option>`);
+                        });
                     },
-                    
                     error: function () {
-                        console.error('حدث خطأ أثناء تحميل الفروع');
+                        console.error('فشل في تحميل الفروع الخاصة بالمشروع.');
                     }
                 });
             }
+        }
+
+        // Filter changes
+        $('#project_filter').change(function () {
+            const projectId = $(this).val();
+            loadBranches(projectId, $('#branch_filter'));
+            table.ajax.reload();
         });
 
-        // Reload DataTable when branch changes
         $('#branch_filter').change(function () {
             table.ajax.reload();
         });
 
-        // Edit modal
-        $("body").on("click", ".edit", function () {
-    const id = $(this).data("id");
-    const name_ar = $(this).data("name_ar");
-    const name_en = $(this).data("name_en");
-    const floor_number = $(this).data("floor_number");
-    const active = $(this).data("active");
-    const project_id = $(this).data("project_id");
-    const branch_id = $(this).data("branch_id");
-
-    $('#edit_name_ar').val(name_ar);
-    $('#edit_name_en').val(name_en);
-    $('#edit_floor_number').val(floor_number);
-    $('#edit_active').val(active);
-
-    // set project
-    $('#edit_project_id').val(project_id).trigger('change');
-
-    // clear and fetch branches
-    const locale = '{{ app()->getLocale() }}';
-    const defaultText = @json(__('dash.select_branch'));
-    $('#edit_branch_id').html(`<option value="">${defaultText}</option>`);
-
-    if (project_id) {
-        $.ajax({
-            url: `/admin/get-project-branches/${project_id}`,
-            type: 'GET',
-            success: function (branches) {
-                if (branches.length > 0) {
-                    $.each(branches, function (index, branch) {
-                        const name = locale === 'ar' ? branch.name_ar : branch.name_en;
-                        const selected = branch.id == branch_id ? 'selected' : '';
-                        $('#edit_branch_id').append(`<option value="${branch.id}" ${selected}>${name}</option>`);
-                    });
-                }
-            },
-            error: function () {
-                console.error('فشل في تحميل الفروع.');
-            }
+        // Create modal: Load branches
+        $('#create_project_id').change(function () {
+            loadBranches($(this).val(), $('#branch_id'));
         });
-    }
 
-    const action = `${window.location.origin}/admin/business-project-floors/${id}`;
-    $('#demo-form-edit').attr('action', action);
-});
+        // Edit modal: load project/branch
+        $("body").on("click", ".edit", function () {
+            const id = $(this).data("id");
+            $('#edit_name_ar').val($(this).data("name_ar"));
+            $('#edit_name_en').val($(this).data("name_en"));
+            $('#edit_floor_number').val($(this).data("floor_number"));
+            $('#edit_active').val($(this).data("active"));
+            const projectId = $(this).data("project_id");
+            const branchId = $(this).data("branch_id");
 
+            $('#edit_project_id').val(projectId).trigger('change');
+            loadBranches(projectId, $('#edit_branch_id'), branchId);
 
+            $('#demo-form-edit').attr('action', `${window.location.origin}/admin/business-project-floors/${id}`);
+        });
 
         // View modal
-        $("body").on('click', '.view', function () {
+        $("body").on("click", ".view", function () {
             $('#show_name_ar').text($(this).data('name_ar'));
             $('#show_name_en').text($(this).data('name_en'));
             $('#show_floor_number').text($(this).data('floor_number') || '-');
@@ -249,131 +220,37 @@
             $('#show_branch_name').text($(this).data('branch_name') || '-');
             $('#show_project_name').text($(this).data('project_name') || '-');
 
-
             const active = $(this).data('active');
             const badge = active ? 'success' : 'danger';
             const text = active ? 'مفعل' : 'غير مفعل';
-
             $('#show_status').html(`<span class="badge badge-${badge}">${text}</span>`);
             $('#showFloorModal').modal('show');
         });
-    });
 
-    $(document).on('change', '.change-status-switch', function () {
-    const $switch = $(this);
-    const id = $switch.data('id');
-    const is_active = $switch.is(':checked') ? 1 : 0;
-
-    $.ajax({
-        url: '{{ route('dashboard.floors_statuses.change_status') }}',
-        type: 'POST',
-        data: {
-            _token: '{{ csrf_token() }}',
-            id: id,
-            is_active: is_active
-        },
-        success: function(data) {
-                    console.log('Response:', data); // Log the response
-                    swal({
-                        title: "{{ __('dash.successful_operation') }}",
-                        text: "{{ __('dash.request_executed_successfully') }}",
-                        type: 'success',
-                        padding: '2em'
-                    });
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error:', xhr.responseText); // Log any errors
-                    swal({
-                        title: "{{ __('dash.operation_failed') }}",
-                        text: "{{ __('dash.request_failed') }}",
-                        type: 'error',
-                        padding: '2em'
-                    });
-                }
-    });
-});
-
-
-
-// =====  Branches Update=====
-$('#create_project_id').change(function () {
-    const projectId = $(this).val();
-    const locale = '{{ app()->getLocale() }}';
-    const defaultBranchText = @json(__('dash.select_branch'));
-
-    $('#branch_id').html(`<option value="">${defaultBranchText}</option>`); // Reset
-
-    if (projectId) {
-        $.ajax({
-            url: `/admin/get-project-branches/${projectId}`,
-            type: 'GET',
-            success: function (branches) {
-                if (branches.length > 0) {
-                    $.each(branches, function (index, branch) {
-                        const name = locale === 'ar' ? branch.name_ar : branch.name_en;
-                        $('#branch_id').append(`<option value="${branch.id}">${name}</option>`);
-                    });
-                }
-            },
-            error: function () {
-                console.error('فشل في تحميل الفروع الخاصة بالمشروع المحدد.');
-            }
-        });
-    }
-});
-
-$('#edit_project_id').change(function () {
-    const projectId = $(this).val();
-    const defaultText = @json(__('dash.select_branch'));
-    const locale = '{{ app()->getLocale() }}';
-
-    $('#edit_branch_id').html(`<option value="">${defaultText}</option>`);
-
-    if (projectId) {
-        $.ajax({
-            url: `/admin/get-project-branches/${projectId}`,
-            type: 'GET',
-            success: function (branches) {
-                if (branches.length > 0) {
-                    $.each(branches, function (index, branch) {
-                        const name = locale === 'ar' ? branch.name_ar : branch.name_en;
-                        $('#edit_branch_id').append(`<option value="${branch.id}">${name}</option>`);
-                    });
-                }
-            },
-            error: function () {
-                console.error('فشل في تحميل الفروع للمشروع المحدد.');
-            }
-        });
-    }
-});
-
-
-$('#create_project_id').change(function () {
-        const projectId = $(this).val();
-        const locale = '{{ app()->getLocale() }}';
-        const defaultBranchText = @json(__('dash.select_branch'));
-
-        $('#branch_id').html(`<option value="">${defaultBranchText}</option>`);
-
-        if (projectId) {
-            $.ajax({
-                url: `/admin/get-project-branches/${projectId}`,
-                type: 'GET',
-                success: function (branches) {
-                    if (branches.length > 0) {
-                        $.each(branches, function (index, branch) {
-                            const name = locale === 'ar' ? branch.name_ar : branch.name_en;
-                            $('#branch_id').append(`<option value="${branch.id}">${name}</option>`);
-                        });
-                    }
-                },
-                error: function () {
-                    console.error('فشل في تحميل الفروع الخاصة بالمشروع المحدد.');
-                }
+        // Toggle status
+        $(document).on('change', '.change-status-switch', function () {
+            const $switch = $(this);
+            $.post('{{ route('dashboard.floors_statuses.change_status') }}', {
+                _token: '{{ csrf_token() }}',
+                id: $switch.data('id'),
+                is_active: $switch.is(':checked') ? 1 : 0
+            }).done(function () {
+                swal({
+                    title: "{{ __('dash.successful_operation') }}",
+                    text: "{{ __('dash.request_executed_successfully') }}",
+                    type: 'success',
+                    padding: '2em'
+                });
+            }).fail(function (xhr) {
+                console.error('Error:', xhr.responseText);
+                swal({
+                    title: "{{ __('dash.operation_failed') }}",
+                    text: "{{ __('dash.request_failed') }}",
+                    type: 'error',
+                    padding: '2em'
+                });
             });
-        }
+        });
     });
-
 </script>
 @endpush

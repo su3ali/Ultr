@@ -151,23 +151,28 @@ $type = 'package';
                             </div>
                         </div>
                         <br>
-                        <div class="row">
-
-
-
-                            <div class="col-md-1">
-                                <label for="inputEmail4">{{ __('dash.status') }}</label>
+                        <div class="row align-items-end mt-3">
+                            <div class="col-md-2">
+                                <label>{{ __('dash.zone') }}</label>
+                                <select class="form-control zone_filter select2">
+                                    <option value="all">{{ __('dash.all') }}</option>
+                                    @foreach ($zones as $id => $name)
+                                    <option value="{{ $id }}">{{ $name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
-                            <div class="col-md-4">
-                                <select class="select2 status_filter form-control" name="status_filter">
+
+                            <div class="col-md-2">
+                                <label>{{ __('dash.status') }}</label>
+                                <select class="form-control status_filter select2" name="status_filter">
                                     <option value="all" selected>{{ __('dash.all') }}</option>
                                     @foreach ($statuses as $id => $status)
                                     <option value="{{ $id }}">{{ $status }}</option>
                                     @endforeach
                                 </select>
                             </div>
-
                         </div>
+
 
                     </div>
                     <div class="tab-content" id="simpletabContent">
@@ -280,9 +285,14 @@ $type = 'package';
                         name: 'quantity'
                     },
                     {
+                        data:'zone',
+                        name:'zone'
+                    },
+                    {
                         data: 'group',
                         name: 'group'
                     },
+                    
                     {
 
                         data: 'total',
@@ -314,31 +324,41 @@ $type = 'package';
 
                 ]
             });
+    function updateTableData() {
+        var status_filter = $('.status_filter').val();
+        var zone_filter = $('.zone_filter').val();
+        var date = $('.date').val();
+        var date2 = $('.date2').val();
+        
+        // ابدأ بالرابط الأساسي
+        var url = '{{ url('admin/bookings?type=' . $type) }}';
 
-            function updateTableData() {
-                var status_filter = $('.status_filter').val();
-                var url;
-                var date = $('.date').val();
-                var date2 = $('.date2').val();
-                if (status_filter && status_filter !== 'all') {
-                    url = '{{ url('admin/bookings?type=' . $type) }}' + '&status=' + status_filter;
-                } else {
-                    url = '{{ url('admin/bookings?type=' . $type) }}';
-                }
-                if (date) {
-                    url += '&date=' + date;
-                }
-                if (date2) {
-                    url += '&date2=' + date2;
-                }
+        // أضف الفلاتر حسب الحاجة
+        if (status_filter && status_filter !== 'all') {
+            url += '&status=' + status_filter;
+        }
 
-                // Update table data
-                table.ajax.url(url).load();
+        if (zone_filter && zone_filter !== 'all') {
+            url += '&zone=' + zone_filter;
+        }
 
-            }
-            $('.date, .date2, .status_filter').change(function() {
-                updateTableData();
-            });
+        if (date) {
+            url += '&date=' + date;
+        }
+
+        if (date2) {
+            url += '&date2=' + date2;
+        }
+
+        // تحميل البيانات بناءً على الفلاتر
+        table.ajax.url(url).load();
+    }
+
+// فعل التحديث عند تغيير الفلاتر
+$('.date, .date2, .status_filter, .zone_filter').change(function() {
+    updateTableData();
+});
+
 
             // Trigger search update
             $('#searchInput').on('keyup', function() {
@@ -348,6 +368,9 @@ $type = 'package';
 
 
         });
+
+
+
 
 
         $(document).on('click', '#add-work-exp', function() {

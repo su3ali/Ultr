@@ -11,7 +11,10 @@
             <th> {{ __('dash.service') }}</th>
             <th> {{ __('dash.date') }}</th>
             <th> {{ __('dash.start_time') }}</th>
+
             <th> {{ __('dash.quantity') }}</th>
+            <th> {{ __('dash.zone') }}</th>
+
             <th> {{ __('dash.tech_team') }}</th>
             <th> {{ __('dash.amount') }}</th>
             <th> {{ __('dash.status') }}</th>

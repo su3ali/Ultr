@@ -33,10 +33,10 @@ class ProjectFloorController extends Controller
                     : ($row->name_en ?? $row->name_ar ?? '-');
                 })
                 ->addColumn('branch_name', function ($row) {
-                    return $row->branch->name_ar ?? '-';
+                    return optional($row->branch)->name_ar ?? '-';
                 })
                 ->addColumn('project_name', function ($row) {
-                    return $row->branch->project->name_ar ?? '-';
+                    return optional(optional($row->branch)->project)->name_ar ?? '-';
                 })
                 ->addColumn('status', function ($row) {
                     $checked = $row->active == 1 ? 'checked' : '';
@@ -45,7 +45,6 @@ class ProjectFloorController extends Controller
                                 <span class="slider round"></span>
                             </label>';
                 })
-
                 ->addColumn('controll', function ($row) {
                     if ($row->deleted_at) {
                         $restoreUrl = route('dashboard.business-project-floors.restore', $row->id);
@@ -61,8 +60,8 @@ class ProjectFloorController extends Controller
 
                     $deleteUrl       = route('dashboard.business-project-floors.destroy', $row->id);
                     $branchName      = e(optional($row->branch)->name_ar);
-                    $dataProjectName = e(optional($row->branch->project)->name_ar);
-                    $dataProjectId   = $row->branch?->client_project_id ?? ''; // <-- هنا الإضافة الجديدة
+                    $dataProjectName = e(optional(optional($row->branch)->project)->name_ar);
+                    $dataProjectId   = optional($row->branch)->client_project_id ?? '';
                     $branchId        = $row->branch_id;
 
                     return '
@@ -106,9 +105,9 @@ class ProjectFloorController extends Controller
                         </a>
                     ';
                 })
-
                 ->rawColumns(['name', 'project_name', 'branch_name', 'status', 'controll'])
                 ->make(true);
+
         }
 
         $projects = ClientProject::select('id', 'name_ar', 'name_en')->get();

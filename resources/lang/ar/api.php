@@ -68,7 +68,9 @@ return [
     'payment_method_mada'                                                             => 'دفع عبر مدى',
     'payment_method_visa'                                                             => 'دفع ببطاقة ائتمان',
 
-    'validation error'                                                          => 'خطأ في التحقق من صحة البيانات',
-    'can_not_cancel'                                                                => 'لا يمكن إلغاء الطلب',
+    'validation error'                                                                => 'خطأ في التحقق من صحة البيانات',
+    'can_not_cancel'                                                                  => 'لا يمكن إلغاء الطلب',
+    'new_appointment'                                                                 => 'لديك موعد جديد',
+    'you_have_new_visit_appointment'                                                  => 'لديك موعد زيارة جديد',
 
 ];

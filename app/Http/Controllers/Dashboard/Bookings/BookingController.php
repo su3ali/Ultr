@@ -9,6 +9,7 @@ use App\Models\CategoryGroup;
 use App\Models\ContractPackage;
 use App\Models\Group;
 use App\Models\Order;
+use App\Models\Region;
 use App\Models\Service;
 use App\Models\User;
 use App\Models\UserAddresses;
@@ -63,6 +64,13 @@ class BookingController extends Controller
                 $carbonDate2    = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
                 $formattedDate2 = $carbonDate2->format('Y-m-d');
                 $bookings->where('date', '<=', $formattedDate2);
+            }
+
+            if ($request->has('zone') && $request->zone !== 'all') {
+                $zoneId = $request->zone;
+                $bookings->whereHas('visit.group.regions', function ($query) use ($zoneId) {
+                    $query->where('region_id', $zoneId);
+                });
             }
 
             // Apply search filter
@@ -187,6 +195,7 @@ class BookingController extends Controller
                         'new'            => $row->visit?->status?->name_ar ?? 'N/A',
                         'date'           => $row->date ?? 'N/A',
                         'quantity'       => $row->quantity ?? 'N/A',
+                        'zone'           => $row->visit?->group?->region->first()->title ?? 'N/A',
                         'total'          => isset($row->visit?->booking?->order?->total) && is_numeric($row->visit->booking->order->total)
                         ? number_format((float) $row->visit->booking->order->total, 2)
                         : 'N/A',
@@ -205,10 +214,14 @@ class BookingController extends Controller
 
         }
 
+        $zones = Region::where('title_ar', '!=', 'old')
+            ->where('title_en', '!=', 'old')
+            ->pluck(app()->getLocale() === 'ar' ? 'title_ar' : 'title_en', 'id');
+
         $visitsStatuses = VisitsStatus::query()->get()->pluck('name', 'id');
         $statuses       = BookingStatus::get()->pluck('name', 'id');
 
-        return view('dashboard.bookings.index', compact('visitsStatuses', 'statuses'));
+        return view('dashboard.bookings.index', compact('visitsStatuses', 'statuses', 'zones'));
     }
 
     public function customerBookings(Request $request, $customer_id)

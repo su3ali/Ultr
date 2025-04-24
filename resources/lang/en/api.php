@@ -70,4 +70,7 @@ return [
     'validation error'                                                                => 'validation error',
     'can_not_cancel'                                                                  => 'can not cancel',
 
+    'new_appointment'                                                                 => 'New Appointment',
+    'you_have_new_visit_appointment'                                                  => 'You have a new visit appointment',
+
 ];
