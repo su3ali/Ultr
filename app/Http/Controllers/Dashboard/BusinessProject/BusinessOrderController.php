@@ -22,8 +22,6 @@ use App\Notifications\SendPushNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 use Yajra\DataTables\DataTables;
-use App\Traits\NotificationTrait;
-
 
 class BusinessOrderController extends Controller
 {
@@ -32,7 +30,7 @@ class BusinessOrderController extends Controller
         if (request()->ajax()) {
             $orders = BusinessOrder::with([
                 'user', 'category', 'service', 'group', 'car', 'paymentMethod', 'status',
-            ])->latest();
+            ])->orderBy('id', 'desc');
 
             // ==========  Date Filter ==========
             if (request()->filled('date_from')) {
@@ -58,7 +56,7 @@ class BusinessOrderController extends Controller
                 ->addColumn('phone', fn($row) => $row->user?->phone ?? '-')
                 ->addColumn('car', fn($row) => $row->car?->Plate_number ?? '-')
                 ->addColumn('service', fn($row) => '<button class="btn-sm btn-primary">' . $row->service?->title . '</button>')
-                ->addColumn('total', fn($row) => number_format($row->total, 2) . ' ريال')
+                ->addColumn('total', fn($row) => number_format($row->total, 2))
                 ->addColumn('group', fn($row) => $row->group?->name_ar ?? '-')
                 ->addColumn('payment_method', fn($row) => $row->paymentMethod?->name ?? '-')
                 ->addColumn('status', fn($row) => $row->status?->name ?? '-')
@@ -149,13 +147,13 @@ class BusinessOrderController extends Controller
 
         $data                = $request->except('_token', 'price');
         $data['category_id'] = 7;
-        $data['status_id']   = BusinessOrder::STATUS_PENDING; // default status
+        $data['status_id']   = BusinessOrder::STATUS_PENDING;
         $data['sub_total']   = $request->price;
         $data['total']       = $request->price;
 
         $order = BusinessOrder::create($data);
 
-        // Technician assignment
+        // First attempt: technician assigned to the same project + branch + floor
         $technician = Technician::business()
             ->where('client_project_id', $request->client_project_id)
             ->where('branch_id', $request->branch_id)
@@ -170,6 +168,21 @@ class BusinessOrderController extends Controller
             ->orderBy('order_histories_count', 'asc')
             ->first();
 
+        // Second attempt: only if no technician was found for the floor — try technician with same project + branch (without floor)
+        if (! $technician) {
+            $technician = Technician::business()
+                ->where('client_project_id', $request->client_project_id)
+                ->where('branch_id', $request->branch_id)
+                ->withCount(['orderHistories' => function ($q) use ($request) {
+                    $q->whereHas('order', fn($oq) =>
+                        $oq->where('client_project_id', $request->client_project_id)
+                            ->where('branch_id', $request->branch_id)
+                    );
+                }])
+                ->orderBy('order_histories_count', 'asc')
+                ->first();
+        }
+
         if ($technician) {
             $order->assign_to_id = $technician->group_id;
             $order->save();
@@ -178,23 +191,19 @@ class BusinessOrderController extends Controller
                 'order_id'      => $order->id,
                 'technician_id' => $technician->id,
                 'group_id'      => $technician->group_id,
-                // 'start_time'    => now(),
             ]);
 
-            // Notifications
-
-            if ($technician && filled($technician->fcm_token)) {
+            // Send notification to the technician
+            if (filled($technician->fcm_token)) {
                 $title   = __('api.new_appointment');
                 $message = __('api.you_have_new_visit_appointment') . ' ' . $order->id;
 
-                // Send  notification
                 Notification::send($technician, new SendPushNotification($title, $message));
 
-                // Collect valid tokens
+                // FCM + Admins
                 $adminTokens = Admin::whereNotNull('fcm_token')->pluck('fcm_token')->toArray();
                 $fcmTokens   = array_filter(array_unique(array_merge([$technician->fcm_token], $adminTokens)));
 
-                // Send push only if tokens exist
                 if (! empty($fcmTokens)) {
                     $this->pushNotification([
                         'device_token' => $fcmTokens,
@@ -205,7 +214,6 @@ class BusinessOrderController extends Controller
                     ]);
                 }
             }
-
         }
 
         session()->flash('success', __('dash.created_successfully'));

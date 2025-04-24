@@ -85,17 +85,21 @@ let ordersTable;
 
 // ========== [2] Function to Load DataTable ==========
 function loadOrdersTable() {
+    // إذا الجدول مهيأ مسبقاً، يتم تدميره قبل إنشاء جديد
+    if ($.fn.dataTable.isDataTable('#ordersTable')) {
+        $('#ordersTable').DataTable().clear().destroy();
+    }
+
     ordersTable = $('#ordersTable').DataTable({
         processing: true,
         serverSide: true,
-        destroy: true, // مهم عند إعادة التحميل لتفادي التكرار
         ajax: {
             url: '{{ route("dashboard.business_orders.index") }}',
             data: function (d) {
-                d.date_from        = $('#filter_date_from').val();
-                d.date_to          = $('#filter_date_to').val();
-                d.status           = $('#filter_status').val();
-                d.payment_method   = $('#filter_payment_method').val();
+                d.date_from       = $('#filter_date_from').val();
+                d.date_to         = $('#filter_date_to').val();
+                d.status          = $('#filter_status').val();
+                d.payment_method  = $('#filter_payment_method').val();
             }
         },
         columns: [
@@ -111,13 +115,43 @@ function loadOrdersTable() {
             { data: 'created_at', name: 'created_at' },
             { data: 'controll', name: 'controll', orderable: false, searchable: false }
         ],
+        dom: "<'dt--top-section'<'row'<'col-md-4 text-start'l><'col-md-4 text-center'B><'col-md-4 text-end'f>>>" +
+             "<'table-responsive'tr>" +
+             "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
+        lengthMenu: [
+            [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000],
+            [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
+        ],
+        pageLength: 10,
+        order: [[0, 'desc']],
         language: {
-            url: "{{ app()->getLocale() === 'ar'
-                ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json'
-                : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
-        }
+            url: "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
+        },
+        buttons: [
+            {
+                extend: 'copy',
+                className: 'btn btn-sm',
+                text: '{{ __("dash.copy") }}'
+            },
+            {
+                extend: 'csv',
+                className: 'btn btn-sm',
+                text: '{{ __("dash.csv") }}'
+            },
+            {
+                extend: 'excel',
+                className: 'btn btn-sm',
+                text: '{{ __("dash.excel") }}'
+            },
+            {
+                extend: 'print',
+                className: 'btn btn-sm',
+                text: '{{ __("dash.print") }}'
+            }
+        ]
     });
 }
+
 
 // ========== [3] Initialize on Document Ready ==========
 $(document).ready(function () {
