@@ -1,15 +1,15 @@
 <?php
 namespace App\Http\Controllers\Dashboard\BusinessProject;
 
-use Auth;
-use App\Models\Service;
-use App\Traits\imageTrait;
-use Illuminate\Http\Request;
-use Yajra\DataTables\DataTables;
 use App\Http\Controllers\Controller;
-use App\Models\ClientProjectServicePrice;
 use App\Models\BusinessProject\ClientProject;
 use App\Models\BusinessProject\ClientProjectBranch;
+use App\Models\ClientProjectServicePrice;
+use App\Models\Service;
+use App\Traits\imageTrait;
+use Auth;
+use Illuminate\Http\Request;
+use Yajra\DataTables\DataTables;
 
 class BusinessProjectController extends Controller
 {
@@ -30,14 +30,13 @@ class BusinessProjectController extends Controller
                     return $row->name_ar . ' / ' . $row->name_en;
                 })
 
-            // ->addColumn('branches_count', function ($row) {
-            //     return $row->branches_count;
-            // })
-
                 ->addColumn('controll', function ($row) {
-                    $deleteUrl = route('dashboard.business_projects.destroy', $row->id);
+                    $user = auth()->user();
+                    $html = '';
 
-                    return '
+                    // Edit button
+                    if ($user->can('business_orders_projects_update') || $user->hasRole('admin')) {
+                        $html .= '
                     <button type="button"
                         class="btn btn-primary btn-sm mr-2 edit-project"
                         data-id="' . $row->id . '"
@@ -48,16 +47,22 @@ class BusinessProjectController extends Controller
                         data-target="#editModel"
                         title="تعديل">
                         <i class="far fa-edit fa-2x"></i>
-                    </button>
+                    </button>';
+                    }
 
+                    //  Delete button
+                    if ($user->can('business_orders_projects_delete') || $user->hasRole('admin')) {
+                        $html .= '
                     <a href="javascript:void(0);"
-                        data-href="' . $deleteUrl . '"
+                        data-href="' . route('dashboard.business_projects.destroy', $row->id) . '"
                         data-id="' . $row->id . '"
                         class="btn btn-outline-danger btn-sm btn-delete"
                         title="حذف">
                         <i class="far fa-trash-alt fa-2x"></i>
-                    </a>
-                ';
+                    </a>';
+                    }
+
+                    return $html;
                 })
 
                 ->rawColumns(['name', 'controll'])

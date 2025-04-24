@@ -66,7 +66,7 @@ class BusinessOrderController extends Controller
                     $user = auth()->user();
                     $html = '';
 
-                    if ($user->can('edit_business_order') || $user->first_name === 'Super Admin') {
+                    if ($user->can('update_business_orders') || $user->hasRole('admin')) {
                         $html .= '
                             <button type="button"
                                 onclick="openEditModal(' . $row->id . ')"
@@ -75,7 +75,7 @@ class BusinessOrderController extends Controller
                             </button>';
                     }
 
-                    if ($user->hasRole('Admin') || $user->first_name === 'Super Admin') {
+                    if ($user->can('update_business_orders') || $user->hasRole('admin')) {
                         $html .= '
                             <button
                                 type="button"
@@ -88,7 +88,7 @@ class BusinessOrderController extends Controller
                             </button>';
                     }
 
-                    if ($user->can('delete_business_order') || $user->first_name === 'Super Admin') {
+                    if ($user->can('delete_business_orders') || $user->hasRole('admin')) {
                         $html .= '
                             <a href="javascript:void(0);" data-href="' . route('dashboard.business_orders.destroy', $row->id) . '"
                                 data-id="' . $row->id . '"

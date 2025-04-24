@@ -31,28 +31,38 @@ class ProjectBranchController extends Controller
                     return optional($row->project)->name_ar ?? '-';
                 })
                 ->addColumn('controll', function ($row) {
-                    return '
-                       <button
-                        type="button"
-                        class="btn btn-primary btn-sm edit"
-                        data-toggle="modal"
-                        data-target="#editModel"
-                        data-id="' . $row->id . '"
-                        data-name_ar="' . e($row->name_ar) . '"
-                        data-name_en="' . e($row->name_en) . '"
-                        data-client_project_id="' . $row->client_project_id . '"
-                    >
-                        <i class="far fa-edit fa-2x"></i>
-                    </button>
+                    $user = auth()->user();
+                    $html = '';
 
+                    //  Edit button
+                    if ($user->can('business_orders_branches_update') || $user->hasRole('admin')) {
+                        $html .= '
+                        <button
+                            type="button"
+                            class="btn btn-primary btn-sm edit"
+                            data-toggle="modal"
+                            data-target="#editModel"
+                            data-id="' . $row->id . '"
+                            data-name_ar="' . e($row->name_ar) . '"
+                            data-name_en="' . e($row->name_en) . '"
+                            data-client_project_id="' . $row->client_project_id . '"
+                        >
+                            <i class="far fa-edit fa-2x"></i>
+                        </button>';
+                    }
 
+                    //  Delete button
+                    if ($user->can('business_orders_branches_delete') || $user->hasRole('admin')) {
+                        $html .= '
                         <a href="javascript:void(0);"
                            data-href="' . route('dashboard.business-project-branches.destroy', $row->id) . '"
                            data-id="' . $row->id . '"
                            class="btn btn-outline-danger btn-sm btn-delete">
                             <i class="far fa-trash-alt fa-2x"></i>
-                        </a>
-                    ';
+                        </a>';
+                    }
+
+                    return $html;
                 })
 
                 ->rawColumns(['name', 'project_name', 'controll'])

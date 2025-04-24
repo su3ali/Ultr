@@ -46,17 +46,22 @@ class ProjectFloorController extends Controller
                             </label>';
                 })
                 ->addColumn('controll', function ($row) {
-                    if ($row->deleted_at) {
-                        $restoreUrl = route('dashboard.business-project-floors.restore', $row->id);
-                        return '
-                        <form action="' . $restoreUrl . '" method="POST" style="display:inline-block;">
-                            ' . csrf_field() . method_field('PUT') . '
-                            <button type="submit" class="btn btn-warning btn-sm" title="استرجاع">
-                                <i class="fas fa-undo fa-2x"></i>
-                            </button>
-                        </form>
-                        ';
-                    }
+                    $user = auth()->user();
+                    $html = '';
+
+                    // if ($row->deleted_at) {
+                    //     if ($user->hasRole('admin')) {
+                    //         $restoreUrl = route('dashboard.business-project-floors.restore', $row->id);
+                    //         $html .= '
+                    //         <form action="' . $restoreUrl . '" method="POST" style="display:inline-block;">
+                    //             ' . csrf_field() . method_field('PUT') . '
+                    //             <button type="submit" class="btn btn-warning btn-sm" title="استرجاع">
+                    //                 <i class="fas fa-undo fa-2x"></i>
+                    //             </button>
+                    //         </form>';
+                    //     }
+                    //     return $html;
+                    // }
 
                     $deleteUrl       = route('dashboard.business-project-floors.destroy', $row->id);
                     $branchName      = e(optional($row->branch)->name_ar);
@@ -64,7 +69,9 @@ class ProjectFloorController extends Controller
                     $dataProjectId   = optional($row->branch)->client_project_id ?? '';
                     $branchId        = $row->branch_id;
 
-                    return '
+                    //   View button
+                    if ($user->can('business_orders_floors_view') || $user->hasRole('admin')) {
+                        $html .= '
                         <button type="button"
                             class="btn btn-primary btn-sm view mr-1"
                             data-toggle="modal"
@@ -79,8 +86,12 @@ class ProjectFloorController extends Controller
                             data-active="' . ($row->active ? 1 : 0) . '"
                             title="عرض">
                             <i class="far fa-eye fa-2x"></i>
-                        </button>
+                        </button>';
+                    }
 
+                    //  Edit button
+                    if ($user->can('business_orders_floors_update') || $user->hasRole('admin')) {
+                        $html .= '
                         <button type="button"
                             class="btn btn-primary btn-sm edit mr-1"
                             data-toggle="modal"
@@ -94,17 +105,24 @@ class ProjectFloorController extends Controller
                             data-active="' . ($row->active ? 1 : 0) . '"
                             title="تعديل">
                             <i class="far fa-edit fa-2x"></i>
-                        </button>
+                        </button>';
+                    }
 
+                    //  Delete button
+                    if ($user->can('business_orders_floors_delete') || $user->hasRole('admin')) {
+                        $html .= '
                         <a href="javascript:void(0);"
                             data-href="' . $deleteUrl . '"
                             data-id="' . $row->id . '"
                             class="btn btn-outline-danger btn-sm btn-delete"
                             title="حذف">
                             <i class="far fa-trash-alt fa-2x"></i>
-                        </a>
-                    ';
+                        </a>';
+                    }
+
+                    return $html;
                 })
+
                 ->rawColumns(['name', 'project_name', 'branch_name', 'status', 'controll'])
                 ->make(true);
 
