@@ -79,6 +79,36 @@ $permissions = [
     ['id' => 108, 'name' => 'edit_shifts', 'guard_name' => 'dashboard', 'name_ar' => 'تعديل المناوبات', 'name_en' => 'Edit Shift'],
     ['id' => 109, 'name' => 'delete_shifts', 'guard_name' => 'dashboard', 'name_ar' => 'حذف المناوبات', 'name_en' => 'Delete Shift'],
 
+    // Business Orders
+    ['id' => 110, 'name' => 'view_business_orders', 'guard_name' => 'dashboard', 'name_ar' => 'عرض طلبات الأعمال', 'name_en' => 'View Business Orders'],
+    ['id' => 111, 'name' => 'update_business_orders', 'guard_name' => 'dashboard', 'name_ar' => 'تعديل طلبات الأعمال', 'name_en' => 'Update Business Orders'],
+    ['id' => 112, 'name' => 'delete_business_orders', 'guard_name' => 'dashboard', 'name_ar' => 'حذف طلبات الأعمال', 'name_en' => 'Delete Business Orders'],
+    ['id' => 113, 'name' => 'create_business_orders', 'guard_name' => 'dashboard', 'name_ar' => 'إضافة طلبات الأعمال', 'name_en' => 'Create Business Orders'],
+
+    // business Orders Projects
+
+    ['id' => 114, 'name' => 'business_orders_projects', 'guard_name' => 'dashboard', 'name_ar' => 'مشاريع طلبات الأعمال', 'name_en' => 'Business Orders Projects'],
+    ['id' => 115, 'name' => 'business_orders_projects_create', 'guard_name' => 'dashboard', 'name_ar' => 'إضافة مشروع لطلبات الأعمال', 'name_en' => 'Create Business Orders Projects'],
+    ['id' => 116, 'name' => 'business_orders_projects_update', 'guard_name' => 'dashboard', 'name_ar' => 'تعديل مشروع من طلبات الأعمال', 'name_en' => 'Update Business Orders Projects'],
+    ['id' => 117, 'name' => 'business_orders_projects_delete', 'guard_name' => 'dashboard', 'name_ar' => 'حذف مشروع من طلبات الأعمال', 'name_en' => 'Delete Business Orders Projects'],
+    ['id' => 118, 'name' => 'business_orders_projects_view', 'guard_name' => 'dashboard', 'name_ar' => 'عرض مشاريع طلبات الأعمال', 'name_en' => 'View Business Orders Projects'],
+
+    // business Orders Branches
+
+    ['id' => 119, 'name' => 'business_orders_branches', 'guard_name' => 'dashboard', 'name_ar' => 'فروع طلبات الأعمال', 'name_en' => 'Business Orders Branches'],
+    ['id' => 120, 'name' => 'business_orders_branches_create', 'guard_name' => 'dashboard', 'name_ar' => 'إضافة فرع لطلبات الأعمال', 'name_en' => 'Create Business Orders Branches'],
+    ['id' => 121, 'name' => 'business_orders_branches_update', 'guard_name' => 'dashboard', 'name_ar' => 'تعديل فرع من طلبات الأعمال', 'name_en' => 'Update Business Orders Branches'],
+    ['id' => 122, 'name' => 'business_orders_branches_delete', 'guard_name' => 'dashboard', 'name_ar' => 'حذف فرع من طلبات الأعمال', 'name_en' => 'Delete Business Orders Branches'],
+    ['id' => 123, 'name' => 'business_orders_branches_view', 'guard_name' => 'dashboard', 'name_ar' => 'عرض فروع طلبات الأعمال', 'name_en' => 'View Business Orders Branches'],
+
+    // business Orders Floors
+
+    ['id' => 124, 'name' => 'business_orders_floors', 'guard_name' => 'dashboard', 'name_ar' => 'طوابق طلبات الأعمال', 'name_en' => 'Business Orders Floors'],
+    ['id' => 125, 'name' => 'business_orders_floors_create', 'guard_name' => 'dashboard', 'name_ar' => 'إضافة طابق لطلبات الأعمال', 'name_en' => 'Create Business Orders Floors'],
+    ['id' => 126, 'name' => 'business_orders_floors_update', 'guard_name' => 'dashboard', 'name_ar' => 'تعديل طابق من طلبات الأعمال', 'name_en' => 'Update Business Orders Floors'],
+    ['id' => 127, 'name' => 'business_orders_floors_delete', 'guard_name' => 'dashboard', 'name_ar' => 'حذف طابق من طلبات الأعمال', 'name_en' => 'Delete Business Orders Floors'],
+    ['id' => 128, 'name' => 'business_orders_floors_view', 'guard_name' => 'dashboard', 'name_ar' => 'عرض طوابق طلبات الأعمال', 'name_en' => 'View Business Orders Floors'],
+
 ];
 
 // Insert or update permissions

@@ -1120,5 +1120,8 @@ return [
     'edit_order'                            => 'Edit Order',
     'save_changes'                          => 'Save Changes',
     'coupon_code'                           => 'Coupon Code',
+    'business_orders_projects'             => 'Business Orders Projects',
+    'business_orders_branches'             => 'Business Orders Branches',
+    'business_orders_floors'               => 'Business Orders Floors',
 
 ];

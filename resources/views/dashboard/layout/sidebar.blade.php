@@ -413,11 +413,16 @@
             </li>
             @endif
 
-            @if (
-            auth()->user()->hasRole('admin') ||
-            auth()->user()->can('view_client_projects') ||
-            auth()->user()->can('view_client_projects_floors')
-            )
+            @php
+            $user = auth()->user();
+            $canAccessBusinessProjects =
+            $user->hasRole('admin') ||
+            $user->can('business_orders_projects_view') ||
+            $user->can('business_orders_floors_view') ||
+            $user->can('business_orders_branches_view');
+            @endphp
+
+            @if ($canAccessBusinessProjects)
             <li class="menu">
                 <a href="#businessProjectsSettings" data-toggle="collapse" aria-expanded="false"
                     class="dropdown-toggle">
@@ -437,28 +442,27 @@
                 </a>
                 <ul class="collapse submenu list-unstyled" id="businessProjectsSettings"
                     data-parent="#accordionExample">
-
-                    @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_client_projects'))
+                    @if ($user->hasRole('admin') || $user->can('business_orders_projects_view'))
                     <li>
                         <a href="{{ route('dashboard.business_projects.index') }}"> قائمة المشاريع </a>
                     </li>
                     @endif
 
-                    @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_client_projects'))
+                    @if ($user->hasRole('admin') || $user->can('business_orders_branches_view'))
                     <li>
                         <a href="{{ route('dashboard.business-project-branches.index') }}"> فروع المشاريع </a>
                     </li>
                     @endif
 
-                    @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_client_projects_floors'))
+                    @if ($user->hasRole('admin') || $user->can('business_orders_floors_view'))
                     <li>
                         <a href="{{ route('dashboard.business-project-floors.index') }}"> طوابق الفروع </a>
                     </li>
                     @endif
-
                 </ul>
             </li>
             @endif
+
 
 
 

@@ -1055,4 +1055,8 @@ return [
     'add_new_supplier'                      => 'إضافة مورد جديد',
     'save_changes'                          => 'حفظ التغييرات',
     'coupon_code'                           => 'كود الخصم',
+    'business_orders_projects'              => 'مشاريع طلبات الأعمال',
+    'business_orders_branches'              => 'فروع مشاريع طلبات الأعمال',
+
+    'business_orders_floors'                => 'طوابق فروع طلبات الأعمال',
 ];
