@@ -45,6 +45,9 @@ class ComplaintController extends Controller
         $validated = $validated->validated();
 
         $validated['customer_complaints_status_id'] = 1;
+        if (! isset($validated['complaint_type_id']) || is_null($validated['complaint_type_id'])) {
+            $validated['complaint_type_id'] = 1;
+        }
 
         if ($request->hasFile('video')) {
             $video    = $request->file('video');
