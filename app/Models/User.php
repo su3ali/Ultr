@@ -1,7 +1,7 @@
 <?php
-
 namespace App\Models;
 
+use App\Models\CarClient;
 use App\Support\Traits\HasPassword;
 use App\Support\Traits\WithBoot;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +13,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     use HasApiTokens, WithBoot, HasPassword, HasFactory, HasRoles, Notifiable;
-    protected $guard = 'user';
+    protected $guard   = 'user';
     protected $guarded = [];
 
     protected $hidden = [
@@ -52,6 +52,11 @@ class User extends Authenticatable
     public function address()
     {
         return $this->hasMany(UserAddresses::class, 'user_id')->where('is_default', 1);
+    }
+
+    public function cars()
+    {
+        return $this->hasMany(CarClient::class, 'user_id');
     }
 
 }

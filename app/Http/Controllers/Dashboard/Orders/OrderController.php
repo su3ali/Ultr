@@ -562,7 +562,7 @@ class OrderController extends Controller
             $cacheKey .= '_' . ($date ?? 'null') . '_' . ($date2 ?? 'null');
         }
 
-        $ordersQuery = Cache::remember($cacheKey, now()->addMinutes(30), function () {
+        $ordersQuery = Cache::remember($cacheKey, now()->addMinutes(1), function () {
             return Order::lateToServe()
                 ->with([
                     'user',

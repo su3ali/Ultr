@@ -13,7 +13,6 @@ class CustomerController extends Controller
     public function index(Request $request)
     {
 
-        
         $date  = $request->query('date');
         $date2 = $request->query('date2');
 
@@ -169,21 +168,71 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
+
         $request->validate([
             'first_name' => 'required|string|max:100',
             'last_name'  => 'required|string|max:100',
             'email'      => 'nullable|email|max:255|unique:users,email',
-            'phone'      => 'required|numeric|unique:users,phone',
-            'active'     => 'nullable|in:on,off',
-            'city_id'    => 'nullable|exists:cities,id',
+            'phone'      => 'required|string|starts_with:966|digits:12',
+            'city_id'    => 'required|exists:cities,id',
         ]);
 
-        $data           = $request->except('_token', 'active');
-        $data['active'] = 1;
-        User::query()->create($data);
+        $existingUser = User::where('phone', $request->phone)->first();
 
-        session()->flash('success');
-        return redirect()->route('dashboard.core.customer.index');
+        if ($existingUser) {
+            $cars = $existingUser->cars()
+                ->with(['type:id,name_ar,name_en', 'model:id,name_ar,name_en'])
+                ->select('id', 'Plate_number', 'type_id', 'model_id')
+                ->get()
+                ->map(function ($car) {
+                    return [
+                        'id'           => $car->id,
+                        'Plate_number' => $car->Plate_number,
+                        'type'         => [
+                            'name_ar' => optional($car->type)->name_ar,
+                            'name_en' => optional($car->type)->name_en,
+                        ],
+                        'model'        => [
+                            'name_ar' => optional($car->model)->name_ar,
+                            'name_en' => optional($car->model)->name_en,
+                        ],
+                    ];
+                });
+
+            return response()->json([
+                'status'  => true,
+                'user_id' => $existingUser->id,
+                'cars'    => $cars,
+                'message' => 'العميل موجود مسبقاً',
+            ]);
+        }
+
+        $data           = $request->only(['first_name', 'last_name', 'email', 'phone', 'city_id']);
+        $data['active'] = 1;
+
+        $user = User::create($data);
+
+        return response()->json([
+            'status'  => true,
+            'user_id' => $user->id,
+            'cars'    => [],
+            'message' => __('dash.saved_successfully'),
+        ]);
+    }
+
+    // Check if User  exists
+    public function checkPhone(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string|starts_with:966|digits:12',
+        ]);
+
+        $user = User::where('phone', $request->phone)->first();
+
+        return response()->json([
+            'exists'  => (bool) $user,
+            'user_id' => $user?->id,
+        ]);
     }
 
     public function edit($id)
@@ -239,4 +288,5 @@ class CustomerController extends Controller
         $admin->save();
         return response()->json(['sucess' => true]);
     }
+
 }

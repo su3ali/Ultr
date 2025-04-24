@@ -1,42 +1,40 @@
 <?php
-
 namespace App\Traits;
 
-use Kreait\Firebase\Exception\MessagingException;
+use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Exception\Messaging as MessagingErrors;
+use Kreait\Firebase\Exception\MessagingException;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\AndroidConfig;
 use Kreait\Firebase\Messaging\ApnsConfig;
 use Kreait\Firebase\Messaging\CloudMessage;
-use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Messaging\Notification;
-
 
 trait NotificationTrait
 {
 
     public function pushNotification($notification)
     {
-        $factory = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
+        $factory   = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
         $messaging = $factory->createMessaging();
 
         $device_token = $notification['device_token'];
 
         $data = [
-            'id' => random_int(1, 9999),
+            'id'    => random_int(1, 9999),
             'title' => $notification['title'],
-            'body' => $notification['message'],
-            'type' => $notification['type'],
-            'code' => $notification['code'],
+            'body'  => $notification['message'],
+            'type'  => $notification['type'],
+            'code'  => $notification['code'],
         ];
 
-        $message = CloudMessage::new()
+        $message = CloudMessage::new ()
             ->withNotification(Notification::fromArray([
                 'title' => $notification['title'],
-                'body' => $notification['message'],
+                'body'  => $notification['message'],
             ]))
-            ->withAndroidConfig(AndroidConfig::new()->withHighMessagePriority())
-            ->withApnsConfig(ApnsConfig::new()->withImmediatePriority())
+            ->withAndroidConfig(AndroidConfig::new ()->withHighMessagePriority())
+            ->withApnsConfig(ApnsConfig::new ()->withImmediatePriority())
             ->withData($data);
 
         try {
@@ -63,7 +61,7 @@ trait NotificationTrait
 
     public function pushNotificationBackground($notification)
     {
-        $factory = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
+        $factory   = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
         $messaging = $factory->createMessaging();
 
         $device_token = $notification['device_token']->filter()->toArray();
@@ -73,7 +71,7 @@ trait NotificationTrait
         ];
 
         if ($notification['fromFunc'] == 'latlong') {
-            if($device_token[0]){
+            if ($device_token[0]) {
                 $message = CloudMessage::withTarget('token', $device_token[0])
                     ->withData($data);
                 try {
@@ -83,7 +81,7 @@ trait NotificationTrait
                 } catch (MessagingErrors\NotFound $e) {
                     Log::info('message: ' . $e->getMessage() . ' errors: ' . $e->errors() . ' token: ' . $e->token());
                 }
-            }else{
+            } else {
                 Log::info('error: not fcm token');
             }
         } else {
@@ -96,12 +94,12 @@ trait NotificationTrait
                 'تم إلغاء الطلب للأسباب التالية: ',
                 ' للزيارة رقم ',
             ];
-            $title = $notification['data']['order_details']['group']['name'] . $statusList[6] . $notification['data']['order_details']['id'];
-            $body = '';
+            $title        = $notification['data']['order_details']['group']['name'] . $statusList[6] . $notification['data']['order_details']['id'];
+            $body         = '';
             $notification = json_decode(json_encode($notification));
 
             $booking_details = $notification->data->order_details->booking_details;
-            if (!(is_null($booking_details->status))) {
+            if (! (is_null($booking_details->status))) {
 
                 if ($booking_details->status->id == 6) {
                     $body = $statusList[$booking_details->status->id - 1] . $notification->data->order_details->cancel_reason->reason;
@@ -113,13 +111,13 @@ trait NotificationTrait
                 $body = $statusList[0];
             }
 
-            $message = CloudMessage::new()
+            $message = CloudMessage::new ()
                 ->withNotification(Notification::fromArray([
                     'title' => $title,
-                    'body' => $body,
+                    'body'  => $body,
                 ]))
-                ->withAndroidConfig(AndroidConfig::new()->withHighMessagePriority())
-                ->withApnsConfig(ApnsConfig::new()->withImmediatePriority());
+                ->withAndroidConfig(AndroidConfig::new ()->withHighMessagePriority())
+                ->withApnsConfig(ApnsConfig::new ()->withImmediatePriority());
             try {
                 $report = $messaging->sendMulticast($message, $device_token);
                 Log::info('Successful sends: ' . $report->successes()->count() . ' Failed sends: ' . $report->failures()->count());

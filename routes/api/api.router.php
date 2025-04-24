@@ -52,10 +52,12 @@ Route::middleware(['auth:sanctum', 'abilities:user'])->group(function () {
     require __DIR__ . '/order.router.php';
     require __DIR__ . '/cars.router.php';
     require __DIR__ . '/complaint.router.php';
+
 });
 
 Route::prefix('techn')->group(function () {
     require __DIR__ . '/techn/techn.router.php';
+    require __DIR__ . '/techn/businessOrder.router.php';
 });
 
 Route::prefix('admin')->group(function () {

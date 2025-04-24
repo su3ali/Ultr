@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
@@ -22,10 +21,11 @@ class Group extends Model
     {
         return $this->belongsToMany(Service::class, 'service_groups');
     }
-    protected function leader()
+    public function leader()
     {
         return $this->hasOne(Technician::class, 'id', 'technician_id');
     }
+
     public function technicians()
     {
         return $this->hasMany(Technician::class);
@@ -64,4 +64,21 @@ class Group extends Model
     {
         return $this->belongsToMany(Region::class, 'group_regions', 'group_id', 'region_id');
     }
+
+    public function project()
+    {
+        return $this->belongsTo(ClientProject::class, 'client_project_id');
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(ClientProjectBranch::class, 'branch_id');
+    }
+
+    public function scopeForProjectAndBranch($query, $projectId, $branchId)
+    {
+        return $query->where('client_project_id', $projectId)
+            ->where('branch_id', $branchId);
+    }
+
 }

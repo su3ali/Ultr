@@ -147,7 +147,7 @@ $type = 'package';
                             <label>{{ __('dash.to') }}</label>
                             <div class="col-md-4">
                                 <input type="datetime-local" name="date2" class="form-control date2" step="1"
-                                    id="inputEmail42">
+                                    id="inputEmail42">  
                             </div>
                         </div>
                         <br>

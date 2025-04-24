@@ -498,6 +498,318 @@ $name = 'name_' . app()->getLocale();
                                             </div>
                                         </div>
 
+                                        {{-- business order --}}
+                                        <div class="card component-card_2 col-md-12 px-0">
+                                            <div class="form-group h-50 mb-0 px-3 pt-2"
+                                                style="background-color: #0072ff42;">
+                                                <label
+                                                    class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                    <input type="checkbox"
+                                                        class="new-control-input check-all-business_orders">
+                                                    <span class="new-control-indicator"></span><span
+                                                        class="new-chk-content text-primary"><b>{{
+                                                            __('dash.business_orders') }}</b></span>
+                                                </label>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[112]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders"
+                                                                {{ isset($model) ? (in_array($permissions[112]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[112]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[110]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders"
+                                                                {{ isset($model) ? (in_array($permissions[110]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[110]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[111]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders"
+                                                                {{ isset($model) ? (in_array($permissions[111]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[111]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[109]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders"
+                                                                {{ isset($model) ? (in_array($permissions[109]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[109]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- End business order --}}
+
+                                        {{-- business order projects --}}
+                                        <div class="card component-card_2 col-md-12 px-0">
+                                            <div class="form-group h-50 mb-0 px-3 pt-2"
+                                                style="background-color: #0072ff42;">
+                                                <label
+                                                    class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                    <input type="checkbox"
+                                                        class="new-control-input check-all-business_orders_projects">
+                                                    <span class="new-control-indicator"></span><span
+                                                        class="new-chk-content text-primary"><b>
+                                                            {{__('dash.business_orders_projects') }}</b></span>
+                                                </label>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[114]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders_projects"
+                                                                {{ isset($model) ? (in_array($permissions[114]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[114]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[115]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders_projects"
+                                                                {{ isset($model) ? (in_array($permissions[115]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[115]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[116]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders_projects"
+                                                                {{ isset($model) ? (in_array($permissions[116]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[116]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[117]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders_projects"
+                                                                {{ isset($model) ? (in_array($permissions[117]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[117]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{-- End business order projects --}}
+
+
+                                        {{-- business order branchess --}}
+                                        <div class="card component-card_2 col-md-12 px-0">
+                                            <div class="form-group h-50 mb-0 px-3 pt-2"
+                                                style="background-color: #0072ff42;">
+                                                <label
+                                                    class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                    <input type="checkbox"
+                                                        class="new-control-input check-all-business_orders_branches">
+                                                    <span class="new-control-indicator"></span><span
+                                                        class="new-chk-content text-primary"><b>
+                                                            {{__('dash.business_orders_branches') }}</b></span>
+                                                </label>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[119]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders_branches"
+                                                                {{ isset($model) ? (in_array($permissions[119]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[119]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[120]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders_branches"
+                                                                {{ isset($model) ? (in_array($permissions[120]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[120]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[121]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders_branches"
+                                                                {{ isset($model) ? (in_array($permissions[121]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[121]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[122]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders_branches"
+                                                                {{ isset($model) ? (in_array($permissions[122]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[122]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{-- End business order branches --}}
+
+                                        {{-- business order floors --}}
+                                        <div class="card component-card_2 col-md-12 px-0">
+                                            <div class="form-group h-50 mb-0 px-3 pt-2"
+                                                style="background-color: #0072ff42;">
+                                                <label
+                                                    class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                    <input type="checkbox"
+                                                        class="new-control-input check-all-business_orders_floors">
+                                                    <span class="new-control-indicator"></span><span
+                                                        class="new-chk-content text-primary"><b>
+                                                            {{__('dash.business_orders_floors') }}</b></span>
+                                                </label>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[125]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders_floors"
+                                                                {{ isset($model) ? (in_array($permissions[125]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[125]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[124]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders_floors"
+                                                                {{ isset($model) ? (in_array($permissions[124]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[124]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[126]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders_floors"
+                                                                {{ isset($model) ? (in_array($permissions[126]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[126]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[127]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders_floors"
+                                                                {{ isset($model) ? (in_array($permissions[127]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[127]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{-- End business order branches --}}
+
+
+
                                         <div class="card component-card_2 col-md-12 px-0">
                                             <div class="form-group h-50 mb-0 px-3 pt-2"
                                                 style="background-color: #0072ff42;">
@@ -1879,6 +2191,41 @@ $name = 'name_' . app()->getLocale();
             let matches = $("input.perm-check:checkbox:not(:checked)");
             checkViewAll(matches)
         });
+
+        //business_orders
+        $(".check-all-business_orders").click(function() {
+            let boxes = $('.perm-check-business_orders');
+            boxes.prop('checked', this.checked);
+            let matches = $("input.perm-check:checkbox:not(:checked)");
+            checkViewAll(matches)
+        });
+
+        // business_orders_projects 
+
+        $(".check-all-business_orders_projects").click(function() {
+            let boxes = $('.perm-check-business_orders_projects');
+            boxes.prop('checked', this.checked);
+            let matches = $("input.perm-check:checkbox:not(:checked)");
+            checkViewAll(matches)
+        });
+
+        // business_orders_branches 
+
+        $(".check-all-business_orders_branches").click(function() {
+            let boxes = $('.perm-check-business_orders_branches');
+            boxes.prop('checked', this.checked);
+            let matches = $("input.perm-check:checkbox:not(:checked)");
+            checkViewAll(matches)
+        });
+
+        // business_orders_floors  
+        $(".check-all-business_orders_floors").click(function() {
+            let boxes = $('.perm-check-business_orders_floors');
+            boxes.prop('checked', this.checked);
+            let matches = $("input.perm-check:checkbox:not(:checked)");
+            checkViewAll(matches)
+        });
+
         $(".check-all-visits").click(function() {
             let boxes = $('.perm-check-visits');
             boxes.prop('checked', this.checked);

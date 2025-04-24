@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
@@ -40,12 +39,14 @@ class NotificationController extends Controller
     public function sendNotification(Request $request)
     {
 
+       
+
         $request->validate([
-            'subject_id' => 'nullable',
+            'subject_id'    => 'nullable',
             'technician_id' => 'nullable',
-            'title' => 'required',
-            'message' => 'required',
-            'type' => 'required',
+            'title'         => 'required',
+            'message'       => 'required',
+            'type'          => 'required',
         ]);
 
         $message = preg_replace('/&nbsp;|&#160;/', ' ', $request->message);
@@ -83,7 +84,7 @@ class NotificationController extends Controller
             if ($request->subject_id == 'all') {
                 $allTechn = Technician::whereNotNull('fcm_token')->get();
 
-                $techFcmArray = $allTechn->pluck('fcm_token');
+                $techFcmArray  = $allTechn->pluck('fcm_token');
                 $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
                 $FcmTokenArray = $techFcmArray->merge($adminFcmArray)->toArray();
 
@@ -94,7 +95,7 @@ class NotificationController extends Controller
                     );
                 }
             } else {
-                $technician = Technician::where('id', $request->subject_id)->first();
+                $technician    = Technician::where('id', $request->subject_id)->first();
                 $FcmTokenArray = Technician::where('id', $request->subject_id)->pluck('fcm_token')->toArray();
 
                 Notification::send(
@@ -114,7 +115,7 @@ class NotificationController extends Controller
 
         $count = count($FcmTokenArray);
         if ($count > 500) {
-            $sub_num = round($count / 300);
+            $sub_num        = round($count / 300);
             $FcmTokenArrays = array_chunk($FcmTokenArray, ceil(count($FcmTokenArray) / $sub_num));
         } else {
             $FcmTokenArrays = [$FcmTokenArray];
@@ -123,10 +124,10 @@ class NotificationController extends Controller
         foreach ($FcmTokenArrays as $FcmTokenArray) {
             $notification = [
                 'device_token' => $FcmTokenArray,
-                'title' => $request->title,
-                'message' => $message,
-                'type' => $type ?? '',
-                'code' => 2,
+                'title'        => $request->title,
+                'message'      => $message,
+                'type'         => $type ?? '',
+                'code'         => 2,
             ];
 
             try {

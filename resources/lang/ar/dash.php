@@ -1009,6 +1009,7 @@ return [
     'lateOrderCountMonth'                   => 'عدد الطلبات المتأخرة هذا الشهر',
     'booking_not_found'                     => 'عذراً، لم يتم العثور على الحجز.',
     'filters'                               => 'عوامل التصفية',
+    'address'                               => 'العنوان',
 
     'booking_not_found'                     => 'عذراً، لم يتم العثور على الحجز.',
     'appointment_settings_manage'           => 'إدارة إعدادات المواعيد',
@@ -1017,5 +1018,46 @@ return [
     'shift_settings'                        => 'إعدادات المناوبات',
 
     'reset_filters'                         => 'إعادة تعيين الفلاتر',
+    'select_project'                        => 'اختر المشروع',
+    'project_name'                          => 'اسم المشروع',
+    'project'                               => 'المشروع',
+    'project_brnaches'                      => 'فروع المشروع',
+    'filter_by_project'                     => 'تصفية حسب المشروع',
+    'branch_name'                           => 'اسم الفرع',
+    'filter_by_branch'                      => 'تصفية حسب الفرع',
+    'select_branch'                         => 'اختر الفرع',
+    'branch'                                => 'الفرع',
+    'project_floors'                        => 'أدوار المشروع',
+    'floors'                                => 'الطوابق',
+    'personal'                              => 'افراد',
+    'business'                              => 'أعمال',
+    'technician_type'                       => 'نوع الفني',
+    'business_orders'                       => 'طلبات الأعمال',
+    'edit_order'                            => 'تعديل الطلب',
 
+    'customer'                              => 'العميل',
+    'car'                                   => 'السيارة',
+    'add_new_order'                         => 'إضافة طلب جديد',
+    'floor'                                 => 'الطابق',
+    'notes'                                 => 'ملاحظات',
+    'optional'                              => 'اختياري',
+    'saved_successfully'                    => 'تم الحفظ بنجاح',
+    'created_successfully'                  => 'تم الإنشاء بنجاح',
+
+    'order_details'                         => 'تفاصيل الطلب',
+    'price_placeholder'                     => '0.00',
+    'add_car'                               => 'إضافة سيارة',
+
+    // new added
+    'add_new_technician'                    => 'إضافة فني جديد',
+    'edit_technician'                       => 'تعديل بيانات الفني',
+
+    // new added
+    'add_new_supplier'                      => 'إضافة مورد جديد',
+    'save_changes'                          => 'حفظ التغييرات',
+    'coupon_code'                           => 'كود الخصم',
+    'business_orders_projects'              => 'مشاريع طلبات الأعمال',
+    'business_orders_branches'              => 'فروع مشاريع طلبات الأعمال',
+
+    'business_orders_floors'                => 'طوابق فروع طلبات الأعمال',
 ];

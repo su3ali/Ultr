@@ -58,6 +58,70 @@
                 </ul>
             </li>
             @endcan
+            {{-- view business orders --}}
+            @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_business_orders'))
+            <li class="menu">
+                <a href="{{ route('dashboard.business_orders.index') }}" class="dropdown-toggle">
+                    <div class="">
+                        <div class="icon-container">
+                            <i data-feather="file-text"></i>
+                            <span class="icon-name">{{ __('dash.business_orders') }}</span>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            @endif
+            @php
+            $user = auth()->user();
+            $canAccessBusinessProjects =
+            $user->hasRole('admin') ||
+            $user->can('business_orders_projects_view') ||
+            $user->can('business_orders_floors_view') ||
+            $user->can('business_orders_branches_view');
+            @endphp
+
+            @if ($canAccessBusinessProjects)
+            <li class="menu">
+                <a href="#businessProjectsSettings" data-toggle="collapse" aria-expanded="false"
+                    class="dropdown-toggle">
+                    <div class="">
+                        <div class="icon-container">
+                            <i data-feather="settings"></i>
+                            <span class="icon-name"> مشاريع الأعمال</span>
+                        </div>
+                    </div>
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-chevron-right">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </a>
+                <ul class="collapse submenu list-unstyled" id="businessProjectsSettings"
+                    data-parent="#accordionExample">
+                    @if ($user->hasRole('admin') || $user->can('business_orders_projects_view'))
+                    <li>
+                        <a href="{{ route('dashboard.business_projects.index') }}"> قائمة المشاريع </a>
+                    </li>
+                    @endif
+
+                    @if ($user->hasRole('admin') || $user->can('business_orders_branches_view'))
+                    <li>
+                        <a href="{{ route('dashboard.business-project-branches.index') }}"> فروع المشاريع </a>
+                    </li>
+                    @endif
+
+                    @if ($user->hasRole('admin') || $user->can('business_orders_floors_view'))
+                    <li>
+                        <a href="{{ route('dashboard.business-project-floors.index') }}"> طوابق الفروع </a>
+                    </li>
+                    @endif
+                </ul>
+            </li>
+            @endif
+
+
             @can('view_packages')
             <li class="menu">
                 <a href="#contract" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
@@ -397,7 +461,6 @@
                 </ul>
             </li>
             @endif
-
 
 
 

@@ -32,8 +32,6 @@
         display: inline-block;
     }
 </style>
-
-
 @section('sub-header')
 <div class="sub-header-container">
     <header class="header navbar navbar-expand-sm">
@@ -123,9 +121,6 @@
                     </div>
                 </div>
 
-
-
-
                 <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
                     <thead>
                         <tr>
@@ -144,8 +139,6 @@
                     </thead>
                     <tbody></tbody>
                 </table>
-
-
 
             </div>
         </div>
@@ -222,7 +215,5 @@
     $('#toDateFilter').val('');
     table.ajax.reload();
 });
-
-
 </script>
 @endpush

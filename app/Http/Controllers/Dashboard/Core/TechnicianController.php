@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Dashboard\Core;
 
 use App\Http\Controllers\Controller;
+use App\Models\BusinessProject\ClientProject;
 use App\Models\Day;
 use App\Models\Group;
 use App\Models\Specialization;
@@ -9,7 +10,6 @@ use App\Models\Technician;
 use App\Models\TechnicianWorkingDay;
 use App\Models\Visit;
 use App\Traits\imageTrait;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
@@ -139,8 +139,9 @@ class TechnicianController extends Controller
             "باكستان"   => "6",
             "مصر"       => "7",
         ];
+        $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
 
-        return view('dashboard.core.technicians.index', compact('groups', 'specs', 'days', 'nationalities', 'days'));
+        return view('dashboard.core.technicians.index', compact('groups', 'specs', 'days', 'nationalities', 'days', 'clientProjects'));
 
     }
 
@@ -160,47 +161,127 @@ class TechnicianController extends Controller
     /**
      * @throws ValidationException
      */
-    protected function store(Request $request): RedirectResponse
+    // protected function store(Request $request): RedirectResponse
+    // {
+
+    //     $rules = [
+    //         'day_id'      => 'required|array|exists:days,id',
+    //         'name'        => 'required|String|min:3',
+    //         'email'       => 'required|Email|unique:technicians,email',
+    //         'phone'       => 'required|unique:technicians,phone',
+    //         'user_name'   => ['required', 'regex:/^[^\s]+$/', 'unique:technicians,user_name'],
+    //         'password'    => ['required', 'confirmed', Password::min(4)],
+    //         'spec_id'     => 'required|exists:specializations,id',
+    //         'country_id'  => 'required',
+    //         'identity_id' => 'required|Numeric',
+    //         'birth_date'  => 'required|Date',
+    //         'wallet_id'   => 'required',
+    //         'address'     => 'required|String',
+    //         'group_id'    => 'nullable',
+    //         'image'       => 'required|image|mimes:jpeg,jpg,png,gif',
+    //         'active'      => 'nullable|in:on,off',
+    //     ];
+    //     $validated = Validator::make($request->all(), $rules, ['user_name.regex' => 'يجب أن لا يحتوي اسم المستخدم على أي مسافات']);
+    //     if ($validated->fails()) {
+    //         return redirect()->back()->withErrors($validated->errors());
+    //     }
+    //     $validated = $validated->validated();
+    //     if ($validated['active'] && $validated['active'] == 'on') {
+    //         $validated['active'] = 1;
+    //     } else {
+    //         $validated['active'] = 0;
+    //     }
+    //     if ($request->hasFile('image')) {
+    //         $image    = $request->file('image');
+    //         $filename = time() . '.' . $image->getClientOriginalExtension();
+    //         $request->image->move(storage_path('app/public/images/technicians/'), $filename);
+    //         $validated['image'] = 'storage/images/technicians' . '/' . $filename;
+    //     }
+    //     $days = $validated['day_id'];
+    //     unset($validated['day_id']);
+
+    //     $technician = Technician::query()->create($validated);
+
+    //     $workingDays = [];
+    //     foreach ($days as $day) {
+    //         $workingDays[] = [
+    //             'technician_id' => $technician->id,
+    //             'day_id'        => $day,
+    //             'created_at'    => now(),
+    //             'updated_at'    => now(),
+    //         ];
+    //     }
+
+    //     TechnicianWorkingDay::insert($workingDays);
+
+    //     session()->flash('success');
+    //     return redirect()->back();
+    // }
+    protected function store(Request $request)
     {
 
         $rules = [
             'day_id'      => 'required|array|exists:days,id',
-            'name'        => 'required|String|min:3',
-            'email'       => 'required|Email|unique:technicians,email',
+            'name'        => 'required|string|min:3',
+            'email'       => 'required|email|unique:technicians,email',
             'phone'       => 'required|unique:technicians,phone',
-            'user_name'   => ['required', 'regex:/^[^\s]+$/', 'unique:technicians,user_name'],
+            'user_name'   => ['required', 'regex:/^[^\\s]+$/', 'unique:technicians,user_name'],
             'password'    => ['required', 'confirmed', Password::min(4)],
             'spec_id'     => 'required|exists:specializations,id',
             'country_id'  => 'required',
-            'identity_id' => 'required|Numeric',
-            'birth_date'  => 'required|Date',
+            'identity_id' => 'required|numeric',
+            'birth_date'  => 'required|date',
             'wallet_id'   => 'required',
-            'address'     => 'required|String',
+            'address'     => 'required|string',
             'group_id'    => 'nullable',
             'image'       => 'required|image|mimes:jpeg,jpg,png,gif',
             'active'      => 'nullable|in:on,off',
+            'is_business' => 'nullable|in:0,1',
         ];
-        $validated = Validator::make($request->all(), $rules, ['user_name.regex' => 'يجب أن لا يحتوي اسم المستخدم على أي مسافات']);
+
+        // Add business-related rules if is_business is checked
+        if ($request->is_business == 1) {
+            $rules['client_project_id'] = 'required|exists:client_projects,id';
+            $rules['branch_id']         = 'required|exists:client_project_branches,id';
+            $rules['floor_ids']         = 'required|array';
+            $rules['floor_ids.*']       = 'exists:client_project_branch_floors,id';
+        }
+
+        $validated = Validator::make($request->all(), $rules, [
+            'user_name.regex' => 'يجب أن لا يحتوي اسم المستخدم على أي مسافات',
+        ]);
+
         if ($validated->fails()) {
-            return redirect()->back()->withErrors($validated->errors());
+            return redirect()->back()->withErrors($validated->errors())->withInput();
         }
+
         $validated = $validated->validated();
-        if ($validated['active'] && $validated['active'] == 'on') {
-            $validated['active'] = 1;
-        } else {
-            $validated['active'] = 0;
-        }
+
+        // Convert active checkbox to boolean
+        $validated['active'] = isset($validated['active']) && $validated['active'] == 'on' ? 1 : 0;
+
+        // Handle image upload
         if ($request->hasFile('image')) {
             $image    = $request->file('image');
             $filename = time() . '.' . $image->getClientOriginalExtension();
-            $request->image->move(storage_path('app/public/images/technicians/'), $filename);
-            $validated['image'] = 'storage/images/technicians' . '/' . $filename;
+            $image->move(storage_path('app/public/images/technicians/'), $filename);
+            $validated['image'] = 'storage/images/technicians/' . $filename;
         }
+
+        // Extract and remove days from main array
         $days = $validated['day_id'];
         unset($validated['day_id']);
 
-        $technician = Technician::query()->create($validated);
+        // Set default is_business if not present
+        $validated['is_business'] = $request->is_business == 1 ? true : false;
 
+        // dd($validated);
+        unset($validated['floor_ids']);
+
+        // Create technician
+        $technician = Technician::create($validated);
+
+        // Save working days
         $workingDays = [];
         foreach ($days as $day) {
             $workingDays[] = [
@@ -210,12 +291,20 @@ class TechnicianController extends Controller
                 'updated_at'    => now(),
             ];
         }
-
         TechnicianWorkingDay::insert($workingDays);
 
-        session()->flash('success');
-        return redirect()->back();
+        // If business, attach project/branch/floors
+        if ($request->is_business == 1) {
+            $technician->update([
+                'client_project_id' => $request->client_project_id,
+                'branch_id'         => $request->branch_id,
+            ]);
+
+            $technician->floors()->sync($request->floor_ids);
+        }
+        return redirect()->back()->with('success', __('dash.added_successfully'));
     }
+
     protected function update(Request $request, $id)
     {
         $tech  = Technician::query()->where('id', $id)->first();
