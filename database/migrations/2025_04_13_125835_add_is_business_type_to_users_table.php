@@ -24,5 +24,6 @@ class AddIsBusinessTypeToUsersTable extends Migration
             $table->dropColumn('is_business_type');
         });
     }
+    
 
 }

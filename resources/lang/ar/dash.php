@@ -1060,4 +1060,8 @@ return [
     'business_orders_branches'              => 'فروع مشاريع طلبات الأعمال',
 
     'business_orders_floors'                => 'طوابق فروع طلبات الأعمال',
+    'services_prices'                       => 'أسعار الخدمات',
+    'edit_service_price'                     => 'تعديل سعر الخدمة',
+    'select_service'                        => 'اختر الخدمة',
+    'add_service_price_for_project'         => 'إضافة سعر خدمة للمشروع',       
 ];

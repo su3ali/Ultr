@@ -53,3 +53,6 @@ Route::get('/technician-groups/{id}', [BusinessOrderController::class, 'getRelat
 
 Route::put('/business-orders/{id}/change-group', [BusinessOrderController::class, 'changeGroup'])
     ->name('business-orders.changeGroup');
+
+//business_projects_prices
+Route::resource('business_projects_prices', 'BusinessProject\ClientProjectServicePriceController');
