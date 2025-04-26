@@ -106,6 +106,12 @@
                     </li>
                     @endif
 
+                    @if ($user->hasRole('admin') || $user->can('business_orders_projects_view'))
+                    <li>
+                        <a href="{{ route('dashboard.business_projects_prices.index') }}"> اسعار الخدمات </a>
+                    </li>
+                    @endif
+
                     @if ($user->hasRole('admin') || $user->can('business_orders_branches_view'))
                     <li>
                         <a href="{{ route('dashboard.business-project-branches.index') }}"> فروع المشاريع </a>

@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 
+use App\Models\BusinessProject\ClientProject;
 use Illuminate\Database\Eloquent\Model;
 
 class ClientProjectServicePrice extends Model
