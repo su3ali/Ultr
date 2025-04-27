@@ -1127,4 +1127,5 @@ return [
     'edit_service_price'                    => 'Edit Service Price',
     'select_service'                        => 'Select Service',
     'add_service_price_for_project'         => 'Add Service Price for Project',
+    'loading'                               => 'Loading...',
 ];

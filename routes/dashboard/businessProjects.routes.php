@@ -56,3 +56,7 @@ Route::put('/business-orders/{id}/change-group', [BusinessOrderController::class
 
 //business_projects_prices
 Route::resource('business_projects_prices', 'BusinessProject\ClientProjectServicePriceController');
+
+// changeStatus
+Route::put('/business_orders/{order}/change-status', [BusinessOrderController::class, 'changeStatus'])
+    ->name('dashboard.business_orders.changeStatus');

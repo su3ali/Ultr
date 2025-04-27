@@ -20,6 +20,7 @@ use App\Models\Technician;
 use App\Models\User;
 use App\Notifications\SendPushNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use Yajra\DataTables\DataTables;
 
@@ -27,6 +28,11 @@ class BusinessOrderController extends Controller
 {
     public function index()
     {
+        // ====== Always prepare status list at the beginning ======
+        $statusesModel = Cache::remember('business_order_statuses', 60, function () {
+            return BusinessOrderStatus::select('id', 'name_ar', 'name_en')->get();
+        });
+
         if (request()->ajax()) {
             $orders = BusinessOrder::with([
                 'user', 'category', 'service', 'group', 'car', 'paymentMethod', 'status',
@@ -59,7 +65,19 @@ class BusinessOrderController extends Controller
                 ->addColumn('total', fn($row) => number_format($row->total, 2))
                 ->addColumn('group', fn($row) => $row->group?->name_ar ?? '-')
                 ->addColumn('payment_method', fn($row) => $row->paymentMethod?->name ?? '-')
-                ->addColumn('status', fn($row) => $row->status?->name ?? '-')
+
+                ->addColumn('status', function ($row) {
+                    $currentStatus = $row->status?->name ?? '-';
+                    $html          = '<select class="form-control form-control-sm change-status" data-order-id="' . $row->id . '" data-current-status="' . $row->status_id . '">';
+                    foreach (BusinessOrderStatus::all() as $status) {
+                        $selected = $row->status_id == $status->id ? 'selected' : '';
+                        $html .= '<option value="' . $status->id . '" ' . $selected . '>' . $status->{app()->getLocale() == 'ar' ? 'name_ar' : 'name_en'} . '</option>';
+                    }
+                    $html .= '</select>';
+
+                    return $html . '<span class="d-none export-status">' . $currentStatus . '</span>';
+                })
+
                 ->addColumn('created_at', fn($row) => $row->created_at?->format('Y-m-d'))
 
                 ->addColumn('controll', function ($row) {
@@ -68,43 +86,45 @@ class BusinessOrderController extends Controller
 
                     if ($user->can('update_business_orders') || $user->hasRole('admin')) {
                         $html .= '
-                            <button type="button"
-                                onclick="openEditModal(' . $row->id . ')"
-                                class="btn btn-sm btn-primary">
-                                <i class="far fa-edit fa-2x"></i>
-                            </button>';
+                        <button type="button"
+                            onclick="openEditModal(' . $row->id . ')"
+                            class="btn btn-sm btn-primary">
+                            <i class="far fa-edit fa-2x"></i>
+                        </button>';
                     }
 
                     if ($user->can('update_business_orders') || $user->hasRole('admin')) {
                         $html .= '
-                            <button
-                                type="button"
-                                class="btn btn-primary"
-                                data-toggle="modal"
-                                data-target="#changeGroupModel"
-                                data-order_id="' . $row->id . '"
-                                data-group_id="' . $row->assign_to_id . '">
-                                تغيير الفريق
-                            </button>';
+                        <button
+                            type="button"
+                            class="btn btn-primary"
+                            data-toggle="modal"
+                            data-target="#changeGroupModel"
+                            data-order_id="' . $row->id . '"
+                            data-group_id="' . $row->assign_to_id . '">
+                            تغيير الفريق
+                        </button>';
                     }
 
                     if ($user->can('delete_business_orders') || $user->hasRole('admin')) {
                         $html .= '
-                            <a href="javascript:void(0);" data-href="' . route('dashboard.business_orders.destroy', $row->id) . '"
-                                data-id="' . $row->id . '"
-                                class="btn btn-sm btn-outline-danger btn-delete">
-                                <i class="far fa-trash-alt fa-2x"></i>
-                            </a>';
+                        <a href="javascript:void(0);" data-href="' . route('dashboard.business_orders.destroy', $row->id) . '"
+                            data-id="' . $row->id . '"
+                            class="btn btn-sm btn-outline-danger btn-delete">
+                            <i class="far fa-trash-alt fa-2x"></i>
+                        </a>';
                     }
 
                     return $html;
                 })
+                
 
-                ->rawColumns(['service', 'controll'])
+                ->rawColumns(['service', 'controll', 'status']) 
                 ->make(true);
         }
 
         // ========  Dropdwon  ==========
+
         $users           = User::all();
         $categories      = Category::all();
         $services        = Service::all();
@@ -118,7 +138,6 @@ class BusinessOrderController extends Controller
         $clientProjects  = ClientProject::select('id', 'name_ar', 'name_en')->get();
         $projects        = $clientProjects->pluck(app()->getLocale() === 'ar' ? 'name_ar' : 'name_en', 'id');
         $payment_methods = PaymentMethod::where('active', 1)->pluck(app()->getLocale() === 'ar' ? 'name_ar' : 'name_en', 'id');
-        $statusesModel   = BusinessOrderStatus::select('id', 'name_ar', 'name_en')->get();
         $statuses        = $statusesModel->pluck(app()->getLocale() === 'ar' ? 'name_ar' : 'name_en', 'id');
 
         return view('dashboard.business_orders.index', compact(
@@ -314,13 +333,21 @@ class BusinessOrderController extends Controller
             'note'         => 'nullable|string|max:500',
         ]);
 
-        $order               = BusinessOrder::findOrFail($id);
+        $order = BusinessOrder::findOrFail($id);
+
+        // Check if order status is Completed (assuming you have a constant for completed status)
+        if ($order->status_id == BusinessOrder::STATUS_COMPLETED) {
+            return response()->json([
+                'success' => false,
+                'message' => __('api.order_completed_cannot_change_technician'),
+            ], 400); 
+        }
+
         $order->assign_to_id = $request->assign_to_id;
         $order->save();
 
-        $group      = Group::with('leader')->findOrFail($request->assign_to_id);
-        $technician = $group->leader;
-
+        $group        = Group::with('leader')->findOrFail($request->assign_to_id);
+        $technician   = $group->leader;
         $technicianId = optional($technician)->id;
 
         BusinessOrderTechnicianHistory::updateOrCreate(
@@ -336,32 +363,49 @@ class BusinessOrderController extends Controller
             ]
         );
 
-        //  Send notification if technician exists
+        // Handle notification safely
         if ($technician && filled($technician->fcm_token)) {
-            $title   = __('api.assignment_updated');
-            $message = __('api.you_have_been_assigned_to_order') . ' #' . $order->id;
+            try {
+                $title   = __('api.assignment_updated');
+                $message = __('api.you_have_been_assigned_to_order') . ' #' . $order->id;
 
-            // Laravel notification
-            Notification::send($technician, new SendPushNotification($title, $message));
+                Notification::send($technician, new SendPushNotification($title, $message));
 
-            // FCM + Admins
-            $fcmTokens = array_filter(array_unique(array_merge(
-                [$technician->fcm_token],
-                Admin::whereNotNull('fcm_token')->pluck('fcm_token')->toArray()
-            )));
+                $fcmTokens = array_filter(array_unique(array_merge(
+                    [$technician->fcm_token],
+                    Admin::whereNotNull('fcm_token')->pluck('fcm_token')->toArray()
+                )));
 
-            if (! empty($fcmTokens)) {
-                $this->pushNotification([
-                    'device_token' => $fcmTokens,
-                    'title'        => $title,
-                    'message'      => $message,
-                    'type'         => 'technician',
-                    'code'         => 2,
+                if (! empty($fcmTokens)) {
+                    $this->pushNotification([
+                        'device_token' => $fcmTokens,
+                        'title'        => $title,
+                        'message'      => $message,
+                        'type'         => 'technician',
+                        'code'         => 2,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Log::error('Notification sending failed in changeGroup', [
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
 
         return response()->json(['success' => true]);
+    }
+
+    public function changeStatus(Request $request, BusinessOrder $order)
+    {
+        $request->validate([
+            'status_id' => 'required|exists:business_order_statuses,id',
+        ]);
+
+        $order->update([
+            'status_id' => $request->status_id,
+        ]);
+
+        return response()->json(['message' => 'تم تحديث الحالة بنجاح']);
     }
 
 }
