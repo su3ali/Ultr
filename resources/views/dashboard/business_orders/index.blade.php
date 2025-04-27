@@ -1,4 +1,55 @@
 @extends('dashboard.layout.layout')
+@push('style')
+<style>
+    /* Status Background Colors */
+    .bg-warning {
+        background-color: #ffc107 !important;
+    }
+
+    .bg-success {
+        background-color: #28a745 !important;
+    }
+
+    .bg-danger {
+        background-color: #dc3545 !important;
+    }
+
+    .bg-primary {
+        background-color: #007bff !important;
+    }
+
+    .bg-secondary {
+        background-color: #6c757d !important;
+    }
+
+    /* Text Colors */
+    .text-dark {
+        color: #343a40 !important;
+    }
+
+    .text-white {
+        color: #ffffff !important;
+    }
+
+    /* Spinner Loading */
+    .loading-select {
+        background-image: url('https://i.imgur.com/6RMhx.gif');
+        background-repeat: no-repeat;
+        background-position: center right 0.75rem;
+        background-size: 18px 18px;
+    }
+
+    /* Flash Effects */
+    .border-success {
+        border: 2px solid #28a745 !important;
+    }
+
+    .border-danger {
+        border: 2px solid #dc3545 !important;
+    }
+</style>
+@endpush
+
 
 @section('sub-header')
 <div class="sub-header-container">
@@ -48,7 +99,7 @@
                 <table id="ordersTable" class="table table-hover non-hover" style="width:100%">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th>{{ __('dash.order_number') }}</th>
                             <th>{{ __('dash.customer_name') }}</th>
                             <th>{{ __('dash.phone') }}</th>
                             <th>{{ __('dash.car') }}</th>
@@ -73,164 +124,190 @@
 
 {{-- @include('dashboard.business_orders.edit_modal') --}}
 @endsection
-
 @push('script')
 <script>
     const editOrderUrl = "{{ url('admin/business_orders') }}";
 
-    
+    const statusColors = {
+        1: 'bg-warning text-dark',   // Waiting
+        2: 'bg-primary text-white',   // In Progress
+        3: 'bg-success text-white',   // Completed
+        4: 'bg-danger text-white',    // Cancelled
+    };
 
-   // ========== [1] Declare Global Table Variable ==========
-let ordersTable;
+    let ordersTable;
 
-// ========== [2] Function to Load DataTable ==========
-function loadOrdersTable() {
-    // إذا الجدول مهيأ مسبقاً، يتم تدميره قبل إنشاء جديد
-    if ($.fn.dataTable.isDataTable('#ordersTable')) {
-        $('#ordersTable').DataTable().clear().destroy();
+    // ========== Load Orders Table ==========
+    function loadOrdersTable() {
+        if ($.fn.dataTable.isDataTable('#ordersTable')) {
+            $('#ordersTable').DataTable().clear().destroy();
+        }
+
+        ordersTable = $('#ordersTable').DataTable({
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            ajax: {
+                url: '{{ route("dashboard.business_orders.index") }}',
+                data: function (d) {
+                    d.date_from = $('#filter_date_from').val();
+                    d.date_to = $('#filter_date_to').val();
+                    d.status = $('#filter_status').val();
+                    d.payment_method = $('#filter_payment_method').val();
+                }
+            },
+            columns: [
+                { data: 'id', name: 'id' },
+                { data: 'user', name: 'user' },
+                { data: 'phone', name: 'phone' },
+                { data: 'car', name: 'car' },
+                { data: 'service', name: 'service' },
+                { data: 'total', name: 'total' },
+                { data: 'group', name: 'group' },
+                { data: 'payment_method', name: 'payment_method' },
+                { data: 'status', name: 'status' },
+                { data: 'created_at', name: 'created_at' },
+                { 
+                    data: 'controll', 
+                    name: 'controll', 
+                    orderable: false, 
+                    searchable: false, 
+                    exportable: false, 
+                    printable: false, 
+                    className: 'no-export' 
+                }
+            ],
+            order: [[0, 'desc']],
+            pageLength: 10,
+            lengthMenu: [
+                [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000],
+                [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000]
+            ],
+            pagingType: 'full_numbers',
+            dom: `
+                <'dt--top-section'
+                    <'row'
+                        <'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l>
+                        <'col-sm-12 col-md-4 d-flex justify-content-center'B>
+                        <'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>
+                    >
+                >
+                <'table-responsive'tr>
+                <'dt--bottom-section d-sm-flex justify-content-sm-between text-center'
+                    <'dt--pages-count mb-sm-0 mb-3'i>
+                    <'dt--pagination'p>
+                >
+            `,
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    className: 'btn btn-sm btn-primary',
+                    text: '{{ __("dash.excel") }}',
+                    exportOptions: {
+                        columns: ':not(.no-export)',
+                        format: {
+                            body: function (data, row, column, node) {
+                                return $(node).find('.export-status').length ? 
+                                    $(node).find('.export-status').text().trim() : 
+                                    $(node).text().trim();
+                            }
+                        }
+                    }
+                },
+                {
+                    extend: 'print',
+                    className: 'btn btn-sm btn-primary',
+                    text: '{{ __("dash.print") }}',
+                    exportOptions: {
+                        columns: ':not(.no-export)',
+                        format: {
+                            body: function (data, row, column, node) {
+                                return $(node).find('.export-status').length ? 
+                                    $(node).find('.export-status').text().trim() : 
+                                    $(node).text().trim();
+                            }
+                        },
+                        modifier: { page: 'current' }
+                    }
+                }
+            ],
+            language: {
+                url: "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
+            }
+        });
     }
 
-    ordersTable = $('#ordersTable').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: '{{ route("dashboard.business_orders.index") }}',
-            data: function (d) {
-                d.date_from       = $('#filter_date_from').val();
-                d.date_to         = $('#filter_date_to').val();
-                d.status          = $('#filter_status').val();
-                d.payment_method  = $('#filter_payment_method').val();
+    // ========== Apply Status Color ==========
+    function applyStatusColor(select, statusId) {
+        select.removeClass().addClass(`form-select form-select-sm change-status ${statusColors[statusId] || ''}`);
+    }
+
+    // ========== Handle Status Change ==========
+    $(document).on('change', '.change-status', function () {
+        const select = $(this);
+        const orderId = select.data('order-id');
+        const newStatusId = select.val();
+        const oldStatusId = select.data('current-status');
+        const url = `/admin/business_orders/${orderId}/change-status`;
+
+        select.addClass('loading-select').prop('disabled', true);
+
+        $.ajax({
+            url: url,
+            type: 'PUT',
+            data: { _token: '{{ csrf_token() }}', status_id: newStatusId },
+            success: function (response) {
+                toastr.success(response.message || 'تم تحديث الحالة بنجاح');
+                select.removeClass('loading-select').prop('disabled', false);
+                select.data('current-status', newStatusId);
+                applyStatusColor(select, newStatusId);
+                select.addClass('border-success');
+                setTimeout(() => select.removeClass('border-success'), 1200);
+            },
+            error: function () {
+                toastr.error('فشل في تحديث الحالة');
+                select.removeClass('loading-select').prop('disabled', false).val(oldStatusId);
+                applyStatusColor(select, oldStatusId);
+                select.addClass('border-danger');
+                setTimeout(() => select.removeClass('border-danger'), 1200);
             }
-        },
-        columns: [
-            { data: 'id', name: 'id' },
-            { data: 'user', name: 'user' },
-            { data: 'phone', name: 'phone' },
-            { data: 'car', name: 'car' },
-            { data: 'service', name: 'service' },
-            { data: 'total', name: 'total' },
-            { data: 'group', name: 'group' },
-            { data: 'payment_method', name: 'payment_method' },
-            { data: 'status', name: 'status' },
-            { data: 'created_at', name: 'created_at' },
-            { data: 'controll', name: 'controll', orderable: false, searchable: false }
-        ],
-        dom: "<'dt--top-section'<'row'<'col-md-4 text-start'l><'col-md-4 text-center'B><'col-md-4 text-end'f>>>" +
-             "<'table-responsive'tr>" +
-             "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
-        lengthMenu: [
-            [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000],
-            [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
-        ],
-        pageLength: 10,
-        order: [[0, 'desc']],
-        language: {
-            url: "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
-        },
-        buttons: [
-            {
-                extend: 'copy',
-                className: 'btn btn-sm',
-                text: '{{ __("dash.copy") }}'
-            },
-            {
-                extend: 'csv',
-                className: 'btn btn-sm',
-                text: '{{ __("dash.csv") }}'
-            },
-            {
-                extend: 'excel',
-                className: 'btn btn-sm',
-                text: '{{ __("dash.excel") }}'
-            },
-            {
-                extend: 'print',
-                className: 'btn btn-sm',
-                text: '{{ __("dash.print") }}'
-            }
-        ]
-    });
-}
-
-
-// ========== [3] Initialize on Document Ready ==========
-$(document).ready(function () {
-    loadOrdersTable();
-
-    // فلترة بالزر
-    $('#applyFilters').on('click', function (e) {
-        e.preventDefault(); // تأكد من منع أي سلوك افتراضي
-        ordersTable.ajax.reload();
+        });
     });
 
-    // (اختياري) فلترة تلقائية عند التغيير بدون زر
-    // $('#filter_date_from, #filter_date_to, #filter_status, #filter_payment_method').on('change', function () {
-    //     ordersTable.ajax.reload();
-    // });
-});
-
-$('#filter_date_from, #filter_date_to, #filter_status, #filter_payment_method').on('change', function () {
-    ordersTable.ajax.reload();
-});
-
-
-
-    // ========== [2] Open Edit Modal ==========
+    // ========== Open Edit Modal ==========
     function openEditModal(orderId) {
-    $.get(`${editOrderUrl}/${orderId}/edit`, function (order) {
-        $('#edit_order_user_id').val(order.user_id);
+        $.get(`${editOrderUrl}/${orderId}/edit`, function (order) {
+            $('#edit_order_user_id').val(order.user_id);
+            $('#edit_order_id').val(order.id);
+            $('#editCustomerName').val(order.user.full_name);
+            $('#editPhoneInput').val(order.user.phone);
+            $('#edit_serviceSelect').val(order.service_id);
+            $('#edit_client_project_id').val(order.client_project_id);
 
-        $('#edit_order_id').val(order.id);
-        $('#editCustomerName').val(order.user.full_name);
-        $('#editPhoneInput').val(order.user.phone);
+            fetchProjectServicePrice(order.client_project_id, order.service_id);
+            loadBranchesAndFloors(order.client_project_id, order.branch_id, order.floor_id);
+            fetchCustomerCarsEdit(order.user_id, order.car_id);
 
-        // Set service first (this will be used when fetching price)
-        $('#edit_serviceSelect').val(order.service_id);
+            $('#editModal').modal('show');
+        }).fail(() => toastr.error('فشل في تحميل بيانات الطلب'));
+    }
 
-        // Set project
-        $('#edit_client_project_id').val(String(order.client_project_id));
-
-        // Fetch and update price based on both project and service
-        fetchProjectServicePrice(order.client_project_id, order.service_id);
-
-        // Load related branches and floors
-        loadBranchesAndFloors(order.client_project_id, order.branch_id, order.floor_id);
-
-        // Set car list
-        fetchCustomerCarsEdit(order.user_id, order.car_id);
-
-        // Finally, show modal
-        $('#editModal').modal('show');
-    }).fail(() => toastr.error('فشل في تحميل بيانات الطلب'));
-}
-
-
-    // ========== [3] Submit Edit Form ==========
+    // ========== Submit Edit Form ==========
     $(document).on('submit', '#editBusinessOrderForm', function (e) {
         e.preventDefault();
 
         const form = $(this);
         const orderId = $('#edit_order_id').val();
-        const url = `${editOrderUrl}/${orderId}`;
-        const formData = form.serialize();
 
         $.ajax({
-            url: url,
+            url: `${editOrderUrl}/${orderId}`,
             type: 'POST',
-            data: formData,
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-                success: function (response) {
-                    debugger;
-                console.log('Updated Order:', response.order); // 👈 This will show the order in console
-
+            data: form.serialize(),
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function () {
                 toastr.success('تم تحديث الطلب بنجاح');
                 $('#editModal').modal('hide');
-                $('#ordersTable').DataTable().ajax.reload(null, false);
-
-                // Example: Use it in UI
-                // $('#orderPreviewName').text(response.order.user.first_name + ' ' + response.order.user.last_name);
+                ordersTable.ajax.reload(null, false);
             },
             error: function (xhr) {
                 if (xhr.status === 422) {
@@ -244,14 +321,15 @@ $('#filter_date_from, #filter_date_to, #filter_status, #filter_payment_method').
         });
     });
 
-    // ========== [4] Fetch and Show Customer Cars ==========
+    // ========== Fetch Customer Cars ==========
     function fetchCustomerCarsEdit(userId, selectedCarId) {
         const container = $('#edit_existingCarsContainer');
         container.html('<div class="text-muted">جاري تحميل السيارات...</div>');
 
         $.get(`/admin/user/${userId}/cars`, function (cars) {
             if (cars.length === 0) {
-                return container.html('<div class="alert alert-warning">لا توجد سيارات</div>');
+                container.html('<div class="alert alert-warning">لا توجد سيارات</div>');
+                return;
             }
 
             let html = '<div class="row">';
@@ -265,9 +343,7 @@ $('#filter_date_from, #filter_date_to, #filter_status, #filter_payment_method').
                                 <div class="car-icon rounded-circle d-flex align-items-center justify-content-center mr-3">
                                     <i class="fas fa-car"></i>
                                 </div>
-                                <div>
-                                    <h6 class="mb-1">${car.Plate_number}</h6>
-                                </div>
+                                <div><h6 class="mb-1">${car.Plate_number}</h6></div>
                             </div>
                         </div>
                     </div>`;
@@ -277,18 +353,16 @@ $('#filter_date_from, #filter_date_to, #filter_status, #filter_payment_method').
 
             $('.car-select-option').on('click', function () {
                 $('.car-select-option').removeClass('selected');
-                $(this).addClass('selected');
-                $(this).find('input[type="radio"]').prop('checked', true);
+                $(this).addClass('selected').find('input[type="radio"]').prop('checked', true);
             });
         }).fail(() => {
             container.html('<div class="alert alert-danger">فشل في تحميل سيارات العميل</div>');
         });
     }
 
-    // ========== [5] Load Branches and Floors ==========
+    // ========== Load Branches and Floors ==========
     function loadBranchesAndFloors(projectId, branchId, floorId) {
         $('#edit_client_project_id').val(projectId);
-
         $('#edit_branch_id').html('<option value="">جارٍ التحميل...</option>');
         $('#edit_floor_id').html('<option value="">اختر الفرع أولاً</option>');
 
@@ -297,7 +371,6 @@ $('#filter_date_from, #filter_date_to, #filter_status, #filter_payment_method').
             branches.forEach(branch => {
                 branchOptions += `<option value="${branch.id}">${branch.name_ar}</option>`;
             });
-
             $('#edit_branch_id').html(branchOptions).val(branchId);
 
             $.get(`/admin/get-branch-floors/${branchId}`, function (floors) {
@@ -305,197 +378,95 @@ $('#filter_date_from, #filter_date_to, #filter_status, #filter_payment_method').
                 floors.forEach(floor => {
                     floorOptions += `<option value="${floor.id}">${floor.name_ar}</option>`;
                 });
-
                 $('#edit_floor_id').html(floorOptions).val(floorId);
             });
         });
     }
 
-    $('#edit_serviceSelect, #edit_client_project_id').on('change', function () {
-    const projectId = $('#edit_client_project_id').val();
-    const serviceId = $('#edit_serviceSelect').val();
-    fetchProjectServicePrice(projectId, serviceId);
-});
+    // ========== Document Ready ==========
+    $(document).ready(function () {
+        loadOrdersTable();
 
+        $('#applyFilters, #filter_date_from, #filter_date_to, #filter_status, #filter_payment_method').on('click change', function (e) {
+            e.preventDefault();
+            ordersTable.ajax.reload();
+        });
 
-    // ========== [6] Manual Change: Project ==========
-    $('#edit_client_project_id').on('change', function () {
-        const projectId = $(this).val();
-
-        $('#edit_branch_id').html('<option value="">جارٍ التحميل...</option>');
-        $('#edit_floor_id').html('<option value="">اختر الفرع أولاً</option>');
-
-        if (projectId) {
-            $.get(`/admin/get-project-branches/${projectId}`, function (branches) {
-                let options = '<option value="">{{ __("dash.choose") }}</option>';
-                branches.forEach(branch => {
-                    options += `<option value="${branch.id}">${branch.name_ar}</option>`;
-                });
-
-                $('#edit_branch_id').html(options);
+        $('#ordersTable').on('draw.dt', function () {
+            $('.change-status').each(function () {
+                applyStatusColor($(this), $(this).val());
             });
-        }
-    });
-
-    // ========== [7] Manual Change: Branch ==========
-    $('#edit_branch_id').on('change', function () {
-        const branchId = $(this).val();
-
-        $('#edit_floor_id').html('<option value="">جارٍ التحميل...</option>');
-
-        if (branchId) {
-            $.get(`/admin/get-branch-floors/${branchId}`, function (floors) {
-                let options = '<option value="">{{ __("dash.choose") }}</option>';
-                floors.forEach(floor => {
-                    options += `<option value="${floor.id}">${floor.name_ar}</option>`;
-                });
-
-                $('#edit_floor_id').html(options);
-            });
-        }
-    });
-
-    function fetchProjectServicePrice(projectId, serviceId) {
-    if (!projectId || !serviceId) return;
-
-    $.post("{{ route('dashboard.get.service.price') }}", {
-        _token: '{{ csrf_token() }}',
-        client_project_id: projectId,
-        service_id: serviceId
-    }, function (res) {
-        debugger;
-        $('#edit_servicePriceInput').val(res.price);
-    }).fail(() => {
-        $('#edit_servicePriceInput').val('');
-        toastr.error('فشل في تحميل السعر');
-    });
-}
-
-// Trigger price change dynamically when service or project changes
-$(document).on('change', '#edit_client_project_id, #edit_serviceSelect', function () {
-    const projectId = $('#edit_client_project_id').val();
-    const serviceId = $('#edit_serviceSelect').val();
-    fetchProjectServicePrice(projectId, serviceId);
-});
-
-$(document).ready(function () {
-    $('#edit_applyCouponBtn').on('click', function () {
-        debugger;
-        const code = $('#edit_couponCodeInput').val().trim();
-        const serviceId = $('#edit_serviceSelect').val();
-        const userId = $('#edit_order_user_id').val();
-        const originalPrice = parseFloat($('#edit_servicePriceInput').val());
-
-        console.log('Selected Service:', serviceId); // debug
-
-        // Reset feedback
-        $('#edit_couponCodeInput').removeClass('is-valid is-invalid');
-        $('#edit_couponSuccess').addClass('d-none');
-        $('#edit_couponFail').addClass('d-none');
-        $('#edit_serviceSelect').removeClass('is-invalid');
-        $('#edit_serviceSelectError').addClass('d-none');
-
-        // Validate service ID using parseInt
-        if (!parseInt(serviceId)) {
-            toastr.warning('يرجى تحديد الخدمة أولاً');
-            $('#edit_serviceSelect').addClass('is-invalid');
-            $('#edit_serviceSelectError').removeClass('d-none');
-            return;
-        }
-
-        if (!code) {
-            toastr.warning('يرجى إدخال كود الخصم');
-            return;
-        }
-
-        if (!userId || isNaN(originalPrice)) {
-            toastr.warning('البيانات ناقصة. الرجاء التأكد من تحديد المستخدم والخدمة والسعر.');
-            return;
-        }
-
-        $.ajax({
-            url: applyCouponUrl,
-            method: 'POST',
-            data: {
-                _token: csrfToken,
-                code: code,
-                user_id: userId,
-                service_id: serviceId,
-                price: originalPrice
-            },
-            success: function (res) {
-                $('#edit_servicePriceInput').val(res.sub_total);
-                toastr.success(res.message || 'تم تطبيق الخصم بنجاح');
-
-                $('#edit_couponCodeInput').addClass('is-valid');
-                $('#edit_couponSuccess').removeClass('d-none');
-            },
-            error: function (xhr) {
-                let message = 'فشل في تطبيق الكوبون';
-                if (xhr.responseJSON?.message) {
-                    message = xhr.responseJSON.message;
-                }
-
-                toastr.error(message);
-                $('#edit_couponCodeInput').addClass('is-invalid');
-                $('#edit_couponFail').removeClass('d-none');
-            }
         });
     });
-});
 
 
+// ========== [ Change Team - Open Modal ] ==========
 $(document).on('click', '[data-target="#changeGroupModel"]', function () {
     const orderId = $(this).data('order_id');
     const currentGroupId = parseInt($(this).data('group_id'));
 
-    // خزّن orderId داخل الحقل المخفي
     $('#edit_order_id').val(orderId);
+    const groupSelect = $('#edit_group_id');
 
-    // باقي الكود نفسه
-    if (orderId) {
-        $.get(`/admin/technician-groups/${orderId}`, function(groups) {
-            const groupSelect = $('#edit_group_id');
-            groupSelect.empty().append('<option value="">اختر</option>');
+    groupSelect.html('<option value="">{{ __("dash.loading") }}</option>');
 
-            groups.forEach(group => {
-                const selected = group.id === currentGroupId ? 'selected' : '';
-                groupSelect.append(`<option value="${group.id}" ${selected}>${group.name_ar}</option>`);
-            });
-        }).fail(function(xhr) {
-            console.error('Error loading groups:', xhr.responseText);
-            toastr.error('تعذر تحميل الفرق التابعة للفني');
+    $.get(`/admin/technician-groups/${orderId}`, function (groups) {
+        groupSelect.empty().append('<option value="">{{ __("dash.choose") }}</option>');
+
+        groups.forEach(group => {
+            const selected = group.id === currentGroupId ? 'selected' : '';
+            groupSelect.append(`<option value="${group.id}" ${selected}>${group.name_ar}</option>`);
         });
-    }
-});
-
-
-$(document).on('submit', '#edit_group_form', function (e) {
-    e.preventDefault();
-
-    const form = $(this);
-    const orderId = $('#edit_order_id').val();;
-    const url = `/admin/business-orders/${orderId}/change-group`;   
-    const formData = form.serialize();
-
-    $.ajax({
-        url: url,
-        type: 'PUT',
-        data: formData,
-        success: function (res) {
-            toastr.success('تم تحديث الفريق بنجاح');
-            $('#changeGroupModel').modal('hide');
-        },
-        error: function (xhr) {
-            toastr.error('حدث خطأ أثناء الحفظ');
-            console.error(xhr.responseText);
-        }
+    }).fail(function (xhr) {
+        console.error('Error loading groups:', xhr.responseText);
+        toastr.error('تعذر تحميل الفرق.');
     });
 });
 
+// ========== [ Change Team - Submit Form ] ==========
+$(document).on('submit', '#edit_group_form', function (e) {
+    e.preventDefault();
 
+    const orderId = $('#edit_order_id').val();
+    const assignToId = $('#edit_group_id').val();
+    const note = $('#edit_note').val(); // إذا عندك ملاحظة إضافية
 
+    if (!assignToId) {
+        toastr.warning('يرجى اختيار الفريق أولاً.');
+        return;
+    }
 
+    $.ajax({
+        url: `/admin/business-orders/${orderId}/change-group`,
+        type: 'PUT',
+        data: {
+            _token: '{{ csrf_token() }}',
+            assign_to_id: assignToId,
+            note: note
+        },
+        success: function (res) {
+            if (res.success) {
+                toastr.success('تم تغيير الفريق بنجاح');
+                $('#changeGroupModel').modal('hide');
+                ordersTable.ajax.reload(null, false);
+            } else {
+                toastr.error('فشل التحديث.');
+            }
+        },
+       error: function (xhr) {
+    if (xhr.responseJSON && xhr.responseJSON.message) {
+        toastr.error(xhr.responseJSON.message);
+
+        // Highlight the problematic order row
+        highlightOrderRow(orderId);
+    } else {
+        toastr.error('حدث خطأ أثناء تحديث الفريق.');
+    }
+    console.error(xhr.responseText);
+}
+
+    });
+});
 
 
 </script>

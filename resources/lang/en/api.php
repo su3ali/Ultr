@@ -72,5 +72,6 @@ return [
 
     'new_appointment'                                                                 => 'New Appointment',
     'you_have_new_visit_appointment'                                                  => 'You have a new visit appointment',
+    'order_completed_cannot_change_technician'                                        => 'Order completed, cannot change technician',
 
 ];
