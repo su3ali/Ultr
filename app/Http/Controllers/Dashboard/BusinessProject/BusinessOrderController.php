@@ -102,9 +102,10 @@ class BusinessOrderController extends Controller
                             data-target="#changeGroupModel"
                             data-order_id="' . $row->id . '"
                             data-group_id="' . $row->assign_to_id . '">
-                            تغيير الفريق
+                            ' . __('dash.change_team') . '
                         </button>';
                     }
+                    
 
                     if ($user->can('delete_business_orders') || $user->hasRole('admin')) {
                         $html .= '

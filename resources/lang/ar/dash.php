@@ -1001,15 +1001,15 @@ return [
     'measurements_units'                       => 'وحدات القياس',
 
     // late orders
-    'lateOrder'                             => 'الطلبات المتأخرة',
-    'lateOrderCount'                        => 'عدد الطلبات المتأخرة',
-    'lateOrderCountToday'                   => 'عدد الطلبات المتأخرة اليوم',
-    'lateOrderCountWeek'                    => 'عدد الطلبات المتأخرة هذا الأسبوع',
-    'lateOrderCountTotal'                   => 'عدد الطلبات المتأخرة الكلي',
-    'lateOrderCountMonth'                   => 'عدد الطلبات المتأخرة هذا الشهر',
-    'booking_not_found'                     => 'عذراً، لم يتم العثور على الحجز.',
-    'filters'                               => 'عوامل التصفية',
-    'address'                               => 'العنوان',
+    'lateOrder'                                => 'الطلبات المتأخرة',
+    'lateOrderCount'                           => 'عدد الطلبات المتأخرة',
+    'lateOrderCountToday'                      => 'عدد الطلبات المتأخرة اليوم',
+    'lateOrderCountWeek'                       => 'عدد الطلبات المتأخرة هذا الأسبوع',
+    'lateOrderCountTotal'                      => 'عدد الطلبات المتأخرة الكلي',
+    'lateOrderCountMonth'                      => 'عدد الطلبات المتأخرة هذا الشهر',
+    'booking_not_found'                        => 'عذراً، لم يتم العثور على الحجز.',
+    'filters'                                  => 'عوامل التصفية',
+    'address'                                  => 'العنوان',
 
     'booking_not_found'                        => 'عذراً، لم يتم العثور على الحجز.',
     'appointment_settings_manage'              => 'إدارة إعدادات المواعيد',
@@ -1067,4 +1067,5 @@ return [
     'loading'                                  => 'جار التحميل...',
     'no_data_found'                            => 'لا توجد بيانات',
     'order_completed_cannot_change_technician' => 'لا يمكن تغيير الفني بعد إتمام الطلب',
+    'change_team'                              => 'تغيير الفريق',
 ];
