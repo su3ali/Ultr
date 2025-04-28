@@ -778,41 +778,6 @@
             @endcan
 
 
-            {{-- Public Setting --}}
-            @can('view_public_setting')
-            <li class="menu">
-                <a href="#orders-setting" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                    <div class="">
-                        <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 20H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h2.429M7 8h3M8 8V4h4v2m4 0V5h-4m3 4v3a1 1 0 0 1-1 1h-3m9-3v9a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-6.397a1 1 0 0 1 .27-.683l2.434-2.603a1 1 0 0 1 .73-.317H19a1 1 0 0 1 1 1Z" />
-                        </svg>
-                        <span>{{ __('dash.public_settings') }}</span>
-                    </div>
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-chevron-right">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
-                    </div>
-                </a>
-                <ul class="collapse submenu list-unstyled" id="orders-setting" data-parent="#accordionExample">
-                    @can('view_orders_status')
-                    <li>
-                        <a href="{{ route('dashboard.visits_statuses.index') }}"> {{ __('dash.orders_status') }}</a>
-                    </li>
-                    @endcan
-                    @can('view_cancel_reasons')
-                    <li>
-                        <a href="{{ route('dashboard.reason_cancel.index') }}"> {{ __('dash.cancellation_reasons') }}
-                        </a>
-                    </li>
-                    @endcan
-                </ul>
-            </li>
-            @endcan
 
 
             @can('view_setting')
@@ -870,6 +835,17 @@
                     <li>
                         <a href="{{ route('dashboard.faqs.index') }}"> {{ __('dash.frequently_questions') }}</a>
                     </li>
+
+
+                    <li>
+                        <a href="{{ route('dashboard.visits_statuses.index') }}"> {{ __('dash.orders_status') }}</a>
+                    </li>
+                    <li>
+                        <a href="{{ route('dashboard.reason_cancel.index') }}"> {{ __('dash.cancellation_reasons')
+                            }}
+                        </a>
+                    </li>
+
 
                 </ul>
             </li>
