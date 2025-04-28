@@ -75,5 +75,7 @@ return [
     'order_completed_cannot_change_technician'                                        => 'Order completed, cannot change technician',
     'no_data_found'                                                                   => 'No data found',
     'successfully_updated'                                                            => 'Successfully updated',
+    'validation_error'                                                                => 'Validation error',
+    'cannot_cancel_order'                                                             => 'Cannot cancel order',
 
 ];

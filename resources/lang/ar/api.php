@@ -75,5 +75,7 @@ return [
     'no_data_found'                                                                   => 'لا توجد بيانات',
     'successfully_updateds'                                                           => 'تم التحديث بنجاح',
     'successfully_deleted'                                                            => 'تم الحذف بنجاح',
+    'validation_error'                                                                => 'خطأ في التحقق من صحة البيانات',
+    'cannot_cancel_order'                                                             => 'لا يمكن إلغاء الطلب',
 
 ];
