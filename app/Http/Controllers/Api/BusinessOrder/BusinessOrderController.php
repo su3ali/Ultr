@@ -119,7 +119,7 @@ class BusinessOrderController extends Controller
         // Refresh the model to get the updated data
         $order->refresh();
 
-        return self::apiResponse(200, null, [
+        return self::apiResponse(200, __('api.successfully_updated'), [
             'businessOrder' => BusinessOrderResource::make($order),
         ]);
     }
