@@ -74,5 +74,6 @@ return [
     'you_have_new_visit_appointment'                                                  => 'You have a new visit appointment',
     'order_completed_cannot_change_technician'                                        => 'Order completed, cannot change technician',
     'no_data_found'                                                                   => 'No data found',
+    'successfully_updated'                                                            => 'Successfully updated',
 
 ];

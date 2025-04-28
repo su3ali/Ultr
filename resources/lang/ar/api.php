@@ -73,5 +73,7 @@ return [
     'new_appointment'                                                                 => 'لديك موعد جديد',
     'you_have_new_visit_appointment'                                                  => 'لديك موعد زيارة جديد',
     'no_data_found'                                                                   => 'لا توجد بيانات',
+    'successfully_updateds'                                                           => 'تم التحديث بنجاح',
+    'successfully_deleted'                                                            => 'تم الحذف بنجاح',
 
 ];
