@@ -147,7 +147,7 @@ $type = 'package';
                             <label>{{ __('dash.to') }}</label>
                             <div class="col-md-4">
                                 <input type="datetime-local" name="date2" class="form-control date2" step="1"
-                                    id="inputEmail42">  
+                                    id="inputEmail42">
                             </div>
                         </div>
                         <br>
@@ -204,6 +204,7 @@ $type = 'package';
 @push('script')
 <script type="text/javascript">
     $(document).ready(function() {
+        
             var table = $('#{{ $dataTabel }}').DataTable({
                 dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
                     "<'table-responsive'tr>" +
@@ -354,111 +355,108 @@ $type = 'package';
         table.ajax.url(url).load();
     }
 
-// فعل التحديث عند تغيير الفلاتر
-$('.date, .date2, .status_filter, .zone_filter').change(function() {
-    updateTableData();
-});
+    // فعل التحديث عند تغيير الفلاتر
+    $('.date, .date2, .status_filter, .zone_filter').change(function() {
+        updateTableData();
+    });
 
 
-            // Trigger search update
-            $('#searchInput').on('keyup', function() {
-                table.draw();
-            });
-
-
-
-        });
+    // Trigger search update
+    $('#searchInput').on('keyup', function() {
+        table.draw();
+    });
 
 
 
+    });
 
 
-        $(document).on('click', '#add-work-exp', function() {
-            let booking_id = $(this).data('id');
-            let service_id = $(this).data('service_id');
-            let category_id = $(this).data('category_id');
-            let visit_id = $(this).data('visit_id');
-            let address_id = $(this).data('address_id');
-            let type = $(this).data('type');
-            let date = $(this).data('date');
-            let time = $(this).data('time');
-            let group_id = $(this).data('group_id');
-            let quantity = $(this).data('quantity');
+    $(document).on('click', '#add-work-exp', function() {
+        let booking_id = $(this).data('id');
+        let service_id = $(this).data('service_id');
+        let category_id = $(this).data('category_id');
+        let visit_id = $(this).data('visit_id');
+        let address_id = $(this).data('address_id');
+        let type = $(this).data('type');
+        let date = $(this).data('date');
+        let time = $(this).data('time');
+        let group_id = $(this).data('group_id');
+        let quantity = $(this).data('quantity');
 
 
-            $.ajax({
-                url: '{{ route('dashboard.getGroupByService') }}',
-                type: 'get',
-                data: {
-                    service_id: service_id,
-                    type: type,
-                    booking_id: booking_id,
-                    category_id: category_id,
-                    address_id: address_id,
+        $.ajax({
+            url: '{{ route('dashboard.getGroupByService') }}',
+            type: 'get',
+            data: {
+                service_id: service_id,
+                type: type,
+                booking_id: booking_id,
+                category_id: category_id,
+                address_id: address_id,
 
-                    date: date,
-                    time: time,
-                    group_id: group_id,
-                    quantity: quantity,
+                date: date,
+                time: time,
+                group_id: group_id,
+                quantity: quantity,
 
 
 
-                },
-                success: function(data) {
-                    console.log(data)
+            },
+            success: function(data) {
+                console.log(data)
 
-                    var select = document.getElementById("edit_group_id");
-                    var length = select.options.length;
-                    for (i = length - 1; i >= 0; i--) {
-                        select.options[i] = null;
-                    }
-                    if (data.length != 0) {
-                        $.each(data, function(i, item) {
-
-                            var newOption = new Option(item, i, true, true)
-                            if (visit_id) {
-                                $('#edit_group_id').append(newOption);
-                            } else {
-                                $('#group_id').append(newOption);
-
-                            }
-
-                        });
-                    }
-                    $('#booking_id').val(booking_id);
-                    if (visit_id) {
-                        $('.visit_Div').append(`<input type="hidden" value="` + visit_id +
-                            `" name="visit_id">`);
-                        $('#edit_booking_id').val(booking_id);
-                        var action = window.location.origin + '/admin/visits/' + visit_id;
-                        $('#edit_group_form').attr('action', action);
-                    }
-
+                var select = document.getElementById("edit_group_id");
+                var length = select.options.length;
+                for (i = length - 1; i >= 0; i--) {
+                    select.options[i] = null;
                 }
-            });
-        });
+                if (data.length != 0) {
+                    $.each(data, function(i, item) {
 
+                        var newOption = new Option(item, i, true, true)
+                        if (visit_id) {
+                            $('#edit_group_id').append(newOption);
+                        } else {
+                            $('#group_id').append(newOption);
 
-        $("body").on('change', '#customSwitchStatus', function() {
-            let active = $(this).is(':checked');
-            let id = $(this).attr('data-id');
+                        }
 
-            $.ajax({
-                url: '{{ route('dashboard.booking_statuses.change_status') }}',
-                type: 'get',
-                data: {
-                    id: id,
-                    active: active
-                },
-                success: function(data) {
-                    swal({
-                        title: "{{ __('dash.successful_operation') }}",
-                        text: "{{ __('dash.request_executed_successfully') }}",
-                        type: 'success',
-                        padding: '2em'
-                    })
+                    });
                 }
-            });
+                $('#booking_id').val(booking_id);
+                if (visit_id) {
+                    $('.visit_Div').append(`<input type="hidden" value="` + visit_id +
+                        `" name="visit_id">`);
+                    $('#edit_booking_id').val(booking_id);
+                    var action = window.location.origin + '/admin/visits/' + visit_id;
+                    $('#edit_group_form').attr('action', action);
+                }
+
+            }
         });
+    });
+
+
+    $("body").on('change', '#customSwitchStatus', function() {
+        let active = $(this).is(':checked');
+        let id = $(this).attr('data-id');
+
+        $.ajax({
+            url: '{{ route('dashboard.booking_statuses.change_status') }}',
+            type: 'get',
+            data: {
+                id: id,
+                active: active
+            },
+            success: function(data) {
+                swal({
+                    title: "{{ __('dash.successful_operation') }}",
+                    text: "{{ __('dash.request_executed_successfully') }}",
+                    type: 'success',
+                    padding: '2em'
+                })
+            }
+        });
+    });
 </script>
 @endpush

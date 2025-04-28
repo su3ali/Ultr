@@ -72,5 +72,6 @@ return [
     'can_not_cancel'                                                                  => 'لا يمكن إلغاء الطلب',
     'new_appointment'                                                                 => 'لديك موعد جديد',
     'you_have_new_visit_appointment'                                                  => 'لديك موعد زيارة جديد',
+    'no_data_found'                                                                   => 'لا توجد بيانات',
 
 ];

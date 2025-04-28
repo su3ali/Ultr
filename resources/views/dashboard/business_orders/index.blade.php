@@ -180,8 +180,8 @@
             order: [[0, 'desc']],
             pageLength: 10,
             lengthMenu: [
-                [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000],
-                [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000]
+                [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000],
+                [10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
             ],
             pagingType: 'full_numbers',
             dom: `
@@ -218,6 +218,7 @@
                     extend: 'print',
                     className: 'btn btn-sm btn-primary',
                     text: '{{ __("dash.print") }}',
+                    autoPrint: true, 
                     exportOptions: {
                         columns: ':not(.no-export)',
                         format: {
@@ -230,11 +231,13 @@
                         modifier: { page: 'current' }
                     }
                 }
+
             ],
             language: {
                 url: "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
             }
         });
+        
     }
 
     // ========== Apply Status Color ==========

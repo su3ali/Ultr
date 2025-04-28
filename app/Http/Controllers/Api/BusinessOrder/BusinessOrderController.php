@@ -6,25 +6,31 @@ use App\Http\Resources\BusinessOrder\BusinessOrderResource;
 use App\Models\BusinessOrder;
 use App\Models\Group;
 use App\Support\Api\ApiResponse;
-use cache;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Log;
 
 class BusinessOrderController extends Controller
 {
+    use ApiResponse;
+
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum');
+    }
 
     protected function orderDetails($id)
     {
         $order = BusinessOrder::find($id);
 
         if (! $order) {
-            return self::apiResponse(404, __('api.Order not found'), []);
+            return self::apiResponse(404, __('api.no_data_found'));
         }
 
-        $this->body['businessOrder'] = BusinessOrderResource::make($order);
-        return self::apiResponse(200, null, $this->body);
+        return self::apiResponse(200, null, [
+            'businessOrder' => BusinessOrderResource::make($order),
+        ]);
     }
 
     protected function myCurrentOrders()
@@ -33,8 +39,7 @@ class BusinessOrderController extends Controller
         $groupIds     = Group::where('technician_id', $technicianId)->pluck('id');
 
         if ($groupIds->isEmpty()) {
-            $this->body['businessOrder'] = [];
-            return self::apiResponse(200, null, $this->body);
+            return self::apiResponse(404, __('api.no_data_found'));
         }
 
         $orders = BusinessOrder::with(['user', 'status', 'car'])
@@ -43,8 +48,13 @@ class BusinessOrderController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        $this->body['businessOrder'] = BusinessOrderResource::collection($orders);
-        return self::apiResponse(200, null, $this->body);
+        if ($orders->isEmpty()) {
+            return self::apiResponse(404, __('api.no_data_found'));
+        }
+
+        return self::apiResponse(200, null, [
+            'businessOrder' => BusinessOrderResource::collection($orders),
+        ]);
     }
 
     protected function myPreviousOrders()
@@ -54,13 +64,12 @@ class BusinessOrderController extends Controller
             $groupIds     = Group::where('technician_id', $technicianId)->pluck('id');
 
             if ($groupIds->isEmpty()) {
-                $this->body['businessOrder'] = [];
-                return self::apiResponse(200, null, $this->body);
+                return self::apiResponse(404, __('api.no_data_found'));
             }
 
             $cacheKey = "myPreviousOrders_$technicianId";
 
-            $orders = cache()->remember($cacheKey, 300, function () use ($groupIds) {
+            $orders = Cache::remember($cacheKey, 300, function () use ($groupIds) {
                 return BusinessOrder::with(['user', 'status', 'car'])
                     ->whereIn('status_id', [3, 4])
                     ->whereIn('assign_to_id', $groupIds)
@@ -69,49 +78,44 @@ class BusinessOrderController extends Controller
                     ->get();
             });
 
-            $this->body['businessOrder'] = BusinessOrderResource::collection($orders);
-            return self::apiResponse(200, null, $this->body);
+            if ($orders->isEmpty()) {
+                return self::apiResponse(404, __('api.no_data_found'));
+            }
 
+            return self::apiResponse(200, null, [
+                'businessOrder' => BusinessOrderResource::collection($orders),
+            ]);
         } catch (\Exception $e) {
             Log::error('myPreviousOrders error: ' . $e->getMessage());
-            return self::apiResponse(500, __('api.Something went wrong, please try again later'), []);
+            return self::apiResponse(500, __('api.something_went_wrong'));
         }
     }
 
     protected function changeStatus(Request $request)
     {
-        $rules = [
+        $validator = Validator::make($request->all(), [
             'order_id'  => 'required|exists:business_orders,id',
             'status_id' => 'required|exists:business_order_statuses,id',
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
+        ]);
 
         if ($validator->fails()) {
-            return self::apiResponse(400, __('api.validation error'), $validator->errors());
-        }
-        if ($request->status_id == BusinessOrder::STATUS_CANCELED) {
-            return self::apiResponse(400, __('api.can_not_cancel'), []);
+            return self::apiResponse(400, __('api.validation_error'), $validator->errors());
         }
 
         if ($request->status_id == BusinessOrder::STATUS_CANCELED) {
-
-            if ($request->status_id == BusinessOrder::STATUS_CANCELED) {
-                return self::apiResponse(400, __('api.can not cancale'), []);
-            }
+            return self::apiResponse(400, __('api.cannot_cancel_order'));
         }
 
         $order = BusinessOrder::find($request->order_id);
 
         if (! $order) {
-            return self::apiResponse(404, __('api.not found'), []);
+            return self::apiResponse(404, __('api.no_data_found'));
         }
 
         $order->update([
             'status_id' => $request->status_id,
         ]);
 
-        return self::apiResponse(200, __('api.successfully'), $this->body);
+        return self::apiResponse(200, __('api.successfully_updated'));
     }
-
 }
