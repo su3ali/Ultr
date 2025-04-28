@@ -122,6 +122,7 @@ class BusinessOrderController extends Controller
         return self::apiResponse(200, __('api.successfully_updated'), [
             'businessOrder' => BusinessOrderResource::make($order),
         ]);
+
     }
 
 }

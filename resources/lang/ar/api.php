@@ -77,5 +77,6 @@ return [
     'successfully_deleted'                                                            => 'تم الحذف بنجاح',
     'validation_error'                                                                => 'خطأ في التحقق من صحة البيانات',
     'cannot_cancel_order'                                                             => 'لا يمكن إلغاء الطلب',
+    'successfully_updated'                                                            => 'تم التحديث بنجاح',
 
 ];
