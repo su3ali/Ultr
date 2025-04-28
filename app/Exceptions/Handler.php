@@ -33,7 +33,7 @@ class Handler extends ExceptionHandler
             ], 401);
         }
 
-        return redirect()->guest(route('login'));
+        return redirect()->guest(route('dashboard.login'));
     }
 
     public function render($request, Throwable $exception)
