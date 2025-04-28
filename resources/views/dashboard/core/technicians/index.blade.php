@@ -211,46 +211,45 @@
         });
 
         $(document).on('click', '#edit-tech', function() {
-            let id = $(this).data('id');
-            let name = $(this).data('name');
-            let user_name = $(this).data('user_name');
-            let email = $(this).data('email');
-            let phone = $(this).data('phone');
-            let specialization = $(this).data('specialization');
-            let active = $(this).data('active');
-            let group_id = $(this).data('group_id');
-            let day_id = $(this).data('day_id');
-            let country_id = $(this).data('country_id');
-            let address = $(this).data('address');
-            let wallet_id = $(this).data('wallet_id');
-            let birth_date = $(this).data('birth_date');
-            let identity_number = $(this).data('identity_number');
-            let image = $(this).data('image');
+    let id = $(this).data('id');
+    let name = $(this).data('name');
+    let user_name = $(this).data('user_name');
+    let email = $(this).data('email');
+    let phone = $(this).data('phone');
+    let specialization = $(this).data('specialization');
+    let active = $(this).data('active');
+    let group_id = $(this).data('group_id');
+    let day_id = $(this).data('day_id');
+    let country_id = $(this).data('country_id');
+    let address = $(this).data('address');
+    let wallet_id = $(this).data('wallet_id');
+    let birth_date = $(this).data('birth_date');
+    let identity_number = $(this).data('identity_number');
+    let image = $(this).data('image');
 
-            $('#tech_id').val(id);
-            $('#edit_day_id').val(day_id).trigger('change');
-            $('#edit_name').val(name);
-            $('#edit_user_name').val(user_name);
-            $('#edit_email').val(email);
-            $('#edit_phone').val(phone);
-            $('#edit_spec').val(specialization).trigger('change');
-            $('#edit_group').val(group_id).trigger('change');
-            $('#edit_country_id').val(country_id).trigger('change');
-            $('#edit_address').html(address);
-            $('#edit_wallet').val(wallet_id).trigger('change');
-            $('#edit_birth').val(birth_date);
-            $('#edit_identity_id').val(identity_number);
+    // Fill form fields
+    $('#tech_id').val(id);
+    $('#edit_name').val(name);
+    $('#edit_user_name').val(user_name);
+    $('#edit_email').val(email);
+    $('#edit_phone').val(phone);
+    $('#edit_spec').val(specialization).trigger('change');
+    $('#edit_group').val(group_id).trigger('change');
+    $('#edit_day_id').val(day_id).trigger('change');
+    $('#edit_country_id').val(country_id).trigger('change');
+    $('#edit_wallet').val(wallet_id).trigger('change');
+    $('#edit_birth').val(birth_date);
+    $('#edit_identity_id').val(identity_number);
+    $('#edit_address').val(address);
 
-            if (active && active === 1) {
-                $('#edit_status').prop('checked', true);
-            } else {
-                $('#edit_status').prop('checked', false);
-            }
+    // Handle active status checkbox
+    $('#edit_status').prop('checked', Boolean(active));
 
-            let action = "{{ route('dashboard.core.technician.update', 'id') }}";
-            action = action.replace('id', id);
-            $('#edit_tech_form').attr('action', action);
-        });
+    // Set form action
+    let action = "{{ route('dashboard.core.technician.update', 'id') }}";
+    $('#edit_tech_form').attr('action', action.replace('id', id));
+});
+
 
         $("body").on('change', '#customSwitchtech', function() {
             let active = $(this).is(':checked');

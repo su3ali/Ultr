@@ -93,6 +93,16 @@ class BusinessOrderController extends Controller
 
     protected function changeStatus(Request $request)
     {
+        // Check if language passed in header or query
+        $locale = $request->header('Accept-Language') ?? $request->query('lang');
+
+        if (! $locale) {
+            app()->setLocale('ar'); // Default to Arabic
+        } else {
+            app()->setLocale($locale);
+        }
+
+        // Now continue normally
         $validator = Validator::make($request->all(), [
             'order_id'  => 'required|exists:business_orders,id',
             'status_id' => 'required|exists:business_order_statuses,id',
@@ -116,13 +126,11 @@ class BusinessOrderController extends Controller
             'status_id' => $request->status_id,
         ]);
 
-        // Refresh the model to get the updated data
         $order->refresh();
 
         return self::apiResponse(200, __('api.successfully_updated'), [
             'businessOrder' => BusinessOrderResource::make($order),
         ]);
-
     }
 
 }
