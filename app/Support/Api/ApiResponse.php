@@ -1,8 +1,6 @@
 <?php
 namespace App\Support\Api;
 
-use Illuminate\Http\JsonResponse;
-
 trait ApiResponse
 {
     public static function apiResponse(
@@ -22,5 +20,4 @@ trait ApiResponse
             'info'    => $info,
         ], $code);
     }
-
 }
