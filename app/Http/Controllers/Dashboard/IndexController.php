@@ -21,8 +21,15 @@ class IndexController extends Controller
         // Get the late orders
         // $lateOrders = Order::lateToServe()->get();
 
-        $now            = Carbon::now('Asia/Riyadh');
-        $lateOrderCount = Order::lateToServe($now)->count();
+        $now       = Carbon::now('Asia/Riyadh');
+        $today     = $now->toDateString();
+        $yesterday = $now->copy()->subDay()->toDateString();
+
+        $lateOrderCount = Order::lateToServe($now)
+            ->whereHas('bookings', function ($q) use ($today, $yesterday) {
+                $q->whereIn('date', [$today, $yesterday]);
+            })
+            ->count();
 
         // dd($lateOrderCount);
 

@@ -14,7 +14,7 @@ class AddRegionIdToCartsTable extends Migration
     public function up()
     {
         Schema::table('carts', function (Blueprint $table) {
-            $table->unsignedBigInteger('region_id')->nullable()->after('date');
+            $table->unsignedBigInteger('region_id')->nullable()->after('user_id');
             $table->foreign('region_id')->references('id')->on('regions')->onDelete('cascade');
         });
     }

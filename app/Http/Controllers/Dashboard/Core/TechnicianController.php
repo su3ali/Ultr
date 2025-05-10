@@ -98,33 +98,33 @@ class TechnicianController extends Controller
 
                         'control' => '
                             <button type="button" id="edit-tech" class="btn btn-primary btn-sm edit"
-                                data-id="' . e($row->id) . '"
-                                data-name="' . e($row->name) . '"
-                                data-user_name="' . e($row->user_name) . '"
-                                data-email="' . e($row->email) . '"
-                                data-phone="' . e($row->phone) . '"
-                                data-specialization="' . e($row->spec_id) . '"
-                                data-active="' . e($row->active) . '"
-                                data-group_id="' . e($row->group_id) . '"
-                                data-country_id="' . e($row->country_id) . '"
-                                data-address="' . e($row->address) . '"
-                                data-day_id=\'' . json_encode(\App\Models\TechnicianWorkingDay::where('technician_id', $row->id)->pluck('day_id')->toArray()) . '\'
-                                data-wallet_id="' . e($row->wallet_id) . '"
-                                data-birth_date="' . e($row->birth_date) . '"
-                                data-identity_number="' . e($row->identity_id) . '"
+                                data-id="' . $row->id . '"
+                                data-name="' . $row->name . '"
+                                data-user_name="' . $row->user_name . '"
+                                data-email="' . $row->email . '"
+                                data-phone="' . $row->phone . '"
+                                data-specialization="' . $row->spec_id . '"
+                                data-active="' . $row->active . '"
+                                data-group_id="' . $row->group_id . '"
+                                data-country_id="' . $row->country_id . '"
+                                data-address="' . $row->address . '"
+
+                                data-day_id="' . json_encode(\App\Models\TechnicianWorkingDay::where('technician_id', $row->id)->pluck('day_id')->toArray()) . '"
+
+                                data-wallet_id="' . $row->wallet_id . '"
+                                data-birth_date="' . $row->birth_date . '"
+                                data-identity_number="' . $row->identity_id . '"
                                 data-image="' . ($row->image ? asset($row->image) : '') . '"
                                 data-toggle="modal"
                                 data-target="#editTechModel">
                                 <i class="far fa-edit fa-2x"></i>
                             </button>
-
                             <a data-table_id="html5-extension"
-                            data-href="' . route('dashboard.core.technician.destroy', $row->id) . '"
-                            data-id="' . e($row->id) . '"
-                            class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech">
+                               data-href="' . route('dashboard.core.technician.destroy', $row->id) . '"
+                               data-id="' . $row->id . '"
+                               class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
                                 <i class="far fa-trash-alt fa-2x"></i>
                             </a>',
-
                     ];
                 }),
             ]);

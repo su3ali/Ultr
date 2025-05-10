@@ -1002,6 +1002,7 @@ return [
 
     // late orders
     'lateOrder'                                => 'الطلبات المتأخرة',
+    'lateOrderToday'                           => 'الطلبات المتأخرة اليوم',
     'lateOrderCount'                           => 'عدد الطلبات المتأخرة',
     'lateOrderCountToday'                      => 'عدد الطلبات المتأخرة اليوم',
     'lateOrderCountWeek'                       => 'عدد الطلبات المتأخرة هذا الأسبوع',
