@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\Validation\ValidationException;
+use Log;
 
 class TechnicianController extends Controller
 {
@@ -23,29 +23,40 @@ class TechnicianController extends Controller
     public function index(Request $request)
     {
 
-        // Cache groups and specializations if they don't change often
-        $groups = cache()->remember('groups', 60, function () {
-            return Group::all();
-        });
-        $days = Day::where('is_active', 1)->get(['id', 'name_ar', 'name']);
-
-        $specs = cache()->remember('specs', 60, function () {
-            return Specialization::all();
-        });
+        $groups = cache()->remember('groups', 60, fn() => Group::all());
+        $specs  = cache()->remember('specs', 60, fn() => Specialization::all());
+        $days   = Day::where('is_active', 1)->get(['id', 'name_ar', 'name']);
 
         if ($request->ajax()) {
-            $techniciansQuery = Technician::query()->with(['group', 'specialization', 'workingDays']); // Eager load related data
 
-            // Apply filters
-            if ($request->has('group_id') && $request->group_id !== 'all') {
+            // Build the base query
+            $techniciansQuery = Technician::where('is_trainee', Technician::TECHNICIAN)
+                ->where('active', 1)
+                ->with(['group.region', 'specialization', 'workingDays']);
+
+            if ($request->has('date_filter') && $request->date_filter == 'today') {
+                // If the date filter is 'today', add the workingToday scope
+                $techniciansQuery = Technician::where('is_trainee', Technician::TECHNICIAN)
+                    ->where('active', 1)
+                    ->with(['group', 'specialization', 'workingDays'])
+                    ->workingToday(); //
+            } else {
+                $techniciansQuery = Technician::where('is_trainee', Technician::TECHNICIAN)
+                    ->where('active', 1)
+                    ->with(['group', 'specialization', 'workingDays']);
+            }
+
+            // Group filter
+            if ($request->filled('group_id') && $request->group_id !== 'all') {
                 $techniciansQuery->where('group_id', $request->group_id);
             }
 
-            if ($request->has('spec_id') && $request->spec_id !== 'all') {
+            // Specialization filter
+            if ($request->filled('spec_id') && $request->spec_id !== 'all') {
                 $techniciansQuery->where('spec_id', $request->spec_id);
             }
 
-            // Apply search filter
+            // Search filter
             if ($request->filled('search.value')) {
                 $search = $request->input('search.value');
                 $techniciansQuery->where(function ($query) use ($search) {
@@ -56,80 +67,96 @@ class TechnicianController extends Controller
                 });
             }
 
-            // Get filtered total count
-            $filteredRecords = $techniciansQuery->clone()->count();
+            // Clone for filtered count
+            $filteredRecords = (clone $techniciansQuery)->count();
 
-            // Apply pagination
-            $technicians = $techniciansQuery->skip($request->input('start', 0))
+            // Pagination
+            $technicians = $techniciansQuery
+                ->skip($request->input('start', 0))
                 ->take($request->input('length', 10))
                 ->get();
 
-            // Return DataTables response
+            // Format DataTables JSON response
+            $data = $technicians->map(function ($row) {
+                $whatsAppLink = $row->phone
+                ? '<a href="https://api.whatsapp.com/send?phone=' .
+                (preg_match('/^05/', $row->phone) ? '966' . substr($row->phone, 1) : $row->phone) .
+                '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->phone . '</a>'
+                : 'N/A';
+
+                $imageTag = $row->image
+                ? '<img class="img-fluid" style="width: 85px;" src="' . asset($row->image) . '"/>'
+                : __('dash.no_image');
+
+                $locale   = app()->getLocale();
+                $specName = $locale === 'ar'
+                ? $row->specialization?->name_ar
+                : $row->specialization?->name_en;
+
+                $regionTitle = $row->group?->region?->first()?->title ?? '';
+
+                $statusToggle = '
+                <label class="switch s-outline s-outline-info mb-4 mr-2">
+                    <input type="checkbox" id="customSwitchtech" data-id="' . $row->id . '" ' . ($row->active ? 'checked' : '') . '>
+                    <span class="slider round"></span>
+                </label>';
+
+                $control = '';
+
+                if (auth()->user()->hasRole('admin')) {
+                    $dayIds = TechnicianWorkingDay::where('technician_id', $row->id)->pluck('day_id')->toArray();
+                    $control .= '
+                <button type="button" id="edit-tech" class="btn btn-primary btn-sm edit"
+                    data-id="' . $row->id . '"
+                    data-name="' . $row->name . '"
+                    data-user_name="' . $row->user_name . '"
+                    data-email="' . $row->email . '"
+                    data-phone="' . $row->phone . '"
+                    data-specialization="' . $row->spec_id . '"
+                    data-active="' . $row->active . '"
+                    data-group_id="' . $row->group_id . '"
+                    data-country_id="' . $row->country_id . '"
+                    data-address="' . $row->address . '"
+                    data-day_id=\'' . json_encode($dayIds) . '\'
+                    data-wallet_id="' . $row->wallet_id . '"
+                    data-birth_date="' . $row->birth_date . '"
+                    data-identity_number="' . $row->identity_id . '"
+                    data-image="' . ($row->image ? asset($row->image) : '') . '"
+                    data-toggle="modal"
+                    data-target="#editTechModel">
+                    <i class="far fa-edit fa-2x"></i>
+                </button>';
+
+                    $control .= '
+                <a data-table_id="html5-extension"
+                   data-href="' . route('dashboard.core.technician.destroy', $row->id) . '"
+                   data-id="' . $row->id . '"
+                   class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech">
+                    <i class="far fa-trash-alt fa-2x"></i>
+                </a>';
+                }
+
+                return [
+                    'id'      => '<a href="' . route('dashboard.core.technician.details', ['id' => $row->id]) . '">' . $row->id . '</a>',
+                    'name'    => '<a href="#">' . $row->name . '</a>',
+                    't_image' => $imageTag,
+                    'spec'    => $specName,
+                    'phone'   => $whatsAppLink,
+                    'group'   => $row->group?->name,
+                    'region'  => $regionTitle,
+                    'status'  => $statusToggle,
+                    'control' => $control,
+                ];
+            });
+
             return response()->json([
                 'draw'            => $request->input('draw'),
-                'recordsTotal'    => Technician::count(), // Total count of technicians (unfiltered)
+                'recordsTotal'    => Technician::count(),
                 'recordsFiltered' => $filteredRecords,
-                'data'            => $technicians->map(function ($row) {
-                    return [
-                        'id'      => '<a href="' . route('dashboard.core.technician.details', ['id' => $row->id]) . '">' . $row->id . '</a>',
-
-                        'name'    => '<a href="#" >' . $row->name . '</a>',
-
-                        't_image' => $row->image && ! is_null($row->image)
-                        ? '<img class="img-fluid" style="width: 85px;" src="' . asset($row->image) . '"/>'
-                        : __('dash.no_image'),
-
-                        'spec'    => app()->getLocale() === 'ar'
-                        ? $row->specialization?->name_ar
-                        : $row->specialization?->name_en,
-                        'phone'   => $row->phone
-                        ? '<a href="https://api.whatsapp.com/send?phone=' .
-                        (preg_match('/^05/', $row->phone) ? '966' . substr($row->phone, 1) : $row->phone) .
-                        '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->phone . '</a>'
-                        : 'N/A',
-
-                        'group'   => $row->group?->name,
-                        'region'  => $row->group?->region?->first()?->title ?? '',
-                        'status'  => '
-                            <label class="switch s-outline s-outline-info mb-4 mr-2">
-                                <input type="checkbox" id="customSwitchtech" data-id="' . $row->id . '" ' . ($row->active ? 'checked' : '') . '>
-                                <span class="slider round"></span>
-                            </label>',
-
-                        'control' => '
-                            <button type="button" id="edit-tech" class="btn btn-primary btn-sm edit"
-                                data-id="' . $row->id . '"
-                                data-name="' . $row->name . '"
-                                data-user_name="' . $row->user_name . '"
-                                data-email="' . $row->email . '"
-                                data-phone="' . $row->phone . '"
-                                data-specialization="' . $row->spec_id . '"
-                                data-active="' . $row->active . '"
-                                data-group_id="' . $row->group_id . '"
-                                data-country_id="' . $row->country_id . '"
-                                data-address="' . $row->address . '"
-
-                                data-day_id="' . json_encode(\App\Models\TechnicianWorkingDay::where('technician_id', $row->id)->pluck('day_id')->toArray()) . '"
-
-                                data-wallet_id="' . $row->wallet_id . '"
-                                data-birth_date="' . $row->birth_date . '"
-                                data-identity_number="' . $row->identity_id . '"
-                                data-image="' . ($row->image ? asset($row->image) : '') . '"
-                                data-toggle="modal"
-                                data-target="#editTechModel">
-                                <i class="far fa-edit fa-2x"></i>
-                            </button>
-                            <a data-table_id="html5-extension"
-                               data-href="' . route('dashboard.core.technician.destroy', $row->id) . '"
-                               data-id="' . $row->id . '"
-                               class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
-                                <i class="far fa-trash-alt fa-2x"></i>
-                            </a>',
-                    ];
-                }),
+                'data'            => $data,
             ]);
-
         }
+
         $nationalities = [
             "فلبين"     => "1",
             "اندونيسيا" => "2",
@@ -139,10 +166,12 @@ class TechnicianController extends Controller
             "باكستان"   => "6",
             "مصر"       => "7",
         ];
+
         $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
 
-        return view('dashboard.core.technicians.index', compact('groups', 'specs', 'days', 'nationalities', 'days', 'clientProjects'));
-
+        return view('dashboard.core.technicians.index', compact(
+            'groups', 'specs', 'days', 'nationalities', 'clientProjects'
+        ));
     }
 
     public function showTechnicianDetails($id)
@@ -158,65 +187,6 @@ class TechnicianController extends Controller
 
     }
 
-    /**
-     * @throws ValidationException
-     */
-    // protected function store(Request $request): RedirectResponse
-    // {
-
-    //     $rules = [
-    //         'day_id'      => 'required|array|exists:days,id',
-    //         'name'        => 'required|String|min:3',
-    //         'email'       => 'required|Email|unique:technicians,email',
-    //         'phone'       => 'required|unique:technicians,phone',
-    //         'user_name'   => ['required', 'regex:/^[^\s]+$/', 'unique:technicians,user_name'],
-    //         'password'    => ['required', 'confirmed', Password::min(4)],
-    //         'spec_id'     => 'required|exists:specializations,id',
-    //         'country_id'  => 'required',
-    //         'identity_id' => 'required|Numeric',
-    //         'birth_date'  => 'required|Date',
-    //         'wallet_id'   => 'required',
-    //         'address'     => 'required|String',
-    //         'group_id'    => 'nullable',
-    //         'image'       => 'required|image|mimes:jpeg,jpg,png,gif',
-    //         'active'      => 'nullable|in:on,off',
-    //     ];
-    //     $validated = Validator::make($request->all(), $rules, ['user_name.regex' => 'يجب أن لا يحتوي اسم المستخدم على أي مسافات']);
-    //     if ($validated->fails()) {
-    //         return redirect()->back()->withErrors($validated->errors());
-    //     }
-    //     $validated = $validated->validated();
-    //     if ($validated['active'] && $validated['active'] == 'on') {
-    //         $validated['active'] = 1;
-    //     } else {
-    //         $validated['active'] = 0;
-    //     }
-    //     if ($request->hasFile('image')) {
-    //         $image    = $request->file('image');
-    //         $filename = time() . '.' . $image->getClientOriginalExtension();
-    //         $request->image->move(storage_path('app/public/images/technicians/'), $filename);
-    //         $validated['image'] = 'storage/images/technicians' . '/' . $filename;
-    //     }
-    //     $days = $validated['day_id'];
-    //     unset($validated['day_id']);
-
-    //     $technician = Technician::query()->create($validated);
-
-    //     $workingDays = [];
-    //     foreach ($days as $day) {
-    //         $workingDays[] = [
-    //             'technician_id' => $technician->id,
-    //             'day_id'        => $day,
-    //             'created_at'    => now(),
-    //             'updated_at'    => now(),
-    //         ];
-    //     }
-
-    //     TechnicianWorkingDay::insert($workingDays);
-
-    //     session()->flash('success');
-    //     return redirect()->back();
-    // }
     protected function store(Request $request)
     {
 

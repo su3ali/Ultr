@@ -1130,4 +1130,5 @@ return [
     'add_service_price_for_project'         => 'Add Service Price for Project',
     'loading'                               => 'Loading...',
     'change_team'                           => 'Change Team',
+    'technicians_today'                     => 'Technicians Today',
 ];

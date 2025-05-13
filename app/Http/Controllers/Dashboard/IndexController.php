@@ -63,7 +63,13 @@ class IndexController extends Controller
         })
             ->count();
 
-        $technicians    = Technician::where('is_trainee', Technician::TECHNICIAN)->count();
+        // $technicians = Technician::where('is_trainee', Technician::TECHNICIAN)->where('active', 1)->count();
+
+        $technicians = Technician::where('is_trainee', Technician::TECHNICIAN)
+            ->where('active', 1)
+            ->workingToday()
+            ->count();
+
         $total_trainees = Technician::where('is_trainee', Technician::TRAINEE)->count();
         $tech_visits    = Visit::where('is_active', 1)->count();
 
