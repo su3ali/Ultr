@@ -257,7 +257,7 @@
                                     {{ $lateOrderCount }}
                                 </div>
                                 <div style="font-size: 14px; color: #64748b;">
-                                    {{ __('dash.lateOrder') }}
+                                    {{ __('dash.lateOrderToday') }}
                                 </div>
                             </div>
                             <div>
@@ -569,10 +569,10 @@
                 @endif
 
                 {{-- All bookings --}}
-        @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_bookings'))
-        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
-            <a href="{{  url('admin/bookings?type=service&page=home') }}" class="text-decoration-none">
-                <div style="
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_bookings'))
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{  url('admin/bookings?type=service&page=home') }}" class="text-decoration-none">
+                        <div style="
                                 display: flex;
                                 align-items: center;
                                 background-color: #ffffff;
@@ -582,36 +582,36 @@
                                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
                                 transition: 0.3s;
                             ">
-                    <div style="flex-grow: 1;">
-                        <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
-                            {{ $bookings_count }}
-                        </div>
-                        <div style="font-size: 14px; color: #64748b;">
-                            {{ __('dash.bookings') }}
-                        </div>
-                    </div>
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">
+                                    {{ $bookings_count }}
+                                </div>
+                                <div style="font-size: 14px; color: #64748b;">
+                                    {{ __('dash.bookings') }}
+                                </div>
+                            </div>
 
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="#6366f1"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-map-pin">
-                            <path d="M21 10c0 6-9 13-9 13s-9-7-9-13a9 9 0 0118 0z" />
-                            <circle cx="12" cy="10" r="3" />
-                        </svg>
-                    </div>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-map-pin">
+                                    <path d="M21 10c0 6-9 13-9 13s-9-7-9-13a9 9 0 0118 0z" />
+                                    <circle cx="12" cy="10" r="3" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-            </a>
-        </div>
-        @endif
+                @endif
 
             </div>
-            
+
         </div>
 
 
 
 
-        
+
     </div>
 
 

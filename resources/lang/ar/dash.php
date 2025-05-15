@@ -1002,6 +1002,7 @@ return [
 
     // late orders
     'lateOrder'                                => 'الطلبات المتأخرة',
+    'lateOrderToday'                           => 'الطلبات المتأخرة اليوم',
     'lateOrderCount'                           => 'عدد الطلبات المتأخرة',
     'lateOrderCountToday'                      => 'عدد الطلبات المتأخرة اليوم',
     'lateOrderCountWeek'                       => 'عدد الطلبات المتأخرة هذا الأسبوع',
@@ -1068,4 +1069,6 @@ return [
     'no_data_found'                            => 'لا توجد بيانات',
     'order_completed_cannot_change_technician' => 'لا يمكن تغيير الفني بعد إتمام الطلب',
     'change_team'                              => 'تغيير الفريق',
+    'technicians_today'                        => 'فنيين اليوم',
+    'bustechnicians_management'                  => 'إدارة الفنيين',
 ];

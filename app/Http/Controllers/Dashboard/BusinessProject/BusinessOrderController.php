@@ -159,7 +159,7 @@ class BusinessOrderController extends Controller
             'status_id'         => 'nullable|exists:order_statuses,id',
             'assign_to_id'      => 'nullable|exists:groups,id',
             'reason_cancel_id'  => 'nullable|exists:reason_cancels,id',
-            'payment_method_id' => 'nullable|exists:payment_methods,id',
+            'payment_method_id' => 'required|exists:payment_methods,id',
             'price'             => 'required|numeric',
             'notes'             => 'nullable|string',
             'client_project_id' => 'required|exists:client_projects,id',

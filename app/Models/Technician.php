@@ -1,16 +1,17 @@
 <?php
 namespace App\Models;
 
-use App\Models\BusinessOrderTechnicianHistory;
-use App\Models\BusinessProject\ClientProject;
-use App\Models\BusinessProject\ClientProjectBranchFloor;
-use App\Models\Models\BusinessProject\ClientProjectBranch;
+use Carbon\Carbon;
+use Laravel\Sanctum\HasApiTokens;
 use App\Support\Traits\HasPassword;
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Notifications\Notifiable;
+use App\Models\BusinessProject\ClientProject;
+use App\Models\BusinessOrderTechnicianHistory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
+use App\Models\BusinessProject\ClientProjectBranchFloor;
+use App\Models\Models\BusinessProject\ClientProjectBranch;
 
 class Technician extends Authenticatable
 {
@@ -50,6 +51,15 @@ class Technician extends Authenticatable
     public function workingDays()
     {
         return $this->hasMany(TechnicianWorkingDay::class, 'technician_id', 'id');
+    }
+
+    public function scopeWorkingToday($query)
+    {
+        $today = Carbon::now()->dayOfWeek;
+
+        return $query->whereHas('workingDays', function ($q) use ($today) {
+            $q->where('day_id', $today);
+        });
     }
 
     public function clientProject()

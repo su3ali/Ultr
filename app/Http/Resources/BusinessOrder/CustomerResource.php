@@ -8,9 +8,9 @@ class CustomerResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id'   => $this->id,
-            'name' => $this->first_name . ' ' . $this->last_name,
-            'phone '=> $this->phone,
+            'id'    => $this->id,
+            'name'  => $this->first_name . ' ' . $this->last_name,
+            'phone' => $this->phone,
         ];
     }
 }

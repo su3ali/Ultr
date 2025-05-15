@@ -26,7 +26,7 @@ class ChangeShiftNoToStringInShiftsTable extends Migration
      */
     public function down()
     {
-        Schema::table('string_in_shifts', function (Blueprint $table) {
+        Schema::table('shifts', function (Blueprint $table) {
             //
         });
     }

@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Models\Visit;
 use App\Support\Api\ApiResponse;
 use App\Traits\NotificationTrait;
+use Auth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -56,6 +57,7 @@ class VisitsController extends Controller
 
     protected function myPreviousOrders()
     {
+
         try {
             $groupIds = Group::where('technician_id', auth('sanctum')->user()->id)->pluck('id')->toArray();
             $groups   = Group::where('technician_id', auth('sanctum')->user()->id)->first();

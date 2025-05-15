@@ -64,6 +64,15 @@
                     </button>
 
                 </div>
+
+                <div class="col-md-4">
+                    <select id="dateFilter" class="form-control">
+                        <option value="today" selected>{{ __('dash.technicians_today') }}</option>
+                        <option value="all">{{ __('dash.all') }}</option>
+                    </select>
+                </div>
+
+
                 <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
                     <thead>
                         <tr>
@@ -89,167 +98,116 @@
 </div>
 @include('dashboard.core.technicians.edit')
 @endsection
-
 @push('script')
 <script type="text/javascript">
     $(document).ready(function() {
-            var table = $('#html5-extension').DataTable({
-                dom: "<'dt--top-section d-flex justify-content-between align-items-center'<'col-sm-12 col-md-4 d-flex justify-content-start'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-end'f>>" +
-                    "<'table-responsive'tr>" + // Table rows
-                    "<'dt--bottom-section d-flex justify-content-between'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'p>>" +
-                    "<'dt--pages-count text-center mt-2'i>", // Entry count at the bottom-center
+        var table = $('#html5-extension').DataTable({
+            dom: "<'dt--top-section d-flex justify-content-between align-items-center'<'col-sm-12 col-md-4 d-flex justify-content-start'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-end'f>>" +
+                "<'table-responsive'tr>" + // Table rows
+                "<'dt--bottom-section d-flex justify-content-between'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'p>>" +
+                "<'dt--pages-count text-center mt-2'i>", // Entry count at the bottom-center
 
-                order: [
-                    [0, 'desc']
-                ],
-                pageLength: 10,
-                lengthMenu: [
-                    [10, 30, 100, 200],
-                    [10, 30, 100, 200]
-                ],
-                // Missing comma added here
-                language: {
-                    "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
-                },
-                buttons: [
-                    {
-                            extend: 'copy',
-                            className: 'btn btn-sm',
-                            text: '{{ __("dash.copy") }}'
-
-
-                        },
-                        {
-                            extend: 'csv',
-                            className: 'btn btn-sm',
-                            text: '{{ __("dash.csv") }}'
-                        },
-                        {
-                            extend: 'excel',
-                            className: 'btn btn-sm',
-                            text: '{{ __("dash.excel") }}'
-                        },
-                        {
-                            extend: 'print',
-                            className: 'btn btn-sm',
-                            text: '{{ __("dash.print") }}'
-                        }
-                    
-                ],
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: '{{ route('dashboard.core.technician.index') }}',
-                    data: function(d) {
-                        // Add filter data to the DataTable request
-                        d.group_id = $('#group_filter').val();
-                        d.spec_id = $('#spec_filter').val();
-                        d['search[value]'] = $('#searchInput')
-                            .val(); // Use the correct key to pass search value
-                    }
-                },
-                columns: [{
-                        data: 'id',
-                        name: 'id'
-                    },
-                    {
-                        data: 'name',
-                        name: 'name'
-                    },
-                    {
-                        data: 't_image',
-                        name: 't_image',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'spec',
-                        name: 'spec'
-                    },
-                    {
-                        data: 'phone',
-                        name: 'phone'
-                    },
-                    {
-                        data: 'group',
-                        name: 'group'
-                    },
-
-                    {
-                        data: 'region',
-                        name: 'region'
-                    },
-
-
-                    {
-                        data: 'status',
-                        name: 'status'
-                    },
-                    {
-                        data: 'control',
-                        name: 'control',
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
-                initComplete: function() {
-                    // Set up group and spec filter dropdowns
-                    $('#group_filter').change(function() {
-                        table.draw();
-                    });
-
-                    $('#spec_filter').change(function() {
-                        table.draw();
-                    });
-
-                    // Search functionality
-                    $('#searchInput').keyup(function() {
-                        table.draw();
-                    });
+            order: [
+                [0, 'desc']
+            ],
+            pageLength: 10,
+            lengthMenu: [
+                [10, 30, 100, 200],
+                [10, 30, 100, 200]
+            ],
+            language: {
+                "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
+            },
+            buttons: [
+                { extend: 'copy', className: 'btn btn-sm', text: '{{ __("dash.copy") }}' },
+                { extend: 'csv', className: 'btn btn-sm', text: '{{ __("dash.csv") }}' },
+                { extend: 'excel', className: 'btn btn-sm', text: '{{ __("dash.excel") }}' },
+                { extend: 'print', className: 'btn btn-sm', text: '{{ __("dash.print") }}' }
+            ],
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route('dashboard.core.technician.index') }}',
+                data: function(d) {
+                    // Add filter data to the DataTable request
+                    d.group_id = $('#group_filter').val();
+                    d.spec_id = $('#spec_filter').val();
+                    d['search[value]'] = $('#searchInput').val(); 
+                    d.date_filter = $('#dateFilter').val(); // Get the selected value from dropdown
                 }
-            });
+            },
+            columns: [
+                { data: 'id', name: 'id' },
+                { data: 'name', name: 'name' },
+                { data: 't_image', name: 't_image', orderable: false, searchable: false },
+                { data: 'spec', name: 'spec' },
+                { data: 'phone', name: 'phone' },
+                { data: 'group', name: 'group' },
+                { data: 'region', name: 'region' },
+                { data: 'status', name: 'status' },
+                { data: 'control', name: 'control', orderable: false, searchable: false }
+            ],
+            initComplete: function() {
+                // Set up group and spec filter dropdowns
+                $('#group_filter').change(function() {
+                    table.draw();
+                });
+
+                $('#spec_filter').change(function() {
+                    table.draw();
+                });
+
+                // Search functionality
+                $('#searchInput').keyup(function() {
+                    table.draw();
+                });
+
+                // Date Filter functionality
+                $('#dateFilter').change(function() {
+                    table.draw(); // Redraw the table when the date filter changes
+                });
+            }
         });
 
         $(document).on('click', '#edit-tech', function() {
-    let id = $(this).data('id');
-    let name = $(this).data('name');
-    let user_name = $(this).data('user_name');
-    let email = $(this).data('email');
-    let phone = $(this).data('phone');
-    let specialization = $(this).data('specialization');
-    let active = $(this).data('active');
-    let group_id = $(this).data('group_id');
-    let day_id = $(this).data('day_id');
-    let country_id = $(this).data('country_id');
-    let address = $(this).data('address');
-    let wallet_id = $(this).data('wallet_id');
-    let birth_date = $(this).data('birth_date');
-    let identity_number = $(this).data('identity_number');
-    let image = $(this).data('image');
+            let id = $(this).data('id');
+            let name = $(this).data('name');
+            let user_name = $(this).data('user_name');
+            let email = $(this).data('email');
+            let phone = $(this).data('phone');
+            let specialization = $(this).data('specialization');
+            let active = $(this).data('active');
+            let group_id = $(this).data('group_id');
+            let day_id = $(this).data('day_id');
+            let country_id = $(this).data('country_id');
+            let address = $(this).data('address');
+            let wallet_id = $(this).data('wallet_id');
+            let birth_date = $(this).data('birth_date');
+            let identity_number = $(this).data('identity_number');
+            let image = $(this).data('image');
 
-    // Fill form fields
-    $('#tech_id').val(id);
-    $('#edit_name').val(name);
-    $('#edit_user_name').val(user_name);
-    $('#edit_email').val(email);
-    $('#edit_phone').val(phone);
-    $('#edit_spec').val(specialization).trigger('change');
-    $('#edit_group').val(group_id).trigger('change');
-    $('#edit_day_id').val(day_id).trigger('change');
-    $('#edit_country_id').val(country_id).trigger('change');
-    $('#edit_wallet').val(wallet_id).trigger('change');
-    $('#edit_birth').val(birth_date);
-    $('#edit_identity_id').val(identity_number);
-    $('#edit_address').val(address);
+            // Fill form fields
+            $('#tech_id').val(id);
+            $('#edit_name').val(name);
+            $('#edit_user_name').val(user_name);
+            $('#edit_email').val(email);
+            $('#edit_phone').val(phone);
+            $('#edit_spec').val(specialization);
+            $('#edit_group').val(group_id);
+            $('#edit_day_id').val(day_id);
+            $('#edit_country_id').val(country_id);
+            $('#edit_wallet').val(wallet_id);
+            $('#edit_birth').val(birth_date);
+            $('#edit_identity_id').val(identity_number);
+            $('#edit_address').val(address);
 
-    // Handle active status checkbox
-    $('#edit_status').prop('checked', Boolean(active));
+            // Handle active status checkbox
+            $('#edit_status').prop('checked', Boolean(active));
 
-    // Set form action
-    let action = "{{ route('dashboard.core.technician.update', 'id') }}";
-    $('#edit_tech_form').attr('action', action.replace('id', id));
-});
-
+            // Set form action
+            let action = "{{ route('dashboard.core.technician.update', 'id') }}";
+            $('#edit_tech_form').attr('action', action.replace('id', id));
+        });
 
         $("body").on('change', '#customSwitchtech', function() {
             let active = $(this).is(':checked');
@@ -272,5 +230,6 @@
                 }
             });
         });
+    });
 </script>
 @endpush

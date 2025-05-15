@@ -27,5 +27,6 @@ return [
     'success_login'            => 'successfully login',
     'user_has_been_logged_out' => 'User has been logged out',
     'filters'                  => 'Filters',
+    'lateOrderToday'           => 'Late Order Today',
 
 ];

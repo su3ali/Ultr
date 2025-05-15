@@ -21,8 +21,15 @@ class IndexController extends Controller
         // Get the late orders
         // $lateOrders = Order::lateToServe()->get();
 
-        $now            = Carbon::now('Asia/Riyadh');
-        $lateOrderCount = Order::lateToServe($now)->count();
+        $now       = Carbon::now('Asia/Riyadh');
+        $today     = $now->toDateString();
+        $yesterday = $now->copy()->subDay()->toDateString();
+
+        $lateOrderCount = Order::lateToServe($now)
+            ->whereHas('bookings', function ($q) use ($today, $yesterday) {
+                $q->whereIn('date', [$today, $yesterday]);
+            })
+            ->count();
 
         // dd($lateOrderCount);
 
@@ -56,7 +63,13 @@ class IndexController extends Controller
         })
             ->count();
 
-        $technicians    = Technician::where('is_trainee', Technician::TECHNICIAN)->count();
+        // $technicians = Technician::where('is_trainee', Technician::TECHNICIAN)->where('active', 1)->count();
+
+        $technicians = Technician::where('is_trainee', Technician::TECHNICIAN)
+            ->where('active', 1)
+            ->workingToday()
+            ->count();
+
         $total_trainees = Technician::where('is_trainee', Technician::TRAINEE)->count();
         $tech_visits    = Visit::where('is_active', 1)->count();
 
