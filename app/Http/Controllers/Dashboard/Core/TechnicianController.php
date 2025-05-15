@@ -30,19 +30,16 @@ class TechnicianController extends Controller
         if ($request->ajax()) {
 
             // Build the base query
-            $techniciansQuery = Technician::where('is_trainee', Technician::TECHNICIAN)
-                ->where('active', 1)
+            $techniciansQuery = Technician::where('active', 1)
                 ->with(['group.region', 'specialization', 'workingDays']);
 
             if ($request->has('date_filter') && $request->date_filter == 'today') {
                 // If the date filter is 'today', add the workingToday scope
-                $techniciansQuery = Technician::where('is_trainee', Technician::TECHNICIAN)
-                    ->where('active', 1)
+                $techniciansQuery = Technician::where('active', 1)
                     ->with(['group', 'specialization', 'workingDays'])
                     ->workingToday(); //
             } else {
-                $techniciansQuery = Technician::where('is_trainee', Technician::TECHNICIAN)
-                    ->where('active', 1)
+                $techniciansQuery = Technician::where('active', 1)
                     ->with(['group', 'specialization', 'workingDays']);
             }
 
