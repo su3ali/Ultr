@@ -180,14 +180,14 @@ class BusinessOrderController extends Controller
             ->where('client_project_id', $request->client_project_id)
             ->where('branch_id', $request->branch_id)
             ->whereHas('floors', fn($q) => $q->where('floor_id', $request->floor_id))
-            ->withCount(['orderHistories' => function ($q) use ($request) {
-                $q->whereHas('order', fn($oq) =>
-                    $oq->where('client_project_id', $request->client_project_id)
-                        ->where('branch_id', $request->branch_id)
-                        ->where('floor_id', $request->floor_id)
-                );
-            }])
-            ->orderBy('order_histories_count', 'asc')
+            // ->withCount(['orderHistories' => function ($q) use ($request) {
+            //     $q->whereHas('order', fn($oq) =>
+            //         $oq->where('client_project_id', $request->client_project_id)
+            //             ->where('branch_id', $request->branch_id)
+            //             ->where('floor_id', $request->floor_id)
+            //     );
+            // }])
+            // ->orderBy('order_histories_count', 'asc')
             ->first();
 
         // Second attempt: only if no technician was found for the floor — try technician with same project + branch (without floor)
