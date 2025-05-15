@@ -1070,5 +1070,7 @@ return [
     'order_completed_cannot_change_technician' => 'لا يمكن تغيير الفني بعد إتمام الطلب',
     'change_team'                              => 'تغيير الفريق',
     'technicians_today'                        => 'فنيين اليوم',
-    'bustechnicians_management'                  => 'إدارة الفنيين',
+    'business_technicians_management'          => 'إدارة فنيين الأعمال',
+    'business_technicians'                     => 'فنيين الأعمال',
+
 ];

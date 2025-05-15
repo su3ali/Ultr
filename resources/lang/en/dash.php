@@ -1131,4 +1131,7 @@ return [
     'loading'                               => 'Loading...',
     'change_team'                           => 'Change Team',
     'technicians_today'                     => 'Technicians Today',
+    'business_technicians_management'       => 'Business Technicians Management',
+    'business_technicians'                  => 'Business Technicians',
+    'business_technicians_groups'           => 'Business Technicians Groups',
 ];

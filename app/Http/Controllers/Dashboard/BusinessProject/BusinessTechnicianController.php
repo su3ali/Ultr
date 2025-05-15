@@ -1,5 +1,5 @@
 <?php
-namespace App\Http\Controllers\Dashboard\Core;
+namespace App\Http\Controllers\Dashboard\BusinessProject;
 
 use App\Http\Controllers\Controller;
 use App\Models\BusinessProject\ClientProject;
@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 
-class TechnicianController extends Controller
+class BusinessTechnicianController extends Controller
 {
     use imageTrait;
 
@@ -29,17 +29,19 @@ class TechnicianController extends Controller
         if ($request->ajax()) {
 
             // Build the base query
-            $techniciansQuery = Technician::where('active', 1)->where('is_business', 0)
+            $techniciansQuery = Technician::where('active', 1)->where('is_business', 1)
+                ->where('is_trainee', Technician::TECHNICIAN)
                 ->with(['group.region', 'specialization', 'workingDays']);
 
             if ($request->has('date_filter') && $request->date_filter == 'today') {
                 // If the date filter is 'today', add the workingToday scope
-                $techniciansQuery = Technician::where('is_trainee', Technician::TECHNICIAN)
-                    ->where('is_business', 0)
+                $techniciansQuery = Technician::where('active', 1)
+                ->where('is_business', 1)
                     ->with(['group', 'specialization', 'workingDays'])
                     ->workingToday(); //
             } else {
-                $techniciansQuery = Technician::where('active', 1)->where('is_trainee', Technician::TECHNICIAN)
+                $techniciansQuery = Technician::where('is_business', 1)
+                    ->where('is_trainee', Technician::TECHNICIAN)
                     ->with(['group', 'specialization', 'workingDays']);
             }
 
@@ -166,7 +168,7 @@ class TechnicianController extends Controller
 
         $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
 
-        return view('dashboard.core.technicians.index', compact(
+        return view('dashboard.business_technicians.index', compact(
             'groups', 'specs', 'days', 'nationalities', 'clientProjects'
         ));
     }
@@ -180,7 +182,7 @@ class TechnicianController extends Controller
             ->paginate(10);
 
         // Pass the technician data to the view
-        return view('dashboard.core.technicians.details', compact('technician', 'visits'));
+        return view('dashboard.business_technicians.details', compact('technician', 'visits'));
 
     }
 

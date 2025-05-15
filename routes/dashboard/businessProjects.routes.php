@@ -60,3 +60,5 @@ Route::resource('business_projects_prices', 'BusinessProject\ClientProjectServic
 // changeStatus
 Route::put('/business_orders/{order}/change-status', [BusinessOrderController::class, 'changeStatus'])
     ->name('dashboard.business_orders.changeStatus');
+
+Route::resource('businessTechnician', 'BusinessProject\BusinessTechnicianController');

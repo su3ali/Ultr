@@ -127,6 +127,42 @@
             </li>
             @endif
 
+            @can('view_technicians')
+            <li class="menu">
+                <a href="#tech" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    <div class="">
+                        <div class="icon-container">
+                            <i data-feather="users"></i>
+                            <span class="icon-name">{{ __('dash.business_technicians_management') }}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-chevron-right">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </a>
+                <ul class="collapse submenu list-unstyled" id="tech" data-parent="#accordionExample">
+                    <li>
+                        <a href="{{ route('dashboard.businessTechnician.index') }}"> {{ __('dash.technicians') }} </a>
+                    </li>
+
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_technicians'))
+
+                    <li>
+                        <a href="{{ route('dashboard.core.group.index') }}"> {{ __('dash.technicians_groups') }} </a>
+                    </li>
+                    @endif
+
+
+
+                </ul>
+            </li>
+            @endcan
+
+
 
             @can('view_packages')
             <li class="menu">
@@ -472,7 +508,7 @@
 
             @can('view_technicians')
             <li class="menu">
-                <a href="#tech" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                <a href="#bus-tech" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
                         <div class="icon-container">
                             <i data-feather="users"></i>
@@ -487,7 +523,7 @@
                         </svg>
                     </div>
                 </a>
-                <ul class="collapse submenu list-unstyled" id="tech" data-parent="#accordionExample">
+                <ul class="collapse submenu list-unstyled" id="bus-tech" data-parent="#accordionExample">
                     <li>
                         <a href="{{ route('dashboard.core.technician.index') }}"> {{ __('dash.technicians') }} </a>
                     </li>

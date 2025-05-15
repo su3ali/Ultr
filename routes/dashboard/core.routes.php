@@ -30,6 +30,7 @@ route_group('core', function () {
 
     Route::resource('technician', 'TechnicianController');
 
+
     Route::resource('trainee', 'TraineeController');
 
     Route::get('trainee/change_status/change', 'TraineeController@changeStatus')->name('trainee.change_status');
