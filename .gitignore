@@ -37,4 +37,5 @@ yarn-error.log
 Thumbs.db
 
 # Temporary files (backup files, etc.)
+.env
 

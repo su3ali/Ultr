@@ -92,41 +92,41 @@ class VisitsController extends Controller
             $this->body['visits'] = [];
             return self::apiResponse(200, null, $this->body);
         }
-        // $orders = Visit::whereHas('booking', function ($q) {
+        $orders = Visit::whereHas('booking', function ($q) {
 
-        //     $q->where('date', Carbon::now('Asia/Riyadh')->format('Y-m-d'))->whereHas('customer')->whereHas('address');
-        // })->with('booking', function ($q) {
-        //     $q->with(['service' => function ($q) {
-        //         $q->with('category');
-        //     }, 'customer', 'address']);
-        // })->with('status')->whereIn('visits_status_id', [1, 2, 3, 4])
-        //     ->whereIn('assign_to_id', $groupIds)->orderBy('created_at', 'desc')->get();
+            $q->where('date', Carbon::now('Asia/Riyadh')->format('Y-m-d'))->whereHas('customer')->whereHas('address');
+        })->with('booking', function ($q) {
+            $q->with(['service' => function ($q) {
+                $q->with('category');
+            }, 'customer', 'address']);
+        })->with('status')->whereIn('visits_status_id', [1, 2, 3, 4])
+            ->whereIn('assign_to_id', $groupIds)->orderBy('created_at', 'desc')->get();
 
         // Fetching Orders for Today, Tomorrow, and Yesterday
 
-        $today     = Carbon::now('Asia/Riyadh')->format('Y-m-d');
-        $tomorrow  = Carbon::now('Asia/Riyadh')->addDay()->format('Y-m-d');
-        $yesterday = Carbon::now('Asia/Riyadh')->subDay()->format('Y-m-d');
+        // $today     = Carbon::now('Asia/Riyadh')->format('Y-m-d');
+        // $tomorrow  = Carbon::now('Asia/Riyadh')->addDay()->format('Y-m-d');
+        // $yesterday = Carbon::now('Asia/Riyadh')->subDay()->format('Y-m-d');
 
-        $orders = Visit::whereHas('booking', function ($q) use ($today, $tomorrow, $yesterday) {
-            $q->whereIn('date', [$yesterday, $today, $tomorrow])
-                ->whereHas('customer')
-                ->whereHas('address');
-        })
-            ->with('booking', function ($q) {
-                $q->with([
-                    'service' => function ($q) {
-                        $q->with('category');
-                    },
-                    'customer',
-                    'address',
-                ]);
-            })
-            ->with('status')
-            ->whereIn('visits_status_id', [1, 2, 3, 4])
-            ->whereIn('assign_to_id', $groupIds)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // $orders = Visit::whereHas('booking', function ($q) use ($today, $tomorrow, $yesterday) {
+        //     $q->whereIn('date', [$yesterday, $today, $tomorrow])
+        //         ->whereHas('customer')
+        //         ->whereHas('address');
+        // })
+        //     ->with('booking', function ($q) {
+        //         $q->with([
+        //             'service' => function ($q) {
+        //                 $q->with('category');
+        //             },
+        //             'customer',
+        //             'address',
+        //         ]);
+        //     })
+        //     ->with('status')
+        //     ->whereIn('visits_status_id', [1, 2, 3, 4])
+        //     ->whereIn('assign_to_id', $groupIds)
+        //     ->orderBy('created_at', 'desc')
+        //     ->get();
 
         $this->body['visits'] = VisitsResource::collection($orders);
         return self::apiResponse(200, null, $this->body);
