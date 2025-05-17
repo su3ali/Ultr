@@ -62,3 +62,7 @@ Route::put('/business_orders/{order}/change-status', [BusinessOrderController::c
     ->name('dashboard.business_orders.changeStatus');
 
 Route::resource('businessTechnician', 'BusinessProject\BusinessTechnicianController');
+
+Route::get('businessTechnician/{id}/details', 'BusinessTechnicianController@showTechnicianDetails')->name('businessTechnician.details');
+
+

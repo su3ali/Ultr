@@ -127,9 +127,9 @@
             </li>
             @endif
 
-            @can('view_technicians')
+            @if($canAccessBusinessProjects)
             <li class="menu">
-                <a href="#tech" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                <a href="#bus-tech" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
                         <div class="icon-container">
                             <i data-feather="users"></i>
@@ -144,7 +144,7 @@
                         </svg>
                     </div>
                 </a>
-                <ul class="collapse submenu list-unstyled" id="tech" data-parent="#accordionExample">
+                <ul class="collapse submenu list-unstyled" id="bus-tech" data-parent="#accordionExample">
                     <li>
                         <a href="{{ route('dashboard.businessTechnician.index') }}"> {{ __('dash.technicians') }} </a>
                     </li>
@@ -160,7 +160,7 @@
 
                 </ul>
             </li>
-            @endcan
+            @endif
 
 
 
@@ -508,7 +508,7 @@
 
             @can('view_technicians')
             <li class="menu">
-                <a href="#bus-tech" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                <a href="#tech" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                     <div class="">
                         <div class="icon-container">
                             <i data-feather="users"></i>
@@ -523,7 +523,7 @@
                         </svg>
                     </div>
                 </a>
-                <ul class="collapse submenu list-unstyled" id="bus-tech" data-parent="#accordionExample">
+                <ul class="collapse submenu list-unstyled" id="tech" data-parent="#accordionExample">
                     <li>
                         <a href="{{ route('dashboard.core.technician.index') }}"> {{ __('dash.technicians') }} </a>
                     </li>

@@ -170,45 +170,88 @@
             }
         });
 
-        $(document).on('click', '#edit-tech', function() {
-            let id = $(this).data('id');
-            let name = $(this).data('name');
-            let user_name = $(this).data('user_name');
-            let email = $(this).data('email');
-            let phone = $(this).data('phone');
-            let specialization = $(this).data('specialization');
-            let active = $(this).data('active');
-            let group_id = $(this).data('group_id');
-            let day_id = $(this).data('day_id');
-            let country_id = $(this).data('country_id');
-            let address = $(this).data('address');
-            let wallet_id = $(this).data('wallet_id');
-            let birth_date = $(this).data('birth_date');
-            let identity_number = $(this).data('identity_number');
-            let image = $(this).data('image');
+       $(document).on('click', '#edit-tech', function() {
+    let id = $(this).data('id');
+    let name = $(this).data('name');
+    let user_name = $(this).data('user_name');
+    let email = $(this).data('email');
+    let phone = $(this).data('phone');
+    let specialization = $(this).data('specialization');
+    let active = $(this).data('active');
+    let group_id = $(this).data('group_id');
+    let day_id = $(this).data('day_id');
+    let country_id = $(this).data('country_id');
+    let address = $(this).data('address');
+    let wallet_id = $(this).data('wallet_id');
+    let birth_date = $(this).data('birth_date');
+    let identity_number = $(this).data('identity_number');
+    let image = $(this).data('image');
 
-            // Fill form fields
-            $('#tech_id').val(id);
-            $('#edit_name').val(name);
-            $('#edit_user_name').val(user_name);
-            $('#edit_email').val(email);
-            $('#edit_phone').val(phone);
-            $('#edit_spec').val(specialization);
-            $('#edit_group').val(group_id);
-            $('#edit_day_id').val(day_id);
-            $('#edit_country_id').val(country_id);
-            $('#edit_wallet').val(wallet_id);
-            $('#edit_birth').val(birth_date);
-            $('#edit_identity_id').val(identity_number);
-            $('#edit_address').val(address);
+    let is_business = $(this).data('is_business');
+    let client_project_id = $(this).data('client_project_id');
+    let branch_id = $(this).data('branch_id');
+    let floor_ids = $(this).data('floor_ids'); // should be array like [1,2,3]
 
-            // Handle active status checkbox
-            $('#edit_status').prop('checked', Boolean(active));
+    // Fill form fields
+    $('#tech_id').val(id);
+    $('#edit_name').val(name);
+    $('#edit_user_name').val(user_name);
+    $('#edit_email').val(email);
+    $('#edit_phone').val(phone);
+    $('#edit_spec').val(specialization).trigger('change');
+    $('#edit_group').val(group_id).trigger('change');
+    $('#edit_day_id').val(day_id).trigger('change');
+    $('#edit_country_id').val(country_id).trigger('change');
+    $('#edit_wallet').val(wallet_id).trigger('change');
+    $('#edit_birth').val(birth_date);
+    $('#edit_identity_id').val(identity_number);
+    $('#edit_address').val(address);
 
-            // Set form action
-            let action = "{{ route('dashboard.core.technician.update', 'id') }}";
-            $('#edit_tech_form').attr('action', action.replace('id', id));
+    // Handle active status checkbox
+    $('#edit_status').prop('checked', Boolean(active));
+
+    // Technician Type
+    if (is_business == 1) {
+        $('#edit_businessTech').prop('checked', true).trigger('change');
+        $('#editBusinessFields').slideDown();
+
+        // Select Project
+        $('#edit_client_project_id').val(client_project_id).trigger('change');
+
+        // Load branches dynamically
+        $.get(`/admin/get-project-branches/${client_project_id}`, function (branches) {
+            $('#edit_branch_id').html('<option value="">{{ __("dash.choose") }}</option>');
+            $.each(branches, function (i, branch) {
+                $('#edit_branch_id').append(`<option value="${branch.id}">${branch.name_ar}</option>`);
+            });
+
+            // Set selected branch
+            $('#edit_branch_id').val(branch_id).trigger('change');
+
+            // Load floors dynamically
+            $.get(`/admin/get-branch-floors/${branch_id}`, function (floors) {
+                $('#edit_floor_ids').empty();
+                $.each(floors, function (i, floor) {
+                    $('#edit_floor_ids').append(`<option value="${floor.id}">${floor.name_ar}</option>`);
+                });
+
+                // Set selected floors (multiple)
+                if (floor_ids && floor_ids.length > 0) {
+                    $('#edit_floor_ids').val(floor_ids).trigger('change');
+                }
+            });
         });
+
+    } else {
+        $('#edit_personalTech').prop('checked', true).trigger('change');
+        $('#editBusinessFields').slideUp();
+    }
+
+    // Set form action
+    let action = "{{ route('dashboard.core.technician.update', 'id') }}";
+    $('#edit_tech_form').attr('action', action.replace('id', id));
+});
+
 
         $("body").on('change', '#customSwitchtech', function() {
             let active = $(this).is(':checked');
@@ -232,5 +275,8 @@
             });
         });
     });
+
+
+    
 </script>
 @endpush
