@@ -1072,5 +1072,6 @@ return [
     'technicians_today'                        => 'فنيين اليوم',
     'business_technicians_management'          => 'إدارة فنيين الأعمال',
     'business_technicians'                     => 'فنيين الأعمال',
+    'business_technician_groups'              => 'مجموعات فنيين الأعمال',
 
 ];

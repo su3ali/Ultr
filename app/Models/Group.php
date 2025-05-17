@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 
+use App\Models\Technician;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,11 +26,19 @@ class Group extends Model
     {
         return $this->hasOne(Technician::class, 'id', 'technician_id');
     }
-
-    public function technicians()
+    public function technician()
     {
-        return $this->hasMany(Technician::class);
+        return $this->belongsTo(Technician::class, 'technician_id');
     }
+
+    public function scopeBusinessOnly($query)
+    {
+        return $query->whereHas('technician', function ($q) {
+            $q->where('is_business', 1)
+                ->where('is_trainee', Technician::TECHNICIAN);
+        });
+    }
+
     public function technician_groups()
     {
         return $this->hasMany(GroupTechnician::class);

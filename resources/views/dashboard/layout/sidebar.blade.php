@@ -152,7 +152,7 @@
                     @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_technicians'))
 
                     <li>
-                        <a href="{{ route('dashboard.core.group.index') }}"> {{ __('dash.technicians_groups') }} </a>
+                        <a href="{{ route('dashboard.businessGroup.index') }}"> {{ __('dash.technicians_groups') }} </a>
                     </li>
                     @endif
 

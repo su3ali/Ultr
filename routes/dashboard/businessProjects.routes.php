@@ -65,4 +65,7 @@ Route::resource('businessTechnician', 'BusinessProject\BusinessTechnicianControl
 
 Route::get('businessTechnician/{id}/details', 'BusinessTechnicianController@showTechnicianDetails')->name('businessTechnician.details');
 
+// Groups
 
+Route::get('businessGroup/change_status', 'BusinessGroupsController@change_status')->name('businessGroup.change_status');
+Route::resource('businessGroup', 'BusinessProject\BusinessGroupsController');
