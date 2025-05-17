@@ -24,9 +24,7 @@ class BusinessGroupsController extends Controller
         $technicians = Technician::where('is_business', 1)
             ->where('is_trainee', Technician::TECHNICIAN)
             ->get();
-            $groups = Group::businessOnly()->get();
-          
-
+        $groups = Group::businessOnly()->get();
 
         if (request()->ajax()) {
             $groups = Group::businessOnly()->get();
@@ -54,7 +52,6 @@ class BusinessGroupsController extends Controller
                     data-name_en="' . $row->name_en . '"
                     data-technician_id="' . $row->technician_id . '"
                     data-technician_group_id="' . $row->technician_groups->pluck('technician_id') . '"
-                    data-region_id="' . $row->regions->pluck('region_id') . '"
                     data-country_id="' . $row->country_id . '"
                     data-city_id="' . $row->city_id . '"
                     data-toggle="modal"
@@ -78,10 +75,9 @@ class BusinessGroupsController extends Controller
         }
 
         $countries = Country::pluck('title_ar', 'id');
-        $cities    = City::pluck('title_ar', 'id');
-        $regions   = Region::pluck('title_ar', 'id');
+        $cities    = City::pluck('title_ar', 'id')->where('active', 1);
 
-        return view('dashboard.business_groups.index', compact('technicians', 'countries', 'cities', 'regions'));
+        return view('dashboard.business_groups.index', compact('technicians', 'countries', 'cities'));
     }
 
     /**
@@ -98,8 +94,8 @@ class BusinessGroupsController extends Controller
             'technician_group_id.*' => 'required',
             'country_id'            => 'required|exists:countries,id',
             'city_id'               => 'required|exists:cities,id',
-            'region_id'             => 'required|array|exists:regions,id',
-            'region_id.*'           => 'required',
+            // 'region_id'             => 'required|array|exists:regions,id',
+            // 'region_id.*'           => 'required',
         ]);
 
         $data  = $request->except('_token', 'technician_group_id', 'region_id');
@@ -111,15 +107,18 @@ class BusinessGroupsController extends Controller
             ]);
         }
 
-        foreach ($request->region_id as $region) {
-            GroupRegion::create([
-                'group_id'  => $group->id,
-                'region_id' => $region,
-            ]);
-        }
+        // foreach ($request->region_id as $region) {
+        //     GroupRegion::create([
+        //         'group_id'  => $group->id,
+        //         'region_id' => $region,
+        //     ]);
+        // }
 
-        session()->flash('success');
-        return redirect()->back();
+        // session()->flash('success');
+        // return redirect()->back();
+
+        return redirect()->back()->with('success', __('dash.added_successfully'));
+
     }
     protected function update(Request $request, $id)
     {
@@ -133,11 +132,11 @@ class BusinessGroupsController extends Controller
             'technician_group_id.*' => 'required',
             'country_id'            => 'required|exists:countries,id',
             'city_id'               => 'required|exists:cities,id',
-            'region_id'             => 'required|array|exists:regions,id',
-            'region_id.*'           => 'required',
+            // 'region_id'             => 'required|array|exists:regions,id',
+            // 'region_id.*'           => 'required',
         ]);
 
-        $data = $request->except('_token', 'technician_group_id', 'region_id');
+        $data = $request->except('_token', 'technician_group_id');
 
         $group->update($data);
         GroupTechnician::where('group_id', $id)->delete();
@@ -148,16 +147,17 @@ class BusinessGroupsController extends Controller
             ]);
         }
 
-        GroupRegion::where('group_id', $id)->delete();
+        // GroupRegion::where('group_id', $id)->delete();
 
-        foreach ($request->region_id as $region) {
-            GroupRegion::create([
-                'group_id'  => $group->id,
-                'region_id' => $region,
-            ]);
-        }
-        session()->flash('success');
-        return redirect()->back();
+        // foreach ($request->region_id as $region) {
+        //     GroupRegion::create([
+        //         'group_id'  => $group->id,
+        //         'region_id' => $region,
+        //     ]);
+        // }
+
+        return redirect()->back()->with('success', __('dash.updated_successfully'));
+
     }
 
     protected function destroy($id)

@@ -14,7 +14,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form action="{{route('dashboard.core.group.store')}}" method="post" class="form-horizontal"
+                <form action="{{route('dashboard.businessGroup.store')}}" method="post" class="form-horizontal"
                       enctype="multipart/form-data" id="demo-form" data-parsley-validate="">
                     @csrf
                     <div class="box-body">
@@ -77,7 +77,7 @@
                             </div>
                         </div>
                         <div class="form-row mb-3">
-                            <div class="form-group col-md-4">
+                            <div class="form-group col-md-6">
 
                                 <label for="inputEmail4">{{__('dash.country')}}</label>
                                 <select id="inputState"  class="select2 country_id form-control pt-1"
@@ -93,7 +93,7 @@
 
                             </div>
 
-                            <div class="form-group col-md-4">
+                            <div class="form-group col-md-6">
 
                                 <label for="inputEmail4">{{__('dash.city')}}</label>
                                 <select id="inputState" class="select2 city_id form-control pt-1"
@@ -107,7 +107,7 @@
 
                             </div>
 
-                            <div class="form-group col-md-4">
+                            {{-- <div class="form-group col-md-4">
 
                                 <label for="inputEmail4">{{__('dash.region')}}</label>
                                 <select id="inputState"  multiple class="select2 region_id form-control pt-1"
@@ -119,7 +119,7 @@
                                 <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
 
-                            </div>
+                            </div> --}}
 
                         </div>
                     </div>
