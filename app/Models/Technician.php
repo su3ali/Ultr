@@ -1,17 +1,17 @@
 <?php
 namespace App\Models;
 
-use Carbon\Carbon;
-use Laravel\Sanctum\HasApiTokens;
-use App\Support\Traits\HasPassword;
-use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Notifications\Notifiable;
-use App\Models\BusinessProject\ClientProject;
 use App\Models\BusinessOrderTechnicianHistory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Models\BusinessProject\ClientProject;
 use App\Models\BusinessProject\ClientProjectBranchFloor;
 use App\Models\Models\BusinessProject\ClientProjectBranch;
+use App\Support\Traits\HasPassword;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class Technician extends Authenticatable
 {
@@ -55,10 +55,28 @@ class Technician extends Authenticatable
 
     public function scopeWorkingToday($query)
     {
-        $today = Carbon::now()->dayOfWeek;
+        $carbonDayOfWeek = Carbon::now('Asia/Riyadh')->dayOfWeek; // 0 (Sun) to 6 (Sat)
 
-        return $query->whereHas('workingDays', function ($q) use ($today) {
-            $q->where('day_id', $today);
+        // Convert Carbon's day index to your DB's day_id (Sat = 1 ... Fri = 7)
+        // Adjust mapping from Carbon (0–6) to your DB day_id (1–7)
+        $dayIdMap = [
+            6 => 1, // Saturday
+            0 => 2, // Sunday
+            1 => 3, // Monday
+            2 => 4, // Tuesday
+            3 => 5, // Wednesday
+            4 => 6, // Thursday
+            5 => 7, // Friday
+        ];
+
+        $todayDayId = $dayIdMap[$carbonDayOfWeek] ?? null;
+
+        if (! $todayDayId) {
+            return $query->whereRaw('1=0'); // Return empty query if something is off
+        }
+
+        return $query->whereHas('workingDays', function ($q) use ($todayDayId) {
+            $q->where('day_id', $todayDayId);
         });
     }
 

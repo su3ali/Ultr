@@ -70,6 +70,8 @@ class IndexController extends Controller
             ->workingToday()
             ->count();
 
+        // dd($technicians);
+
         $total_trainees = Technician::where('is_trainee', Technician::TRAINEE)->count();
         $tech_visits    = Visit::where('is_active', 1)->count();
 

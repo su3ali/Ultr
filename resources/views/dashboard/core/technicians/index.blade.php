@@ -169,45 +169,49 @@
             }
         });
 
-        $(document).on('click', '#edit-tech', function() {
-            let id = $(this).data('id');
-            let name = $(this).data('name');
-            let user_name = $(this).data('user_name');
-            let email = $(this).data('email');
-            let phone = $(this).data('phone');
-            let specialization = $(this).data('specialization');
-            let active = $(this).data('active');
-            let group_id = $(this).data('group_id');
-            let day_id = $(this).data('day_id');
-            let country_id = $(this).data('country_id');
-            let address = $(this).data('address');
-            let wallet_id = $(this).data('wallet_id');
-            let birth_date = $(this).data('birth_date');
-            let identity_number = $(this).data('identity_number');
-            let image = $(this).data('image');
+       $(document).on('click', '#edit-tech', function () {
+    let id = $(this).data('id');
+    let name = $(this).data('name');
+    let user_name = $(this).data('user_name');
+    let email = $(this).data('email');
+    let phone = $(this).data('phone');
+    let specialization = $(this).data('specialization');
+    let active = $(this).data('active');
+    let group_id = $(this).data('group_id');
+    let day_id = $(this).data('day_id'); // JSON array or string
+    let country_id = $(this).data('country_id');
+    let address = $(this).data('address');
+    let wallet_id = $(this).data('wallet_id');
+    let birth_date = $(this).data('birth_date');
+    let identity_number = $(this).data('identity_number');
+    let image = $(this).data('image');
 
-            // Fill form fields
-            $('#tech_id').val(id);
-            $('#edit_name').val(name);
-            $('#edit_user_name').val(user_name);
-            $('#edit_email').val(email);
-            $('#edit_phone').val(phone);
-            $('#edit_spec').val(specialization);
-            $('#edit_group').val(group_id);
-            $('#edit_day_id').val(day_id);
-            $('#edit_country_id').val(country_id);
-            $('#edit_wallet').val(wallet_id);
-            $('#edit_birth').val(birth_date);
-            $('#edit_identity_id').val(identity_number);
-            $('#edit_address').val(address);
+    // Defensive fix for day_id to ensure it's always an array
+    let selectedDays = Array.isArray(day_id) ? day_id : (day_id ? JSON.parse(day_id) : []);
+    
+    // Fill form fields
+    $('#tech_id').val(id);
+    $('#edit_name').val(name);
+    $('#edit_user_name').val(user_name);
+    $('#edit_email').val(email);
+    $('#edit_phone').val(phone);
+    $('#edit_spec').val(specialization).trigger('change');
+    $('#edit_group').val(group_id).trigger('change');
+    $('#edit_day_id').val(selectedDays).trigger('change');
+    $('#edit_country_id').val(country_id).trigger('change');
+    $('#edit_wallet').val(wallet_id).trigger('change');
+    $('#edit_birth').val(birth_date);
+    $('#edit_identity_id').val(identity_number);
+    $('#edit_address').val(address);
 
-            // Handle active status checkbox
-            $('#edit_status').prop('checked', Boolean(active));
+    // Handle active status checkbox
+    $('#edit_status').prop('checked', Boolean(active));
 
-            // Set form action
-            let action = "{{ route('dashboard.core.technician.update', 'id') }}";
-            $('#edit_tech_form').attr('action', action.replace('id', id));
-        });
+    // Set form action
+    let action = "{{ route('dashboard.core.technician.update', 'id') }}";
+    $('#edit_tech_form').attr('action', action.replace('id', id));
+});
+
 
         $("body").on('change', '#customSwitchtech', function() {
             let active = $(this).is(':checked');
