@@ -42,7 +42,7 @@ class TechnicianController extends Controller
                     ->workingToday(); //
             } else {
                 $techniciansQuery = Technician::where('is_trainee', Technician::TECHNICIAN)
-                    ->where('active', 1)
+                   
                     ->with(['group', 'specialization', 'workingDays']);
             }
 
