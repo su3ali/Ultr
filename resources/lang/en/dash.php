@@ -1137,4 +1137,5 @@ return [
     'business_technician_groups'            => 'Business Technician Groups',
     'group_supervisor'                      => 'Group Supervisor',
     'updated_successfully'                  => 'Updated Successfully',
+    'Technicians_off_today'                 => 'Technicians Off Today',
 ];

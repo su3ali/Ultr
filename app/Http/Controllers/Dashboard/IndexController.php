@@ -70,6 +70,11 @@ class IndexController extends Controller
             ->workingToday()
             ->count();
 
+        $techniciansOff = Technician::where('is_trainee', Technician::TECHNICIAN)
+            ->where('active', 1)
+            ->offToday()
+            ->count();
+
         $total_trainees = Technician::where('is_trainee', Technician::TRAINEE)->count();
         $tech_visits    = Visit::where('is_active', 1)->count();
 
@@ -192,7 +197,7 @@ class IndexController extends Controller
             'canceled_orders', 'complaints_resolved', 'complaints_unresolved', 'todayCustomerComplaints',
             'customersHaveOrders', 'canceled_orders_today', 'tech_visits_today', 'finished_visits_today',
             'total_trainees', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers',
-            'client_orders', 'technicians', 'tech_visits', 'customer_complaints', 'lateOrderCount', 'bookings_count',
+            'client_orders', 'technicians', 'tech_visits', 'customer_complaints', 'lateOrderCount', 'bookings_count', 'techniciansOff'
         ));
     }
 

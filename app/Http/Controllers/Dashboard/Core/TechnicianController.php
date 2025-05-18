@@ -171,6 +171,139 @@ class TechnicianController extends Controller
         ));
     }
 
+    public function techniciansOffToday(Request $request)
+    {
+        $groups = cache()->remember('groups', 60, fn() => Group::all());
+        $specs  = cache()->remember('specs', 60, fn() => Specialization::all());
+        $days   = Day::where('is_active', 1)->get(['id', 'name_ar', 'name']);
+
+        if ($request->ajax()) {
+            $techniciansQuery = Technician::where('active', 1)
+                ->where('is_trainee', Technician::TECHNICIAN)
+                ->where('is_business', 0)
+                ->with(['group.region', 'specialization', 'workingDays'])
+                ->whereDoesntHave('workingDays', function ($q) {
+                    $q->where('day_id', \Carbon\Carbon::now()->dayOfWeek);
+                });
+
+            // Group filter
+            if ($request->filled('group_id') && $request->group_id !== 'all') {
+                $techniciansQuery->where('group_id', $request->group_id);
+            }
+
+            // Specialization filter
+            if ($request->filled('spec_id') && $request->spec_id !== 'all') {
+                $techniciansQuery->where('spec_id', $request->spec_id);
+            }
+
+            // Search filter
+            if ($request->filled('search.value')) {
+                $search = $request->input('search.value');
+                $techniciansQuery->where(function ($query) use ($search) {
+                    $query->where('name', 'LIKE', "%$search%")
+                        ->orWhere('phone', 'LIKE', "%$search%")
+                        ->orWhere('identity_id', 'LIKE', "%$search%")
+                        ->orWhere('email', 'LIKE', "%$search%");
+                });
+            }
+
+            $filteredRecords = (clone $techniciansQuery)->count();
+
+            $technicians = $techniciansQuery
+                ->skip($request->input('start', 0))
+                ->take($request->input('length', 10))
+                ->get();
+
+            $data = $technicians->map(function ($row) {
+                $whatsAppLink = $row->phone
+                ? '<a href="https://api.whatsapp.com/send?phone=' .
+                (preg_match('/^05/', $row->phone) ? '966' . substr($row->phone, 1) : $row->phone) .
+                '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->phone . '</a>'
+                : 'N/A';
+
+                $imageTag = $row->image
+                ? '<img class="img-fluid" style="width: 85px;" src="' . asset($row->image) . '"/>'
+                : __('dash.no_image');
+
+                $locale      = app()->getLocale();
+                $specName    = $locale === 'ar' ? $row->specialization?->name_ar : $row->specialization?->name_en;
+                $regionTitle = $row->group?->region?->first()?->title ?? '';
+
+                $statusToggle = '<label class="switch s-outline s-outline-info mb-4 mr-2">
+                <input type="checkbox" id="customSwitchtech" data-id="' . $row->id . '" ' . ($row->active ? 'checked' : '') . '>
+                <span class="slider round"></span>
+            </label>';
+
+                $control = '';
+                if (auth()->user()->hasRole('admin')) {
+                    $dayIds = TechnicianWorkingDay::where('technician_id', $row->id)->pluck('day_id')->toArray();
+                    $control .= '<button type="button" id="edit-tech" class="btn btn-primary btn-sm edit"
+                    data-id="' . $row->id . '"
+                    data-name="' . $row->name . '"
+                    data-user_name="' . $row->user_name . '"
+                    data-email="' . $row->email . '"
+                    data-phone="' . $row->phone . '"
+                    data-specialization="' . $row->spec_id . '"
+                    data-active="' . $row->active . '"
+                    data-group_id="' . $row->group_id . '"
+                    data-country_id="' . $row->country_id . '"
+                    data-address="' . $row->address . '"
+                    data-day_id=\'' . json_encode($dayIds) . '\'
+                    data-wallet_id="' . $row->wallet_id . '"
+                    data-birth_date="' . $row->birth_date . '"
+                    data-identity_number="' . $row->identity_id . '"
+                    data-image="' . ($row->image ? asset($row->image) : '') . '"
+                    data-toggle="modal"
+                    data-target="#editTechModel">
+                    <i class="far fa-edit fa-2x"></i>
+                </button>';
+
+                    $control .= '<a data-table_id="html5-extension"
+                    data-href="' . route('dashboard.core.technician.destroy', $row->id) . '"
+                    data-id="' . $row->id . '"
+                    class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech">
+                    <i class="far fa-trash-alt fa-2x"></i>
+                </a>';
+                }
+
+                return [
+                    'id'      => '<a href="' . route('dashboard.core.technician.details', ['id' => $row->id]) . '">' . $row->id . '</a>',
+                    'name'    => '<a href="#">' . $row->name . '</a>',
+                    't_image' => $imageTag,
+                    'spec'    => $specName,
+                    'phone'   => $whatsAppLink,
+                    'group'   => $row->group?->name,
+                    'region'  => $regionTitle,
+                    'status'  => $statusToggle,
+                    'control' => $control,
+                ];
+            });
+
+            return response()->json([
+                'draw'            => $request->input('draw'),
+                'recordsTotal'    => Technician::count(),
+                'recordsFiltered' => $filteredRecords,
+                'data'            => $data,
+            ]);
+        }
+
+        $nationalities = [
+            "فلبين"     => "1",
+            "اندونيسيا" => "2",
+            "الهند"     => "3",
+            "تايلند"    => "4",
+            "ماليزيا"   => "5",
+            "باكستان"   => "6",
+            "مصر"       => "7",
+        ];
+
+        $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
+
+        return view('dashboard.core.technicians.off_today', compact(
+            'groups', 'specs', 'days', 'nationalities', 'clientProjects'
+        ));
+    }
+
     public function showTechnicianDetails($id)
     {
                                                                                       // Fetch technician details

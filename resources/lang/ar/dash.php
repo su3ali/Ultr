@@ -1075,5 +1075,6 @@ return [
     'business_technician_groups'               => 'مجموعات فنيين الأعمال',
     'group_supervisor'                         => 'مشرف المجموعة',
     'updated_successfully'                     => 'تم التحديث بنجاح',
+    'Technicians_off_today'                    => 'الفنيين الإجازة اليوم',
 
 ];

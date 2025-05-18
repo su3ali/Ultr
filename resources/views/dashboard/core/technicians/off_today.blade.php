@@ -56,21 +56,6 @@
 
         <div class="col-xl-12 col-lg-12 col-sm-12  layout-spacing">
             <div class="widget-content widget-content-area br-6">
-                <div class="col-md-12 text-right mb-3">
-
-                    <button type="button" id="" class="btn btn-primary card-tools" data-toggle="modal"
-                        data-target="#technicianModal">
-                        {{ __('dash.add_new') }}
-                    </button>
-
-                </div>
-
-                <div class="col-md-4">
-                    <select id="dateFilter" class="form-control">
-                        <option value="today" selected>{{ __('dash.technicians_today') }}</option>
-                        <option value="all">{{ __('dash.all') }}</option>
-                    </select>
-                </div>
 
 
                 <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
@@ -127,7 +112,7 @@
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route('dashboard.core.technician.index') }}',
+                url: '{{ route('dashboard.core.techniciansOffToday') }}',
                 data: function(d) {
                     // Add filter data to the DataTable request
                     d.group_id = $('#group_filter').val();
@@ -253,7 +238,6 @@
     let action = "{{ route('dashboard.core.technician.update', 'id') }}";
     $('#edit_tech_form').attr('action', action.replace('id', id));
 });
-
 
 
         $("body").on('change', '#customSwitchtech', function() {

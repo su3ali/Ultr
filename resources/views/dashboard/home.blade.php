@@ -133,6 +133,37 @@
                 </div>
                 @endif
 
+
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_technicians'))
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.core.techniciansOffToday') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #f59e0b;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            transition: 0.3s;">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">{{ $techniciansOff }}</div>
+                                <div style="font-size: 14px; color: #64748b;">{{ __('dash.Technicians_off_today') }}
+                                </div>
+                            </div>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-user">
+                                    <circle cx="12" cy="7" r="4" />
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                @endif
+
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_tech_orders'))
                 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
                     <a href="{{ route('dashboard.visits.index') }}" class="text-decoration-none">

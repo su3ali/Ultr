@@ -79,4 +79,6 @@ route_group('core', function () {
 
     Route::post('suppliers/{id}/restore', [SupplierController::class, 'restore'])->name('dashboard.core.suppliers.restore');
 
+    Route::get('techniciansOffToday', 'TechnicianController@techniciansOffToday')->name('techniciansOffToday');
+
 });
