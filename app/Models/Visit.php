@@ -31,6 +31,7 @@ class Visit extends Model
     }
     public function cancelReason()
     {
+        
         return $this->belongsTo(ReasonCancel::class, 'reason_cancel_id');
     }
 
