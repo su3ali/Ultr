@@ -117,19 +117,19 @@ class BusinessOrderController extends Controller
 
         // ========  Dropdwon  ==========
 
-        $users           = User::all();
-        $categories      = Category::all();
-        $services        = Service::all();
-        $groups          = Group::all();
         $cars            = CarClient::all();
-        $paymentMethods  = PaymentMethod::where('active', 1)->get();
+        $users           = User::select('id', 'first_name', 'last_name')->limit(100)->get(); // or paginate or via AJAX
+        $categories      = Category::select('id', 'title_ar', 'title_en')->get();
+        $services        = Service::select('id', 'title_ar','title_en')->get();
+        $groups          = Group::select('id', 'name_ar', 'name_en')->get();
+        $paymentMethods  = Cache::remember('active_payment_methods', 60, fn() => PaymentMethod::where('active', 1)->get());
         $reasons         = ReasonCancel::all();
         $cities          = City::where('active', 1)->pluck(app()->getLocale() === 'ar' ? 'title_ar' : 'title_en', 'id');
         $types           = CarType::pluck('name_ar', 'id');
         $models          = CarModel::pluck('name_ar', 'id');
         $clientProjects  = ClientProject::select('id', 'name_ar', 'name_en')->get();
         $projects        = $clientProjects->pluck(app()->getLocale() === 'ar' ? 'name_ar' : 'name_en', 'id');
-        $payment_methods = PaymentMethod::where('active', 1)->pluck(app()->getLocale() === 'ar' ? 'name_ar' : 'name_en', 'id');
+        $payment_methods = $paymentMethods->pluck(app()->getLocale() === 'ar' ? 'name_ar' : 'name_en', 'id');
         $statuses        = $statusesModel->pluck(app()->getLocale() === 'ar' ? 'name_ar' : 'name_en', 'id');
 
         return view('dashboard.business_orders.index', compact(
@@ -169,14 +169,14 @@ class BusinessOrderController extends Controller
             ->where('client_project_id', $request->client_project_id)
             ->where('branch_id', $request->branch_id)
             ->whereHas('floors', fn($q) => $q->where('floor_id', $request->floor_id))
-            // ->withCount(['orderHistories' => function ($q) use ($request) {
-            //     $q->whereHas('order', fn($oq) =>
-            //         $oq->where('client_project_id', $request->client_project_id)
-            //             ->where('branch_id', $request->branch_id)
-            //             ->where('floor_id', $request->floor_id)
-            //     );
-            // }])
-            // ->orderBy('order_histories_count', 'asc')
+        // ->withCount(['orderHistories' => function ($q) use ($request) {
+        //     $q->whereHas('order', fn($oq) =>
+        //         $oq->where('client_project_id', $request->client_project_id)
+        //             ->where('branch_id', $request->branch_id)
+        //             ->where('floor_id', $request->floor_id)
+        //     );
+        // }])
+        // ->orderBy('order_histories_count', 'asc')
             ->first();
 
         // Second attempt: only if no technician was found for the floor — try technician with same project + branch (without floor)

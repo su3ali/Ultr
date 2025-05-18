@@ -1,7 +1,53 @@
 @extends('dashboard.layout.layout')
-
 @push('style')
-<link href="{{ asset('css/business_orders/index.css') }}" rel="stylesheet">
+<style>
+    /* Status Background Colors */
+    .bg-warning {
+        background-color: #ffc107 !important;
+    }
+
+    .bg-success {
+        background-color: #28a745 !important;
+    }
+
+    .bg-danger {
+        background-color: #dc3545 !important;
+    }
+
+    .bg-primary {
+        background-color: #007bff !important;
+    }
+
+    .bg-secondary {
+        background-color: #6c757d !important;
+    }
+
+    /* Text Colors */
+    .text-dark {
+        color: #343a40 !important;
+    }
+
+    .text-white {
+        color: #ffffff !important;
+    }
+
+    /* Spinner Loading */
+    .loading-select {
+        background-image: url('https://i.imgur.com/6RMhx.gif');
+        background-repeat: no-repeat;
+        background-position: center right 0.75rem;
+        background-size: 18px 18px;
+    }
+
+    /* Flash Effects */
+    .border-success {
+        border: 2px solid #28a745 !important;
+    }
+
+    .border-danger {
+        border: 2px solid #dc3545 !important;
+    }
+</style>
 @endpush
 
 
@@ -50,6 +96,8 @@
                 @include('dashboard.business_orders.partials.filters')
                 @include('dashboard.business_orders.partials.table')
 
+
+
             </div>
         </div>
     </div>
@@ -62,67 +110,18 @@
 {{-- @include('dashboard.business_orders.edit_modal') --}}
 @endsection
 @push('script')
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const editOrderUrl = "{{ url('admin/business_orders') }}";
 
-    function fetchProjectServicePrice(projectId, serviceId) {
-        if (!projectId || !serviceId) return;
-
-        $.ajax({
-            url: '{{ route('dashboard.get.service.price') }}',
-            method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                client_project_id: projectId,
-                service_id: serviceId
-            },
-            success: function (res) {
-                if (res.price !== undefined && res.price !== null) {
-                    $('#edit_servicePriceInput').val(res.price);
-                } else {
-                    $('#edit_servicePriceInput').val('');
-                }
-            },
-            error: function () {
-                toastr.error('فشل في جلب سعر الخدمة');
-                $('#edit_servicePriceInput').val('');
-            }
-        });
-    }
-
-    window.openEditModal = function(orderId) {
-        $.get(`${editOrderUrl}/${orderId}/edit`, function (order) {
-            $('#edit_order_user_id').val(order.user_id);
-            $('#edit_order_id').val(order.id);
-            $('#editCustomerName').val(order.user.full_name);
-            $('#editPhoneInput').val(order.user.phone);
-
-            // Set project and trigger change
-            $('#edit_client_project_id').val(order.client_project_id).trigger('change');
-
-            // Wait until service options are loaded if necessary
-            setTimeout(() => {
-                $('#edit_serviceSelect').val(order.service_id).trigger('change');
-            }, 300);
-
-            fetchProjectServicePrice(order.client_project_id, order.service_id);
-            loadBranchesAndFloors(order.client_project_id, order.branch_id, order.floor_id);
-            fetchCustomerCarsEdit(order.user_id, order.car_id);
-
-            $('#editModal').modal('show');
-        }).fail(() => toastr.error('فشل في تحميل بيانات الطلب'));
+    const statusColors = {
+        1: 'bg-warning text-dark',   // Waiting
+        2: 'bg-primary text-white',   // In Progress
+        3: 'bg-success text-white',   // Completed
+        4: 'bg-danger text-white',    // Cancelled
     };
 
-    $(document).ready(function () {
-        $('#edit_serviceSelect, #edit_client_project_id').on('change', function () {
-            const serviceId = $('#edit_serviceSelect').val();
-            const projectId = $('#edit_client_project_id').val();
-            fetchProjectServicePrice(projectId, serviceId);
-        });
-    });
-</script>
-<script>
+    let ordersTable;
+
     // ========== Load Orders Table ==========
     function loadOrdersTable() {
         if ($.fn.dataTable.isDataTable('#ordersTable')) {
@@ -263,7 +262,23 @@
         });
     });
 
+    // ========== Open Edit Modal ==========
+    function openEditModal(orderId) {
+        $.get(`${editOrderUrl}/${orderId}/edit`, function (order) {
+            $('#edit_order_user_id').val(order.user_id);
+            $('#edit_order_id').val(order.id);
+            $('#editCustomerName').val(order.user.full_name);
+            $('#editPhoneInput').val(order.user.phone);
+            $('#edit_serviceSelect').val(order.service_id);
+            $('#edit_client_project_id').val(order.client_project_id);
 
+            fetchProjectServicePrice(order.client_project_id, order.service_id);
+            loadBranchesAndFloors(order.client_project_id, order.branch_id, order.floor_id);
+            fetchCustomerCarsEdit(order.user_id, order.car_id);
+
+            $('#editModal').modal('show');
+        }).fail(() => toastr.error('فشل في تحميل بيانات الطلب'));
+    }
 
     // ========== Submit Edit Form ==========
     $(document).on('submit', '#editBusinessOrderForm', function (e) {
@@ -440,7 +455,5 @@ $(document).on('submit', '#edit_group_form', function (e) {
 
     });
 });
-
-
 </script>
 @endpush
