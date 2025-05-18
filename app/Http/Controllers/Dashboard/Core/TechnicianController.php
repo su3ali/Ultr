@@ -14,7 +14,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
-use Log;
 
 class TechnicianController extends Controller
 {
@@ -42,7 +41,7 @@ class TechnicianController extends Controller
                     ->workingToday(); //
             } else {
                 $techniciansQuery = Technician::where('is_trainee', Technician::TECHNICIAN)
-                   
+
                     ->with(['group', 'specialization', 'workingDays']);
             }
 
@@ -103,37 +102,41 @@ class TechnicianController extends Controller
 
                 $control = '';
 
-                if (auth()->user()->hasRole('admin')) {
+                // Check for Edit permission
+                if (auth()->user()->hasRole('admin') || auth()->user()->can('update_technicians')) {
                     $dayIds = TechnicianWorkingDay::where('technician_id', $row->id)->pluck('day_id')->toArray();
                     $control .= '
-                <button type="button" id="edit-tech" class="btn btn-primary btn-sm edit"
-                    data-id="' . $row->id . '"
-                    data-name="' . $row->name . '"
-                    data-user_name="' . $row->user_name . '"
-                    data-email="' . $row->email . '"
-                    data-phone="' . $row->phone . '"
-                    data-specialization="' . $row->spec_id . '"
-                    data-active="' . $row->active . '"
-                    data-group_id="' . $row->group_id . '"
-                    data-country_id="' . $row->country_id . '"
-                    data-address="' . $row->address . '"
-                    data-day_id=\'' . json_encode($dayIds) . '\'
-                    data-wallet_id="' . $row->wallet_id . '"
-                    data-birth_date="' . $row->birth_date . '"
-                    data-identity_number="' . $row->identity_id . '"
-                    data-image="' . ($row->image ? asset($row->image) : '') . '"
-                    data-toggle="modal"
-                    data-target="#editTechModel">
-                    <i class="far fa-edit fa-2x"></i>
-                </button>';
+                    <button type="button" id="edit-tech" class="btn btn-primary btn-sm edit"
+                        data-id="' . $row->id . '"
+                        data-name="' . $row->name . '"
+                        data-user_name="' . $row->user_name . '"
+                        data-email="' . $row->email . '"
+                        data-phone="' . $row->phone . '"
+                        data-specialization="' . $row->spec_id . '"
+                        data-active="' . $row->active . '"
+                        data-group_id="' . $row->group_id . '"
+                        data-country_id="' . $row->country_id . '"
+                        data-address="' . $row->address . '"
+                        data-day_id=\'' . json_encode($dayIds) . '\'
+                        data-wallet_id="' . $row->wallet_id . '"
+                        data-birth_date="' . $row->birth_date . '"
+                        data-identity_number="' . $row->identity_id . '"
+                        data-image="' . ($row->image ? asset($row->image) : '') . '"
+                        data-toggle="modal"
+                        data-target="#editTechModel">
+                        <i class="far fa-edit fa-2x"></i>
+                    </button>';
+                }
 
+                // Check for Delete permission (only admin)
+                if (auth()->user()->hasRole('admin')) {
                     $control .= '
-                <a data-table_id="html5-extension"
-                   data-href="' . route('dashboard.core.technician.destroy', $row->id) . '"
-                   data-id="' . $row->id . '"
-                   class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech">
-                    <i class="far fa-trash-alt fa-2x"></i>
-                </a>';
+                        <a data-table_id="html5-extension"
+                        data-href="' . route('dashboard.core.technician.destroy', $row->id) . '"
+                        data-id="' . $row->id . '"
+                        class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech">
+                            <i class="far fa-trash-alt fa-2x"></i>
+                        </a>';
                 }
 
                 return [
