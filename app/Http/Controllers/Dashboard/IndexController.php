@@ -5,6 +5,7 @@ use App\Charts\CommonChart;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\CustomerComplaint;
+use App\Models\Day;
 use App\Models\Order;
 use App\Models\Technician;
 use App\Models\User;
@@ -69,11 +70,20 @@ class IndexController extends Controller
             ->where('active', 1)
             ->workingToday()
             ->count();
+        $carbonDayOfWeek = Carbon::now('Asia/Riyadh')->dayOfWeek; // 0 = Sunday to 6 = Saturday
 
-        $techniciansOff = Technician::where('is_trainee', Technician::TECHNICIAN)
+        $todayEnglishName = $carbonToDayName[$carbonDayOfWeek] ?? null;
+
+        $day = Day::where('name', $todayEnglishName)->first();
+
+        $todayDayId = $day ? $day->id : null;
+
+        $technicians_offToday = Technician::where('is_trainee', Technician::TECHNICIAN)
             ->where('active', 1)
             ->offToday()
             ->count();
+
+        // dd($technicians_offToday);
 
         $total_trainees = Technician::where('is_trainee', Technician::TRAINEE)->count();
         $tech_visits    = Visit::where('is_active', 1)->count();
@@ -197,7 +207,7 @@ class IndexController extends Controller
             'canceled_orders', 'complaints_resolved', 'complaints_unresolved', 'todayCustomerComplaints',
             'customersHaveOrders', 'canceled_orders_today', 'tech_visits_today', 'finished_visits_today',
             'total_trainees', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers',
-            'client_orders', 'technicians', 'tech_visits', 'customer_complaints', 'lateOrderCount', 'bookings_count', 'techniciansOff'
+            'client_orders', 'technicians', 'tech_visits', 'customer_complaints', 'lateOrderCount', 'bookings_count', 'technicians_offToday'
         ));
     }
 

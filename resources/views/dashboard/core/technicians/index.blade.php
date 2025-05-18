@@ -48,6 +48,22 @@
         color: #25d366;
         /* Color on hover (WhatsApp green) */
     }
+
+
+
+    .filter-row label {
+        font-weight: 600;
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 4px;
+    }
+
+    .filter-row select.form-control {
+        border-radius: 6px;
+        border-color: #ced4da;
+        font-size: 14px;
+        padding: 6px 12px;
+    }
 </style>
 @section('content')
 <div class="layout-px-spacing">
@@ -65,12 +81,25 @@
 
                 </div>
 
-                <div class="col-md-4">
-                    <select id="dateFilter" class="form-control">
-                        <option value="today" selected>{{ __('dash.technicians_today') }}</option>
-                        <option value="all">{{ __('dash.all') }}</option>
-                    </select>
+                <div class="row align-items-end filter-row">
+                    <div class="col-md-3">
+                        <label for="region_filter">{{ __('dash.region') }}</label>
+                        <select id="region_filter" class="form-control" name="region_id">
+                            <option value="all">{{ __('dash.all_regions') }}</option>
+                            @foreach($regions as $region)
+                            <option value="{{ $region->id }}">{{ $region->title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <select id="dateFilter" class="form-control">
+                            <option value="today" selected>{{ __('dash.technicians_today') }}</option>
+                            <option value="all">{{ __('dash.all') }}</option>
+                        </select>
+                    </div>
                 </div>
+
 
 
                 <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
@@ -133,7 +162,9 @@
                     d.group_id = $('#group_filter').val();
                     d.spec_id = $('#spec_filter').val();
                     d['search[value]'] = $('#searchInput').val(); 
-                    d.date_filter = $('#dateFilter').val(); // Get the selected value from dropdown
+                    d.date_filter = $('#dateFilter').val(); 
+                    d.region_id = $('#region_filter').val(); 
+
                 }
             },
             columns: [
@@ -166,94 +197,55 @@
                 $('#dateFilter').change(function() {
                     table.draw(); // Redraw the table when the date filter changes
                 });
+
+                 $('#region_filter').change(function() {
+                    table.draw(); // Redraw the table when the date filter changes
+                });
             }
         });
 
-       $(document).on('click', '#edit-tech', function() {
-    let id = $(this).data('id');
-    let name = $(this).data('name');
-    let user_name = $(this).data('user_name');
-    let email = $(this).data('email');
-    let phone = $(this).data('phone');
-    let specialization = $(this).data('specialization');
-    let active = $(this).data('active');
-    let group_id = $(this).data('group_id');
-    let day_id = $(this).data('day_id');  
-    let country_id = $(this).data('country_id');
-    let address = $(this).data('address');
-    let wallet_id = $(this).data('wallet_id');
-    let birth_date = $(this).data('birth_date');
-    let identity_number = $(this).data('identity_number');
-    let image = $(this).data('image');
+       $(document).on('click', '#edit-tech', function () {
+            let id = $(this).data('id');
+            let name = $(this).data('name');
+            let user_name = $(this).data('user_name');
+            let email = $(this).data('email');
+            let phone = $(this).data('phone');
+            let specialization = $(this).data('specialization');
+            let active = $(this).data('active');
+            let group_id = $(this).data('group_id');
+            let day_id = $(this).data('day_id'); // JSON array or string
+            let country_id = $(this).data('country_id');
+            let address = $(this).data('address');
+            let wallet_id = $(this).data('wallet_id');
+            let birth_date = $(this).data('birth_date');
+            let identity_number = $(this).data('identity_number');
+            let image = $(this).data('image');
 
-    let is_business = $(this).data('is_business');
-    let client_project_id = $(this).data('client_project_id');
-    let branch_id = $(this).data('branch_id');
-    let floor_ids = $(this).data('floor_ids'); 
+            // Defensive fix for day_id to ensure it's always an array
+            let selectedDays = Array.isArray(day_id) ? day_id : (day_id ? JSON.parse(day_id) : []);
+            
+            // Fill form fields
+            $('#tech_id').val(id);
+            $('#edit_name').val(name);
+            $('#edit_user_name').val(user_name);
+            $('#edit_email').val(email);
+            $('#edit_phone').val(phone);
+            $('#edit_spec').val(specialization).trigger('change');
+            $('#edit_group').val(group_id).trigger('change');
+            $('#edit_day_id').val(selectedDays).trigger('change');
+            $('#edit_country_id').val(country_id).trigger('change');
+            $('#edit_wallet').val(wallet_id).trigger('change');
+            $('#edit_birth').val(birth_date);
+            $('#edit_identity_id').val(identity_number);
+            $('#edit_address').val(address);
 
-    // Fill form fields
-    $('#tech_id').val(id);
-    $('#edit_name').val(name);
-    $('#edit_user_name').val(user_name);
-    $('#edit_email').val(email);
-    $('#edit_phone').val(phone);
-    $('#edit_spec').val(specialization).trigger('change');
-    $('#edit_group').val(group_id).trigger('change');
-    $('#edit_country_id').val(country_id).trigger('change');
-    $('#edit_wallet').val(wallet_id).trigger('change');
-    $('#edit_birth').val(birth_date);
-    $('#edit_identity_id').val(identity_number);
-    $('#edit_address').val(address);
+            // Handle active status checkbox
+            $('#edit_status').prop('checked', Boolean(active));
 
-    //  Set working days (multi select)
-    if (Array.isArray(day_id)) {
-        $('#edit_day_id').val(day_id).trigger('change');
-    }
-
-    // Active status checkbox
-    $('#edit_status').prop('checked', Boolean(active));
-
-    //  Handle technician type (personal/business)
-    if (is_business == 1) {
-        $('#edit_businessTech').prop('checked', true).trigger('change');
-        $('#editBusinessFields').slideDown();
-
-        // Set project
-        $('#edit_client_project_id').val(client_project_id).trigger('change');
-
-        // Load Branches first
-        $.get(`/admin/get-project-branches/${client_project_id}`, function(branches) {
-            $('#edit_branch_id').html('<option value="">{{ __("dash.choose") }}</option>');
-            $.each(branches, function(i, branch) {
-                $('#edit_branch_id').append(`<option value="${branch.id}">${branch.name_ar}</option>`);
-            });
-
-            // Set branch after loaded
-            $('#edit_branch_id').val(branch_id).trigger('change');
-
-            // Load Floors next
-            $.get(`/admin/get-branch-floors/${branch_id}`, function(floors) {
-                $('#edit_floor_ids').empty();
-                $.each(floors, function(i, floor) {
-                    $('#edit_floor_ids').append(`<option value="${floor.id}">${floor.name_ar}</option>`);
-                });
-
-                // Set selected floors
-                if (Array.isArray(floor_ids)) {
-                    $('#edit_floor_ids').val(floor_ids).trigger('change');
-                }
-            });
-        });
-    } else {
-        $('#edit_personalTech').prop('checked', true).trigger('change');
-        $('#editBusinessFields').slideUp();
-    }
-
-    // Form action update
-    let action = "{{ route('dashboard.core.technician.update', 'id') }}";
-    $('#edit_tech_form').attr('action', action.replace('id', id));
+            // Set form action
+            let action = "{{ route('dashboard.core.technician.update', 'id') }}";
+            $('#edit_tech_form').attr('action', action.replace('id', id));
 });
-
 
 
         $("body").on('change', '#customSwitchtech', function() {

@@ -1138,4 +1138,6 @@ return [
     'group_supervisor'                      => 'Group Supervisor',
     'updated_successfully'                  => 'Updated Successfully',
     'Technicians_off_today'                 => 'Technicians Off Today',
+    'all_regions'                           => 'All Regions',
+    'date_filter'                           => 'Date Filter',
 ];

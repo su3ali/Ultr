@@ -1077,4 +1077,6 @@ return [
     'updated_successfully'                     => 'تم التحديث بنجاح',
     'Technicians_off_today'                    => 'الفنيين الإجازة اليوم',
 
+    'all_regions'                              => 'جميع المناطق',
+    'date_filter'                              => 'تصفية حسب التاريخ',
 ];

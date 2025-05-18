@@ -29,21 +29,35 @@ class Technician extends Authenticatable
         'remember_token',
     ];
 
-    public function scopeWorkingToday($query)
-    {
-        $today = Carbon::now('Asia/Riyadh')->dayOfWeek;
-
-        return $query->whereHas('workingDays', function ($q) use ($today) {
-            $q->where('day_id', $today);
-        });
-    }
-
     public function scopeOffToday($query)
     {
-        $today = Carbon::now('Asia/Riyadh')->dayOfWeek;
+        $carbonDayOfWeek = Carbon::now('Asia/Riyadh')->dayOfWeek;
 
-        return $query->whereDoesntHave('workingDays', function ($q) use ($today) {
-            $q->where('day_id', $today);
+        $carbonToDayName = [
+            0 => 'Sunday',
+            1 => 'Monday',
+            2 => 'Tuesday',
+            3 => 'Wednesday',
+            4 => 'Thursday',
+            5 => 'Friday',
+            6 => 'Saturday',
+        ];
+
+        $todayName = $carbonToDayName[$carbonDayOfWeek] ?? null;
+
+        $day = Day::
+            where('is_active', 1)
+            ->where('name', $todayName)
+            ->first();
+
+        $todayDayId = $day?->id;
+
+        if (! $todayDayId) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereDoesntHave('workingDays', function ($q) use ($todayDayId) {
+            $q->where('day_id', $todayDayId);
         });
     }
 
@@ -70,6 +84,32 @@ class Technician extends Authenticatable
     public function workingDays()
     {
         return $this->hasMany(TechnicianWorkingDay::class, 'technician_id', 'id');
+    }
+
+    public function scopeWorkingToday($query)
+    {
+        $carbonDayOfWeek = Carbon::now('Asia/Riyadh')->dayOfWeek; // 0 (Sun) to 6 (Sat)
+
+        $days     = Day::pluck('id', 'name')->toArray();
+        $dayIdMap = [
+            6 => 1, // Saturday
+            0 => 2, // Sunday
+            1 => 3, // Monday
+            2 => 4, // Tuesday
+            3 => 5, // Wednesday
+            4 => 6, // Thursday
+            5 => 7, // Friday
+        ];
+
+        $todayDayId = $dayIdMap[$carbonDayOfWeek] ?? null;
+
+        if (! $todayDayId) {
+            return $query->whereRaw('1=0'); // Return empty query if something is off
+        }
+
+        return $query->whereHas('workingDays', function ($q) use ($todayDayId) {
+            $q->where('day_id', $todayDayId);
+        });
     }
 
     public function clientProject()
@@ -106,17 +146,6 @@ class Technician extends Authenticatable
     {
         return Group::where('client_project_id', $this->client_project_id)
             ->where('branch_id', $this->branch_id);
-    }
-
-    public function getTodayDayId()
-    {
-        $carbonDayOfWeek = Carbon::now('Asia/Riyadh')->dayOfWeek;
-
-        $day = Day::where('is_active', 1)
-            ->where('day_of_week', $carbonDayOfWeek)
-            ->first();
-
-        return $day ? $day->id : null;
     }
 
 }

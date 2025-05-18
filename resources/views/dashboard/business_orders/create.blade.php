@@ -273,7 +273,6 @@ $(document).on('click', '.car-select-option', function () {
     input.prop('checked', true);
     selectedCard.addClass('selected');
 });
-
     // السكريبتات الأخرى هنا...
 
     $(document).ready(function () {
@@ -317,8 +316,6 @@ $(document).on('click', '.car-select-option', function () {
             });
         });
     });
-
-
 </script>
 <Style>
     .modal-backdrop {
@@ -355,6 +352,5 @@ $(document).on('click', '.car-select-option', function () {
         cursor: pointer;
     }
 </Style>
-
 
 @endpush

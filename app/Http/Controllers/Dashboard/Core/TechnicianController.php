@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BusinessProject\ClientProject;
 use App\Models\Day;
 use App\Models\Group;
+use App\Models\Region;
 use App\Models\Specialization;
 use App\Models\Technician;
 use App\Models\TechnicianWorkingDay;
@@ -22,9 +23,12 @@ class TechnicianController extends Controller
     public function index(Request $request)
     {
 
-        $groups = cache()->remember('groups', 60, fn() => Group::all());
-        $specs  = cache()->remember('specs', 60, fn() => Specialization::all());
-        $days   = Day::where('is_active', 1)->get(['id', 'name_ar', 'name']);
+        $groups  = cache()->remember('groups', 60, fn() => Group::all());
+        $specs   = cache()->remember('specs', 60, fn() => Specialization::all());
+        $days    = Day::where('is_active', 1)->get(['id', 'name_ar', 'name']);
+        $regions = cache()->remember('regions', 120, function () {
+            return Region::all();
+        });
 
         if ($request->ajax()) {
 
@@ -39,13 +43,22 @@ class TechnicianController extends Controller
                     ->with(['group', 'specialization', 'workingDays'])
                     ->workingToday(); //
             } else {
-                $techniciansQuery = Technician::where('active', 1)->where('is_trainee', Technician::TECHNICIAN)
+                $techniciansQuery = Technician::where('is_trainee', Technician::TECHNICIAN)
+
                     ->with(['group', 'specialization', 'workingDays']);
             }
 
             // Group filter
             if ($request->filled('group_id') && $request->group_id !== 'all') {
                 $techniciansQuery->where('group_id', $request->group_id);
+            }
+
+            // Region filter
+            if ($request->filled('region_id') && $request->region_id !== 'all') {
+                $techniciansQuery->whereHas('group.regions', function ($query) use ($request) {
+                    $query->where('region_id', $request->region_id);
+                });
+
             }
 
             // Specialization filter
@@ -100,37 +113,41 @@ class TechnicianController extends Controller
 
                 $control = '';
 
-                if (auth()->user()->hasRole('admin')) {
+                // Check for Edit permission
+                if (auth()->user()->hasRole('admin') || auth()->user()->can('update_technicians')) {
                     $dayIds = TechnicianWorkingDay::where('technician_id', $row->id)->pluck('day_id')->toArray();
                     $control .= '
-                <button type="button" id="edit-tech" class="btn btn-primary btn-sm edit"
-                    data-id="' . $row->id . '"
-                    data-name="' . $row->name . '"
-                    data-user_name="' . $row->user_name . '"
-                    data-email="' . $row->email . '"
-                    data-phone="' . $row->phone . '"
-                    data-specialization="' . $row->spec_id . '"
-                    data-active="' . $row->active . '"
-                    data-group_id="' . $row->group_id . '"
-                    data-country_id="' . $row->country_id . '"
-                    data-address="' . $row->address . '"
-                    data-day_id=\'' . json_encode($dayIds) . '\'
-                    data-wallet_id="' . $row->wallet_id . '"
-                    data-birth_date="' . $row->birth_date . '"
-                    data-identity_number="' . $row->identity_id . '"
-                    data-image="' . ($row->image ? asset($row->image) : '') . '"
-                    data-toggle="modal"
-                    data-target="#editTechModel">
-                    <i class="far fa-edit fa-2x"></i>
-                </button>';
+                    <button type="button" id="edit-tech" class="btn btn-primary btn-sm edit"
+                        data-id="' . $row->id . '"
+                        data-name="' . $row->name . '"
+                        data-user_name="' . $row->user_name . '"
+                        data-email="' . $row->email . '"
+                        data-phone="' . $row->phone . '"
+                        data-specialization="' . $row->spec_id . '"
+                        data-active="' . $row->active . '"
+                        data-group_id="' . $row->group_id . '"
+                        data-country_id="' . $row->country_id . '"
+                        data-address="' . $row->address . '"
+                        data-day_id=\'' . json_encode($dayIds) . '\'
+                        data-wallet_id="' . $row->wallet_id . '"
+                        data-birth_date="' . $row->birth_date . '"
+                        data-identity_number="' . $row->identity_id . '"
+                        data-image="' . ($row->image ? asset($row->image) : '') . '"
+                        data-toggle="modal"
+                        data-target="#editTechModel">
+                        <i class="far fa-edit fa-2x"></i>
+                    </button>';
+                }
 
+                // Check for Delete permission (only admin)
+                if (auth()->user()->hasRole('admin')) {
                     $control .= '
-                <a data-table_id="html5-extension"
-                   data-href="' . route('dashboard.core.technician.destroy', $row->id) . '"
-                   data-id="' . $row->id . '"
-                   class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech">
-                    <i class="far fa-trash-alt fa-2x"></i>
-                </a>';
+                        <a data-table_id="html5-extension"
+                        data-href="' . route('dashboard.core.technician.destroy', $row->id) . '"
+                        data-id="' . $row->id . '"
+                        class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech">
+                            <i class="far fa-trash-alt fa-2x"></i>
+                        </a>';
                 }
 
                 return [
@@ -167,7 +184,7 @@ class TechnicianController extends Controller
         $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
 
         return view('dashboard.core.technicians.index', compact(
-            'groups', 'specs', 'days', 'nationalities', 'clientProjects'
+            'groups', 'specs', 'days', 'nationalities', 'clientProjects', 'regions'
         ));
     }
 
@@ -178,7 +195,7 @@ class TechnicianController extends Controller
         $days   = Day::where('is_active', 1)->get(['id', 'name_ar', 'name']);
 
         if ($request->ajax()) {
-            $techniciansQuery = Technician::where('active', 1)
+            $techniciansQuery = Technician::offToday()->where('active', 1)
                 ->where('is_trainee', Technician::TECHNICIAN)
                 ->where('is_business', 0)
                 ->with(['group.region', 'specialization', 'workingDays'])
@@ -281,7 +298,7 @@ class TechnicianController extends Controller
 
             return response()->json([
                 'draw'            => $request->input('draw'),
-                'recordsTotal'    => Technician::count(),
+                'recordsTotal'    => Technician::offToday()->count(),
                 'recordsFiltered' => $filteredRecords,
                 'data'            => $data,
             ]);

@@ -31,6 +31,12 @@ class GroupsController extends Controller
                 ->addColumn('g_name', function ($row) {
                     return $row->name;
                 })
+
+                ->addColumn('region', function ($row) {
+                    $regionTitle = $row?->region?->first()?->title ?? '';
+
+                    return $regionTitle;
+                })
                 ->addColumn('status', function ($row) {
                     $checked = '';
                     if ($row->active == 1) {
@@ -43,7 +49,9 @@ class GroupsController extends Controller
                 })
                 ->addColumn('control', function ($row) {
                     // Check if the logged-in user has the 'admin' role
-                    $html = '
+                    if (auth()->user()->hasRole('admin') || auth()->user()->can('update_technicians')) {
+
+                        $html = '
                         <button type="button" id="edit-techGroup" class="btn btn-primary btn-sm card-tools edit"
                             data-id="' . $row->id . '"
                             data-name_ar="' . $row->name_ar . '"
@@ -57,6 +65,7 @@ class GroupsController extends Controller
                             data-target="#editGroupTechModel">
                             <i class="far fa-edit fa-2x"></i>
                         </button>';
+                    }
 
                     if (auth()->user()->hasRole('admin')) {
                         $html .= '
@@ -74,6 +83,7 @@ class GroupsController extends Controller
                 ->rawColumns([
                     'technician',
                     'g_name',
+                    'region',
                     'status',
                     'control',
                 ])

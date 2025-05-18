@@ -147,7 +147,7 @@
                             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
                             transition: 0.3s;">
                             <div style="flex-grow: 1;">
-                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">{{ $techniciansOff }}</div>
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">{{ $technicians_offToday }}</div>
                                 <div style="font-size: 14px; color: #64748b;">{{ __('dash.Technicians_off_today') }}
                                 </div>
                             </div>
