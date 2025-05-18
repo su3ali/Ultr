@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BusinessProject\ClientProject;
 use App\Models\Day;
 use App\Models\Group;
+use App\Models\Region;
 use App\Models\Specialization;
 use App\Models\Technician;
 use App\Models\TechnicianWorkingDay;
@@ -22,9 +23,12 @@ class TechnicianController extends Controller
     public function index(Request $request)
     {
 
-        $groups = cache()->remember('groups', 60, fn() => Group::all());
-        $specs  = cache()->remember('specs', 60, fn() => Specialization::all());
-        $days   = Day::where('is_active', 1)->get(['id', 'name_ar', 'name']);
+        $groups  = cache()->remember('groups', 60, fn() => Group::all());
+        $specs   = cache()->remember('specs', 60, fn() => Specialization::all());
+        $days    = Day::where('is_active', 1)->get(['id', 'name_ar', 'name']);
+        $regions = cache()->remember('regions', 120, function () {
+            return Region::all();
+        });
 
         if ($request->ajax()) {
 
@@ -48,6 +52,14 @@ class TechnicianController extends Controller
             // Group filter
             if ($request->filled('group_id') && $request->group_id !== 'all') {
                 $techniciansQuery->where('group_id', $request->group_id);
+            }
+
+            // Region filter
+            if ($request->filled('region_id') && $request->region_id !== 'all') {
+                $techniciansQuery->whereHas('group.regions', function ($query) use ($request) {
+                    $query->where('region_id', $request->region_id);
+                });
+
             }
 
             // Specialization filter
@@ -173,7 +185,7 @@ class TechnicianController extends Controller
         $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
 
         return view('dashboard.core.technicians.index', compact(
-            'groups', 'specs', 'days', 'nationalities', 'clientProjects'
+            'groups', 'specs', 'days', 'nationalities', 'clientProjects', 'regions'
         ));
     }
 

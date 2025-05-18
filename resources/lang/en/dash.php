@@ -1131,4 +1131,6 @@ return [
     'loading'                               => 'Loading...',
     'change_team'                           => 'Change Team',
     'technicians_today'                     => 'Technicians Today',
+    'all_regions'                           => 'All Regions',
+    'date_filter'                           => 'Date Filter',
 ];

@@ -1070,4 +1070,6 @@ return [
     'order_completed_cannot_change_technician' => 'لا يمكن تغيير الفني بعد إتمام الطلب',
     'change_team'                              => 'تغيير الفريق',
     'technicians_today'                        => 'فنيين اليوم',
+    'all_regions'                              => 'جميع المناطق',
+    'date_filter'                               => 'تصفية حسب التاريخ',
 ];
