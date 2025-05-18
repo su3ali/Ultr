@@ -1,30 +1,28 @@
 <?php
 namespace App\Http\Controllers\Dashboard\BusinessProject;
 
-use App\Models\City;
-use App\Models\User;
-use App\Models\Admin;
-use App\Models\Group;
-use App\Models\CarType;
-use App\Models\Service;
-use App\Models\CarModel;
-use App\Models\Category;
-use App\Models\CarClient;
-use App\Models\Technician;
-use App\Models\ReasonCancel;
-use Illuminate\Http\Request;
-use App\Models\BusinessOrder;
-use App\Models\PaymentMethod;
-use Yajra\DataTables\DataTables;
-use Illuminate\Support\Facades\DB;
-use App\Models\BusinessOrderStatus;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cache;
-use App\Notifications\SendPushNotification;
-use Illuminate\Support\Facades\Notification;
-use App\Models\BusinessProject\ClientProject;
+use App\Models\Admin;
+use App\Models\BusinessOrder;
+use App\Models\BusinessOrderStatus;
 use App\Models\BusinessOrderTechnicianHistory;
+use App\Models\BusinessProject\ClientProject;
+use App\Models\CarClient;
+use App\Models\CarModel;
+use App\Models\CarType;
+use App\Models\Category;
+use App\Models\City;
+use App\Models\Group;
+use App\Models\PaymentMethod;
+use App\Models\ReasonCancel;
+use App\Models\Service;
+use App\Models\Technician;
+use App\Models\User;
+use App\Notifications\SendPushNotification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Notification;
+use Yajra\DataTables\DataTables;
 
 class BusinessOrderController extends Controller
 {
@@ -87,42 +85,33 @@ class BusinessOrderController extends Controller
                     $html = '';
 
                     if ($user->can('update_business_orders') || $user->hasRole('admin')) {
-                        $html .= '
-                        <button type="button"
-                            onclick="openEditModal(' . $row->id . ')"
-                            class="btn btn-sm btn-primary">
-                            <i class="far fa-edit fa-2x"></i>
-                        </button>';
+                        $html .= '<button type="button" onclick="openEditModal(' . $row->id . ')" class="btn btn-sm btn-primary">
+                    <i class="far fa-edit fa-2x"></i>
+                  </button>';
                     }
 
                     if ($user->can('update_business_orders') || $user->hasRole('admin')) {
-                        $html .= '
-                        <button
-                            type="button"
-                            class="btn btn-primary"
-                            data-toggle="modal"
-                            data-target="#changeGroupModel"
-                            data-order_id="' . $row->id . '"
-                            data-group_id="' . $row->assign_to_id . '">
-                            ' . __('dash.change_team') . '
-                        </button>';
+                        $html .= '<button type="button" class="btn btn-primary"
+                        data-toggle="modal"
+                        data-target="#changeGroupModel"
+                        data-order_id="' . $row->id . '"
+                        data-group_id="' . $row->assign_to_id . '">'
+                        . __('dash.change_team') .
+                            '</button>';
                     }
-                    
 
                     if ($user->can('delete_business_orders') || $user->hasRole('admin')) {
-                        $html .= '
-                        <a href="javascript:void(0);" data-href="' . route('dashboard.business_orders.destroy', $row->id) . '"
-                            data-id="' . $row->id . '"
-                            class="btn btn-sm btn-outline-danger btn-delete">
-                            <i class="far fa-trash-alt fa-2x"></i>
-                        </a>';
+                        $html .= '<a href="javascript:void(0);" data-href="' . route('dashboard.business_orders.destroy', $row->id) . '"
+                     data-id="' . $row->id . '"
+                     class="btn btn-sm btn-outline-danger btn-delete">
+                     <i class="far fa-trash-alt fa-2x"></i>
+                  </a>';
                     }
 
                     return $html;
                 })
-                
 
-                ->rawColumns(['service', 'controll', 'status']) 
+                ->rawColumns(['service', 'controll', 'status'])
                 ->make(true);
         }
 
@@ -343,7 +332,7 @@ class BusinessOrderController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => __('api.order_completed_cannot_change_technician'),
-            ], 400); 
+            ], 400);
         }
 
         $order->assign_to_id = $request->assign_to_id;

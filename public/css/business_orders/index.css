@@ -1,0 +1,46 @@
+    /* Status Background Colors */
+    .bg-warning {
+        background-color: #ffc107 !important;
+    }
+
+    .bg-success {
+        background-color: #28a745 !important;
+    }
+
+    .bg-danger {
+        background-color: #dc3545 !important;
+    }
+
+    .bg-primary {
+        background-color: #007bff !important;
+    }
+
+    .bg-secondary {
+        background-color: #6c757d !important;
+    }
+
+    /* Text Colors */
+    .text-dark {
+        color: #343a40 !important;
+    }
+
+    .text-white {
+        color: #ffffff !important;
+    }
+
+    /* Spinner Loading */
+    .loading-select {
+        background-image: url('https://i.imgur.com/6RMhx.gif');
+        background-repeat: no-repeat;
+        background-position: center right 0.75rem;
+        background-size: 18px 18px;
+    }
+
+    /* Flash Effects */
+    .border-success {
+        border: 2px solid #28a745 !important;
+    }
+
+    .border-danger {
+        border: 2px solid #dc3545 !important;
+    }
