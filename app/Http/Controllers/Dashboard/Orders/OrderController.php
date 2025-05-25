@@ -604,6 +604,14 @@ class OrderController extends Controller
             // })
             // ->addColumn('quantity', fn($row) => $row->orderServices->sum('quantity'))
                 ->addColumn('total', fn($row) => $row->total ? (fmod($row->total, 1) == 0 ? (int) $row->total : number_format($row->total, 2)) : '')
+
+            // technician
+                ->addColumn('technician', function ($row) {
+                    $booking = $row->bookings->first();
+
+                    return optional($booking?->visit?->group)->name ?? '-';
+                })
+
                 ->addColumn('status', fn($row) => app()->getLocale() === 'ar'
                     ? optional($row->bookings?->first()?->visit?->status)->name_ar
                     : optional($row->bookings?->first()?->visit?->status)->name_en)
@@ -657,7 +665,7 @@ class OrderController extends Controller
                     }
                     return $html;
                 })
-                ->rawColumns(['user', 'phone', 'total', 'status', 'date', 'booking_day', 'booking_time', 'payment_method', 'region', 'control'])
+                ->rawColumns(['user', 'phone', 'total','technician', 'status', 'date', 'booking_day', 'booking_time', 'payment_method', 'region', 'control'])
                 ->with([
                     'recordsTotal'    => $totalOrders,
                     'recordsFiltered' => $filteredOrders->count(),

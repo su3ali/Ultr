@@ -98,6 +98,7 @@
                                     <th>{{ __('dash.price_value') }}</th>
                                     <th>طريقة الدفع</th>
                                     <th>{{ __('dash.zone') }}</th>
+                                    <th>{{ __('dash.technician') }} </th>
                                     <th>{{ __('dash.status') }}</th>
                                     <th> {{ __('dash.order_date') }} </th>
                                     <th> {{ __('dash.booking_day') }} </th>
@@ -202,6 +203,9 @@
                 { data: 'total', name: 'total' },
                 { data: 'payment_method', name: 'payment_method' },
                 { data: 'region', name: 'region' },
+                { data: 'technician', name: 'technician' },
+
+                
                 { data: 'status', name: 'status' },
                 { data: 'date', name: 'date' },
                 { data: 'booking_day', name: 'booking_day' },
