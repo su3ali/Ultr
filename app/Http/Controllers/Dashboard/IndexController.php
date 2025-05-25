@@ -26,9 +26,11 @@ class IndexController extends Controller
         $today     = $now->toDateString();
         $yesterday = $now->copy()->subDay()->toDateString();
 
+        $today = now('Asia/Riyadh')->toDateString();
+
         $lateOrderCount = Order::lateToServe($now)
-            ->whereHas('bookings', function ($q) use ($today, $yesterday) {
-                $q->whereIn('date', [$today, $yesterday]);
+            ->whereHas('bookings', function ($q) use ($today) {
+                $q->whereDate('date', $today);
             })
             ->count();
 
