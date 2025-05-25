@@ -92,14 +92,18 @@
                                     {{-- <th>رقم الحجز</th> --}}
                                     <th>{{ __('dash.customer_name') }}</th>
                                     <th>{{ __('dash.phone') }}</th>
-                                    <th>{{ __('dash.service') }}</th>
-                                    <th>{{ __('dash.quantity') }}</th>
+                                    {{-- <th>{{ __('dash.service') }}</th> --}}
+                                    {{-- <th>{{ __('dash.quantity') }}</th> --}}
                                     {{-- <th>{{ __('dash.cancelled_by') }}</th> --}}
                                     <th>{{ __('dash.price_value') }}</th>
                                     <th>طريقة الدفع</th>
                                     <th>{{ __('dash.zone') }}</th>
                                     <th>{{ __('dash.status') }}</th>
-                                    <th> {{ __('dash.date') }} </th>
+                                    <th> {{ __('dash.order_date') }} </th>
+                                    <th> {{ __('dash.booking_day') }} </th>
+                                    <th> {{ __('dash.booking_time') }} </th>
+
+
                                     <th class="no-content">{{ __('dash.actions') }}</th>
                                 </tr>
                             </thead>
@@ -192,14 +196,20 @@
                 // { data: 'booking_id', name: 'booking_id' },
                 { data: 'user', name: 'user' },
                 { data: 'phone', name: 'phone' },
-                { data: 'service', name: 'service' },
-                { data: 'quantity', name: 'quantity' },
+                // { data: 'service', name: 'service' },
+                // { data: 'quantity', name: 'quantity' },
                 // { data: 'cancelled_by', name: 'cancelled_by' },
                 { data: 'total', name: 'total' },
                 { data: 'payment_method', name: 'payment_method' },
                 { data: 'region', name: 'region' },
                 { data: 'status', name: 'status' },
                 { data: 'date', name: 'date' },
+                { data: 'booking_day', name: 'booking_day' },
+                { data: 'booking_time', name: 'booking_time' },
+
+                
+
+                
                 {
                     data: 'control',
                     name: 'control',

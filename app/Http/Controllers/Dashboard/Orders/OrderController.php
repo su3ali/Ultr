@@ -597,22 +597,36 @@ class OrderController extends Controller
                 ->addColumn('phone', fn($row) => $row->user?->phone
                     ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link">' . $row->user->phone . '</a>'
                     : 'N/A')
-                ->addColumn('service', function ($row) {
-                    $serviceIds = $row->orderServices->pluck('service_id')->unique();
-                    $services   = \App\Models\Service::whereIn('id', $serviceIds)->get();
-                    return $services->map(fn($s) => '<button class="btn-sm btn-primary">' . $s->title . '</button>')->implode('');
-                })
-                ->addColumn('quantity', fn($row) => $row->orderServices->sum('quantity'))
+            // ->addColumn('service', function ($row) {
+            //     $serviceIds = $row->orderServices->pluck('service_id')->unique();
+            //     $services   = \App\Models\Service::whereIn('id', $serviceIds)->get();
+            //     return $services->map(fn($s) => '<button class="btn-sm btn-primary">' . $s->title . '</button>')->implode('');
+            // })
+            // ->addColumn('quantity', fn($row) => $row->orderServices->sum('quantity'))
                 ->addColumn('total', fn($row) => $row->total ? (fmod($row->total, 1) == 0 ? (int) $row->total : number_format($row->total, 2)) : '')
                 ->addColumn('status', fn($row) => app()->getLocale() === 'ar'
                     ? optional($row->bookings?->first()?->visit?->status)->name_ar
                     : optional($row->bookings?->first()?->visit?->status)->name_en)
                 ->addColumn('date', function ($row) {
+
+                    return $row->created_at
+                    ? Carbon::parse($row->created_at)->locale('ar')->timezone('Asia/Riyadh')->format('Y-m-d')
+                    : '-';
+                })
+                ->addColumn('booking_day', function ($row) {
                     $booking = $row->bookings->first();
                     return $booking && $booking->date
                     ? Carbon::parse($booking->date)->locale('ar')->timezone('Asia/Riyadh')->format('Y-m-d')
                     : '-';
                 })
+                ->addColumn('booking_time', function ($row) {
+                    $booking = $row->bookings->first();
+
+                    return $booking && $booking->visit && $booking->visit->start_time
+                    ? Carbon::parse($booking->visit->start_time)->format('h:i A') // 12-hour format with AM/PM
+                    : '-';
+                })
+
                 ->addColumn('payment_method', function ($row) {
                     return match ($row->transaction?->payment_method) {
                         'cache', 'cash' => __('api.payment_method_network'),
@@ -643,7 +657,7 @@ class OrderController extends Controller
                     }
                     return $html;
                 })
-                ->rawColumns(['user', 'phone', 'service', 'quantity', 'total', 'status', 'date', 'payment_method', 'region', 'control'])
+                ->rawColumns(['user', 'phone', 'total', 'status', 'date', 'booking_day', 'booking_time', 'payment_method', 'region', 'control'])
                 ->with([
                     'recordsTotal'    => $totalOrders,
                     'recordsFiltered' => $filteredOrders->count(),

@@ -481,6 +481,10 @@ return [
     'edit_main_image'                       => 'Edit image',
     'latest_main_images'                    => 'Latest main images',
     'date'                                  => 'Date',
+    'order_date'                            => 'Order date',
+    'booking_day'                           => 'Booking Date ',
+    'booking_time'                          => 'Booking Time ',
+
     'category_products'                     => 'Product categories',
     'category_services'                     => 'Service categories',
     'wallet'                                => 'Wallet balance',

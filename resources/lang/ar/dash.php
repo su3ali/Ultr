@@ -940,6 +940,8 @@ return [
     'tech_team'                                => 'الفريق الفني',
     'team'                                     => 'الفريق',
     'booking_date'                             => 'موعد الحجز',
+    'booking_day'                              => 'تاريخ الحجز',
+    'booking_time'                             => 'موعد الحجز',
     'specialization'                           => 'التخصص',
     'copy'                                     => 'نسخ',
     'csv'                                      => 'تصدير إلى CSV',
@@ -1084,4 +1086,5 @@ return [
     'shift'                                    => ' المناوبة',
     'no_related_to_shift'                      => 'لم يلتحق  بمناوبة',
     'all_shifts'                               => 'كل الشفتات',
+    'order_date'                               => 'تاريخ الطلب',
 ];
