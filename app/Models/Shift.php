@@ -19,10 +19,10 @@ class Shift extends Model
         'is_active',
     ];
     protected $casts = [
-        'shift_no'   => 'string',
-        'group_id'   => 'array',
-        'service_id' => 'array',
-        'day_id'     => 'array',
+        'shift_no' => 'string',
+        // 'group_id'   => 'array',
+        // 'service_id' => 'array',
+        // 'day_id'     => 'array',
 
     ];
 
