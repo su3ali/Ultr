@@ -48,6 +48,7 @@ class GroupsController extends Controller
                         </label>';
                 })
                 ->addColumn('control', function ($row) {
+                    $html = '';
                     // Check if the logged-in user has the 'admin' role
                     if (auth()->user()->hasRole('admin') || auth()->user()->can('update_technicians')) {
 

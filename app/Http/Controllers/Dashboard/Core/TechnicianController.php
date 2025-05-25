@@ -6,6 +6,7 @@ use App\Models\BusinessProject\ClientProject;
 use App\Models\Day;
 use App\Models\Group;
 use App\Models\Region;
+use App\Models\Shift;
 use App\Models\Specialization;
 use App\Models\Technician;
 use App\Models\TechnicianWorkingDay;
@@ -60,6 +61,26 @@ class TechnicianController extends Controller
                 });
 
             }
+            // Shift filter
+            if ($request->filled('shift_no') && $request->shift_no !== 'all') {
+                // Get all shifts with this name
+                $matchedShifts = Shift::where('shift_no', $request->shift_no)->get();
+
+                $groupIds = [];
+
+                foreach ($matchedShifts as $shift) {
+                    $decoded = is_array($shift->group_id) ? $shift->group_id : json_decode($shift->group_id, true);
+                    if (is_array($decoded)) {
+                        $groupIds = array_merge($groupIds, $decoded);
+                    }
+                }
+
+                $groupIds = array_unique($groupIds);
+
+                if (! empty($groupIds)) {
+                    $techniciansQuery->whereIn('group_id', $groupIds);
+                }
+            }
 
             // Specialization filter
             if ($request->filled('spec_id') && $request->spec_id !== 'all') {
@@ -104,6 +125,31 @@ class TechnicianController extends Controller
                 : $row->specialization?->name_en;
 
                 $regionTitle = $row->group?->region?->first()?->title ?? '';
+
+                $shiftNo = null;
+
+                $shiftNo = __('dash.no_related_to_shift');
+
+                if ($row->group) {
+                    $groupId = (string) $row->group->id;
+
+                    // If filtering by a specific shift name
+                    if (request()->filled('shift_no') && request()->shift_no !== 'all') {
+                        $targetShift = Shift::where('shift_no', request()->shift_no)
+                            ->whereJsonContains('group_id', $groupId)
+                            ->first();
+
+                        if ($targetShift) {
+                            $shiftNo = $targetShift->shift_no;
+                        }
+                    } else {
+                        // Fallback: show first related shift if not filtering
+                        $firstShift = Shift::whereJsonContains('group_id', $groupId)->first();
+                        if ($firstShift) {
+                            $shiftNo = $firstShift->shift_no;
+                        }
+                    }
+                }
 
                 $statusToggle = '
                 <label class="switch s-outline s-outline-info mb-4 mr-2">
@@ -151,15 +197,16 @@ class TechnicianController extends Controller
                 }
 
                 return [
-                    'id'      => '<a href="' . route('dashboard.core.technician.details', ['id' => $row->id]) . '">' . $row->id . '</a>',
-                    'name'    => '<a href="#">' . $row->name . '</a>',
-                    't_image' => $imageTag,
-                    'spec'    => $specName,
-                    'phone'   => $whatsAppLink,
-                    'group'   => $row->group?->name,
-                    'region'  => $regionTitle,
-                    'status'  => $statusToggle,
-                    'control' => $control,
+                    'id'       => '<a href="' . route('dashboard.core.technician.details', ['id' => $row->id]) . '">' . $row->id . '</a>',
+                    'name'     => '<a href="#">' . $row->name . '</a>',
+                    't_image'  => $imageTag,
+                    'spec'     => $specName,
+                    'phone'    => $whatsAppLink,
+                    'group'    => $row->group?->name,
+                    'shift_no' => $shiftNo,
+                    'region'   => $regionTitle,
+                    'status'   => $statusToggle,
+                    'control'  => $control,
                 ];
             });
 
@@ -180,11 +227,12 @@ class TechnicianController extends Controller
             "باكستان"   => "6",
             "مصر"       => "7",
         ];
+        $shifts = Shift::select('shift_no')->distinct()->get();
 
         $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
 
         return view('dashboard.core.technicians.index', compact(
-            'groups', 'specs', 'days', 'nationalities', 'clientProjects', 'regions'
+            'groups', 'specs', 'days', 'nationalities', 'clientProjects', 'regions', 'shifts'
         ));
     }
 
@@ -195,13 +243,11 @@ class TechnicianController extends Controller
         $days   = Day::where('is_active', 1)->get(['id', 'name_ar', 'name']);
 
         if ($request->ajax()) {
-            $techniciansQuery = Technician::offToday()->where('active', 1)
+            $techniciansQuery = Technician::offToday()
                 ->where('is_trainee', Technician::TECHNICIAN)
                 ->where('is_business', 0)
                 ->with(['group.region', 'specialization', 'workingDays'])
-                ->whereDoesntHave('workingDays', function ($q) {
-                    $q->where('day_id', \Carbon\Carbon::now()->dayOfWeek);
-                });
+            ;
 
             // Group filter
             if ($request->filled('group_id') && $request->group_id !== 'all') {

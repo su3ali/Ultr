@@ -64,7 +64,7 @@
                             <th>#</th>
                             <th>{{ __('dash.name') }}</th>
                             <th>{{ __('dash.image') }}</th>
-                            <th>{{ __('dash.specialization') }}</th>
+                            {{-- <th>{{ __('dash.specialization') }}</th> --}}
                             <th>{{ __('dash.phone') }}</th>
                             <th>{{ __('dash.group') }}</th>
                             <th>{{ __('dash.zone') }}</th>
@@ -125,7 +125,7 @@
                 { data: 'id', name: 'id' },
                 { data: 'name', name: 'name' },
                 { data: 't_image', name: 't_image', orderable: false, searchable: false },
-                { data: 'spec', name: 'spec' },
+                // { data: 'spec', name: 'spec' },
                 { data: 'phone', name: 'phone' },
                 { data: 'group', name: 'group' },
                 { data: 'region', name: 'region' },

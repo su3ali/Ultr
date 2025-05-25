@@ -1079,4 +1079,9 @@ return [
 
     'all_regions'                              => 'جميع المناطق',
     'date_filter'                              => 'تصفية حسب التاريخ',
+    'choose_status'                            => 'اختر الحالة الجديدة',
+    'change_status'                            => 'تغيير الحالة',
+    'shift'                                    => ' المناوبة',
+    'no_related_to_shift'                      => 'لم يلتحق  بمناوبة',
+    'all_shifts'                               => 'كل الشفتات',
 ];

@@ -2,9 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Group;
+use App\Models\Booking;
+use App\Models\ReasonCancel;
+use App\Models\VisitsStatus;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
 class Visit extends Model
 {
@@ -27,6 +31,7 @@ class Visit extends Model
     }
     public function cancelReason()
     {
+        
         return $this->belongsTo(ReasonCancel::class, 'reason_cancel_id');
     }
 

@@ -151,219 +151,230 @@ class VisitsController extends Controller
     protected function changeStatus(Request $request)
     {
 
-        $rules = [
-            'type'             => 'required|in:visit,order,booking',
-            'cancel_reason_id' => 'nullable|exists:reason_cancels,id',
-            'image'            => 'nullable|mimes:jpeg,png,jpg,gif',
-            'note'             => 'nullable|string|min:3|max:255',
-        ];
-        if ($request->type == 'visit') {
-            $rules['id']        = 'required|exists:visits,id';
-            $rules['status_id'] = 'required|exists:visits_statuses,id';
+        try {
 
-            $request->validate($rules, $request->all());
-
-            $model = Visit::with('booking.order')->where('id', $request->id)->first();
-
-            $data = [
-                'visits_status_id' => $request->status_id,
-                'reason_cancel_id' => $request->cancel_reason_id,
-                'note'             => $request->note,
+            $rules = [
+                'type'             => 'required|in:visit,order,booking',
+                'cancel_reason_id' => 'nullable|exists:reason_cancels,id',
+                'image'            => 'nullable|mimes:jpeg,png,jpg,gif',
+                'note'             => 'nullable|string|min:3|max:255',
             ];
-            $image = null;
-            // if ($request->hasFile('image')) {
-            //     if (File::exists(public_path($model->image))) {
-            //         File::delete(public_path($model->image));
-            //     }
-            //     $image = $request->file('image');
-            //     $filename = time() . '.' . $image->getClientOriginalExtension();
-            //     $request->image->move(storage_path('app/public/images/visits/'), $filename);
-            //     $image = 'storage/images/visits' . '/' . $filename;
-            //     $data['image'] = $image;
-            // }
+            if ($request->type == 'visit') {
+                $rules['id']        = 'required|exists:visits,id';
+                $rules['status_id'] = 'required|exists:visits_statuses,id';
 
-            if ($request->hasFile('image')) {
-                $image            = $request->file('image');
-                $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
-                if (! in_array($image->getMimeType(), $allowedMimeTypes)) {
-                    return response()->json([
-                        'message' => 'Invalid image type. Allowed types are: JPEG, PNG, JPG, GIF.',
-                    ], 422);
+                $request->validate($rules, $request->all());
+
+                $model = Visit::with('booking.order')->where('id', $request->id)->first();
+                // $model = Visit::with(['booking.order', 'group.technicians'])->where('id', $request->id)->first();
+
+                $data = [
+                    'visits_status_id' => $request->status_id,
+                    'reason_cancel_id' => $request->cancel_reason_id,
+                    'note'             => $request->note,
+                ];
+                $image = null;
+                // if ($request->hasFile('image')) {
+                //     if (File::exists(public_path($model->image))) {
+                //         File::delete(public_path($model->image));
+                //     }
+                //     $image = $request->file('image');
+                //     $filename = time() . '.' . $image->getClientOriginalExtension();
+                //     $request->image->move(storage_path('app/public/images/visits/'), $filename);
+                //     $image = 'storage/images/visits' . '/' . $filename;
+                //     $data['image'] = $image;
+                // }
+
+                if ($request->hasFile('image')) {
+                    $image            = $request->file('image');
+                    $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+                    if (! in_array($image->getMimeType(), $allowedMimeTypes)) {
+                        return response()->json([
+                            'message' => 'Invalid image type. Allowed types are: JPEG, PNG, JPG, GIF.',
+                        ], 422);
+                    }
+                    // Check if the old image exists and delete it if it does
+                    if (File::exists(public_path($model->image))) {
+                        File::delete(public_path($model->image));
+                    }
+                    $filename = time() . '.' . $image->getClientOriginalExtension();
+                    // Define the directory where the image will be stored
+                    $directory = storage_path('app/public/images/visits/');
+                    // Check if the directory exists, if not, create it
+                    if (! File::exists($directory)) {
+                        File::makeDirectory($directory, 0755, true);
+                    }
+                    $image->move($directory, $filename);
+                    $imagePath     = 'storage/images/visits/' . $filename;
+                    $data['image'] = $imagePath;
                 }
-                // Check if the old image exists and delete it if it does
-                if (File::exists(public_path($model->image))) {
-                    File::delete(public_path($model->image));
+
+                if ($request->status_id == 3) {
+                    $data['start_date'] = Carbon::now('Asia/Riyadh');
+                    $order              = $model->booking->order;
+                    $visits_ids         = [];
+                    foreach ($order->bookings as $booking) {
+                        $visits_ids[] = $booking->visit->id;
+                    }
+                    if (! in_array(3, $visits_ids)) {
+                        $order->status_id = 3;
+                        $order->save();
+                    }
                 }
-                $filename = time() . '.' . $image->getClientOriginalExtension();
-                // Define the directory where the image will be stored
-                $directory = storage_path('app/public/images/visits/');
-                // Check if the directory exists, if not, create it
-                if (! File::exists($directory)) {
-                    File::makeDirectory($directory, 0755, true);
+
+                if ($request->status_id == 5) {
+                    $data['end_date'] = Carbon::now('Asia/Riyadh');
+                    $techWallet       = TechnicianWallet::query()->first();
+                    $serviceCost      = $model->booking->order->services->where('category_id', $model->booking->category_id)->sum('price');
+                    if ($techWallet->point_type == 'rate') {
+                        $money = $serviceCost * ($techWallet->price / 100);
+                    } else {
+                        $money = $techWallet->price;
+                    }
+
+                    if ($model->group && $model->group->technicians) {
+                        $techIds = $model->group->technicians->pluck('id')->toArray();
+                        $techs   = Technician::whereIn('id', $techIds)->get();
+
+                        foreach ($techs as $tech) {
+                            $tech->point += $money;
+                            $tech->save();
+                        }
+                    }
+
                 }
-                $image->move($directory, $filename);
-                $imagePath     = 'storage/images/visits/' . $filename;
-                $data['image'] = $imagePath;
-            }
 
-            if ($request->status_id == 3) {
-                $data['start_date'] = Carbon::now('Asia/Riyadh');
-                $order              = $model->booking->order;
-                $visits_ids         = [];
-                foreach ($order->bookings as $booking) {
-                    $visits_ids[] = $booking->visit->id;
+                $model->update($data);
+
+                if ($request->status_id == 2 && $model->booking->order->userAddress) {
+                    $userAddress = $model->booking->order->userAddress;
+
+                    // Check if latitude and longitude are zero before updating
+                    if ($model->lat == 0 && $model->long == 0) {
+                        $dataToUpdate = [
+                            'lat'  => $userAddress->lat ?? 0,
+                            'long' => $userAddress->long ?? 0,
+                        ];
+
+                        // Combine the data updates into one call
+                        $model->update(array_merge($data, $dataToUpdate));
+                    }
                 }
-                if (! in_array(3, $visits_ids)) {
-                    $order->status_id = 3;
-                    $order->save();
+
+                // if (in_array($request->status_id, [5,6])){
+                //     if($model->booking->type =='service') {
+                //         $order = $model->booking->order;
+                //     }else{
+                //         $order = $model->booking->contract;
+                //     }
+                //     $visits_ids = [];
+                //     foreach ($order->bookings as $booking){
+                //         $visits_ids[] = $booking->visit?->id;
+                //     }
+                //     $difference = array_diff($visits_ids, [1,2,3,4]);
+                //     if (count($difference) == count($visits_ids)) {
+                //         $order->status_id = 4;
+                //         $order->save();
+                //     }
+                // }
+
+                if (in_array($request->status_id, [5, 6])) {
+                    $order      = $model->booking->order;
+                    $visits_ids = [];
+                    foreach ($order->bookings as $booking) {
+                        $visits_ids[] = $booking->visit->id;
+                    }
+                    $difference = array_diff($visits_ids, [1, 2, 3, 4]);
+                    if (count($difference) == count($visits_ids)) {
+                        $order->status_id = 4;
+                        $order->save();
+                    }
                 }
-            }
+                if ($request->status_id == 6) {
+                    $bookingId = Visit::where('id', $request->id)->first()->booking_id;
+                    $order     = Order::whereHas('bookings', function ($q) use ($bookingId) {
+                        $q->where('id', $bookingId);
+                    })->first();
+                    $total = $order->sub_total;
+                    $order->update([
+                        'status_id' => 5,
+                    ]);
+                    $booking = Booking::where('id', $bookingId)->first();
+                    $booking->update([
+                        'booking_status_id' => 2,
+                    ]);
 
-            if ($request->status_id == 5) {
-                $data['end_date'] = Carbon::now('Asia/Riyadh');
-                $techWallet       = TechnicianWallet::query()->first();
-                $serviceCost      = $model->booking->order->services->where('category_id', $model->booking->category_id)->sum('price');
-                if ($techWallet->point_type == 'rate') {
-                    $money = $serviceCost * ($techWallet->price / 100);
-                } else {
-                    $money = $techWallet->price;
+                    //refund
+
+                    $yourDate       = Carbon::parse($booking->Date)->timezone('Asia/Riyadh');
+                    $currentDate    = Carbon::now('Asia/Riyadh');
+                    $daysDifference = $yourDate->diffInDays($currentDate);
+                    if ($daysDifference >= 2) {
+                        $user = User::where('id', $model->booking->user_id)->first();
+                        $user->update([
+                            'point' => $user->point + $order->total ?? 0,
+                        ]);
+                    }
                 }
-                $techs = Technician::query()
-                    ->whereIn('id', $model->group->technicians->pluck('id')->toArray())
-                    ->get();
-                foreach ($techs as $tech) {
-                    $tech->point += $money;
-                    $tech->save();
-                }
-            }
 
-            $model->update($data);
+                $user = User::where('id', $model->booking->user_id)->first('fcm_token');
 
-            if ($request->status_id == 2 && $model->booking->order->userAddress) {
-                $userAddress = $model->booking->order->userAddress;
+                $order = Visit::whereHas('booking', function ($q) {
+                    $q->whereHas('customer')->whereHas('address');
+                })->with('booking', function ($q) {
+                    $q->with(['service' => function ($q) {
+                        $q->with('category');
+                    }, 'customer', 'address']);
+                })->with('status')->where('id', $model->id)->first();
 
-                // Check if latitude and longitude are zero before updating
-                if ($model->lat == 0 && $model->long == 0) {
-                    $dataToUpdate = [
-                        'lat'  => $userAddress->lat ?? 0,
-                        'long' => $userAddress->long ?? 0,
-                    ];
+                $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
 
-                    // Combine the data updates into one call
-                    $model->update(array_merge($data, $dataToUpdate));
-                }
-            }
+                $FcmTokenArray = $adminFcmArray->merge([$user->fcm_token]);
 
-            // if (in_array($request->status_id, [5,6])){
-            //     if($model->booking->type =='service') {
-            //         $order = $model->booking->order;
-            //     }else{
-            //         $order = $model->booking->contract;
-            //     }
-            //     $visits_ids = [];
-            //     foreach ($order->bookings as $booking){
-            //         $visits_ids[] = $booking->visit?->id;
-            //     }
-            //     $difference = array_diff($visits_ids, [1,2,3,4]);
-            //     if (count($difference) == count($visits_ids)) {
-            //         $order->status_id = 4;
-            //         $order->save();
-            //     }
-            // }
+                $visit  = VisitsResource::make($order);
+                $notify = [
+                    'fromFunc'     => 'changeStatus',
+                    'device_token' => $FcmTokenArray,
+                    'data'         => [
+                        'order_details' => $visit,
+                        'type'          => 'change status',
+                    ],
+                ];
 
-            if (in_array($request->status_id, [5, 6])) {
-                $order      = $model->booking->order;
-                $visits_ids = [];
-                foreach ($order->bookings as $booking) {
-                    $visits_ids[] = $booking->visit->id;
-                }
-                $difference = array_diff($visits_ids, [1, 2, 3, 4]);
-                if (count($difference) == count($visits_ids)) {
-                    $order->status_id = 4;
-                    $order->save();
-                }
-            }
-            if ($request->status_id == 6) {
-                $bookingId = Visit::where('id', $request->id)->first()->booking_id;
-                $order     = Order::whereHas('bookings', function ($q) use ($bookingId) {
-                    $q->where('id', $bookingId);
-                })->first();
-                $total = $order->sub_total;
-                $order->update([
-                    'status_id' => 5,
-                ]);
-                $booking = Booking::where('id', $bookingId)->first();
-                $booking->update([
-                    'booking_status_id' => 2,
-                ]);
-
-                //refund
-
-                $yourDate       = Carbon::parse($booking->Date)->timezone('Asia/Riyadh');
-                $currentDate    = Carbon::now('Asia/Riyadh');
-                $daysDifference = $yourDate->diffInDays($currentDate);
-                if ($daysDifference >= 2) {
+                if ($request->status_id == 6) {
                     $user = User::where('id', $model->booking->user_id)->first();
+
+                    $walletSetting = CustomerWallet::query()->first();
+
+                    $wallet = ($total * $walletSetting->order_percentage) / 100;
+
+                    if ($wallet > $walletSetting->refund_amount) {
+                        $point = $walletSetting->refund_amount;
+                    } else {
+                        $point = $wallet;
+                    }
+                    // $newPoint = ((round($user->point - $point)) < 0 ? 0 : round($user->point - $point)) ?? 0;
+                    // $user->update([
+                    //     'point' => $newPoint,
+                    // ]);
+
+                    $newPoint = max(0, round($user->point - $point));
                     $user->update([
-                        'point' => $user->point + $order->total ?? 0,
+                        'point' => $newPoint,
+                    ]);
+
+                    $user->update([
+                        'order_cancel' => 1,
                     ]);
                 }
+
+                $this->pushNotificationBackground($notify);
+                //$this->pushNotification($notify);
+                $this->body['visits'] = $visit;
+                return self::apiResponse(200, null, $this->body);
             }
-
-            $user = User::where('id', $model->booking->user_id)->first('fcm_token');
-
-            $order = Visit::whereHas('booking', function ($q) {
-                $q->whereHas('customer')->whereHas('address');
-            })->with('booking', function ($q) {
-                $q->with(['service' => function ($q) {
-                    $q->with('category');
-                }, 'customer', 'address']);
-            })->with('status')->where('id', $model->id)->first();
-
-            $adminFcmArray = Admin::whereNotNull('fcm_token')->pluck('fcm_token');
-            $FcmTokenArray = $adminFcmArray->merge([$user->fcm_token]);
-
-            $visit  = VisitsResource::make($order);
-            $notify = [
-                'fromFunc'     => 'changeStatus',
-                'device_token' => $FcmTokenArray,
-                'data'         => [
-                    'order_details' => $visit,
-                    'type'          => 'change status',
-                ],
-            ];
-
-            if ($request->status_id == 6) {
-                $user = User::where('id', $model->booking->user_id)->first();
-
-                $walletSetting = CustomerWallet::query()->first();
-
-                $wallet = ($total * $walletSetting->order_percentage) / 100;
-
-                if ($wallet > $walletSetting->refund_amount) {
-                    $point = $walletSetting->refund_amount;
-                } else {
-                    $point = $wallet;
-                }
-                // $newPoint = ((round($user->point - $point)) < 0 ? 0 : round($user->point - $point)) ?? 0;
-                // $user->update([
-                //     'point' => $newPoint,
-                // ]);
-
-                $newPoint = max(0, round($user->point - $point));
-                $user->update([
-                    'point' => $newPoint,
-                ]);
-
-                $user->update([
-                    'order_cancel' => 1,
-                ]);
-            }
-
-            $this->pushNotificationBackground($notify);
-            //$this->pushNotification($notify);
-            $this->body['visits'] = $visit;
-            return self::apiResponse(200, null, $this->body);
+        } catch (\Exception $e) {
+            return self::apiResponse(500, __('api.Something went wrong, please try again later'), $this->body);
         }
     }
 

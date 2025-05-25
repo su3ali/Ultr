@@ -195,7 +195,7 @@ class BookingController extends Controller
                         'new'            => $row->visit?->status?->name_ar ?? 'N/A',
                         'date'           => $row->date ?? 'N/A',
                         'quantity'       => $row->quantity ?? 'N/A',
-                        'zone'           => $row->visit?->group?->region->first()->title ?? 'N/A',
+                        'zone'           => optional($row->order->userAddress?->region)->title ?? '',
                         'total'          => isset($row->visit?->booking?->order?->total) && is_numeric($row->visit->booking->order->total)
                         ? number_format((float) $row->visit->booking->order->total, 2)
                         : 'N/A',
