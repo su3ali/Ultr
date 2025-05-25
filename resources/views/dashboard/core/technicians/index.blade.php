@@ -98,6 +98,17 @@
                             <option value="all">{{ __('dash.all') }}</option>
                         </select>
                     </div>
+
+                    <div class="col-md-3">
+                        <select id="shift_no_filter" class="form-select form-select-sm">
+                            <option value="all"> {{ __('dash.all_shifts') }}</option>
+                            @foreach($shifts as $shift)
+                            <option value="{{ $shift->shift_no }}">{{ $shift->shift_no }}</option>
+                            @endforeach
+                        </select>
+
+                    </div>
+
                 </div>
 
 
@@ -108,9 +119,10 @@
                             <th>#</th>
                             <th>{{ __('dash.name') }}</th>
                             <th>{{ __('dash.image') }}</th>
-                            <th>{{ __('dash.specialization') }}</th>
+                            {{-- <th>{{ __('dash.specialization') }}</th> --}}
                             <th>{{ __('dash.phone') }}</th>
                             <th>{{ __('dash.group') }}</th>
+                            <th> {{ __('dash.shift') }} </th>
                             <th>{{ __('dash.zone') }}</th>
                             <th>{{ __('dash.status') }}</th>
                             <th class="no-content">{{ __('dash.actions') }}</th>
@@ -164,6 +176,8 @@
                     d['search[value]'] = $('#searchInput').val(); 
                     d.date_filter = $('#dateFilter').val(); 
                     d.region_id = $('#region_filter').val(); 
+                    d.shift_no = $('#shift_no_filter').val(); 
+
 
                 }
             },
@@ -171,9 +185,10 @@
                 { data: 'id', name: 'id' },
                 { data: 'name', name: 'name' },
                 { data: 't_image', name: 't_image', orderable: false, searchable: false },
-                { data: 'spec', name: 'spec' },
+                // { data: 'spec', name: 'spec' },
                 { data: 'phone', name: 'phone' },
                 { data: 'group', name: 'group' },
+                {data: 'shift_no', name:'shift_no'},
                 { data: 'region', name: 'region' },
                 { data: 'status', name: 'status' },
                 { data: 'control', name: 'control', orderable: false, searchable: false }
@@ -197,10 +212,15 @@
                 $('#dateFilter').change(function() {
                     table.draw(); // Redraw the table when the date filter changes
                 });
+                 $('#shift_no_filter').change(function() {
+                    table.draw(); // Redraw the table when the date filter changes
+                });
 
                  $('#region_filter').change(function() {
                     table.draw(); // Redraw the table when the date filter changes
                 });
+               
+
             }
         });
 

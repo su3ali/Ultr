@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Dashboard\Orders;
 
+use App\Helpers\ActivityLogger;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingSetting;
@@ -26,7 +27,6 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -515,6 +515,17 @@ class OrderController extends Controller
                                   </a>';
                     }
 
+                    if ((Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') || Auth::user()->can('orders_change_status')) {
+
+                        $html .= '<button type="button"
+                            class="btn btn-sm btn-outline-warning change-status-btn"
+                            data-id="' . $row->id . '"
+                            data-current-status="' . $row->status_id . '"
+                            title="' . __('dash.change_status') . '">
+                            <i class="fas fa-exchange-alt fa-2x"></i>
+                        </button>';
+                    }
+
                     // if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
                     //     $html .= '<a href="javascript:void(0);"
                     //                class="mr-2 btn btn-outline-danger btn-sm open-reschedule"
@@ -545,7 +556,12 @@ class OrderController extends Controller
                 ->make(true);
         }
         $statuses = OrderStatus::all()->pluck('name', 'id');
-        return view('dashboard.orders.canceled_orders_today', compact('statuses'));
+
+        $changeableStatusIds = [3, 4];
+
+        $orderStatusOptions = $statuses->only($changeableStatusIds);
+
+        return view('dashboard.orders.canceled_orders_today', compact('statuses', 'orderStatusOptions'));
     }
 
     // Late Orders
@@ -562,17 +578,17 @@ class OrderController extends Controller
             $cacheKey .= '_' . ($date ?? 'null') . '_' . ($date2 ?? 'null');
         }
 
-        $ordersQuery = Cache::remember($cacheKey, now()->addMinutes(1), function () {
-            return Order::lateToServe()
-                ->with([
-                    'user',
-                    'bookings.visits',
-                    'status',
-                    'userAddress.region',
-                    'orderServices',
-                    'transaction',
-                ])->get();
-        });
+        $ordersQuery = Order::lateToServe()
+            ->with([
+                'user',
+                'bookings.visits',
+                'status',
+                'userAddress.region',
+                'orderServices',
+                'transaction',
+            ])
+            ->whereDate('created_at', Carbon::today('Asia/Riyadh'))
+            ->get();
 
         $ordersQuery = collect($ordersQuery);
 
@@ -690,6 +706,17 @@ class OrderController extends Controller
                     </a>';
                     }
 
+                    if ((Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') || Auth::user()->can('orders_change_status')) {
+
+                        $html .= '<button type="button"
+                            class="btn btn-sm btn-outline-warning change-status-btn"
+                            data-id="' . $row->id . '"
+                            data-current-status="' . $row->status_id . '"
+                            title="' . __('dash.change_status') . '">
+                            <i class="fas fa-exchange-alt fa-2x"></i>
+                        </button>';
+                    }
+
                     return $html;
                 })
                 ->rawColumns(['user', 'phone', 'service', 'quantity', 'total', 'status', 'date', 'payment_method', 'region', 'control'])
@@ -700,8 +727,11 @@ class OrderController extends Controller
                 ->make(true);
         }
 
-        $statuses = OrderStatus::pluck('name_' . app()->getLocale(), 'id');
-        return view('dashboard.orders.late_orders', compact('statuses'));
+        $statuses            = OrderStatus::pluck('name_' . app()->getLocale(), 'id');
+        $changeableStatusIds = [3, 4, 5];
+
+        $orderStatusOptions = $statuses->only($changeableStatusIds);
+        return view('dashboard.orders.late_orders', compact('statuses', 'orderStatusOptions'));
     }
 
     public function canceledOrders(Request $request)
@@ -848,7 +878,16 @@ class OrderController extends Controller
                     //                 <i class="fas fa-calendar-alt fa-2x"></i>
                     //               </a>';
                     // }
+                    if ((Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') || Auth::user()->can('orders_change_status')) {
 
+                        $html .= '<button type="button"
+                            class="btn btn-sm btn-outline-warning change-status-btn"
+                            data-id="' . $row->id . '"
+                            data-current-status="' . $row->status_id . '"
+                            title="' . __('dash.change_status') . '">
+                            <i class="fas fa-exchange-alt fa-2x"></i>
+                        </button>';
+                    }
                     return $html;
                 })
 
@@ -875,7 +914,11 @@ class OrderController extends Controller
 
         // Non-AJAX request (Initial page load)
         $statuses = OrderStatus::all()->pluck('name', 'id');
-        return view('dashboard.orders.canceled_orders', compact('statuses'));
+
+        $changeableStatusIds = [3, 4];
+
+        $orderStatusOptions = $statuses->only($changeableStatusIds);
+        return view('dashboard.orders.canceled_orders', compact('statuses', 'orderStatusOptions'));
     }
 
     public function showService()
@@ -1649,4 +1692,44 @@ class OrderController extends Controller
             ->rawColumns(['booking_id', 'technican_name', 'date', 'time', 'status'])
             ->make(true);
     }
+
+    public function changeStatus(Request $request)
+    {
+        $request->validate([
+            'order_id'  => 'required|exists:orders,id',
+            'status_id' => 'required|exists:order_statuses,id',
+        ]);
+
+        $order = Order::findOrFail($request->order_id);
+
+        $oldStatusId   = $order->status_id;
+        $oldStatusName = optional($order->status)->name;
+        $newStatusId   = $request->status_id;
+
+        $order->status_id = $newStatusId;
+        $order->save();
+
+        $newStatusName = optional($order->status)->name;
+
+        ActivityLogger::log(
+            actionType: 'order_status_updated',
+            model: $order,
+            description: 'تم تغيير حالة الطلب',
+            userId: auth()->id(),
+            changes: [
+                'from' => ['id' => $oldStatusId, 'name' => $oldStatusName],
+                'to'   => ['id' => $newStatusId, 'name' => $newStatusName],
+            ],
+            meta: [
+                'performed_at' => now('Asia/Riyadh')->toDateTimeString(),
+                'url'          => request()->fullUrl(),
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'msg'     => __("dash.updated_success"),
+        ]);
+    }
+
 }

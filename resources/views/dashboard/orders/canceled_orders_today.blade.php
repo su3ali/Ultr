@@ -35,6 +35,11 @@
     </header>
 </div>
 
+@include('dashboard.orders.partial.change_status')
+
+
+
+
 {{-- @include('dashboard.orders.create') --}}
 @endsection
 
@@ -78,6 +83,9 @@
 @endsection
 
 @push('script')
+<!-- Include Bootstrap 5 JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script type="text/javascript">
     $(document).ready(function() {
             var table = $('#html5-extension').DataTable({
@@ -205,33 +213,7 @@
             });
         });
 
-        {{-- $(document).on('click', '#edit-order', function () { --}}
-        {{--    let id = $(this).data('id'); --}}
-        {{--    let user_id = $(this).data('user_id'); --}}
-        {{--    let category_id = $(this).data('category_id'); --}}
-        {{--    let service_id = $(this).data('service_id'); --}}
-        {{--    let price = $(this).data('price'); --}}
-        {{--    let payment_method = $(this).data('payment_method'); --}}
-        {{--    let notes = $(this).data('notes'); --}}
-        {{--    $('#edit_customer_name').val(user_id).trigger('change') --}}
-        {{--    $('#edit_category_id').val(category_id).trigger('change') --}}
-        {{--    $('#edit_service_id').val(service_id).trigger('change') --}}
-        {{--    $('#edit_price').val(price) --}}
-        {{--    $('#edit_notes').html(notes) --}}
-
-        {{--    if (payment_method === 'visa'){ --}}
-        {{--        $('#edit_payment_method_visa').prop('checked', true) --}}
-        {{--        $('#edit_payment_method_cache').prop('checked', false) --}}
-        {{--    }else { --}}
-        {{--        $('#edit_payment_method_visa').prop('checked', false) --}}
-        {{--        $('#edit_payment_method_cache').prop('checked', true) --}}
-        {{--    } --}}
-        {{--    let action = "{{route('dashboard.orders.update', 'id')}}"; --}}
-        {{--    action = action.replace('id', id) --}}
-        {{--    $('#edit_order_form').attr('action', action); --}}
-
-
-        {{-- }) --}}
+        
 
         $("body").on('change', '#customSwitchtech', function() {
             let active = $(this).is(':checked');
@@ -254,5 +236,32 @@
                 }
             });
         })
+
+        $(document).on('click', '.change-status-btn', function () {
+                const orderId = $(this).data('id');
+                const currentStatus = $(this).data('current-status');
+                $('#orderId').val(orderId);
+                $('#newStatus').val(currentStatus);
+                $('#changeStatusModal').modal('show');
+            });
+
+            $('#changeStatusForm').on('submit', function (e) {
+                e.preventDefault();
+                let form = $(this);
+                $.ajax({
+                    url: '{{ route("dashboard.order.changeStatus") }}',
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function (response) {
+                        $('#changeStatusModal').modal('hide');
+                        $('#html5-extension').DataTable().ajax.reload();
+                        Swal.fire('تم التحديث!', 'تم تغيير حالة الطلب بنجاح.', 'success');
+                    },
+                    error: function (xhr) {
+                        Swal.fire('خطأ!', 'حدث خطأ أثناء تغيير الحالة.', 'error');
+                    }
+                });
+            });
+
 </script>
 @endpush

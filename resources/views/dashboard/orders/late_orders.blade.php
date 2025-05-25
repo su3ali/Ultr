@@ -62,7 +62,7 @@
                 <div class="card-body">
 
                     {{-- Filters --}}
-                    <div class="row g-3 mb-4 align-items-end">
+                    {{-- <div class="row g-3 mb-4 align-items-end">
                         <div class="col-md-1">
                             <label for="date_from" class="form-label fw-semibold text-muted">{{ __('dash.date')
                                 }}</label>
@@ -81,7 +81,7 @@
                                 <input type="date" name="date2" class="form-control" id="date_to">
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
 
                     {{-- Responsive Table --}}
                     <div class="table-responsive">
@@ -113,10 +113,13 @@
     </div>
 
 </div>
+@include('dashboard.orders.partial.change_status')
 
 {{-- @include('dashboard.orders.edit') --}}
 @endsection
 @push('script')
+<!-- Include Bootstrap 5 JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script type="text/javascript">
     $(function () {
     $('[title]').tooltip();
@@ -234,5 +237,31 @@
             });
         });
     });
+
+     $(document).on('click', '.change-status-btn', function () {
+                const orderId = $(this).data('id');
+                const currentStatus = $(this).data('current-status');
+                $('#orderId').val(orderId);
+                $('#newStatus').val(currentStatus);
+                $('#changeStatusModal').modal('show');
+            });
+
+            $('#changeStatusForm').on('submit', function (e) {
+                e.preventDefault();
+                let form = $(this);
+                $.ajax({
+                    url: '{{ route("dashboard.order.changeStatus") }}',
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function (response) {
+                        $('#changeStatusModal').modal('hide');
+                        $('#html5-extension').DataTable().ajax.reload();
+                        Swal.fire('تم التحديث!', 'تم تغيير حالة الطلب بنجاح.', 'success');
+                    },
+                    error: function (xhr) {
+                        Swal.fire('خطأ!', 'حدث خطأ أثناء تغيير الحالة.', 'error');
+                    }
+                });
+            });
 </script>
 @endpush

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
@@ -20,7 +19,11 @@ class Shift extends Model
         'is_active',
     ];
     protected $casts = [
-        'shift_no' => 'string',
+        'shift_no'   => 'string',
+        'group_id'   => 'array',
+        'service_id' => 'array',
+        'day_id'     => 'array',
+
     ];
 
     public function day()

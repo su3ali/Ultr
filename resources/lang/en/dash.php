@@ -1140,4 +1140,9 @@ return [
     'Technicians_off_today'                 => 'Technicians Off Today',
     'all_regions'                           => 'All Regions',
     'date_filter'                           => 'Date Filter',
+    'choose_status'                         => 'Choose the new status',
+    'change_status'                         => 'Change Status',
+    'shift'                                 => 'Shift',
+    'no_related_to_shift'                   => 'No Realted to Shift',
+    'all_shifts'                            => 'All Shifts',
 ];
