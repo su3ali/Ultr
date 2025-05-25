@@ -568,11 +568,11 @@ class OrderController extends Controller
     public function lateOrders(Request $request)
     {
         $regionIds = auth()->user()->regions->pluck('region_id')->toArray();
+        $now       = Carbon::now('Asia/Riyadh');
+        $today     = $now->toDateString();
 
-        $date  = $request->query('date');
-        $date2 = $request->query('date2');
-
-        $ordersQuery = Order::lateToServe()
+        // Late orders for TODAY only
+        $orders = Order::lateToServe($now, onlyToday: true)
             ->with([
                 'user',
                 'bookings.visits',
@@ -581,32 +581,15 @@ class OrderController extends Controller
                 'orderServices',
                 'transaction',
             ])
-            ->whereHas('bookings', function ($q) use ($date, $date2) {
-                if ($date && $date2) {
-                    $q->whereBetween('date', [$date, $date2]);
-                } elseif ($date) {
-                    $q->whereDate('date', $date);
-                } elseif ($date2) {
-                    $q->whereDate('date', '<=', $date2);
-                } else {
-                    $q->whereDate('created_at', Carbon::today('Asia/Riyadh'));
-                }
-            });
+            ->whereHas('bookings', fn($q) => $q->whereDate('date', $today))
+            ->get();
 
-        $orders = $ordersQuery->get();
-
-        $totalOrders = $orders->count();
+        $totalOrders    = $orders->count();
+        $filteredOrders = $orders;
 
         if ($request->ajax()) {
-            $filteredOrders = $orders;
-
             if ($request->status) {
                 $filteredOrders = $filteredOrders->filter(fn($order) => $order->status_id == $request->status);
-            }
-
-            if ($request->page) {
-                $now            = Carbon::now('Asia/Riyadh')->toDateString();
-                $filteredOrders = $filteredOrders->filter(fn($order) => Carbon::parse($order->created_at)->toDateString() === $now);
             }
 
             return DataTables::of($filteredOrders)
@@ -626,18 +609,12 @@ class OrderController extends Controller
                     : optional($row->bookings?->first()?->visit?->status)->name_en)
                 ->addColumn('date', function ($row) {
                     $booking = $row->bookings->first();
-                    if (! $booking || ! $booking->date) {
-                        return '-';
-                    }
-
-                    return Carbon::parse($booking->date)
-                        ->locale('ar')
-                        ->timezone('Asia/Riyadh')
-                        ->format('Y-m-d');
+                    return $booking && $booking->date
+                    ? Carbon::parse($booking->date)->locale('ar')->timezone('Asia/Riyadh')->format('Y-m-d')
+                    : '-';
                 })
                 ->addColumn('payment_method', function ($row) {
-                    $payment_method = $row->transaction?->payment_method;
-                    return match ($payment_method) {
+                    return match ($row->transaction?->payment_method) {
                         'cache', 'cash' => __('api.payment_method_network'),
                         'wallet' => __('api.payment_method_wallet'),
                         default  => __('api.payment_method_visa'),
@@ -646,29 +623,24 @@ class OrderController extends Controller
                 ->addColumn('region', fn($row) => optional($row->userAddress?->region)->title)
                 ->addColumn('control', function ($row) {
                     $html = '';
-
                     if ($row->status_id == 2) {
-                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="تأكيد الطلب">'
-                            . '<i class="far fa-thumbs-up fa-2x mx-1"></i></a>';
+                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="تأكيد الطلب">
+                                <i class="far fa-thumbs-up fa-2x mx-1"></i></a>';
                     }
-
-                    $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="عرض تفاصيل الطلب">'
-                        . '<i class="far fa-eye fa-2x"></i></a>';
-
-                    $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="عرض الخدمات">'
-                        . '<i class="fas fa-tools fa-2x"></i></a>';
-
-                    if (auth()->user()->id == 1 && auth()->user()->first_name == 'Super Admin' || auth()->user()->can('delete_orders')) {
-                        $html .= '<a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech" title="حذف الطلب">'
-                            . '<i class="far fa-trash-alt fa-2x"></i></a>';
+                    $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="عرض تفاصيل الطلب">
+                            <i class="far fa-eye fa-2x"></i></a>';
+                    $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="عرض الخدمات">
+                            <i class="fas fa-tools fa-2x"></i></a>';
+                    if (auth()->user()->hasRole('admin') || auth()->user()->can('delete_orders')) {
+                        $html .= '<a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech" title="حذف الطلب">
+                                <i class="far fa-trash-alt fa-2x"></i></a>';
                     }
-
-                    if (auth()->user()->id == 1 && auth()->user()->first_name == 'Super Admin' || auth()->user()->can('orders_change_status')) {
-                        $html .= '<button type="button" class="btn btn-sm btn-outline-warning change-status-btn"'
-                        . ' data-id="' . $row->id . '" data-current-status="' . $row->status_id . '"'
-                        . ' title="' . __('dash.change_status') . '"><i class="fas fa-exchange-alt fa-2x"></i></button>';
+                    if (auth()->user()->hasRole('admin') || auth()->user()->can('orders_change_status')) {
+                        $html .= '<button type="button" class="btn btn-sm btn-outline-warning change-status-btn"
+                                data-id="' . $row->id . '" data-current-status="' . $row->status_id . '"
+                                title="' . __('dash.change_status') . '">
+                                <i class="fas fa-exchange-alt fa-2x"></i></button>';
                     }
-
                     return $html;
                 })
                 ->rawColumns(['user', 'phone', 'service', 'quantity', 'total', 'status', 'date', 'payment_method', 'region', 'control'])

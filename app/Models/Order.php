@@ -2,8 +2,8 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Order extends Model
 {
@@ -69,18 +69,19 @@ class Order extends Model
         return $this->hasMany(OrderService::class, 'order_id'); // Relating orders to order_services
     }
 
-    public function scopeLateToServe($query, $now = null)
+    public function scopeLateToServe($query, $now = null, $onlyToday = false)
     {
-        $now = $now ?: Carbon::now('Asia/Riyadh')->format('Y-m-d H:i:s');
+        $now   = $now ?: Carbon::now('Asia/Riyadh')->format('Y-m-d H:i:s');
+        $today = Carbon::now('Asia/Riyadh')->toDateString();
 
         return $query->where('status_id', 1)
-            ->whereHas('bookings', function ($bookingQuery) use ($now) {
-                $bookingQuery->where('booking_status_id', 1)
+            ->whereHas('bookings', function ($q) use ($now, $onlyToday, $today) {
+                $q->where('booking_status_id', 1)
+                    ->when($onlyToday, fn($q) => $q->whereDate('date', $today))
                     ->whereRaw("STR_TO_DATE(CONCAT(bookings.date, ' ', bookings.time), '%Y-%m-%d %H:%i:%s') < ?", [$now])
-                    ->whereHas('visits', function ($visitQuery) use ($now) {
-                        $visitQuery->where('visits_status_id', 1)
-                            ->where('created_at', '<', $now);
-                    });
+                    ->whereHas('visits', fn($v) =>
+                        $v->where('visits_status_id', 1)->where('created_at', '<', $now)
+                    );
             });
     }
 
