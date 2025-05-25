@@ -45,16 +45,20 @@ class Technician extends Authenticatable
 
         $todayName = $carbonToDayName[$carbonDayOfWeek] ?? null;
 
+        // dd($todayName);
+
         $day = Day::
             where('is_active', 1)
             ->where('name', $todayName)
             ->first();
 
         $todayDayId = $day?->id;
+        // dd($todayDayId);
 
-        if (! $todayDayId) {
-            return $query->whereRaw('1 = 0');
-        }
+        //  dd($todayDayId);
+        // if (! $todayDayId) {
+        //     return $query->whereRaw('1 = 0');
+        // }
 
         return $query->whereDoesntHave('workingDays', function ($q) use ($todayDayId) {
             $q->where('day_id', $todayDayId);

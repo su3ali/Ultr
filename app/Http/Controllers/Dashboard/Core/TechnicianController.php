@@ -195,13 +195,11 @@ class TechnicianController extends Controller
         $days   = Day::where('is_active', 1)->get(['id', 'name_ar', 'name']);
 
         if ($request->ajax()) {
-            $techniciansQuery = Technician::offToday()->where('active', 1)
+            $techniciansQuery = Technician::offToday()
                 ->where('is_trainee', Technician::TECHNICIAN)
                 ->where('is_business', 0)
                 ->with(['group.region', 'specialization', 'workingDays'])
-                ->whereDoesntHave('workingDays', function ($q) {
-                    $q->where('day_id', \Carbon\Carbon::now()->dayOfWeek);
-                });
+            ;
 
             // Group filter
             if ($request->filled('group_id') && $request->group_id !== 'all') {
