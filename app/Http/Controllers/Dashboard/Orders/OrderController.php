@@ -362,7 +362,7 @@ class OrderController extends Controller
                 ->make(true);
         }
         $statuses = OrderStatus::all()->pluck('name', 'id');
-        return view('dashboard.orders.clients_xorders_today', compact('statuses'));
+        return view('dashboard.orders.clients_orders_today', compact('statuses'));
     }
 
     public function canceledOrdersToday()
