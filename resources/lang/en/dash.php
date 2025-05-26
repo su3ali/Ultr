@@ -481,6 +481,10 @@ return [
     'edit_main_image'                       => 'Edit image',
     'latest_main_images'                    => 'Latest main images',
     'date'                                  => 'Date',
+    'order_date'                            => 'Order date',
+    'booking_day'                           => 'Booking Date ',
+    'booking_time'                          => 'Booking Time ',
+
     'category_products'                     => 'Product categories',
     'category_services'                     => 'Service categories',
     'wallet'                                => 'Wallet balance',
@@ -1140,4 +1144,9 @@ return [
     'Technicians_off_today'                 => 'Technicians Off Today',
     'all_regions'                           => 'All Regions',
     'date_filter'                           => 'Date Filter',
+    'choose_status'                         => 'Choose the new status',
+    'change_status'                         => 'Change Status',
+    'shift'                                 => 'Shift',
+    'no_related_to_shift'                   => 'No Realted to Shift',
+    'all_shifts'                            => 'All Shifts',
 ];

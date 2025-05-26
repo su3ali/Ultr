@@ -17,6 +17,8 @@ Route::get('order/orderDetail', 'Orders\OrderController@orderDetail')->name('ord
 
 Route::get('ordersToday', 'Orders\OrderController@ordersToday')->name('order.ordersToday');
 Route::get('ordersCanceled', 'Orders\OrderController@canceledOrders')->name('order.canceledOrders');
+Route::post('order/change-status', 'Orders\OrderController@changeStatus')->name('order.changeStatus');
+
 Route::get('ordersTodayCanceled', 'Orders\OrderController@canceledOrdersToday')->name('order.canceledOrdersToday');
 
 Route::get('lateOrders', 'Orders\OrderController@lateOrders')->name('order.lateOrders');

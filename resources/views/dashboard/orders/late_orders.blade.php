@@ -62,7 +62,7 @@
                 <div class="card-body">
 
                     {{-- Filters --}}
-                    <div class="row g-3 mb-4 align-items-end">
+                    {{-- <div class="row g-3 mb-4 align-items-end">
                         <div class="col-md-1">
                             <label for="date_from" class="form-label fw-semibold text-muted">{{ __('dash.date')
                                 }}</label>
@@ -81,7 +81,7 @@
                                 <input type="date" name="date2" class="form-control" id="date_to">
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
 
                     {{-- Responsive Table --}}
                     <div class="table-responsive">
@@ -92,14 +92,19 @@
                                     {{-- <th>رقم الحجز</th> --}}
                                     <th>{{ __('dash.customer_name') }}</th>
                                     <th>{{ __('dash.phone') }}</th>
-                                    <th>{{ __('dash.service') }}</th>
-                                    <th>{{ __('dash.quantity') }}</th>
+                                    {{-- <th>{{ __('dash.service') }}</th> --}}
+                                    {{-- <th>{{ __('dash.quantity') }}</th> --}}
                                     {{-- <th>{{ __('dash.cancelled_by') }}</th> --}}
                                     <th>{{ __('dash.price_value') }}</th>
                                     <th>طريقة الدفع</th>
                                     <th>{{ __('dash.zone') }}</th>
+                                    <th>{{ __('dash.technician') }} </th>
                                     <th>{{ __('dash.status') }}</th>
-                                    <th> {{ __('dash.date') }} </th>
+                                    <th> {{ __('dash.order_date') }} </th>
+                                    <th> {{ __('dash.booking_day') }} </th>
+                                    <th> {{ __('dash.booking_time') }} </th>
+
+
                                     <th class="no-content">{{ __('dash.actions') }}</th>
                                 </tr>
                             </thead>
@@ -113,10 +118,13 @@
     </div>
 
 </div>
+@include('dashboard.orders.partial.change_status')
 
 {{-- @include('dashboard.orders.edit') --}}
 @endsection
 @push('script')
+<!-- Include Bootstrap 5 JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script type="text/javascript">
     $(function () {
     $('[title]').tooltip();
@@ -189,14 +197,23 @@
                 // { data: 'booking_id', name: 'booking_id' },
                 { data: 'user', name: 'user' },
                 { data: 'phone', name: 'phone' },
-                { data: 'service', name: 'service' },
-                { data: 'quantity', name: 'quantity' },
+                // { data: 'service', name: 'service' },
+                // { data: 'quantity', name: 'quantity' },
                 // { data: 'cancelled_by', name: 'cancelled_by' },
                 { data: 'total', name: 'total' },
                 { data: 'payment_method', name: 'payment_method' },
                 { data: 'region', name: 'region' },
+                { data: 'technician', name: 'technician' },
+
+                
                 { data: 'status', name: 'status' },
                 { data: 'date', name: 'date' },
+                { data: 'booking_day', name: 'booking_day' },
+                { data: 'booking_time', name: 'booking_time' },
+
+                
+
+                
                 {
                     data: 'control',
                     name: 'control',
@@ -234,5 +251,31 @@
             });
         });
     });
+
+     $(document).on('click', '.change-status-btn', function () {
+                const orderId = $(this).data('id');
+                const currentStatus = $(this).data('current-status');
+                $('#orderId').val(orderId);
+                $('#newStatus').val(currentStatus);
+                $('#changeStatusModal').modal('show');
+            });
+
+            $('#changeStatusForm').on('submit', function (e) {
+                e.preventDefault();
+                let form = $(this);
+                $.ajax({
+                    url: '{{ route("dashboard.order.changeStatus") }}',
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function (response) {
+                        $('#changeStatusModal').modal('hide');
+                        $('#html5-extension').DataTable().ajax.reload();
+                        Swal.fire('تم التحديث!', 'تم تغيير حالة الطلب بنجاح.', 'success');
+                    },
+                    error: function (xhr) {
+                        Swal.fire('خطأ!', 'حدث خطأ أثناء تغيير الحالة.', 'error');
+                    }
+                });
+            });
 </script>
 @endpush

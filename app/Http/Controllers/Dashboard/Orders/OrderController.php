@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Dashboard\Orders;
 
+use App\Helpers\ActivityLogger;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingSetting;
@@ -26,7 +27,6 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -362,7 +362,7 @@ class OrderController extends Controller
                 ->make(true);
         }
         $statuses = OrderStatus::all()->pluck('name', 'id');
-        return view('dashboard.orders.clients_xorders_today', compact('statuses'));
+        return view('dashboard.orders.clients_orders_today', compact('statuses'));
     }
 
     public function canceledOrdersToday()
@@ -515,6 +515,17 @@ class OrderController extends Controller
                                   </a>';
                     }
 
+                    if ((Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') || Auth::user()->can('orders_change_status')) {
+
+                        $html .= '<button type="button"
+                            class="btn btn-sm btn-outline-warning change-status-btn"
+                            data-id="' . $row->id . '"
+                            data-current-status="' . $row->status_id . '"
+                            title="' . __('dash.change_status') . '">
+                            <i class="fas fa-exchange-alt fa-2x"></i>
+                        </button>';
+                    }
+
                     // if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
                     //     $html .= '<a href="javascript:void(0);"
                     //                class="mr-2 btn btn-outline-danger btn-sm open-reschedule"
@@ -545,91 +556,40 @@ class OrderController extends Controller
                 ->make(true);
         }
         $statuses = OrderStatus::all()->pluck('name', 'id');
-        return view('dashboard.orders.canceled_orders_today', compact('statuses'));
+
+        $changeableStatusIds = [3, 4];
+
+        $orderStatusOptions = $statuses->only($changeableStatusIds);
+
+        return view('dashboard.orders.canceled_orders_today', compact('statuses', 'orderStatusOptions'));
     }
 
     // Late Orders
     public function lateOrders(Request $request)
     {
         $regionIds = auth()->user()->regions->pluck('region_id')->toArray();
+        $now       = Carbon::now('Asia/Riyadh');
+        $today     = $now->toDateString();
 
-        $date  = $request->query('date');
-        $date2 = $request->query('date2');
+        // Late orders for TODAY only
+        $orders = Order::lateToServe($now, onlyToday: true)
+            ->with([
+                'user',
+                'bookings.visits',
+                'status',
+                'userAddress.region',
+                'orderServices',
+                'transaction',
+            ])
+            ->whereHas('bookings', fn($q) => $q->whereDate('date', $today))
+            ->get();
 
-        // Unique cache key based on time + filters
-        $cacheKey = 'late_order_query_' . now('Asia/Riyadh')->format('Y_m_d_H');
-        if ($date || $date2) {
-            $cacheKey .= '_' . ($date ?? 'null') . '_' . ($date2 ?? 'null');
-        }
-
-        $ordersQuery = Cache::remember($cacheKey, now()->addMinutes(1), function () {
-            return Order::lateToServe()
-                ->with([
-                    'user',
-                    'bookings.visits',
-                    'status',
-                    'userAddress.region',
-                    'orderServices',
-                    'transaction',
-                ])->get();
-        });
-
-        $ordersQuery = collect($ordersQuery);
-
-        // Additional filtering by date range (if requested)
-        if ($date && $date2) {
-            $carbonDate  = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
-            $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
-
-            $ordersQuery = $ordersQuery->filter(function ($order) use ($carbonDate, $carbonDate2) {
-                $booking = $order->bookings->first();
-                if (! $booking || ! $booking->date) {
-                    return false;
-                }
-
-                $bookingDate = \Carbon\Carbon::parse($booking->date)->timezone('Asia/Riyadh');
-                return $bookingDate->between($carbonDate->startOfDay(), $carbonDate2->endOfDay());
-            });
-
-        } elseif ($date) {
-            $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
-
-            $ordersQuery = $ordersQuery->filter(function ($order) use ($carbonDate) {
-                $booking = $order->bookings->first();
-                if (! $booking || ! $booking->date) {
-                    return false;
-                }
-
-                return \Carbon\Carbon::parse($booking->date)->timezone('Asia/Riyadh')->isSameDay($carbonDate);
-            });
-
-        } elseif ($date2) {
-            $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
-
-            $ordersQuery = $ordersQuery->filter(function ($order) use ($carbonDate2) {
-                $booking = $order->bookings->first();
-                if (! $booking || ! $booking->date) {
-                    return false;
-                }
-
-                return \Carbon\Carbon::parse($booking->date)->timezone('Asia/Riyadh')->lte($carbonDate2->endOfDay());
-            });
-        }
-
-        $totalOrders = $ordersQuery->count();
+        $totalOrders    = $orders->count();
+        $filteredOrders = $orders;
 
         if ($request->ajax()) {
-            $filteredOrders = $ordersQuery;
-
             if ($request->status) {
-                $filteredOrders = $filteredOrders->where('status_id', $request->status);
-            }
-
-            if ($request->page) {
-                $now            = Carbon::now('Asia/Riyadh')->toDateString();
-                $filteredOrders = $filteredOrders->filter(fn($order) =>
-                    Carbon::parse($order->created_at)->toDateString() === $now
-                );
+                $filteredOrders = $filteredOrders->filter(fn($order) => $order->status_id == $request->status);
             }
 
             return DataTables::of($filteredOrders)
@@ -637,62 +597,75 @@ class OrderController extends Controller
                 ->addColumn('phone', fn($row) => $row->user?->phone
                     ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link">' . $row->user->phone . '</a>'
                     : 'N/A')
-                ->addColumn('service', function ($row) {
-                    $serviceIds = $row->orderServices->pluck('service_id')->unique();
-                    $services   = \App\Models\Service::whereIn('id', $serviceIds)->get();
-                    return $services->map(fn($s) => '<button class="btn-sm btn-primary">' . $s->title . '</button>')->implode('');
-                })
-                ->addColumn('quantity', fn($row) => $row->orderServices->sum('quantity'))
+            // ->addColumn('service', function ($row) {
+            //     $serviceIds = $row->orderServices->pluck('service_id')->unique();
+            //     $services   = \App\Models\Service::whereIn('id', $serviceIds)->get();
+            //     return $services->map(fn($s) => '<button class="btn-sm btn-primary">' . $s->title . '</button>')->implode('');
+            // })
+            // ->addColumn('quantity', fn($row) => $row->orderServices->sum('quantity'))
                 ->addColumn('total', fn($row) => $row->total ? (fmod($row->total, 1) == 0 ? (int) $row->total : number_format($row->total, 2)) : '')
+
+            // technician
+                ->addColumn('technician', function ($row) {
+                    $booking = $row->bookings->first();
+
+                    return optional($booking?->visit?->group)->name ?? '-';
+                })
+
                 ->addColumn('status', fn($row) => app()->getLocale() === 'ar'
                     ? optional($row->bookings?->first()?->visit?->status)->name_ar
                     : optional($row->bookings?->first()?->visit?->status)->name_en)
                 ->addColumn('date', function ($row) {
-                    $booking = $row->bookings->first();
-                    if (! $booking || ! $booking->date) {
-                        return '-';
-                    }
 
-                    return \Carbon\Carbon::parse($booking->date)
-                        ->locale('ar')
-                        ->timezone('Asia/Riyadh')
-                        ->format('Y-m-d');
+                    return $row->created_at
+                    ? Carbon::parse($row->created_at)->locale('ar')->timezone('Asia/Riyadh')->format('Y-m-d')
+                    : '-';
                 })
+                ->addColumn('booking_day', function ($row) {
+                    $booking = $row->bookings->first();
+                    return $booking && $booking->date
+                    ? Carbon::parse($booking->date)->locale('ar')->timezone('Asia/Riyadh')->format('Y-m-d')
+                    : '-';
+                })
+                ->addColumn('booking_time', function ($row) {
+                    $booking = $row->bookings->first();
+
+                    return $booking && $booking->visit && $booking->visit->start_time
+                    ? Carbon::parse($booking->visit->start_time)->format('h:i A') // 12-hour format with AM/PM
+                    : '-';
+                })
+
                 ->addColumn('payment_method', function ($row) {
-                    $payment_method = $row->transaction?->payment_method;
-                    return match ($payment_method) {
-                        "cache", "cash" => __('api.payment_method_network'),
-                        "wallet" => __('api.payment_method_wallet'),
+                    return match ($row->transaction?->payment_method) {
+                        'cache', 'cash' => __('api.payment_method_network'),
+                        'wallet' => __('api.payment_method_wallet'),
                         default  => __('api.payment_method_visa'),
                     };
                 })
                 ->addColumn('region', fn($row) => optional($row->userAddress?->region)->title)
                 ->addColumn('control', function ($row) {
                     $html = '';
-
                     if ($row->status_id == 2) {
                         $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="تأكيد الطلب">
-                        <i class="far fa-thumbs-up fa-2x mx-1"></i>
-                    </a>';
+                                <i class="far fa-thumbs-up fa-2x mx-1"></i></a>';
                     }
-
                     $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="عرض تفاصيل الطلب">
-                    <i class="far fa-eye fa-2x"></i>
-                </a>';
-
+                            <i class="far fa-eye fa-2x"></i></a>';
                     $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="عرض الخدمات">
-                    <i class="fas fa-tools fa-2x"></i>
-                </a>';
-
-                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
+                            <i class="fas fa-tools fa-2x"></i></a>';
+                    if (auth()->user()->hasRole('admin') || auth()->user()->can('delete_orders')) {
                         $html .= '<a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech" title="حذف الطلب">
-                        <i class="far fa-trash-alt fa-2x"></i>
-                    </a>';
+                                <i class="far fa-trash-alt fa-2x"></i></a>';
                     }
-
+                    if (auth()->user()->hasRole('admin') || auth()->user()->can('orders_change_status')) {
+                        $html .= '<button type="button" class="btn btn-sm btn-outline-warning change-status-btn"
+                                data-id="' . $row->id . '" data-current-status="' . $row->status_id . '"
+                                title="' . __('dash.change_status') . '">
+                                <i class="fas fa-exchange-alt fa-2x"></i></button>';
+                    }
                     return $html;
                 })
-                ->rawColumns(['user', 'phone', 'service', 'quantity', 'total', 'status', 'date', 'payment_method', 'region', 'control'])
+                ->rawColumns(['user', 'phone', 'total','technician', 'status', 'date', 'booking_day', 'booking_time', 'payment_method', 'region', 'control'])
                 ->with([
                     'recordsTotal'    => $totalOrders,
                     'recordsFiltered' => $filteredOrders->count(),
@@ -700,8 +673,11 @@ class OrderController extends Controller
                 ->make(true);
         }
 
-        $statuses = OrderStatus::pluck('name_' . app()->getLocale(), 'id');
-        return view('dashboard.orders.late_orders', compact('statuses'));
+        $statuses            = OrderStatus::pluck('name_' . app()->getLocale(), 'id');
+        $changeableStatusIds = [3, 4, 5];
+        $orderStatusOptions  = $statuses->only($changeableStatusIds);
+
+        return view('dashboard.orders.late_orders', compact('statuses', 'orderStatusOptions'));
     }
 
     public function canceledOrders(Request $request)
@@ -848,7 +824,16 @@ class OrderController extends Controller
                     //                 <i class="fas fa-calendar-alt fa-2x"></i>
                     //               </a>';
                     // }
+                    if ((Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') || Auth::user()->can('orders_change_status')) {
 
+                        $html .= '<button type="button"
+                            class="btn btn-sm btn-outline-warning change-status-btn"
+                            data-id="' . $row->id . '"
+                            data-current-status="' . $row->status_id . '"
+                            title="' . __('dash.change_status') . '">
+                            <i class="fas fa-exchange-alt fa-2x"></i>
+                        </button>';
+                    }
                     return $html;
                 })
 
@@ -875,7 +860,11 @@ class OrderController extends Controller
 
         // Non-AJAX request (Initial page load)
         $statuses = OrderStatus::all()->pluck('name', 'id');
-        return view('dashboard.orders.canceled_orders', compact('statuses'));
+
+        $changeableStatusIds = [3, 4];
+
+        $orderStatusOptions = $statuses->only($changeableStatusIds);
+        return view('dashboard.orders.canceled_orders', compact('statuses', 'orderStatusOptions'));
     }
 
     public function showService()
@@ -1649,4 +1638,44 @@ class OrderController extends Controller
             ->rawColumns(['booking_id', 'technican_name', 'date', 'time', 'status'])
             ->make(true);
     }
+
+    public function changeStatus(Request $request)
+    {
+        $request->validate([
+            'order_id'  => 'required|exists:orders,id',
+            'status_id' => 'required|exists:order_statuses,id',
+        ]);
+
+        $order = Order::findOrFail($request->order_id);
+
+        $oldStatusId   = $order->status_id;
+        $oldStatusName = optional($order->status)->name;
+        $newStatusId   = $request->status_id;
+
+        $order->status_id = $newStatusId;
+        $order->save();
+
+        $newStatusName = optional($order->status)->name;
+
+        ActivityLogger::log(
+            actionType: 'order_status_updated',
+            model: $order,
+            description: 'تم تغيير حالة الطلب',
+            userId: auth()->id(),
+            changes: [
+                'from' => ['id' => $oldStatusId, 'name' => $oldStatusName],
+                'to'   => ['id' => $newStatusId, 'name' => $newStatusName],
+            ],
+            meta: [
+                'performed_at' => now('Asia/Riyadh')->toDateTimeString(),
+                'url'          => request()->fullUrl(),
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'msg'     => __("dash.updated_success"),
+        ]);
+    }
+
 }
