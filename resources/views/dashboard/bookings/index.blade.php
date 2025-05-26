@@ -166,7 +166,7 @@ $type = 'package';
                                 <label>{{ __('dash.status') }}</label>
                                 <select class="form-control status_filter select2" name="status_filter">
                                     <option value="all" selected>{{ __('dash.all') }}</option>
-                                    @foreach ($statuses as $id => $status)
+                                    @foreach ($visitsStatuses as $id => $status)
                                     <option value="{{ $id }}">{{ $status }}</option>
                                     @endforeach
                                 </select>
@@ -199,9 +199,13 @@ $type = 'package';
 </div>
 
 @include('dashboard.bookings.partial.add_group')
+@include('dashboard.bookings.partial.change_status')
+
 @endsection
 
 @push('script')
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script type="text/javascript">
     $(document).ready(function() {
         
@@ -458,5 +462,32 @@ $type = 'package';
             }
         });
     });
+
+      $(document).on('click', '.change-status-btn', function () {
+                const bookingId = $(this).data('id');
+                const currentStatus = $(this).data('current-status');
+                $('#bookingId').val(bookingId);
+                $('#newStatus').val(currentStatus);
+                $('#changeStatusModal').modal('show');
+            });
+
+            $('#changeStatusForm').on('submit', function (e) {
+                e.preventDefault();
+                let form = $(this);
+                $.ajax({
+                    url: '{{ route("dashboard.booking.changeStatus") }}',
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function (response) {
+                        $('#changeStatusModal').modal('hide');
+                        $('#html5-extension').DataTable().ajax.reload();
+                        Swal.fire('تم التحديث!', 'تم تغيير حالة الطلب بنجاح.', 'success');
+                    },
+                    error: function (xhr) {
+                        Swal.fire('خطأ!', 'حدث خطأ أثناء تغيير الحالة.', 'error');
+                    }
+                });
+            });
+
 </script>
 @endpush

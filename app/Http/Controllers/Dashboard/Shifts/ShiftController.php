@@ -60,11 +60,11 @@ class ShiftController extends Controller
                 // Add permission flags per row
                     ->addColumn('can_edit', function () {
                         $user = auth()->user();
-                        return $user && ($user->can('edit_shift') || $user->first_name === 'Super Admin');
+                        return $user && ($user->can('edit_shifts') || $user->first_name === 'Super Admin');
                     })
                     ->addColumn('can_delete', function () {
                         $user = auth()->user();
-                        return $user && ($user->can('delete_shift') || $user->first_name === 'Super Admin');
+                        return $user && ($user->can('delete_shifts') || $user->first_name === 'Super Admin');
                     })
 
                     ->addColumn('is_active', function ($row) {

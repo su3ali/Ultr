@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Dashboard\Bookings;
 
+use App\Helpers\ActivityLogger;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingSetting;
@@ -49,9 +50,10 @@ class BookingController extends Controller
                 })->where('is_active', 1)->where('type', 'contract')->with(['order', 'customer', 'service', 'group', 'booking_status']);
             }
 
-            if (\request()->query('status')) {
-                $va = \request()->query('status');
-                $bookings->Where('booking_status_id', $va);
+            if ($status = \request()->query('status')) {
+                $bookings->whereHas('visit', function ($query) use ($status) {
+                    $query->where('visits_status_id', $status);
+                });
             }
 
             if ($date) {
@@ -161,6 +163,12 @@ class BookingController extends Controller
                        <i class="far fa-trash-alt fa-2x"></i>
                     </a>';
                     }
+                    if (auth()->user()->hasRole('admin') || auth()->user()->can('bookings_change_status')) {
+                        $html .= '<button type="button" class="btn btn-sm btn-outline-warning change-status-btn"
+                                data-id="' . $row->id . '" data-current-status="' . $row->status_id . '"
+                                title="' . __('dash.change_status') . '">
+                                <i class="fas fa-exchange-alt fa-2x"></i></button>';
+                    }
 
                     // Return the generated HTML
 
@@ -221,7 +229,10 @@ class BookingController extends Controller
         $visitsStatuses = VisitsStatus::query()->get()->pluck('name', 'id');
         $statuses       = BookingStatus::get()->pluck('name', 'id');
 
-        return view('dashboard.bookings.index', compact('visitsStatuses', 'statuses', 'zones'));
+        $changeableStatusIds  = [6, 5];
+        $bookingStatusOptions = $visitsStatuses->only($changeableStatusIds);
+
+        return view('dashboard.bookings.index', compact('visitsStatuses', 'statuses', 'zones', 'bookingStatusOptions'));
     }
 
     public function customerBookings(Request $request, $customer_id)
@@ -581,6 +592,57 @@ class BookingController extends Controller
 
         }
 
+    }
+
+    public function changeStatus(Request $request)
+    {
+        $request->validate([
+            'booking_id' => 'required|exists:bookings,id',
+            'status_id'  => 'required|exists:visits_statuses,id',
+        ]);
+
+        $booking = Booking::with('visit.status')->findOrFail($request->booking_id);
+
+        if (! $booking->visit) {
+            return response()->json([
+                'success' => false,
+                'msg'     => __("dash.booking_not_found"),
+            ], 404);
+        }
+
+        $visit = $booking->visit;
+
+        $oldStatusId   = $visit->visits_status_id;
+        $oldStatusName = optional($visit->status)->name;
+
+        $newStatusId             = $request->status_id;
+        $visit->visits_status_id = $newStatusId;
+        $visit->save();
+
+        // Load new status relation if needed
+        $visit->load('status');
+        $newStatusName = optional($visit->status)->name;
+
+        // Log activity
+        ActivityLogger::log(
+            actionType: 'booking_status_updated',
+            model: $booking,
+            description: 'تم تغيير حالة الحجز',
+            userId: auth()->id(),
+            changes: [
+                'from' => ['id' => $oldStatusId, 'name' => $oldStatusName],
+                'to'   => ['id' => $newStatusId, 'name' => $newStatusName],
+            ],
+            meta: [
+                'performed_at' => now('Asia/Riyadh')->toDateTimeString(),
+                'url'          => request()->fullUrl(),
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'msg'     => __("dash.updated_success"),
+        ]);
     }
 
 }

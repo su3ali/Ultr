@@ -110,6 +110,7 @@ $permissions = [
     ['id' => 128, 'name' => 'business_orders_floors_view', 'guard_name' => 'dashboard', 'name_ar' => 'عرض طوابق طلبات الأعمال', 'name_en' => 'View Business Orders Floors'],
 
     ['id' => 129, 'name' => 'orders_change_status', 'guard_name' => 'dashboard', 'name_ar' => 'تغيير حالة الطلب', 'name_en' => 'Orders Change Status'],
+    ['id' => 130, 'name' => 'bookings_change_status', 'guard_name' => 'dashboard', 'name_ar' => 'تغيير حالة الحجز', 'name_en' => 'Booking Change Status'],
 
 ];
 

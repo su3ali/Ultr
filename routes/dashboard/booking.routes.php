@@ -6,6 +6,7 @@ Route::get('customer.bookings/{customer_id}', 'Bookings\BookingController@custom
 
 Route::resource('booking_statuses', 'Bookings\BookingStatusController');
 
+Route::post('booking/change-status', 'Bookings\BookingController@changeStatus')->name('booking.changeStatus');
 
 Route::get('booking_statuses/change_status/change', 'Bookings\BookingStatusController@change_status')->name('booking_statuses.change_status');
 
