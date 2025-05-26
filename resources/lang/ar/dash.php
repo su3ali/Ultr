@@ -162,6 +162,7 @@ return [
     // Profile
     'profile_info'                             => 'معلومات الملف الشخصي',
     'updated_success'                          => 'تم التحديث بنجاح',
+    'created_success'                          => 'تم الإنشاء بنجاح',
     'change_password'                          => 'تغير كلمة المرور',
     'old_password'                             => 'كلمة المرور القديمة',
     'new_password'                             => 'كلمة المرور الجديدة',
@@ -942,6 +943,9 @@ return [
     'booking_date'                             => 'موعد الحجز',
     'booking_day'                              => 'تاريخ الحجز',
     'booking_time'                             => 'موعد الحجز',
+    'clients_coupons'                          => 'كوبونات العملاء',
+    'employees_coupons'                        => 'كوبونات الموظفين',
+    'filter_by_empyloyee'                      => 'تصفية حسب الموظف',
     'specialization'                           => 'التخصص',
     'copy'                                     => 'نسخ',
     'csv'                                      => 'تصدير إلى CSV',

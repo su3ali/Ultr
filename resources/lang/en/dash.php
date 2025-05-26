@@ -225,6 +225,7 @@ return [
 // Profile
     'profile_info'                          => 'Profile Information',
     'updated_success'                       => 'Updated successfully.',
+    'created_success'                       => 'Created successfully',
     'change_password'                       => 'Change Password',
     'old_password'                          => 'Old Password',
     'new_password'                          => 'New Password',
@@ -1149,4 +1150,7 @@ return [
     'shift'                                 => 'Shift',
     'no_related_to_shift'                   => 'No Realted to Shift',
     'all_shifts'                            => 'All Shifts',
+    'clients_coupons'                       => 'Customers Coupons',
+    'employees_coupons'                     => 'Employees Coupons',
+    'filter_by_empyloyee'                   => 'Filter by employee',
 ];
