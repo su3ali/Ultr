@@ -15,12 +15,12 @@ class CustomerReportsController extends Controller
      */
     public function report(Request $request)
     {
-
-        $date  = $request->query('date');
-        $date2 = $request->query('date2');
+        $date       = $request->query('date');
+        $date2      = $request->query('date2');
+        $noOrdersIn = $request->query('no_orders_in');
 
         $usersQuery = User::query()
-            ->withCount('orders') // Keep default 'orders_count'
+            ->withCount('orders')
             ->leftJoin('cities', 'cities.id', '=', 'users.city_id')
             ->addSelect([
                 'users.id',
@@ -32,11 +32,7 @@ class CustomerReportsController extends Controller
                 'cities.title_ar as city_name',
             ]);
 
-        if ($request->has('page')) {
-            $now = Carbon::now('Asia/Riyadh')->toDateString();
-            $usersQuery->whereDate('users.created_at', $now);
-        }
-
+        // Apply date range filter on user creation
         if ($date && $date2) {
             $start = Carbon::parse($date)->startOfDay()->timezone('Asia/Riyadh');
             $end   = Carbon::parse($date2)->endOfDay()->timezone('Asia/Riyadh');
@@ -49,6 +45,19 @@ class CustomerReportsController extends Controller
             $usersQuery->where('users.created_at', '<=', $end);
         }
 
+        // Filter users based on their order activity
+        if ($noOrdersIn == '9999') {
+            // Users who never placed an order
+            $usersQuery->whereDoesntHave('orders');
+        } elseif ($noOrdersIn) {
+            // Users who haven’t ordered in the last X days
+            $cutoff = Carbon::now('Asia/Riyadh')->subDays((int) $noOrdersIn)->startOfDay();
+            $usersQuery->whereDoesntHave('orders', function ($query) use ($cutoff) {
+                $query->where('created_at', '>=', $cutoff);
+            });
+        }
+
+        // Handle DataTable AJAX request
         if ($request->ajax()) {
             if ($request->filled('search.value')) {
                 $search = $request->input('search.value');
@@ -76,35 +85,26 @@ class CustomerReportsController extends Controller
                 'data'            => $users->map(function ($user) {
                     return [
                         'id'           => $user->id,
-'name' => '<a href="' . route('dashboard.customer.orders', $user->id) . '" class="text-primary" title="عرض الطلبات">' . $user->first_name . ' ' . $user->last_name . '</a>',
-
+                        'name'         => '<a href="' . route('dashboard.customer.orders', $user->id) . '" class="text-primary" title="عرض الطلبات">'
+                        . $user->first_name . ' ' . $user->last_name . '</a>',
                         'city_name'    => $user->city_name ?? 'N/A',
                         'phone'        => $user->phone
                         ? '<a href="https://api.whatsapp.com/send?phone=' . $user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $user->phone . '</a>'
                         : 'N/A',
                         'orders_count' => $user->orders_count ?? 0,
-
                         'created_at'   => optional($user->created_at)->format('Y-m-d'),
                         'status'       => '<label class="switch s-outline s-outline-info mb-4 mr-2">
-                                        <input type="checkbox" id="customSwitch4" data-id="' . $user->id . '" ' . ($user->active ? 'checked' : '') . '>
-                                        <span class="slider round"></span>
-                                    </label>',
-                        'controll'     => ''
-                        // <a href="' . route('dashboard.core.address.index', ['id' => $user->id]) . '" class="mr-2 btn btn-outline-primary btn-sm">
-                        //     <i class="far fa-address-book fa-2x"></i>
-                        // </a>
-                        // <a href="' . route('dashboard.core.customer.edit', $user->id) . '" class="mr-2 btn btn-outline-warning btn-sm">
-                        //     <i class="far fa-edit fa-2x"></i>
-                        // </a>
-                        // <a data-href="' . route('dashboard.core.customer.destroy', $user->id) . '" data-id="' . $user->id . '" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
-                        //     <i class="far fa-trash-alt fa-2x"></i>
-                        // </a>'
-                        ,
+                                            <input type="checkbox" id="customSwitch4" data-id="' . $user->id . '" ' . ($user->active ? 'checked' : '') . '>
+                                            <span class="slider round"></span>
+                                       </label>',
+                        'controll'     => '',
                     ];
                 }),
             ]);
         }
-        return view('dashboard.reports.customer');
+
+        $noOrderOptions = __('dash.no_orders_options');
+        return view('dashboard.reports.customer', compact('noOrderOptions'));
     }
 
 }

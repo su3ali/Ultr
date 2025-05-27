@@ -1156,4 +1156,20 @@ return [
     'customers_reports'                     => 'Customers Reports',
     'orders_count'                          => 'Orders Count',
     'customer_orders'                       => 'Customer Orders',
+    'no_orders_in'                          => 'No Orders in this period',
+    'no_orders_options'                     => [
+        '1'    => 'Last day',
+        '3'    => 'Last 3 days',
+        '7'    => 'Last 7 days',
+        '14'   => 'Last 14 days',
+        '30'   => 'Last 30 days',
+        '60'   => 'Last 60 days',
+        '90'   => 'Last 90 days',
+        '180'  => 'Last 6 months',
+        '365'  => 'Last year',
+        '9999' => 'Never ordered',
+    ],
+    'sort_by_orders'                        => 'Sort by Orders',
+    'highest_orders'                        => 'Highest Orders',
+
 ];

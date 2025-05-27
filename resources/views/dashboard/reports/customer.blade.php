@@ -56,28 +56,47 @@
             <div class="widget-content widget-content-area br-6">
                 <div class="col-md-12 text-right mb-3">
                     <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <div class="row">
-                                <!-- Date Range Section -->
-                                <div class="col-md-1">
-                                    <label for="date_from" class="form-label">{{ __('dash.date') }}</label>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="date_from">{{ __('dash.from') }}</label>
-                                    <div class="input-group custom-date-picker">
-                                        <input type="date" name="date" class="form-control custom-input" id="date_from">
+                        <div class="col-md-12 mb-3" dir="rtl">
+                            <div class="row g-2 align-items-end">
+
+                                {{-- From Date --}}
+                                <div class="col-md-3">
+                                    <label for="date_from" class="form-label text-end d-block">{{ __('dash.from')
+                                        }}</label>
+                                    <div class="input-group">
+                                        <input type="date" name="date" id="date_from" class="form-control">
                                         <span class="input-group-text"><i class="fa fa-calendar"></i></span>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <label for="date_to">{{ __('dash.to') }}</label>
-                                    <div class="input-group custom-date-picker">
-                                        <input type="date" name="date2" class="form-control custom-input" id="date_to">
+
+                                {{-- To Date --}}
+                                <div class="col-md-3">
+                                    <label for="date_to" class="form-label text-end d-block">{{ __('dash.to') }}</label>
+                                    <div class="input-group">
+                                        <input type="date" name="date2" id="date_to" class="form-control">
                                         <span class="input-group-text"><i class="fa fa-calendar"></i></span>
                                     </div>
                                 </div>
+                                
+
+                                {{-- No Orders In --}}
+                                <div class="col-md-3">
+                                    <label for="no_order_period" class="form-label text-end d-block">{{
+                                        __('dash.no_orders_in') }}</label>
+                                    <div class="input-group">
+                                        <select id="no_order_period" class="form-select">
+                                            <option value="">{{ __('dash.all') }}</option>
+                                            @foreach(__('dash.no_orders_options') as $value => $label)
+                                            <option value="{{ $value }}">{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                        <span class="input-group-text"><i class="fa fa-clock"></i></span>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
+
 
                     </div>
                 </div>
@@ -148,6 +167,7 @@
                 data: function (d) {
                     d.date = $('#date_from').val();
                     d.date2 = $('#date_to').val();
+                    d.no_orders_in = $('#no_order_period').val(); 
                 }
             },
 
@@ -166,6 +186,10 @@
                 [10, 100, 500, 1000, 5000, 10000, 20000]
             ]
         });
+                $('#no_order_period').on('change', function () {
+            table.ajax.reload();
+        });
+
 
         //  Reload on date change
         $('#date_from, #date_to').on('change', function () {
