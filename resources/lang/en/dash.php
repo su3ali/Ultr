@@ -1153,4 +1153,7 @@ return [
     'clients_coupons'                       => 'Customers Coupons',
     'employees_coupons'                     => 'Employees Coupons',
     'filter_by_empyloyee'                   => 'Filter by employee',
+    'customers_reports'                     => 'Customers Reports',
+    'orders_count'                          => 'Orders Count',
+    'customer_orders'                       => 'Customer Orders',
 ];

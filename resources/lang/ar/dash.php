@@ -835,6 +835,7 @@ return [
     'Customers'                                => 'العملاء',
     'customers_Management'                     => 'ادارة العملاء',
     'customers'                                => 'العملاء',
+    'customers_reports'                        => 'تقارير العملاء',
     'customer name'                            => 'اسم العميل',
     'user addresses'                           => 'عناوين العميل',
     'r.s'                                      => 'ريال سعودي',
@@ -1091,4 +1092,6 @@ return [
     'no_related_to_shift'                      => 'لم يلتحق  بمناوبة',
     'all_shifts'                               => 'كل الشفتات',
     'order_date'                               => 'تاريخ الطلب',
+    'orders_count'                             => 'عدد الطلبات',
+    'customer_orders'                          => 'طلبات العميل',
 ];

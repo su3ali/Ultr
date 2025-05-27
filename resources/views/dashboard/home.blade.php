@@ -542,7 +542,7 @@
                 </div>
 
                 {{-- Resolved Complaints --}}
-                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                {{-- <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
                     <a href="{{ route('dashboard.order.complaintsResolved') }}" class="text-decoration-none">
                         <div style="
                             display: flex;
@@ -567,7 +567,7 @@
                             </div>
                         </div>
                     </a>
-                </div>
+                </div> --}}
 
                 {{-- Complaints Today --}}
                 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">

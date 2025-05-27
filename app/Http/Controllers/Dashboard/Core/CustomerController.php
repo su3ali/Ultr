@@ -100,6 +100,8 @@ class CustomerController extends Controller
         return view('dashboard.core.customers.index');
     }
 
+    
+
     // just  clints have orders on system
     public function withOrders(Request $request)
     {

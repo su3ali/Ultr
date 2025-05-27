@@ -929,8 +929,11 @@
                     @endif
 
                     @can('view_customers')
-                    <li>
+                    {{-- <li>
                         <a href="{{ route('dashboard.report.customers') }}">{{ __('dash.report_customers') }}</a>
+                    </li> --}}
+                    <li>
+                        <a href="{{ route('dashboard.customer.report') }}">{{ __('dash.report_customers') }}</a>
                     </li>
                     @endcan
 

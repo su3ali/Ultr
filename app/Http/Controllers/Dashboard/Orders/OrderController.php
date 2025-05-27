@@ -665,7 +665,7 @@ class OrderController extends Controller
                     }
                     return $html;
                 })
-                ->rawColumns(['user', 'phone', 'total','technician', 'status', 'date', 'booking_day', 'booking_time', 'payment_method', 'region', 'control'])
+                ->rawColumns(['user', 'phone', 'total', 'technician', 'status', 'date', 'booking_day', 'booking_time', 'payment_method', 'region', 'control'])
                 ->with([
                     'recordsTotal'    => $totalOrders,
                     'recordsFiltered' => $filteredOrders->count(),
@@ -1676,6 +1676,83 @@ class OrderController extends Controller
             'success' => true,
             'msg'     => __("dash.updated_success"),
         ]);
+    }
+
+    public function customerOrders(Request $request, $customer_id)
+    {
+        $regionIds = auth()->user()->regions->pluck('region_id')->toArray();
+
+        if ($request->ajax()) {
+            $date   = $request->query('date');
+            $date2  = $request->query('date2');
+            $status = $request->query('status');
+
+            $orders = Order::with(['status', 'transaction', 'services', 'bookings.address.region'])
+                ->where('user_id', $customer_id)
+                ->whereHas('bookings.address', fn($q) => $q->whereIn('region_id', $regionIds));
+
+            // Optional Filters
+            if ($status) {
+                $orders->where('status_id', $status);
+            }
+
+            if ($date) {
+                $orders->whereDate('created_at', '>=', Carbon::parse($date)->format('Y-m-d'));
+            }
+
+            if ($date2) {
+                $orders->whereDate('created_at', '<=', Carbon::parse($date2)->format('Y-m-d'));
+            }
+
+            // Search Filter
+            if ($request->filled('search.value')) {
+                $search = $request->input('search.value');
+                $orders->where(function ($q) use ($search) {
+                    $q->where('id', 'like', "%$search%")
+                        ->orWhereHas('status', fn($s) => $s->where('name_ar', 'like', "%$search%"))
+                        ->orWhereHas('services', fn($s) => $s->where('title', 'like', "%$search%"));
+                });
+            }
+
+            // Total before pagination
+            $recordsTotal = Order::where('user_id', $customer_id)
+                ->whereHas('bookings.address', fn($q) => $q->whereIn('region_id', $regionIds))
+                ->count();
+
+            $recordsFiltered = $orders->count();
+
+            $orders = $orders->orderByDesc('created_at')
+                ->skip($request->input('start', 0))
+                ->take($request->input('length', 10))
+                ->get();
+
+            return response()->json([
+                'draw'            => $request->input('draw'),
+                'recordsTotal'    => $recordsTotal,
+                'recordsFiltered' => $recordsFiltered,
+                'data'            => $orders->map(function ($order) {
+                    return [
+                        'id'         => $order->id,
+                        'status'     => $order->status->name_ar ?? '<span class="text-muted">N/A</span>',
+                        'total'      => number_format($order->total ?? 0, 2),
+                        'created_at' => optional($order->created_at)->format('Y-m-d'),
+                        'services'   => $order->services->map(fn($s) =>
+                            '<span class="badge bg-primary me-1">' . e($s->title) . '</span>'
+                        )->implode(' '),
+                        'payment'    => match ($order->transaction->payment_method ?? '') {
+                            'cash', 'cache' => '<span class="badge bg-success">شبكة</span>',
+                            'wallet'     => '<span class="badge bg-primary">محفظة</span>',
+                            default      => '<span class="badge bg-warning text-dark">فيزا</span>',
+                        },
+                        // 'actions'    => '<a href="' . route('dashboard.order.show', $order->id) . '" class="btn btn-outline-info btn-sm">عرض</a>',
+                    ];
+                }),
+            ]);
+        }
+
+        $statuses = OrderStatus::pluck('name_ar', 'id');
+        $user     = User::findOrFail($customer_id);
+        return view('dashboard.orders.customer_orders', compact('statuses', 'customer_id', 'user'));
     }
 
 }

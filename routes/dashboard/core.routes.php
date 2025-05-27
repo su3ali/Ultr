@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Dashboard\Reports\CustomerReportsController;
+
 route_group('core', function () {
 
     route_group('administration', function () {
@@ -30,7 +32,6 @@ route_group('core', function () {
 
     Route::resource('technician', 'TechnicianController');
 
-
     Route::resource('trainee', 'TraineeController');
 
     Route::get('trainee/change_status/change', 'TraineeController@changeStatus')->name('trainee.change_status');
@@ -58,6 +59,8 @@ route_group('core', function () {
 
     Route::get('customer/change_status', 'CustomerController@change_status')->name('customer.change_status');
     Route::resource('customer', 'CustomerController');
+
+
 
     Route::get('customers/orders', 'CustomerController@withOrders')->name('customer.orders');
 
