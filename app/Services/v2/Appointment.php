@@ -361,8 +361,10 @@ class Appointment
 
         // Calculate the duration including buffering time
 
-        if ($period->format('H:i:s') == '23:00:00') {
-            $duration        = $bookSetting->service_duration;
+        if ($period->format('H:i:s') == '23:45:00') {
+            // $duration = $bookSetting->service_duration;
+            $duration = $bookSetting->service_duration + $bookSetting->buffering_time;
+
             $periodEndTime   = $period->copy()->addMinutes($duration * $amount)->format('H:i:s');
             $periodStartTime = $period->format('H:i:s');
         } else {

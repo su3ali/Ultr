@@ -3,11 +3,9 @@ namespace App\Http\Controllers\Api\Checkout\v2;
 
 use App\Bll\CouponCheck;
 use App\Http\Controllers\Controller;
-use App\Models\Admin;
 use App\Models\Booking;
 use App\Models\BookingSetting;
 use App\Models\Cart;
-use App\Models\CategoryGroup;
 use App\Models\ContractPackage;
 use App\Models\ContractPackagesUser;
 use App\Models\Coupon;
@@ -16,23 +14,22 @@ use App\Models\CustomerWallet;
 use App\Models\Group;
 use App\Models\GroupRegion;
 use App\Models\Order;
-use App\Models\OrderService;
 use App\Models\Service;
 use App\Models\Shift;
 use App\Models\Technician;
 use App\Models\Transaction;
 use App\Models\UserAddresses;
 use App\Models\Visit;
-use App\Notifications\SendPushNotification;
 use App\Services\v2\Appointment;
 use App\Support\Api\ApiResponse;
 use App\Traits\imageTrait;
 use App\Traits\NotificationTrait;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class CheckoutController extends Controller
 {
@@ -325,12 +322,146 @@ class CheckoutController extends Controller
 
     }
 
+    // protected function checkout(Request $request)
+    // {
+
+    //     try {
+
+    //         $rules = [
+    //             'user_address_id'  => 'required|exists:user_addresses,id',
+    //             'car_user_id'      => 'required|exists:car_clients,id',
+    //             'payment_method'   => 'required|in:cache,visa,wallet,package',
+    //             'shift_id'         => 'required|exists:shifts,id',
+    //             'coupon'           => 'nullable|numeric',
+    //             'transaction_id'   => 'nullable',
+    //             'wallet_discounts' => 'nullable|numeric',
+    //             'amount'           => 'nullable|numeric',
+    //             'file'             => 'nullable',
+    //             'image'            => 'nullable|image|mimes:jpeg,jpg,png,gif',
+    //             'notes'            => 'nullable',
+    //         ];
+    //         $request->validate($rules, $request->all());
+    //         $user                  = auth()->user('sanctum');
+    //         $carts                 = Cart::query()->where('user_id', $user->id)->get();
+    //         $parent_payment_method = null;
+
+    //         if (! $carts->first()) {
+    //             return self::apiResponse(400, t_('Cart is empty'), []);
+    //         }
+
+    //         $code = $carts->first()->coupon_id;
+
+    //         $coupon = Coupon::find($code);
+    //         $total  = $this->calc_total($carts);
+
+    //         if ($coupon) {
+    //             $coupon_user = CouponUser::query()->where('coupon_id', $coupon->id)
+    //                 ->where('user_id', auth()->user()->id)->get();
+    //             $check          = new CouponCheck();
+    //             $match_response = $check->check_coupon_services_match($coupon, $total, $carts);
+    //             if ($match_response['error']) {
+    //                 return self::apiResponse(400, __('api.This coupon con not be used to any of these services !'), $this->body);
+    //             }
+    //             $discount = $match_response['discount'];
+    //             $res      = $check->check_avail($coupon, $coupon_user, $total);
+    //             if (key_exists('success', $res)) {
+    //                 CouponUser::query()->create([
+    //                     'user_id'   => auth()->user()->id,
+    //                     'coupon_id' => $coupon->id,
+    //                 ]);
+    //                 foreach ($carts as $cart) {
+    //                     $cart->update([
+    //                         'coupon_id' => $coupon->id,
+    //                     ]);
+    //                 }
+    //                 $coupon->times_used++;
+    //                 $coupon->save();
+    //                 $sub_total = $total - $discount;
+    //                 // $this->body['coupon_value'] = $discount;
+    //                 // $this->body['total']        = $total;
+    //                 // $this->body['sub_total']    = $sub_total;
+    //             }
+    //         }
+
+    //         if ($carts->first()->type == 'package') {
+    //             $total = $carts->first()->price;
+    //             if ($request->payment_method == 'wallet' && $total > $user->point) {
+    //                 return self::apiResponse(400, __('api.Your wallet balance is not enough to complete this process'), []);
+    //             }
+    //             return $this->saveContract($user, $request, $total, $carts);
+    //         } else {
+    //             // if ($request->payment_method == 'wallet' && $request->amount > $user->point) {
+    //             //     return self::apiResponse(400, __('api.Your wallet balance is not enough to complete this process'), []);
+    //             // }
+    //             $uploadImage = null;
+    //             if ($request->image && $request->image != null) {
+    //                 $image       = $this->storeImages($request->image, 'order');
+    //                 $uploadImage = 'storage/images/order' . '/' . $image;
+    //             }
+    //             $uploadFile = null;
+    //             if ($request->file && $request->file != null) {
+    //                 $file       = $this->storeImages($request->file, 'order');
+    //                 $uploadFile = 'storage/images/order' . '/' . $file;
+    //             }
+
+    //             foreach ($carts as $cart) {
+    //                 $now                  = Carbon::now('Asia/Riyadh');
+    //                 $contractPackagesUser = ContractPackagesUser::where('user_id', auth()->user()->id)
+    //                     ->whereDate('end_date', '>=', $now)
+    //                     ->where(function ($query) use ($cart) {
+    //                         $query->whereHas('contactPackage', function ($qu) use ($cart) {
+    //                             $qu->whereHas('ContractPackagesServices', function ($qu) use ($cart) {
+    //                                 $qu->where('service_id', $cart->service_id);
+    //                             });
+    //                         });
+    //                     })->first();
+
+    //                 if ($contractPackagesUser) {
+    //                     $contractPackage       = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
+    //                     $cart->coupon          = null;
+    //                     $parent_payment_method = $contractPackagesUser->payment_method;
+    //                     if ($cart->quantity < $contractPackage->visit_number - $contractPackagesUser->used) {
+    //                         $contractPackagesUser->increment('used', $cart->quantity);
+    //                     } else {
+    //                         $contractPackagesUser->increment('used', ($contractPackage->visit_number - $contractPackagesUser->used));
+    //                     }
+    //                 }
+    //             }
+
+    //             return $this->saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method);
+    //         }
+    //     } catch (\Exception $e) {
+
+    //         // Log the exception with additional context
+    //         activity()
+    //             ->causedBy(auth()->user()) // Log the user who caused the action
+    //             ->withProperties([
+    //                 'exception_message' => $e->getMessage(),
+    //                 'exception_file'    => $e->getFile(),
+    //                 'exception_line'    => $e->getLine(),
+    //                 'url'               => url()->current(),
+    //                 'user_id'           => auth()->user()->id,
+    //                 'user_name'         => auth()->user()->first_name,
+    //                 'status_code'       => 500,
+
+    //             ])
+    //             ->log('Exception while processing the checkout endpoint');
+
+    //         return response()->json(['error' => 'Failed .'], 500);
+    //     }
+    // }
+
     protected function checkout(Request $request)
     {
-
         try {
+            $user = auth()->user();
 
-            $rules = [
+            if (! $user) {
+                return self::apiResponse(401, __('api.Unauthenticated user'), []);
+            }
+
+            // Validation
+            $request->validate([
                 'user_address_id'  => 'required|exists:user_addresses,id',
                 'car_user_id'      => 'required|exists:car_clients,id',
                 'payment_method'   => 'required|in:cache,visa,wallet,package',
@@ -339,119 +470,123 @@ class CheckoutController extends Controller
                 'transaction_id'   => 'nullable',
                 'wallet_discounts' => 'nullable|numeric',
                 'amount'           => 'nullable|numeric',
-                'file'             => 'nullable',
+                'file'             => 'nullable|file',
                 'image'            => 'nullable|image|mimes:jpeg,jpg,png,gif',
-                'notes'            => 'nullable',
-            ];
-            $request->validate($rules, $request->all());
-            $user                  = auth()->user('sanctum');
-            $carts                 = Cart::query()->where('user_id', $user->id)->get();
-            $parent_payment_method = null;
+                'notes'            => 'nullable|string|max:1000',
+            ]);
 
-            if (! $carts->first()) {
-                return self::apiResponse(400, t_('Cart is empty'), []);
+            $carts = Cart::where('user_id', $user->id)->get();
+
+            if ($carts->isEmpty()) {
+                return self::apiResponse(400, __('api.Cart is empty'), []);
             }
 
-            $code = $carts->first()->coupon_id;
+            $parent_payment_method = null;
+            $total                 = $this->calc_total($carts);
+            $coupon                = Coupon::find($carts->first()->coupon_id);
 
-            $coupon = Coupon::find($code);
-            $total  = $this->calc_total($carts);
-
+            // Handle coupon
             if ($coupon) {
-                $coupon_user = CouponUser::query()->where('coupon_id', $coupon->id)
-                    ->where('user_id', auth()->user()->id)->get();
+                $coupon_user = CouponUser::where('coupon_id', $coupon->id)
+                    ->where('user_id', $user->id)
+                    ->get();
+
                 $check          = new CouponCheck();
                 $match_response = $check->check_coupon_services_match($coupon, $total, $carts);
+
                 if ($match_response['error']) {
-                    return self::apiResponse(400, __('api.This coupon con not be used to any of these services !'), $this->body);
+                    return self::apiResponse(400, __('api.This coupon con not be used to any of these services !'), []);
                 }
+
                 $discount = $match_response['discount'];
                 $res      = $check->check_avail($coupon, $coupon_user, $total);
-                if (key_exists('success', $res)) {
-                    CouponUser::query()->create([
-                        'user_id'   => auth()->user()->id,
+
+                if (isset($res['success'])) {
+                    CouponUser::create([
+                        'user_id'   => $user->id,
                         'coupon_id' => $coupon->id,
                     ]);
+
                     foreach ($carts as $cart) {
-                        $cart->update([
-                            'coupon_id' => $coupon->id,
-                        ]);
+                        $cart->update(['coupon_id' => $coupon->id]);
                     }
-                    $coupon->times_used++;
-                    $coupon->save();
-                    $sub_total = $total - $discount;
-                    // $this->body['coupon_value'] = $discount;
-                    // $this->body['total']        = $total;
-                    // $this->body['sub_total']    = $sub_total;
+
+                    $coupon->increment('times_used');
+                    $total -= $discount;
                 }
             }
 
-            if ($carts->first()->type == 'package') {
+            // If it's a package cart
+            if ($carts->first()->type === 'package') {
                 $total = $carts->first()->price;
-                if ($request->payment_method == 'wallet' && $total > $user->point) {
+
+                if ($request->payment_method === 'wallet' && $total > $user->point) {
                     return self::apiResponse(400, __('api.Your wallet balance is not enough to complete this process'), []);
                 }
+
                 return $this->saveContract($user, $request, $total, $carts);
-            } else {
-                // if ($request->payment_method == 'wallet' && $request->amount > $user->point) {
-                //     return self::apiResponse(400, __('api.Your wallet balance is not enough to complete this process'), []);
-                // }
-                $uploadImage = null;
-                if ($request->image && $request->image != null) {
-                    $image       = $this->storeImages($request->image, 'order');
-                    $uploadImage = 'storage/images/order' . '/' . $image;
-                }
-                $uploadFile = null;
-                if ($request->file && $request->file != null) {
-                    $file       = $this->storeImages($request->file, 'order');
-                    $uploadFile = 'storage/images/order' . '/' . $file;
-                }
-
-                foreach ($carts as $cart) {
-                    $now                  = Carbon::now('Asia/Riyadh');
-                    $contractPackagesUser = ContractPackagesUser::where('user_id', auth()->user()->id)
-                        ->whereDate('end_date', '>=', $now)
-                        ->where(function ($query) use ($cart) {
-                            $query->whereHas('contactPackage', function ($qu) use ($cart) {
-                                $qu->whereHas('ContractPackagesServices', function ($qu) use ($cart) {
-                                    $qu->where('service_id', $cart->service_id);
-                                });
-                            });
-                        })->first();
-
-                    if ($contractPackagesUser) {
-                        $contractPackage       = ContractPackage::where('id', $contractPackagesUser->contract_packages_id)->first();
-                        $cart->coupon          = null;
-                        $parent_payment_method = $contractPackagesUser->payment_method;
-                        if ($cart->quantity < $contractPackage->visit_number - $contractPackagesUser->used) {
-                            $contractPackagesUser->increment('used', $cart->quantity);
-                        } else {
-                            $contractPackagesUser->increment('used', ($contractPackage->visit_number - $contractPackagesUser->used));
-                        }
-                    }
-                }
-
-                return $this->saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method);
             }
-        } catch (\Exception $e) {
 
-            // Log the exception with additional context
-            activity()
-                ->causedBy(auth()->user()) // Log the user who caused the action
+            // File Uploads
+            $uploadImage = $request->hasFile('image') ? 'storage/images/order/' . $this->storeImages($request->image, 'order') : null;
+            $uploadFile  = $request->hasFile('file') ? 'storage/images/order/' . $this->storeImages($request->file, 'order') : null;
+
+            // Handle contract package logic
+            foreach ($carts as $cart) {
+                $now = Carbon::now('Asia/Riyadh');
+
+                $contractPackagesUser = ContractPackagesUser::where('user_id', $user->id)
+                    ->whereDate('end_date', '>=', $now)
+                    ->whereHas('contactPackage.ContractPackagesServices', function ($q) use ($cart) {
+                        $q->where('service_id', $cart->service_id);
+                    })
+                    ->first();
+
+                if ($contractPackagesUser) {
+                    $contractPackage       = ContractPackage::find($contractPackagesUser->contract_packages_id);
+                    $parent_payment_method = $contractPackagesUser->payment_method;
+                    $remaining             = $contractPackage->visit_number - $contractPackagesUser->used;
+                    $increment             = min($cart->quantity, $remaining);
+                    $contractPackagesUser->increment('used', $increment);
+                }
+            }
+
+            return $this->saveOrder($user, $request, $total, $carts, $uploadImage, $uploadFile, $parent_payment_method);
+
+        } catch (Throwable $e) {
+            $user = auth()->user();
+
+            // Log to file for developer traceability
+            Log::error('Checkout failed', [
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+                'trace'   => $e->getTrace(),
+                'user_id' => $user?->id,
+                'url'     => url()->current(),
+                'request' => $request->all(), // Full request input
+            ]);
+
+            // Log to activity with extended context
+            activity('checkout_error')
+                ->causedBy($user)
                 ->withProperties([
                     'exception_message' => $e->getMessage(),
                     'exception_file'    => $e->getFile(),
                     'exception_line'    => $e->getLine(),
                     'url'               => url()->current(),
-                    'user_id'           => auth()->user()->id,
-                    'user_name'         => auth()->user()->first_name,
-                    'status_code'       => 500,
-
+                    'user_id'           => $user?->id,
+                    'user_name'         => $user?->first_name,
+                    'request_data'      => $request->all(),
+                    'cart_ids'          => Cart::where('user_id', $user?->id)->pluck('id')->toArray(),
                 ])
-                ->log('Exception while processing the checkout endpoint');
+                ->log('Exception occurred during checkout process');
 
-            return response()->json(['error' => 'Failed .'], 500);
+            return response()->json([
+                'error' => __('api.Checkout failed. Please try again later.'),
+            ], 500);
         }
+
     }
 
     private function calc_total($carts)
