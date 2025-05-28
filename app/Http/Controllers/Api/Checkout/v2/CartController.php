@@ -147,6 +147,8 @@ class CartController extends Controller
 
     protected function updateCart(Request $request)
     {
+                       
+
 
         try {
 
@@ -256,7 +258,6 @@ class CartController extends Controller
                 ])->count();
 
                 $exists = in_array(auth()->user()->id, $cartsIds);
-                // dd(!$exists);
 
                 if (! $exists && $availableGroupsCount <= $cartsCount) {
                     return self::apiResponse(
