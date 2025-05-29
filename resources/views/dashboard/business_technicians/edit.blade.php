@@ -4,16 +4,16 @@
             <div class="modal-header">
                 <h5 class="modal-title">{{ __('dash.edit_technician') }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="feather feather-x">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
                 </button>
             </div>
             <div class="modal-body">
-                <form action="" method="POST" class="form-horizontal" enctype="multipart/form-data" id="edit_tech_form" data-parsley-validate>
+                <form action="" method="POST" class="form-horizontal" enctype="multipart/form-data" id="edit_tech_form"
+                    data-parsley-validate>
                     @csrf
                     {!! method_field('PUT') !!}
                     <input type="hidden" name="tech_id" id="tech_id">
@@ -23,15 +23,18 @@
                         <div class="form-row mb-3">
                             <div class="form-group col-md-4">
                                 <label>{{ __('dash.name') }}</label>
-                                <input required type="text" name="name" class="form-control" id="edit_name" placeholder="{{ __('dash.name') }}">
+                                <input required type="text" name="name" class="form-control" id="edit_name"
+                                    placeholder="{{ __('dash.name') }}">
                             </div>
                             <div class="form-group col-md-4">
                                 <label>{{ __('dash.phone') }}</label>
-                                <input required type="text" name="user_name" class="form-control" id="edit_user_name" placeholder="اسم المستخدم">
+                                <input required type="text" name="user_name" class="form-control" id="edit_user_name"
+                                    placeholder="اسم المستخدم">
                             </div>
                             <div class="form-group col-md-4">
                                 <label>{{ __('dash.email') }}</label>
-                                <input type="email" name="email" class="form-control" id="edit_email" placeholder="{{ __('dash.email') }}">
+                                <input type="email" name="email" class="form-control" id="edit_email"
+                                    placeholder="{{ __('dash.email') }}">
                             </div>
                         </div>
 
@@ -39,11 +42,13 @@
                         <div class="form-row mb-3">
                             <div class="form-group col-md-6">
                                 <label>{{ __('dash.password') }}</label>
-                                <input type="password" name="password" class="form-control" placeholder="{{ __('dash.password') }}">
+                                <input type="password" name="password" class="form-control"
+                                    placeholder="{{ __('dash.password') }}">
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('dash.password_confirmation') }}</label>
-                                <input type="password" name="password_confirmation" class="form-control" placeholder="{{ __('dash.password_confirmation') }}">
+                                <input type="password" name="password_confirmation" class="form-control"
+                                    placeholder="{{ __('dash.password_confirmation') }}">
                             </div>
                         </div>
 
@@ -51,7 +56,8 @@
                         <div class="form-row mb-3">
                             <div class="form-group col-md-6">
                                 <label>{{ __('dash.phone') }}</label>
-                                <input required type="text" name="phone" class="form-control" id="edit_phone" placeholder="{{ __('dash.phone') }}">
+                                <input required type="text" name="phone" class="form-control" id="edit_phone"
+                                    placeholder="{{ __('dash.phone') }}">
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('dash.specialization') }}</label>
@@ -76,7 +82,8 @@
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('dash.identity_number') }}</label>
-                                <input required type="text" name="identity_id" class="form-control" id="edit_identity_id" placeholder="{{ __('dash.identity_number') }}">
+                                <input required type="text" name="identity_id" class="form-control"
+                                    id="edit_identity_id" placeholder="{{ __('dash.identity_number') }}">
                             </div>
                         </div>
 
@@ -98,10 +105,12 @@
                         <!-- Image Upload and Address -->
                         <div class="form-row mb-3">
                             <div class="col-md-6 custom-file-container form-group" data-upload-id="editImage">
-                                <label>{{ __('dash.upload') }} <a href="javascript:void(0)" class="custom-file-container__image-clear">x</a></label>
+                                <label>{{ __('dash.upload') }} <a href="javascript:void(0)"
+                                        class="custom-file-container__image-clear">x</a></label>
                                 <div style="display: flex">
                                     <label class="custom-file-container__custom-file">
-                                        <input type="file" class="custom-file-container__custom-file__custom-file-input" name="image">
+                                        <input type="file" class="custom-file-container__custom-file__custom-file-input"
+                                            name="image">
                                         <span class="custom-file-container__custom-file__custom-file-control"></span>
                                     </label>
                                     <div class="col-md-2 custom-file-container__image-preview"></div>
@@ -109,7 +118,8 @@
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('dash.address') }}</label>
-                                <textarea required name="address" class="form-control" id="edit_address" rows="3" placeholder="{{ __('dash.address') }}"></textarea>
+                                <textarea required name="address" class="form-control" id="edit_address" rows="3"
+                                    placeholder="{{ __('dash.address') }}"></textarea>
                             </div>
                         </div>
 
@@ -129,7 +139,8 @@
                                 <select id="edit_day_id" name="day_id[]" class="form-control select2" multiple>
                                     <option disabled>{{ __('dash.choose') }}</option>
                                     @foreach ($days as $day)
-                                    <option value="{{ $day->id }}">{{ app()->getLocale() == 'ar' ? $day->name_ar : $day->name }}</option>
+                                    <option value="{{ $day->id }}">{{ app()->getLocale() == 'ar' ? $day->name_ar :
+                                        $day->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -149,13 +160,15 @@
                             <div class="form-group col-md-6">
                                 <label class="font-weight-bold d-block mb-2">{{ __('dash.technician_type') }}</label>
                                 <div class="form-check form-check-inline mr-4">
-                                    <input class="form-check-input" type="radio" name="is_business" id="edit_personalTech" value="0">
+                                    <input class="form-check-input" type="radio" name="is_business"
+                                        id="edit_personalTech" value="0">
                                     <label class="form-check-label" for="edit_personalTech">
                                         <i class="fas fa-user mr-1"></i> {{ __('dash.personal') }}
                                     </label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="is_business" id="edit_businessTech" value="1">
+                                    <input class="form-check-input" type="radio" name="is_business"
+                                        id="edit_businessTech" value="1">
                                     <label class="form-check-label" for="edit_businessTech">
                                         <i class="fas fa-building mr-1"></i> {{ __('dash.business') }}
                                     </label>
@@ -168,7 +181,8 @@
                             <div class="form-row mb-3">
                                 <div class="form-group col-md-6">
                                     <label>{{ __('dash.project') }}</label>
-                                    <select id="edit_client_project_id" name="client_project_id" class="form-control select2">
+                                    <select id="edit_client_project_id" name="client_project_id"
+                                        class="form-control select2">
                                         <option value="">{{ __('dash.choose') }}</option>
                                         @foreach($clientProjects as $project)
                                         <option value="{{ $project->id }}">{{ $project->name_ar }}</option>
@@ -186,7 +200,8 @@
                             <div class="form-row mb-3">
                                 <div class="form-group col-md-12">
                                     <label>{{ __('dash.floors') }}</label>
-                                    <select id="edit_floor_ids" name="floor_ids[]" class="form-control select2" multiple></select>
+                                    <select id="edit_floor_ids" name="floor_ids[]" class="form-control select2"
+                                        multiple></select>
                                 </div>
                             </div>
                         </div>
@@ -205,6 +220,10 @@
 
 @push('script')
 <script>
+    $('#edit_group').select2({
+    dropdownParent: $('#editTechModel')
+});
+
     let editImage = new FileUploadWithPreview('editImage');
 
     $(document).ready(function () {

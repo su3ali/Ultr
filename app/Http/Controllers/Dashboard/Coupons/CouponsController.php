@@ -1,9 +1,12 @@
 <?php
 namespace App\Http\Controllers\Dashboard\Coupons;
 
+use App\Helpers\ActivityLogger;
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\Category;
 use App\Models\Coupon;
+use App\Models\CouponUser;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -13,74 +16,7 @@ use Yajra\DataTables\DataTables;
 
 class CouponsController extends Controller
 {
-    // protected function index()
-    // {
 
-    //     if (request()->ajax()) {
-
-    //         $coupons = Coupon::all();
-    //         return DataTables::of($coupons)
-    //             ->addColumn('title', function ($row) {
-    //                 return $row->title;
-    //             })
-    //             ->addColumn('value', function ($row) {
-    //                 return $row->type == 'percentage' ? $row->value . '%' : $row->value . ' ريال سعودي ';
-    //             })
-    //             ->addColumn('image', function ($row) {
-    //                 return '<img class="img-fluid" src="' . asset($row->image) . '"/>';
-    //             })
-    //             ->addColumn('status', function ($row) {
-    //                 $checked = '';
-    //                 if ($row->active == 1) {
-    //                     $checked = 'checked';
-    //                 }
-    //                 return '<label class="switch s-outline s-outline-info  mb-0">
-    //                     <input type="checkbox" id="customSwitchStatus" data-id="' . $row->id . '" ' . $checked . '>
-    //                     <span class="slider round"></span>
-    //                     </label>';
-    //             })
-    //             ->addColumn('control', function ($row) {
-
-    //                 $html = '
-    //                 <a href="' . route('dashboard.coupons.viewSingleCoupon', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm"><i class="far fa-eye fa-2x"></i> </a>
-    //                 <a href="' . route('dashboard.coupons.edit', $row->id) . '"  id="edit-coupon" class="mr-2 btn btn-outline-warning btn-sm"><i class="far fa-edit fa-2x"></i> </a>
-
-    //                             <a data-href="' . route('dashboard.coupons.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-delete btn-sm">
-    //                         <i class="far fa-trash-alt fa-2x"></i>
-    //                 </a>
-    //                             ';
-
-    //                 return $html;
-    //             })
-    //             // ->addColumn('control', function ($row) {
-
-    //             //     $html = '
-    //             //     <a href="' . route('dashboard.coupons.show', $row->id) . '" class="mr-2 btn btn-outline-primary btn-sm">
-    //             //             <i class="far fa-eye fa-2x"></i>
-
-    //             //     </a>
-    //             //     <a href="' . route('dashboard.coupons.edit', $row->id) . '"  id="edit-coupon" class="mr-2 btn btn-outline-warning btn-sm" data-id="' . $row->id . '"
-    //             //           >
-    //             //             <i class="far fa-edit fa-1x"></i>
-    //             //        </a>
-
-    //             //                 <a data-table_id="html5-extension" data-href="' . route('dashboard.coupons.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
-    //             //             <i class="far fa-trash-alt fa-1x"></i>
-    //             //     </a>';
-    //             //     return $html;
-    //             // })
-    //             ->rawColumns([
-    //                 'title',
-    //                 'value',
-    //                 'image',
-    //                 'status',
-    //                 'control',
-    //             ])
-    //             ->make(true);
-    //     }
-
-    //     return view('dashboard.coupons.index');
-    // }
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -340,6 +276,84 @@ class CouponsController extends Controller
         $coupon = Coupon::findOrFail($couponId);
 
         return view('dashboard.coupons.show', compact('couponId', 'coupon'))->with('id', $couponId);
+    }
+
+    public function applyCoupon(Request $request)
+    {
+        $request->validate([
+            'code'       => 'required|string',
+            'booking_id' => 'required|exists:bookings,id',
+        ]);
+
+        $coupon = Coupon::where('id', $request->code)->first();
+        if (! $coupon) {
+            return response()->json(['message' => 'الكوبون غير صالح'], 400);
+        }
+
+        $booking = Booking::with('order')->find($request->booking_id);
+        if (! $booking || ! $booking->order) {
+            return response()->json(['message' => 'الطلب غير موجود أو لا يحتوي على حجز'], 400);
+        }
+
+        $order    = $booking->order;
+        $userId   = $order->user_id;
+        $subtotal = $order->sub_total;
+
+        if (! $subtotal || $subtotal <= 0) {
+            return response()->json(['message' => 'المبلغ الأصلي غير صالح'], 400);
+        }
+
+        $forceApply = $request->boolean('force_apply'); // returns true/false
+
+        $alreadyUsed = CouponUser::where('coupon_id', $coupon->id)
+            ->where('user_id', $userId)
+            ->exists();
+
+        if ($alreadyUsed && ! $forceApply) {
+            return response()->json(['message' => 'لقد استخدمت هذا الكوبون مسبقاً'], 400);
+        }
+
+        $discount = $coupon->type === 'percentage'
+        ? ($subtotal * $coupon->value / 100)
+        : min($coupon->value, $subtotal);
+
+        $finalTotal = $subtotal - $discount;
+
+        $order->update([
+            'discount'       => $discount,
+            'total'          => $finalTotal,
+            'partial_amount' => $finalTotal,
+        ]);
+
+        CouponUser::create([
+            'coupon_id' => $coupon->id,
+            'user_id'   => $userId,
+        ]);
+
+        $coupon->increment('times_used');
+
+        //  Log activity
+        ActivityLogger::log(
+            actionType: 'coupon_applied',
+            model: $booking,
+            description: 'تم تطبيق الكوبون على الطلب',
+            userId: auth()->id(),
+            changes: [
+                'discount' => $discount,
+                'total'    => $finalTotal,
+            ],
+            meta: [
+                'coupon_id'    => $coupon->id,
+                'performed_at' => now('Asia/Riyadh')->toDateTimeString(),
+                'url'          => request()->fullUrl(),
+            ]
+        );
+
+        return response()->json([
+            'success'  => true,
+            'message'  => __("dash.coupon_applied_success"),
+            'redirect' => route('dashboard.bookings.index'),
+        ]);
     }
 
 }

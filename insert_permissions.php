@@ -111,6 +111,7 @@ $permissions = [
 
     ['id' => 129, 'name' => 'orders_change_status', 'guard_name' => 'dashboard', 'name_ar' => 'تغيير حالة الطلب', 'name_en' => 'Orders Change Status'],
     ['id' => 130, 'name' => 'bookings_change_status', 'guard_name' => 'dashboard', 'name_ar' => 'تغيير حالة الحجز', 'name_en' => 'Booking Change Status'],
+    ['id' => 131, 'name' => 'apply_coupon', 'guard_name' => 'dashboard', 'name_ar' => 'تفعيل كوبونات الخصم', 'name_en' => 'Activate discount coupons'],
 
 ];
 

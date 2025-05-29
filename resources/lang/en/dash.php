@@ -1171,5 +1171,10 @@ return [
     ],
     'sort_by_orders'                        => 'Sort by Orders',
     'highest_orders'                        => 'Highest Orders',
+    'coupon_applied_success'                => 'The coupon was applied successfully',
+    'use_the_coupon_anyway'                 => 'Use the coupon anyway (ignore the previous use check)',
+    'apply_coupon'                          => 'Apply Coupon',
+    'select'                                => 'Select',
+    'employees_coupons'                     => 'Employee Coupons',
 
 ];

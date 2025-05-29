@@ -1,7 +1,19 @@
 @extends('dashboard.layout.layout')
 
 @push('style')
+
 <style>
+    .coupon-icon {
+        color: gold;
+        transition: color 0.3s ease;
+    }
+
+    .apply-coupon-btn:hover .coupon-icon {
+        color: #dc3545;
+        /* Bootstrap danger color or pick your own */
+    }
+
+
     .table>thead>tr>th {
         white-space: unset !important;
 
@@ -54,6 +66,18 @@
     .whatsapp-link:hover {
         color: #25d366;
         /* Color on hover (WhatsApp green) */
+    }
+
+    .form-label {
+        margin-bottom: 0.25rem;
+        display: inline-block !important;
+        font-weight: 600;
+    }
+
+    .select2-container--default .select2-selection--single {
+        height: 40px !important;
+        padding: 6px 12px !important;
+        font-size: 0.95rem !important;
     }
 </style>
 @endpush
@@ -199,295 +223,206 @@ $type = 'package';
 </div>
 
 @include('dashboard.bookings.partial.add_group')
+@include('dashboard.bookings.partial.couponModal')
 @include('dashboard.bookings.partial.change_status')
 
 @endsection
-
 @push('script')
+
+<!-- Bootstrap 5 & Select2 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script type="text/javascript">
-    $(document).ready(function() {
-        
-            var table = $('#{{ $dataTabel }}').DataTable({
-                dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-4 d-flex justify-content-md-start justify-content-center'l><'col-sm-12 col-md-4 d-flex justify-content-center'B><'col-sm-12 col-md-4 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
-                    "<'table-responsive'tr>" +
-                    "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
+    $(document).ready(function () {
+        // Initialize Select2 for filters outside the modal
+    $('.zone_filter').select2({
+        width: 'resolve',
+        dir: 'rtl',
+        placeholder: "اختر المنطقة"
+    });
 
-                lengthMenu: [
-                    [10, 25, 50, 100, 200, 500, 2000, 5000, 10000],
-                    [10, 25, 50, 100, 200, 500, 2000, 5000, 10000]
-                ],
-                pageLength: 10, // Default rows per page
-                order: [
-                    [0, 'desc']
-                ],
-                "language": {
-                    "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
-                },
-                buttons: {
-                    buttons: [{
-                            extend: 'copy',
-                            className: 'btn btn-sm',
-                            text: '<i class="fas fa-copy"></i> نسخ'
-                        },
-                        {
-                            extend: 'csv',
-                            className: 'btn btn-sm',
-                            text: '<i class="fas fa-file-csv"></i> تصدير إلى CSV'
-                        },
-                        {
-                            extend: 'excel',
-                            className: 'btn btn-sm',
-                            text: '<i class="fas fa-file-excel"></i> تصدير إلى Excel'
-                        },
-                        {
-                            extend: 'print',
-                            className: 'btn btn-sm',
-                            text: '<i class="fas fa-print"></i> طباعة'
-                        }
-                    ]
-                },
-                processing: true,
-                responsive: true,
-                serverSide: true,
-                ajax: '{{ url('admin/bookings?type=' . $type) }}',
-                columns: [
-                
-                  {
-                        data: 'id',
-                        name: 'id'
-                    },
-                    {
-                        data: 'order',
-                        name: 'order'
-                    },
+    $('.status_filter').select2({
+        width: 'resolve',
+        dir: 'rtl',
+        placeholder: "اختر الحالة"
+    });
 
-                    {
-                        data: 'customer',
-                        name: 'customer'
+    // ------------------[ DataTable Setup ]------------------
+    const table = $('#{{ $dataTabel }}').DataTable({
+        dom: "<'dt--top-section'<'row'<'col-md-4 text-md-start text-center'l><'col-md-4 text-center'B><'col-md-4 text-md-end text-center mt-md-0 mt-3'f>>>" +
+            "<'table-responsive'tr>" +
+            "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count mb-sm-0 mb-3'i><'dt--pagination'p>>",
+        lengthMenu: [[10, 25, 50, 100, 200, 500, 2000, 5000, 10000], [10, 25, 50, 100, 200, 500, 2000, 5000, 10000]],
+        pageLength: 10,
+        order: [[0, 'desc']],
+        language: {
+            url: "{{ app()->getLocale() == 'ar' 
+                ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' 
+                : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
+        },
+        buttons: [
+            { extend: 'copy', text: '<i class="fas fa-copy"></i> نسخ', className: 'btn btn-sm' },
+            { extend: 'csv', text: '<i class="fas fa-file-csv"></i> CSV', className: 'btn btn-sm' },
+            { extend: 'excel', text: '<i class="fas fa-file-excel"></i> Excel', className: 'btn btn-sm' },
+            { extend: 'print', text: '<i class="fas fa-print"></i> طباعة', className: 'btn btn-sm' }
+        ],
+        processing: true,
+        responsive: true,
+        serverSide: true,
+        ajax: '{{ url('admin/bookings?type=' . $type) }}',
+        columns: [
+            { data: 'id' }, { data: 'order' }, { data: 'customer' },
+            { data: 'customer_phone' }, { data: 'service' },
+            { data: 'date' }, { data: 'time' }, { data: 'quantity' },
+            { data: 'zone' }, { data: 'group' }, { data: 'total' },
+            { data: 'status' }, { data: 'payment_method' },
+            { data: 'notes' },
+            { data: 'control', orderable: false, searchable: false }
+        ]
+    });
 
-
-                    },
-                    {
-                        data: 'customer_phone',
-                        name: 'customer_phone'
-                    },
-                    {
-                        data: 'service',
-                        name: 'service'
-                    },
-                    {
-                        data: 'date',
-                        name: 'date'
-                    },
-                    {
-                        data: 'time',
-                        name: 'time'
-                    },
-                    {
-                        data: 'quantity',
-                        name: 'quantity'
-                    },
-                    {
-                        data:'zone',
-                        name:'zone'
-                    },
-                    {
-                        data: 'group',
-                        name: 'group'
-                    },
-                    
-                    {
-
-                        data: 'total',
-                        name: 'total'
-                    },
-                    {
-
-                        data: 'status',
-                        name: 'status'
-                    },
-                    {
-                    data: 'payment_method',
-                    name: 'payment_method',
-                    render: function(data, type, row, meta) {
-                        return data; // If 'data' contains HTML, it will render it properly in the table.
-                    }
-                },
-
-                    {
-                        data: 'notes',
-                        name: 'notes'
-                    },
-                    {
-                        data: 'control',
-                        name: 'control',
-                        orderable: false,
-                        searchable: false
-                    },
-
-                ]
-            });
+    // ------------------[ Filter Update ]------------------
     function updateTableData() {
-        var status_filter = $('.status_filter').val();
-        var zone_filter = $('.zone_filter').val();
-        var date = $('.date').val();
-        var date2 = $('.date2').val();
-        
-        // ابدأ بالرابط الأساسي
-        var url = '{{ url('admin/bookings?type=' . $type) }}';
+        let url = '{{ url('admin/bookings?type=' . $type) }}';
+        const filters = {
+            status: $('.status_filter').val(),
+            zone: $('.zone_filter').val(),
+            date: $('.date').val(),
+            date2: $('.date2').val()
+        };
 
-        // أضف الفلاتر حسب الحاجة
-        if (status_filter && status_filter !== 'all') {
-            url += '&status=' + status_filter;
+        for (const key in filters) {
+            if (filters[key] && filters[key] !== 'all') {
+                url += `&${key}=${filters[key]}`;
+            }
         }
 
-        if (zone_filter && zone_filter !== 'all') {
-            url += '&zone=' + zone_filter;
-        }
-
-        if (date) {
-            url += '&date=' + date;
-        }
-
-        if (date2) {
-            url += '&date2=' + date2;
-        }
-
-        // تحميل البيانات بناءً على الفلاتر
         table.ajax.url(url).load();
     }
 
-    // فعل التحديث عند تغيير الفلاتر
-    $('.date, .date2, .status_filter, .zone_filter').change(function() {
-        updateTableData();
+    $('.date, .date2, .status_filter, .zone_filter').on('change', updateTableData);
+    $('#searchInput').on('keyup', function () { table.draw(); });
+
+    // ------------------[ Coupon Modal + Select2 ]------------------
+    $('#couponModal').on('shown.bs.modal', function () {
+        $('#client_coupon_id, #employee_coupon_id').select2({
+            dropdownParent: $('#couponModal'),
+            width: '100%',
+            dir: 'rtl'
+        });
     });
 
-
-    // Trigger search update
-    $('#searchInput').on('keyup', function() {
-        table.draw();
+    $(document).on('click', '.apply-coupon-btn', function () {
+        $('#coupon_order_id').val($(this).data('order_id'));
+        $('#coupon_booking_id').val($(this).data('booking_id'));
+        $('#couponModal').modal('show');
     });
 
+$('#applyCouponForm').on('submit', function (e) {
+    e.preventDefault();
+
+    const code = $('#client_coupon_id').val() || $('#employee_coupon_id').val();
+    const booking_id = $('#coupon_booking_id').val();
+    const force_apply = $('#forceApplyCoupon').is(':checked') ? 1 : 0;
+
+    $.ajax({
+        url: '{{ route("dashboard.bookings.applyCoupon") }}',
+        method: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            code: code,
+            booking_id: booking_id,
+            force_apply: force_apply 
+        },
+        success: function (response) {
+            $('#couponModal').modal('hide');
+            toastr.success(response.message);
+            $('#html5-extension').DataTable().ajax.reload();
+        },
+        error: function (xhr) {
+            const res = xhr.responseJSON;
+            toastr.error(res.message || 'فشل تطبيق الكوبون');
+            console.error(res);
+        }
+    });
+});
 
 
+
+    $('.coupon-type').on('change', function () {
+        const type = $(this).val();
+        if (type === 'client') {
+            $('#client_coupon_group').removeClass('d-none');
+            $('#employee_coupon_group').addClass('d-none').find('select').val('').trigger('change');
+        } else {
+            $('#employee_coupon_group').removeClass('d-none');
+            $('#client_coupon_group').addClass('d-none').find('select').val('').trigger('change');
+        }
     });
 
+    $('#couponModal').on('hidden.bs.modal', function () {
+        $('input[name="coupon_type"][value="client"]').prop('checked', true).trigger('change');
+        $('#client_coupon_id, #employee_coupon_id').val(null).trigger('change');
+    });
 
-    $(document).on('click', '#add-work-exp', function() {
-        let booking_id = $(this).data('id');
-        let service_id = $(this).data('service_id');
-        let category_id = $(this).data('category_id');
-        let visit_id = $(this).data('visit_id');
-        let address_id = $(this).data('address_id');
-        let type = $(this).data('type');
-        let date = $(this).data('date');
-        let time = $(this).data('time');
-        let group_id = $(this).data('group_id');
-        let quantity = $(this).data('quantity');
-
+    // ------------------[ Group Assignment Logic ]------------------
+    $(document).on('click', '#add-work-exp', function () {
+        const {
+            id: booking_id,
+            service_id, category_id, visit_id, address_id,
+            type, date, time, group_id, quantity
+        } = $(this).data();
 
         $.ajax({
             url: '{{ route('dashboard.getGroupByService') }}',
             type: 'get',
-            data: {
-                service_id: service_id,
-                type: type,
-                booking_id: booking_id,
-                category_id: category_id,
-                address_id: address_id,
+            data: { booking_id, service_id, category_id, address_id, type, date, time, group_id, quantity },
+            success: function (data) {
+                const select = visit_id ? $('#edit_group_id') : $('#group_id');
+                select.empty();
 
-                date: date,
-                time: time,
-                group_id: group_id,
-                quantity: quantity,
+                $.each(data, (i, item) => {
+                    select.append(new Option(item, i));
+                });
 
-
-
-            },
-            success: function(data) {
-                console.log(data)
-
-                var select = document.getElementById("edit_group_id");
-                var length = select.options.length;
-                for (i = length - 1; i >= 0; i--) {
-                    select.options[i] = null;
-                }
-                if (data.length != 0) {
-                    $.each(data, function(i, item) {
-
-                        var newOption = new Option(item, i, true, true)
-                        if (visit_id) {
-                            $('#edit_group_id').append(newOption);
-                        } else {
-                            $('#group_id').append(newOption);
-
-                        }
-
-                    });
-                }
                 $('#booking_id').val(booking_id);
                 if (visit_id) {
-                    $('.visit_Div').append(`<input type="hidden" value="` + visit_id +
-                        `" name="visit_id">`);
+                    $('.visit_Div').html(`<input type="hidden" name="visit_id" value="${visit_id}">`);
                     $('#edit_booking_id').val(booking_id);
-                    var action = window.location.origin + '/admin/visits/' + visit_id;
-                    $('#edit_group_form').attr('action', action);
+                    $('#edit_group_form').attr('action', `${window.location.origin}/admin/visits/${visit_id}`);
                 }
-
             }
         });
     });
 
-
-    $("body").on('change', '#customSwitchStatus', function() {
-        let active = $(this).is(':checked');
-        let id = $(this).attr('data-id');
-
-        $.ajax({
-            url: '{{ route('dashboard.booking_statuses.change_status') }}',
-            type: 'get',
-            data: {
-                id: id,
-                active: active
-            },
-            success: function(data) {
-                swal({
-                    title: "{{ __('dash.successful_operation') }}",
-                    text: "{{ __('dash.request_executed_successfully') }}",
-                    type: 'success',
-                    padding: '2em'
-                })
-            }
+    // ------------------[ Toggle Booking Status ]------------------
+    $("body").on('change', '#customSwitchStatus', function () {
+        const id = $(this).data('id');
+        const active = $(this).is(':checked');
+        $.get('{{ route('dashboard.booking_statuses.change_status') }}', { id, active }, function () {
+            Swal.fire('{{ __("dash.successful_operation") }}', '{{ __("dash.request_executed_successfully") }}', 'success');
         });
     });
 
-      $(document).on('click', '.change-status-btn', function () {
-                const bookingId = $(this).data('id');
-                const currentStatus = $(this).data('current-status');
-                $('#bookingId').val(bookingId);
-                $('#newStatus').val(currentStatus);
-                $('#changeStatusModal').modal('show');
-            });
+    // ------------------[ Change Booking Status Modal ]------------------
+    $(document).on('click', '.change-status-btn', function () {
+        $('#bookingId').val($(this).data('id'));
+        $('#newStatus').val($(this).data('current-status'));
+        $('#changeStatusModal').modal('show');
+    });
 
-            $('#changeStatusForm').on('submit', function (e) {
-                e.preventDefault();
-                let form = $(this);
-                $.ajax({
-                    url: '{{ route("dashboard.booking.changeStatus") }}',
-                    type: 'POST',
-                    data: form.serialize(),
-                    success: function (response) {
-                        $('#changeStatusModal').modal('hide');
-                        $('#html5-extension').DataTable().ajax.reload();
-                        Swal.fire('تم التحديث!', 'تم تغيير حالة الطلب بنجاح.', 'success');
-                    },
-                    error: function (xhr) {
-                        Swal.fire('خطأ!', 'حدث خطأ أثناء تغيير الحالة.', 'error');
-                    }
-                });
-            });
+    $('#changeStatusForm').on('submit', function (e) {
+        e.preventDefault();
+        $.post('{{ route("dashboard.booking.changeStatus") }}', $(this).serialize(), function () {
+            $('#changeStatusModal').modal('hide');
+            table.ajax.reload();
+            Swal.fire('تم التحديث!', 'تم تغيير حالة الطلب بنجاح.', 'success');
+        }).fail(() => {
+            Swal.fire('خطأ!', 'حدث خطأ أثناء تغيير الحالة.', 'error');
+        });
+    });
 
+});
 </script>
 @endpush

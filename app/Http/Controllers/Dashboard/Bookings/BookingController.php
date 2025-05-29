@@ -8,6 +8,7 @@ use App\Models\BookingSetting;
 use App\Models\BookingStatus;
 use App\Models\CategoryGroup;
 use App\Models\ContractPackage;
+use App\Models\Coupon;
 use App\Models\Group;
 use App\Models\Order;
 use App\Models\Region;
@@ -170,6 +171,16 @@ class BookingController extends Controller
                                 <i class="fas fa-exchange-alt fa-2x"></i></button>';
                     }
 
+                    // coupon
+                    if (auth()->user()->hasRole('admin') || auth()->user()->can('apply_coupon')) {
+                        $html .= '<button type="button" class="btn btn-sm btn-outline-warning apply-coupon-btn"
+                        data-order_id="' . ($row->visit?->booking?->order?->id ?? '') . '"
+                        data-booking_id="' . $row->id . '"
+                        title="تطبيق كوبون">
+                        <i class="fas fa-gift fa-2x coupon-icon"></i>
+                    </button>';
+                    }
+
                     // Return the generated HTML
 
                     return [
@@ -232,7 +243,25 @@ class BookingController extends Controller
         $changeableStatusIds  = [6, 5];
         $bookingStatusOptions = $visitsStatuses->only($changeableStatusIds);
 
-        return view('dashboard.bookings.index', compact('visitsStatuses', 'statuses', 'zones', 'bookingStatusOptions'));
+        // Coupon
+
+        $today = Carbon::today();
+
+        // Valid client coupons (not for employees, active, within date range)
+        $clientCoupons = Coupon::where('active', 1)
+            ->whereDate('start', '<=', $today)
+            ->whereDate('end', '>=', $today)
+            ->where('is_employee_only', 0) // only for clients
+            ->pluck('code', 'id');
+
+        // Valid employee coupons (only for employees, active, within date range)
+        $employeeCoupons = Coupon::where('active', 1)
+            ->whereDate('start', '<=', $today)
+            ->whereDate('end', '>=', $today)
+            ->where('is_employee_only', 1) // only for employees
+            ->pluck('code', 'id');
+
+        return view('dashboard.bookings.index', compact('visitsStatuses', 'statuses', 'zones', 'bookingStatusOptions', 'clientCoupons', 'employeeCoupons'));
     }
 
     public function customerBookings(Request $request, $customer_id)
