@@ -51,11 +51,14 @@
                         <label for="employee_coupon_id" class="form-label fw-semibold">{{
                             __('dash.employees_coupons')}}</label>
                         <select class="form-control rounded-3" name="employee_coupon_id" id="employee_coupon_id">
-                            <option value=""> {{ __('dash.select') }}</option>
-                            @foreach($employeeCoupons as $id => $code)
-                            <option value="{{ $id }}">{{ $code }}</option>
+                            <option value="">{{ __('dash.select') }}</option>
+                            @foreach($employeeCoupons as $coupon)
+                            <option value="{{ $coupon->id }}">
+                                {{ $coupon->code }} - {{ $coupon->title_ar }}
+                            </option>
                             @endforeach
                         </select>
+
                     </div>
 
                     <!-- Hidden fallback -->

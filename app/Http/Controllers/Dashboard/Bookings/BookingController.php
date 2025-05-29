@@ -254,12 +254,11 @@ class BookingController extends Controller
             ->where('is_employee_only', 0) // only for clients
             ->pluck('code', 'id');
 
-        // Valid employee coupons (only for employees, active, within date range)
         $employeeCoupons = Coupon::where('active', 1)
             ->whereDate('start', '<=', $today)
             ->whereDate('end', '>=', $today)
-            ->where('is_employee_only', 1) // only for employees
-            ->pluck('code', 'id');
+            ->where('is_employee_only', 1)
+            ->get(['id', 'code', 'title_ar']);
 
         return view('dashboard.bookings.index', compact('visitsStatuses', 'statuses', 'zones', 'bookingStatusOptions', 'clientCoupons', 'employeeCoupons'));
     }
