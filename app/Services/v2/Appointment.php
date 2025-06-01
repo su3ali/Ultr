@@ -52,27 +52,11 @@ class Appointment
             $times[$service_id]['amount'] = $amount;
             $times[$service_id]['days']   = []; // Initialize days for each service
 
-            // $bookSetting = BookingSetting::whereHas('regions', function ($q) {
-            //     $q->where('region_id', $this->region_id);
-            // })->where('service_id', $service_id)->first();
-
             $bookSetting = BookingSetting::where('service_id', $service_id)->first();
 
             if (! $bookSetting) {
                 continue;
             }
-
-            // $dayStart = Day::where('is_active', 1)->where('name', $bookSetting->service_start_date)->first();
-            // $dayEnd = Day::where('is_active', 1)->where('name', $bookSetting->service_end_date)->first();
-            // if (!$dayStart || !$dayEnd) {
-            //     continue;
-            // }
-
-            // $serviceDays = Day::whereBetween('id', [$dayStart->id, $dayEnd->id])
-            //     ->where('is_active', true)
-            //     ->pluck('name')
-            //     ->toArray();
-            // dd($serviceDays);
 
             // Get $dayStart and $dayEnd without checking is_active
             $dayStart = Day::where('name', $bookSetting->service_start_date)->first();
@@ -292,161 +276,6 @@ class Appointment
         return array_values($finalTimes);
     }
 
-    // protected function isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId)
-    // {
-
-    //     $shiftGroupsIds = Shift::where('id', $shiftId)
-    //         ->where('is_active', 1)->pluck('group_id')->toArray();
-
-    //     // Decode JSON strings into an array of group IDs
-    //     $shiftGroupsIds = array_merge(...array_map(function ($jsonString) {
-    //         return array_map('intval', json_decode($jsonString, true));
-    //     }, $shiftGroupsIds));
-
-    //     // dd($shiftGroupsIds);
-
-    //     $dayName = Carbon::parse($day)->format('l');
-    //     $dayId   = collect($this->daysOfWeek)->firstWhere('name', $dayName)['id'];
-
-    //     // dd($shiftGroupsIds);
-
-    //     $techIds_not_work = []; // Array to store group IDs of technicians not working on the given day
-    //     $techIdsOnThisDay = [];
-
-    //     // Retrieve all technicians associated with the shift groups
-    //     $technicians = Technician::whereIn('group_id', $shiftGroupsIds)->with('workingDays')->get();
-
-    //     // dd($technicians);
-
-    //     foreach ($technicians as $tech) {
-    //         if ($tech->workingDays->isNotEmpty()) {
-
-    //             // Extract the day IDs from the technician's working days
-    //             $workingDays = $tech->workingDays->pluck('day_id')->toArray();
-
-    //             // Check if the dayId is in the workingDays array
-    //             $exists = in_array($dayId, $workingDays);
-
-    //             if ($exists) {
-    //                 $techIdsOnThisDay[] = $tech->group_id;
-    //             }
-    //         } else {
-
-    //             // If the technician has no working days, consider them as not working
-    //             $techIds_not_work[] = $tech->group_id;
-    //         }
-    //     }
-
-    //     // Get IDs of workers available on this day (technicians who are not in the 'not working' list)
-    //     // $techIdsOnThisDay = array_diff($shiftGroupsIds, $techIds_not_work);
-
-    //     // Dump the result to inspect available technicians
-    //     // dd($techIdsOnThisDay);
-
-    //     $category_id         = Service::where('id', $service_id)->first()->category_id;
-    //     $region_id           = $this->region_id;
-    //     $ShiftGroupsInRegion = Group::where('active', 1)->whereIn('id', $techIdsOnThisDay)
-    //         ->whereHas('regions', function ($qu) use ($region_id) {
-    //             $qu->where('region_id', $region_id);
-    //         })
-    //         ->pluck('id')->toArray();
-
-    //     // dd($ShiftGroupsInRegion);
-    //     // dd($region_id);
-
-    //     // Fetch booking IDs for the given date
-    //     $booking_ids = Booking::whereHas('category', function ($query) use ($category_id) {
-    //         $query->where('category_id', $category_id);
-    //     })->where('date', $day)->pluck('id')->toArray();
-
-    //     // Calculate the duration including buffering time
-
-    //     if ($period->format('H:i:s') == '23:45:00') {
-    //         $duration        = $bookSetting->service_duration;
-    //         $periodEndTime   = $period->copy()->addMinutes($duration * $amount)->format('H:i:s');
-    //         $periodStartTime = $period->format('H:i:s');
-    //     } else {
-    //         $duration = $bookSetting->service_duration + $bookSetting->buffering_time;
-
-    //         $periodEndTime   = $period->copy()->addMinutes($duration * $amount)->format('H:i:s');
-    //         $periodStartTime = $period->format('H:i:s');
-    //     }
-
-    //     // Fetch unavailable group IDs within the specific period
-    //     $takenIds = Visit::where(function ($query) use ($periodStartTime, $periodEndTime) {
-
-    //         $query->where('start_time', '<', $periodEndTime)
-    //             ->where('end_time', '>', $periodStartTime);
-    //     })
-
-    //         ->activeVisits()
-    //         ->whereIn('booking_id', $booking_ids)
-    //         ->whereNotIn('visits_status_id', [5, 6])
-    //         ->whereIn('assign_to_id', $ShiftGroupsInRegion)
-    //         ->pluck('assign_to_id')
-    //         ->toArray();
-
-    //     // dd($periodStartTime);
-    //     // dd($periodEndTime);
-
-    //     // Fetch the specific times that are unavailable within this period
-    //     $takenTimes = Visit::where(function ($query) use ($periodStartTime, $periodEndTime) {
-    //         $query->where('start_time', '<', $periodEndTime)
-    //             ->where('end_time', '>', $periodStartTime);
-    //     })
-
-    //         ->activeVisits()
-    //         ->whereIn('booking_id', $booking_ids)
-    //         ->whereNotIn('visits_status_id', [5, 6])
-    //         ->whereIn('assign_to_id', $shiftGroupsIds)
-    //         ->pluck('start_time')
-    //         ->toArray();
-
-    //     // dd($takenTimes);
-
-    //     $availableShiftGroupsIds = array_diff($ShiftGroupsInRegion, $takenIds);
-
-    //     // dd($takenTimes);
-
-    //     // dd($availableShiftGroupsIds);
-
-    //     $availableShiftGroupsCount = Group::where('active', 1)->GroupInRegionCategory($this->region_id, [$category_id])
-    //         ->whereIn('id', $availableShiftGroupsIds)
-    //         ->count();
-
-    //     // dd($availableShiftGroupsCount);
-
-    //     foreach ($takenTimes as $takenTime) {
-    //         $takenTime = $takenTime ? Carbon::parse($takenTime)->format('g:i A') : null;
-    //         // dd($availableShiftGroupsIds);
-    //         // dd($period->format('g:i A'));
-    //         if (empty($availableShiftGroupsIds) && $takenTime === $period->format('g:i A')) {
-    //             if ($takenTime) {
-    //                 // Check if this date and time combination already exists in unavailableTimeSlots
-    //                 $exists = collect($this->unavailableTimeSlots)->contains(function ($slot) use ($takenTime, $day, $service_id) {
-    //                     return $slot['time'] === $takenTime && $slot['date'] === $day && $slot['service_id'] === $service_id;
-    //                 });
-
-    //                 if (! $exists) {
-    //                     $this->unavailableTimeSlots[] = [
-    //                         'time'       => $takenTime,
-    //                         'date'       => $day,
-    //                         'service_id' => $service_id,
-    //                         'shift_id'   => $shiftId,
-    //                     ];
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     //  dd($availableShiftGroupsIds);
-    //     // dd($this->unavailableTimeSlots);
-    //     if (empty($availableShiftGroupsIds)) {
-    //         // dd($availableShiftGroupsIds);
-
-    //         return true;
-    //     }
-    //     return false;
-    // }
     protected function isSlotUnavailable($period, $service_id, $day, $amount, $bookSetting, $shiftId)
     {
         $shiftGroupsIds = Shift::where('id', $shiftId)
@@ -499,15 +328,38 @@ class Appointment
         $takenIds   = [];
         $takenTimes = [];
 
+        // foreach ($takenVisits as $visit) {
+        //     $visitStart = Carbon::parse("$day {$visit->start_time}", 'Asia/Riyadh');
+        //     $visitEnd   = Carbon::parse("$day {$visit->end_time}", 'Asia/Riyadh');
+
+        //     if ($visitEnd->lessThanOrEqualTo($visitStart)) {
+        //         $visitEnd->addDay();
+        //     }
+
+        //     if ($visitStart->lt($periodEnd) && $visitEnd->gt($periodStart)) {
+        //         $takenIds[]   = $visit->assign_to_id;
+        //         $takenTimes[] = $visitStart->format('g:i A');
+        //     }
+        // }
+
         foreach ($takenVisits as $visit) {
             $visitStart = Carbon::parse("$day {$visit->start_time}", 'Asia/Riyadh');
             $visitEnd   = Carbon::parse("$day {$visit->end_time}", 'Asia/Riyadh');
 
+            // Handle cross-midnight cases
             if ($visitEnd->lessThanOrEqualTo($visitStart)) {
                 $visitEnd->addDay();
             }
 
-            if ($visitStart->lt($periodEnd) && $visitEnd->gt($periodStart)) {
+            // Detect overlap
+            $overlaps = $visitStart->lt($periodEnd) && $visitEnd->gt($periodStart);
+
+            if ($overlaps) {
+                // Avoid assigning same group multiple times at same time
+                if (in_array($visit->assign_to_id, $ShiftGroupsInRegion)) {
+                    return true; // Slot is unavailable due to overlap
+                }
+
                 $takenIds[]   = $visit->assign_to_id;
                 $takenTimes[] = $visitStart->format('g:i A');
             }

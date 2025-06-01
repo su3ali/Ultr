@@ -43,6 +43,37 @@ class OrderController extends Controller
         if ($request->ajax()) {
             $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
+            // $ordersQuery = Order::with([
+            //     'user', 'bookings', 'transaction', 'status',
+            //     'bookings.visit.status', 'services.category',
+            // ])
+            //     ->whereHas('userAddress', fn($query) => $query->whereIn('region_id', $regionIds))
+            //     ->when($request->search_value, function ($query, $searchTerm) {
+            //         $query->where(function ($q) use ($searchTerm) {
+            //             $q->where('id', 'like', "%{$searchTerm}%")
+            //                 ->orWhere('total', 'like', "%{$searchTerm}%")
+            //                 ->orWhere('created_at', 'like', "%{$searchTerm}%")
+            //                 ->orWhere('user_id', 'like', "%{$searchTerm}%")
+            //                 ->orWhereHas('user', fn($q) => $q->where('first_name', 'like', "%{$searchTerm}%"));
+            //         });
+            //     })
+            //     ->when($request->ajax(), function ($query) use ($request) {
+            //         if ($request->status) {
+            //             $query->where('status_id', $request->status);
+            //         }
+            //         if ($request->page) {
+            //             $query->where('status_id', '!=', 5)
+            //                 ->whereDate('created_at', Carbon::now('Asia/Riyadh')->toDateString());
+            //         }
+            //         $query->where('is_active', 1);
+            //     })
+            //     ->orderByDesc('created_at');
+
+            // Add 2 Hours For Day
+
+            $startOfDay = Carbon::now('Asia/Riyadh')->startOfDay();
+            $endOfDay   = Carbon::now('Asia/Riyadh')->copy()->addDay()->startOfDay()->addHours(2);
+
             $ordersQuery = Order::with([
                 'user', 'bookings', 'transaction', 'status',
                 'bookings.visit.status', 'services.category',
@@ -57,13 +88,13 @@ class OrderController extends Controller
                             ->orWhereHas('user', fn($q) => $q->where('first_name', 'like', "%{$searchTerm}%"));
                     });
                 })
-                ->when($request->ajax(), function ($query) use ($request) {
+                ->when($request->ajax(), function ($query) use ($request, $startOfDay, $endOfDay) {
                     if ($request->status) {
                         $query->where('status_id', $request->status);
                     }
                     if ($request->page) {
                         $query->where('status_id', '!=', 5)
-                            ->whereDate('created_at', Carbon::now('Asia/Riyadh')->toDateString());
+                            ->whereBetween('created_at', [$startOfDay, $endOfDay]);
                     }
                     $query->where('is_active', 1);
                 })
@@ -205,7 +236,7 @@ class OrderController extends Controller
             $now       = Carbon::now('Asia/Riyadh')->toDateString();
             $tomorrow  = Carbon::tomorrow('Asia/Riyadh')->toDateString();
             $startTime = Carbon::tomorrow('Asia/Riyadh')->startOfDay();
-            $endTime   = $startTime->copy()->addHours(3);
+            $endTime   = $startTime->copy()->addHours(2);
 
             $orders = Order::query()
                 ->whereHas('userAddress', function ($query) use ($regionIds) {

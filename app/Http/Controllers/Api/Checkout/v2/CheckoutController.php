@@ -1,40 +1,40 @@
 <?php
 namespace App\Http\Controllers\Api\Checkout\v2;
 
-use Exception;
-use Carbon\Carbon;
-use App\Models\Cart;
-use App\Models\Admin;
-use App\Models\Group;
-use App\Models\Order;
-use App\Models\Shift;
-use App\Models\Visit;
-use App\Models\Coupon;
-use App\Models\Booking;
-use App\Models\Service;
 use App\Bll\CouponCheck;
-use App\Models\CouponUser;
-use App\Models\Technician;
-use App\Traits\imageTrait;
-use App\Models\GroupRegion;
-use App\Models\Transaction;
-use App\Models\OrderService;
-use Illuminate\Http\Request;
-use App\Models\CategoryGroup;
-use App\Models\UserAddresses;
+use App\Http\Controllers\Controller;
+use App\Models\Admin;
+use App\Models\Booking;
 use App\Models\BookingSetting;
-use App\Models\CustomerWallet;
+use App\Models\Cart;
+use App\Models\CategoryGroup;
 use App\Models\ContractPackage;
+use App\Models\ContractPackagesUser;
+use App\Models\Coupon;
+use App\Models\CouponUser;
+use App\Models\CustomerWallet;
+use App\Models\Group;
+use App\Models\GroupRegion;
+use App\Models\Order;
+use App\Models\OrderService;
+use App\Models\Service;
+use App\Models\Shift;
+use App\Models\Technician;
+use App\Models\Transaction;
+use App\Models\UserAddresses;
+use App\Models\Visit;
+use App\Notifications\SendPushNotification;
 use App\Services\v2\Appointment;
 use App\Support\Api\ApiResponse;
+use App\Traits\imageTrait;
 use App\Traits\NotificationTrait;
+use Carbon\Carbon;
+use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
-use App\Models\ContractPackagesUser;
-use Illuminate\Support\Facades\Validator;
-use App\Notifications\SendPushNotification;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Validator;
 
 class CheckoutController extends Controller
 {
@@ -748,38 +748,86 @@ class CheckoutController extends Controller
 
                 //
 
-                $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
-                    $qu->where('region_id', $address->region_id);
-                })->whereIn('id', $techIdsOnThisDay);
+                // $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
+                //     $qu->where('region_id', $address->region_id);
+                // })->whereIn('id', $techIdsOnThisDay);
+
+                // if ($group->get()->isEmpty()) {
+                //     DB::rollback();
+                //     return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
+                // }
+                // // dd($cart->time);
+
+                // if ($cart->time == '23:00:00') {
+                //     $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()
+                //             ->addMinutes(($bookSetting->service_duration) * $cart->quantity)
+                //             ->format('H:i:s'))
+                //         ->where('end_time', '>', $cart->time)
+                //         ->activeVisits()->whereIn('booking_id', $booking_id)
+                //         ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id');
+                //     // dd($takenGroupsIds);
+                // } else {
+
+                //     $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()
+                //             ->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time) * $cart->quantity)
+                //             ->format('H:i:s'))
+                //         ->where('end_time', '>', $cart->time)
+                //         ->activeVisits()->whereIn('booking_id', $booking_id)
+                //         ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id');
+                // }
+
+                // // dd($takenGroupsIds);
+                // if ($takenGroupsIds->isNotEmpty()) {
+                //     $assign_to_id = $group->whereNotIn('id', $takenGroupsIds)->inRandomOrder()?->first()?->id;
+                //     // dd($assign_to_id);
+                //     if (! isset($assign_to_id)) {
+                //         DB::rollback();
+                //         return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+                //     }
+                // } else {
+                //     $assign_to_id = $group->inRandomOrder()?->first()?->id;
+                //     if (! isset($assign_to_id)) {
+                //         DB::rollback();
+                //         return self::apiResponse(400, __('api.This Time is not available'), $this->body);
+                //     }
+                // }
+
+                $group = Group::where('active', 1)
+                    ->whereHas('regions', function ($qu) use ($address) {
+                        $qu->where('region_id', $address->region_id);
+                    })
+                    ->whereIn('id', $techIdsOnThisDay);
 
                 if ($group->get()->isEmpty()) {
                     DB::rollback();
                     return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
                 }
-                // dd($cart->time);
 
-                if ($cart->time == '23:00:00') {
-                    $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()
-                            ->addMinutes(($bookSetting->service_duration) * $cart->quantity)
-                            ->format('H:i:s'))
-                        ->where('end_time', '>', $cart->time)
-                        ->activeVisits()->whereIn('booking_id', $booking_id)
-                        ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id');
-                    // dd($takenGroupsIds);
-                } else {
+                // ------------------[ Time Range Calculation ]------------------
+                $serviceDuration = $bookSetting->service_duration ?? 0;
+                $bufferingTime   = $bookSetting->buffering_time ?? 0;
+                $totalDuration   = ($serviceDuration + $bufferingTime) * $cart->quantity;
 
-                    $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()
-                            ->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time) * $cart->quantity)
-                            ->format('H:i:s'))
-                        ->where('end_time', '>', $cart->time)
-                        ->activeVisits()->whereIn('booking_id', $booking_id)
-                        ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id');
-                }
+                $startDateTime = Carbon::parse("{$cart->date} {$cart->time}", 'Asia/Riyadh');
+                $endDateTime   = $startDateTime->copy()->addMinutes($totalDuration);
 
-                // dd($takenGroupsIds);
+                // ------------------[ Conflict Check Using Full DateTime ]------------------
+                $takenGroupsIds = Visit::whereHas('booking', function ($query) use ($cart) {
+                    $query->where('date', $cart->date); // Ensure visits match the date of cart
+                })
+                    ->where(function ($q) use ($startDateTime, $endDateTime) {
+                        $q->whereRaw("STR_TO_DATE(CONCAT(bookings.date, ' ', visits.start_time), '%Y-%m-%d %H:%i:%s') < ?", [$endDateTime])
+                            ->whereRaw("STR_TO_DATE(CONCAT(bookings.date, ' ', visits.end_time), '%Y-%m-%d %H:%i:%s') > ?", [$startDateTime]);
+                    })
+                    ->activeVisits()
+                    ->whereIn('booking_id', $booking_id)
+                    ->whereIn('assign_to_id', $techIdsOnThisDay)
+                    ->join('bookings', 'visits.booking_id', '=', 'bookings.id') // join needed for date access
+                    ->pluck('assign_to_id');
+
+                // ------------------[ Assign Group Based on Availability ]------------------
                 if ($takenGroupsIds->isNotEmpty()) {
                     $assign_to_id = $group->whereNotIn('id', $takenGroupsIds)->inRandomOrder()?->first()?->id;
-                    // dd($assign_to_id);
                     if (! isset($assign_to_id)) {
                         DB::rollback();
                         return self::apiResponse(400, __('api.This Time is not available'), $this->body);
