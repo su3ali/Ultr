@@ -1,15 +1,12 @@
 <?php
-
 namespace App\Http\Controllers\Dashboard\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminRegion;
 use App\Models\City;
-use App\Models\Country;
 use App\Models\Region;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
-use Illuminate\Support\Facades\File;
-
 
 class RegionController extends Controller
 {
@@ -76,27 +73,37 @@ class RegionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title_ar' => 'required|String|min:3',
-            'title_en' => 'required|String|min:3',
-            'city_id' => 'required|exists:cities,id',
-            'space_km' => 'nullable|numeric',
-            'lat' => 'nullable',
-            'lon' => 'nullable',
+            'title_ar'            => 'required|string|min:3',
+            'title_en'            => 'required|string|min:3',
+            'city_id'             => 'required|exists:cities,id',
+            'space_km'            => 'nullable|numeric',
+            'lat'                 => 'nullable',
+            'lon'                 => 'nullable',
             'polygon_coordinates' => 'required|json',
-
         ]);
 
         $data = $request->except('_token');
 
-        Region::updateOrCreate($data);
+        // Create or update region
+        $region = Region::updateOrCreate(
+            ['title_ar' => $data['title_ar'], 'title_en' => $data['title_en']],
+            $data
+        );
 
-        session()->flash('success');
+        //  Automatically assign region to Super Admin (ID = 1)
+        AdminRegion::updateOrCreate([
+            'admin_id'  => 1,
+            'region_id' => $region->id,
+        ]);
+
+        session()->flash('success', __('dash.created_successfully'));
         return redirect()->route('dashboard.region.index');
+
     }
     public function viewRegion($id)
     {
         $region = Region::where('id', $id)->first();
-      
+
         return view('dashboard.settings.regions.show', compact('region'));
     }
 
@@ -111,16 +118,15 @@ class RegionController extends Controller
     {
 
         $request->validate([
-            'title_ar' => 'required',
-            'title_en' => 'required',
-            'city_id' => 'required|exists:cities,id',
-            'space_km' => 'nullable|numeric',
-            'lat' => 'nullable',
-            'lon' => 'nullable',
+            'title_ar'            => 'required',
+            'title_en'            => 'required',
+            'city_id'             => 'required|exists:cities,id',
+            'space_km'            => 'nullable|numeric',
+            'lat'                 => 'nullable',
+            'lon'                 => 'nullable',
             'polygon_coordinates' => 'nullable|json',
         ]);
         $data = $request->except('_token');
-
 
         $region = Region::find($id);
 
@@ -135,7 +141,7 @@ class RegionController extends Controller
         $region->delete();
         return [
             'success' => true,
-            'msg' => __("dash.deleted_success")
+            'msg'     => __("dash.deleted_success"),
         ];
     }
 
