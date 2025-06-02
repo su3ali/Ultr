@@ -197,16 +197,7 @@ class VisitsController extends Controller
                     'note'             => $request->note,
                 ];
                 $image = null;
-                // if ($request->hasFile('image')) {
-                //     if (File::exists(public_path($model->image))) {
-                //         File::delete(public_path($model->image));
-                //     }
-                //     $image = $request->file('image');
-                //     $filename = time() . '.' . $image->getClientOriginalExtension();
-                //     $request->image->move(storage_path('app/public/images/visits/'), $filename);
-                //     $image = 'storage/images/visits' . '/' . $filename;
-                //     $data['image'] = $image;
-                // }
+                
 
                 if ($request->hasFile('image')) {
                     $image            = $request->file('image');
@@ -284,22 +275,7 @@ class VisitsController extends Controller
                     }
                 }
 
-                // if (in_array($request->status_id, [5,6])){
-                //     if($model->booking->type =='service') {
-                //         $order = $model->booking->order;
-                //     }else{
-                //         $order = $model->booking->contract;
-                //     }
-                //     $visits_ids = [];
-                //     foreach ($order->bookings as $booking){
-                //         $visits_ids[] = $booking->visit?->id;
-                //     }
-                //     $difference = array_diff($visits_ids, [1,2,3,4]);
-                //     if (count($difference) == count($visits_ids)) {
-                //         $order->status_id = 4;
-                //         $order->save();
-                //     }
-                // }
+                
 
                 if (in_array($request->status_id, [5, 6])) {
                     $order      = $model->booking->order;
@@ -376,10 +352,7 @@ class VisitsController extends Controller
                     } else {
                         $point = $wallet;
                     }
-                    // $newPoint = ((round($user->point - $point)) < 0 ? 0 : round($user->point - $point)) ?? 0;
-                    // $user->update([
-                    //     'point' => $newPoint,
-                    // ]);
+                    
 
                     $newPoint = max(0, round($user->point - $point));
                     $user->update([

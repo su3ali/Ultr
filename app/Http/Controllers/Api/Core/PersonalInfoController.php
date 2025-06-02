@@ -44,14 +44,35 @@ class PersonalInfoController extends Controller
     public function updateFcmToken(Request $request)
     {
         $request->validate([
-            'fcm_token' => 'required|string|max:255',
+            'fcm_token'       => 'required|string|max:255',
+            'device_name'     => 'nullable|string|max:255',
+            'os_type'         => 'nullable|string|max:255',
+            'app_version'     => 'nullable|string|max:255',
+            'device_model'    => 'nullable|string|max:255',
+            'os_version'      => 'nullable|string|max:255',
+            'additional_info' => 'nullable|string|max:255',
         ]);
 
         $user = auth('sanctum')->user();
 
+        // Update user fcm_token
         $user->update([
             'fcm_token' => $request->fcm_token,
         ]);
+
+        // Update or create user_details
+        $user->detail()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'device_name'     => $request->device_name,
+                'os_type'         => $request->os_type,
+                'app_version'     => $request->app_version,
+                'device_model'    => $request->device_model,
+                'os_version'      => $request->os_version,
+                'additional_info' => $request->additional_info,
+                'last_opened_at'  => now('Asia/Riyadh'),
+            ]
+        );
 
         $this->body['user'] = UserResource::make($user);
 

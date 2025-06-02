@@ -1,7 +1,7 @@
 <?php
 namespace App\Helpers;
 
-use App\Models\DashboardActivityLog; // update if model name is changed
+use App\Models\DashboardActivityLog; 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 

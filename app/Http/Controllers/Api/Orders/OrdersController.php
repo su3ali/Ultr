@@ -44,55 +44,7 @@ class OrdersController extends Controller
         $this->body['order'] = OrderResource::make($order);
         return self::apiResponse(200, null, $this->body);
     }
-    // protected function rateTechnicians(Request $request){
-    //     $rules = [
-    //         'group_id' => 'required|exists:groups,id',
-    //         'booking_id' => 'required|exists:bookings,id',
-    //         'rate' => 'required|integer',
-    //         'note' => 'nullable|string|max:255',
-    //         'visit_id' => 'required|exists:visits,id',
-    //     ];
-    //     $request->validate($rules, $request->all());
-    //     $technicians = Technician::query()->where('group_id', $request->group_id)->get();
-    //     $order_id = Booking::query()->find($request->booking_id)->order_id;
-    //     foreach ($technicians as $technician){
-    //         RateTechnician::query()->create([
-    //            'user_id' => auth()->user()->id,
-    //            'technician_id' => $technician->id,
-    //            'order_id' => $order_id,
-    //             'visit_id' => $request->visit_id,
-    //             'rate' => $request->rate,
-    //            'note' => $request->note,
-    //         ]);
-    //     }
-    //     return self::apiResponse(200, __('api.rated successfully'), $this->body);
-
-    // }
-
-    // protected function rateTechnicians(Request $request){
-    //     $rules = [
-    //         'group_id' => 'required|exists:groups,id',
-    //         'booking_id' => 'required|exists:bookings,id',
-    //         'visit_id' => 'required|exists:visits,id',
-    //         'rate' => 'required|integer',
-    //         'note' => 'nullable|string|max:255',
-    //     ];
-    //     $request->validate($rules, $request->all());
-    //     $technicians = Technician::query()->where('group_id', $request->group_id)->get();
-    //     $order_id = Booking::query()->find($request->booking_id)->order_id;
-    //     foreach ($technicians as $technician){
-    //         RateTechnician::query()->create([
-    //            'user_id' => auth()->user()->id,
-    //            'technician_id' => $technician->id,
-    //             'visit_id' => $request->visit_id,
-    //            'order_id' => $order_id,
-    //            'rate' => $request->rate,
-    //            'note' => $request->note,
-    //         ]);
-    //     }
-    //     return self::apiResponse(200, __('api.rated successfully'), $this->body);
-
-    // }
+    
 
     protected function rateTechnicians(Request $request)
     {
@@ -145,31 +97,7 @@ class OrdersController extends Controller
         return self::apiResponse(200, __('api.rated successfully'), $this->body);
 
     }
-    // protected function rateService(Request $request){
-    //     $rules = [
-    //         'booking_id' => 'required|exists:bookings,id',
-    //         'visit_id' => 'required|exists:visits,id',
-    //         'rate' => 'required|integer',
-    //         'note' => 'nullable|string|max:255',
-    //     ];
-
-    //     $request->validate($rules, $request->all());
-    //     $order_id = Booking::query()->find($request->booking_id)->order_id;
-    //     $services = OrderService::where('order_id',$order_id)->get();
-    //     foreach ($services as $service) {
-    //         RateService::query()->create([
-    //             'user_id' => auth()->user()->id,
-    //             'service_id' => $service->service_id,
-    //             'visit_id' => $request->visit_id,
-    //             'order_id' => $order_id,
-    //             'rate' => $request->rate,
-    //             'note' => $request->note,
-    //         ]);
-    //     }
-
-    //     return self::apiResponse(200, __('api.rated successfully'), $this->body);
-
-    // }
+   
 
     public function getOrderData($order_id)
     {

@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use App\Models\CarClient;
+use App\Models\UserDetail;
 use App\Support\Traits\HasPassword;
 use App\Support\Traits\WithBoot;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -57,6 +58,11 @@ class User extends Authenticatable
     public function cars()
     {
         return $this->hasMany(CarClient::class, 'user_id');
+    }
+
+    public function detail()
+    {
+        return $this->hasOne(UserDetail::class);
     }
 
 }
