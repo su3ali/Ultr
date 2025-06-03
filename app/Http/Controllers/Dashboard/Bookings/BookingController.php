@@ -71,7 +71,7 @@ class BookingController extends Controller
 
             if ($request->has('zone') && $request->zone !== 'all') {
                 $zoneId = $request->zone;
-                $bookings->whereHas('visit.group.regions', function ($query) use ($zoneId) {
+                $bookings->whereHas('order.userAddress.region', function ($query) use ($zoneId) {
                     $query->where('region_id', $zoneId);
                 });
             }
