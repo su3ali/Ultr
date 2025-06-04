@@ -1176,5 +1176,6 @@ return [
     'apply_coupon'                          => 'Apply Coupon',
     'select'                                => 'Select',
     'employees_coupons'                     => 'Employee Coupons',
+    'days_off'                              => ' Days Off',
 
 ];

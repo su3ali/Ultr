@@ -1113,6 +1113,7 @@ return [
     'use_the_coupon_anyway'                    => 'استخدم الكوبون على أي حال (تجاهل التحقق من الاستخدام السابق)',
     'apply_coupon'                             => 'تطبيق كوبون',
     'select'                                   => 'أختر',
-    'emplyees_coupons'                     => 'كوبونات الموظفين',
+    'emplyees_coupons'                         => 'كوبونات الموظفين',
+    'days_off'                                 => 'اليوم الإجازة',
 
 ];

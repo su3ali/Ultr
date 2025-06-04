@@ -152,4 +152,6 @@ class Technician extends Authenticatable
             ->where('branch_id', $this->branch_id);
     }
 
+    
+
 }

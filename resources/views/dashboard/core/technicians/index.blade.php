@@ -122,6 +122,7 @@
                             {{-- <th>{{ __('dash.specialization') }}</th> --}}
                             <th>{{ __('dash.phone') }}</th>
                             <th>{{ __('dash.group') }}</th>
+                            <th>{{ __('dash.days_off') }}</th>
                             <th> {{ __('dash.shift') }} </th>
                             <th>{{ __('dash.zone') }}</th>
                             <th>{{ __('dash.status') }}</th>
@@ -188,6 +189,8 @@
                 // { data: 'spec', name: 'spec' },
                 { data: 'phone', name: 'phone' },
                 { data: 'group', name: 'group' },
+                { data: 'days_off', name: 'days_off', orderable: false, searchable: false },
+                
                 {data: 'shift_no', name:'shift_no'},
                 { data: 'region', name: 'region' },
                 { data: 'status', name: 'status' },

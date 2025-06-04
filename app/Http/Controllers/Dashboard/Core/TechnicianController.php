@@ -124,7 +124,18 @@ class TechnicianController extends Controller
                 ? $row->specialization?->name_ar
                 : $row->specialization?->name_en;
 
-                $regionTitle = $row->group?->region?->first()?->title ?? '';
+                $regionTitle  = $row->group?->region?->first()?->title ?? '';
+                $workedDayIds = $row->workingDays->pluck('day_id')->toArray();
+
+                $dayNames = Day::where('is_active', 1)
+                    ->whereNotIn('id', $workedDayIds)
+                    ->get([app()->getLocale() === 'ar' ? 'name_ar as name' : 'name']);
+
+                $daysOff = $dayNames->map(function ($day) {
+                    return '<span class="badge badge-pill px-3 py-2" style="background-color: #ffeaea; color: #d33c43; font-weight: 500;">
+                <i class="fas fa-ban mr-1"></i> ' . e($day->name) . '
+                  </span>';
+                })->implode(' ');
 
                 $shiftNo = null;
 
@@ -203,6 +214,7 @@ class TechnicianController extends Controller
                     'spec'     => $specName,
                     'phone'    => $whatsAppLink,
                     'group'    => $row->group?->name,
+                    'days_off' => $daysOff,
                     'shift_no' => $shiftNo,
                     'region'   => $regionTitle,
                     'status'   => $statusToggle,
@@ -234,6 +246,7 @@ class TechnicianController extends Controller
         return view('dashboard.core.technicians.index', compact(
             'groups', 'specs', 'days', 'nationalities', 'clientProjects', 'regions', 'shifts'
         ));
+
     }
 
     public function techniciansOffToday(Request $request)
