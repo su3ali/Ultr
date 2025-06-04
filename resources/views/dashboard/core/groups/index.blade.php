@@ -52,13 +52,36 @@
                     </button>
 
                 </div>
+
+                <div class="mb-3 row align-items-end justify-content-start">
+
+                    <div class="col-md-4 col-sm-6">
+                        <label for="region_filter" class="form-label fw-semibold">
+                            <i class="fas fa-map-marker-alt text-primary me-1"></i> {{ __('dash.zone') }}
+                        </label>
+                        <select id="region_filter" class="form-select shadow-sm border rounded">
+                            <option value="all">{{ __('dash.all') }}</option>
+                            @foreach($regions as $id => $title)
+                            <option value="{{ $id }}">{{ $title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- <div class="col-md-4 col-sm-6 mt-3 mt-sm-0">
+                        <button type="button" id="resetFilters" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-sync-alt me-1"></i> {{ __('dash.reset_filters') }}
+                        </button>
+                    </div> --}}
+
+                </div>
+
                 <table id="html5-extension" class="table table-hover non-hover" style="width:100%">
                     <thead>
                         <tr>
                             <th>#</th>
                             <th>{{__('dash.name')}}</th>
                             <th>مشرف المجموعة</th>
-                            <th>{{ __('dash.zone') }}
+                            <th>{{ __('dash.zone') }}</th>
                             <th>الحاله</th>
                             <th class="no-content">{{__('dash.actions')}}</th>
                         </tr>
@@ -148,7 +171,12 @@
                 },
                 processing: true,
                  serverSide: false,
-                ajax: '{{ route('dashboard.core.group.index') }}',
+                ajax: {
+                    url: '{{ route('dashboard.core.group.index') }}',
+                    data: function (d) {
+                        d.region_id = $('#region_filter').val();
+                    }
+                },
                 columns: [
                     {data: 'id', name: 'id'},
                     {data: 'g_name', name: 'g_name'},
@@ -205,6 +233,16 @@
                 }
             });
         })
+
+       $('#region_filter').on('change', function () {
+    $('#html5-extension').DataTable().ajax.reload();
+});
+
+// $('#resetFilters').on('click', function () {
+//     $('#region_filter').val('all').trigger('change');
+// });
+
+
 
 </script>
 

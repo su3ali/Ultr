@@ -454,11 +454,11 @@ class Appointment
             }
 
             if (! $hasOverlap) {
-                return false; // فني متاح
+                return false; //  Slot is available
             }
         }
 
-        // الكل مشغول
+        //  all busy
         $takenTime = $periodStart->format('g:i A');
 
         $exists = collect($this->unavailableTimeSlots)->contains(function ($slot) use ($takenTime, $day, $service_id, $shiftId) {

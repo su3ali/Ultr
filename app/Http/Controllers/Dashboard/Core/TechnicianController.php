@@ -132,9 +132,10 @@ class TechnicianController extends Controller
                     ->get([app()->getLocale() === 'ar' ? 'name_ar as name' : 'name']);
 
                 $daysOff = $dayNames->map(function ($day) {
-                    return '<span class="badge badge-pill px-3 py-2" style="background-color: #ffeaea; color: #d33c43; font-weight: 500;">
-                <i class="fas fa-ban mr-1"></i> ' . e($day->name) . '
-                  </span>';
+                    return '<span class="badge rounded-pill bg-primary text-white d-inline-flex align-items-center px-3 py-2">
+                      ' . e($day->name) . '
+                            </span>';
+
                 })->implode(' ');
 
                 $shiftNo = null;

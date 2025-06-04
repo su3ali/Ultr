@@ -23,37 +23,33 @@ class GroupsController extends Controller
     {
         $technicians = Technician::all();
         if (request()->ajax()) {
-            $groups = Group::all();
-            return DataTables::of($groups)
+            $groupsQuery = Group::query();
+
+            if (request()->filled('region_id') && request('region_id') !== 'all') {
+                $groupsQuery->whereHas('regions', function ($q) {
+                    $q->where('region_id', request('region_id'));
+                });
+            }
+
+            return DataTables::of($groupsQuery->get())
                 ->addColumn('technician', function ($row) {
-                    return $row->technician_id ? Technician::query()->find($row->technician_id) ? Technician::query()->find($row->technician_id)->name : 'لا يوجد' : 'لا يوجد';
+                    return $row->technician_id
+                    ? Technician::find($row->technician_id)?->name ?? 'لا يوجد'
+                    : 'لا يوجد';
                 })
-                ->addColumn('g_name', function ($row) {
-                    return $row->name;
-                })
-
-                ->addColumn('region', function ($row) {
-                    $regionTitle = $row?->region?->first()?->title ?? '';
-
-                    return $regionTitle;
-                })
+                ->addColumn('g_name', fn($row) => $row->name)
+                ->addColumn('region', fn($row) => $row?->region?->first()?->title ?? '')
                 ->addColumn('status', function ($row) {
-                    $checked = '';
-                    if ($row->active == 1) {
-                        $checked = 'checked';
-                    }
+                    $checked = $row->active ? 'checked' : '';
                     return '<label class="switch s-outline s-outline-info  mb-4 mr-2">
                         <input type="checkbox" id="customSwitch4" data-id="' . $row->id . '" ' . $checked . '>
                         <span class="slider round"></span>
-                        </label>';
+                    </label>';
                 })
                 ->addColumn('control', function ($row) {
                     $html = '';
-                    // Check if the logged-in user has the 'admin' role
                     if (auth()->user()->hasRole('admin') || auth()->user()->can('update_technicians')) {
-
-                        $html = '
-                        <button type="button" id="edit-techGroup" class="btn btn-primary btn-sm card-tools edit"
+                        $html .= '<button type="button" id="edit-techGroup" class="btn btn-primary btn-sm card-tools edit"
                             data-id="' . $row->id . '"
                             data-name_ar="' . $row->name_ar . '"
                             data-name_en="' . $row->name_en . '"
@@ -69,30 +65,23 @@ class GroupsController extends Controller
                     }
 
                     if (auth()->user()->hasRole('admin')) {
-                        $html .= '
-                            <a data-table_id="html5-extension"
-                            data-href="' . route('dashboard.core.group.destroy', $row->id) . '"
-                            data-id="' . $row->id . '"
-                            class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
+                        $html .= '<a data-table_id="html5-extension"
+                                data-href="' . route('dashboard.core.group.destroy', $row->id) . '"
+                                data-id="' . $row->id . '"
+                                class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
                                 <i class="far fa-trash-alt fa-2x"></i>
                             </a>';
                     }
 
                     return $html;
                 })
-
-                ->rawColumns([
-                    'technician',
-                    'g_name',
-                    'region',
-                    'status',
-                    'control',
-                ])
+                ->rawColumns(['technician', 'g_name', 'region', 'status', 'control'])
                 ->make(true);
         }
+
         $countries = Country::where('active', 1)->get()->pluck('title', 'id');
         $cities    = City::where('active', 1)->get()->pluck('title', 'id');
-        $regions   = Region::where('active', 1)->get()->pluck('title', 'id');
+        $regions   = Region::where('active', 1)->where('title_ar', '!=', 'old')->get()->pluck('title', 'id');
 
         return view('dashboard.core.groups.index', compact('technicians', 'countries', 'cities', 'regions'));
     }
