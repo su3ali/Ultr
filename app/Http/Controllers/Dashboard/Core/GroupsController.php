@@ -125,7 +125,6 @@ class GroupsController extends Controller
     }
     protected function update(Request $request, $id)
     {
-//        dd($request->all());
         $group = Group::query()->where('id', $id)->first();
 
         $request->validate([

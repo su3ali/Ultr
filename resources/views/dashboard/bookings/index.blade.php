@@ -382,6 +382,9 @@ $('#applyCouponForm').on('submit', function (e) {
                 const select = visit_id ? $('#edit_group_id') : $('#group_id');
                 select.empty();
 
+                
+                
+
                 $.each(data, (i, item) => {
                     select.append(new Option(item, i));
                 });
