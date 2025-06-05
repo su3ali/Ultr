@@ -368,36 +368,51 @@ $('#applyCouponForm').on('submit', function (e) {
 
     // ------------------[ Group Assignment Logic ]------------------
     $(document).on('click', '#add-work-exp', function () {
-        const {
-            id: booking_id,
-            service_id, category_id, visit_id, address_id,
-            type, date, time, group_id, quantity
-        } = $(this).data();
+    const {
+        id: booking_id,
+        service_id, category_id, visit_id, address_id,
+        type, date, time, group_id, quantity
+    } = $(this).data();
 
-        $.ajax({
-            url: '{{ route('dashboard.getGroupByService') }}',
-            type: 'get',
-            data: { booking_id, service_id, category_id, address_id, type, date, time, group_id, quantity },
-            success: function (data) {
-                const select = visit_id ? $('#edit_group_id') : $('#group_id');
-                select.empty();
+    $.ajax({
+        url: '{{ route('dashboard.getGroupByService') }}',
+        type: 'get',
+        data: { booking_id, service_id, category_id, address_id, type, date, time, group_id, quantity },
+        success: function (data) {
+            const isEdit = !!visit_id;
+            const select = isEdit ? $('#edit_group_id') : $('#group_id');
+            const modal = isEdit ? $('#changeGroupModel') : $('#addGroupModel');
 
-                
-                
-
-                $.each(data, (i, item) => {
-                    select.append(new Option(item, i));
-                });
-
-                $('#booking_id').val(booking_id);
-                if (visit_id) {
-                    $('.visit_Div').html(`<input type="hidden" name="visit_id" value="${visit_id}">`);
-                    $('#edit_booking_id').val(booking_id);
-                    $('#edit_group_form').attr('action', `${window.location.origin}/admin/visits/${visit_id}`);
-                }
+            // Destroy existing select2 instance if already initialized
+            if (select.hasClass("select2-hidden-accessible")) {
+                select.select2('destroy');
             }
-        });
+
+            // Clear and fill new options
+            select.empty().append(`<option value="">{{ __('dash.choose') }}</option>`);
+            $.each(data, (i, item) => {
+                select.append(new Option(item, i));
+            });
+
+            // Reinitialize select2 inside modal
+            select.select2({
+                dropdownParent: modal,
+                width: '100%',
+                placeholder: '{{ __("dash.choose") }}',
+                allowClear: true
+            });
+
+            // Update hidden fields
+            $('#booking_id').val(booking_id);
+            if (isEdit) {
+                $('.visit_Div').html(`<input type="hidden" name="visit_id" value="${visit_id}">`);
+                $('#edit_booking_id').val(booking_id);
+                $('#edit_group_form').attr('action', `${window.location.origin}/admin/visits/${visit_id}`);
+            }
+        }
     });
+});
+
 
     // ------------------[ Toggle Booking Status ]------------------
     $("body").on('change', '#customSwitchStatus', function () {

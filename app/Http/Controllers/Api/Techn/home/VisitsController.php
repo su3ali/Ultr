@@ -100,41 +100,84 @@ class VisitsController extends Controller
         }
     }
 
+    // protected function myOrdersByDateNow()
+    // {
+
+    //     // $groupIds = Group::where('technician_id', auth('sanctum')->user()->id)->pluck('id')->toArray();
+    //     // $groups   = Group::where('technician_id', auth('sanctum')->user()->id)->first();
+    //     // if (! $groups) {
+    //     //     $this->body['visits'] = [];
+    //     //     return self::apiResponse(200, null, $this->body);
+    //     // }
+    //     // $orders = Visit::whereHas('booking', function ($q) {
+
+    //     //     $q->where('date', Carbon::now('Asia/Riyadh')->format('Y-m-d'))->whereHas('customer')->whereHas('address');
+    //     // })->with('booking', function ($q) {
+    //     //     $q->with(['service' => function ($q) {
+    //     //         $q->with('category');
+    //     //     }, 'customer', 'address']);
+    //     // })->with('status')->whereIn('visits_status_id', [1, 2, 3, 4])
+    //     //     ->whereIn('assign_to_id', $groupIds)->orderBy('created_at', 'desc')->get();
+
+    //     // Add 2 Hours
+
+    //     $groupIds = Group::where('technician_id', auth('sanctum')->user()->id)->pluck('id')->toArray();
+    //     $groups   = Group::where('technician_id', auth('sanctum')->user()->id)->first();
+
+    //     if (! $groups) {
+    //         $this->body['visits'] = [];
+    //         return self::apiResponse(200, null, $this->body);
+    //     }
+
+    //     $now        = Carbon::now('Asia/Riyadh');
+    //     $startOfDay = $now->copy()->startOfDay();                        // today at 00:00
+    //     $endOfDay   = $now->copy()->addDay()->startOfDay()->addHours(2); // tomorrow at 2:00 AM
+
+    //     $orders = Visit::whereHas('booking', function ($q) use ($startOfDay, $endOfDay) {
+    //         $q->whereBetween('date', [$startOfDay->toDateString(), $endOfDay->toDateString()])
+    //             ->whereHas('customer')
+    //             ->whereHas('address');
+    //     })
+    //         ->with('booking', function ($q) {
+    //             $q->with([
+    //                 'service' => function ($q) {
+    //                     $q->with('category');
+    //                 },
+    //                 'customer',
+    //                 'address',
+    //             ]);
+    //         })
+    //         ->with('status')
+    //         ->whereIn('visits_status_id', [1, 2, 3, 4])
+    //         ->whereIn('assign_to_id', $groupIds)
+    //         ->orderBy('created_at', 'desc')
+    //         ->get();
+
+    //     $this->body['visits'] = VisitsResource::collection($orders);
+    //     return self::apiResponse(200, null, $this->body);
+    // }
+
     protected function myOrdersByDateNow()
     {
+        $technician = auth('sanctum')->user();
 
-        // $groupIds = Group::where('technician_id', auth('sanctum')->user()->id)->pluck('id')->toArray();
-        // $groups   = Group::where('technician_id', auth('sanctum')->user()->id)->first();
-        // if (! $groups) {
-        //     $this->body['visits'] = [];
-        //     return self::apiResponse(200, null, $this->body);
-        // }
-        // $orders = Visit::whereHas('booking', function ($q) {
+        $groupIds = Group::where('technician_id', $technician->id)->pluck('id')->toArray();
 
-        //     $q->where('date', Carbon::now('Asia/Riyadh')->format('Y-m-d'))->whereHas('customer')->whereHas('address');
-        // })->with('booking', function ($q) {
-        //     $q->with(['service' => function ($q) {
-        //         $q->with('category');
-        //     }, 'customer', 'address']);
-        // })->with('status')->whereIn('visits_status_id', [1, 2, 3, 4])
-        //     ->whereIn('assign_to_id', $groupIds)->orderBy('created_at', 'desc')->get();
-
-        // Add 2 Hours
-
-        $groupIds = Group::where('technician_id', auth('sanctum')->user()->id)->pluck('id')->toArray();
-        $groups   = Group::where('technician_id', auth('sanctum')->user()->id)->first();
-
-        if (! $groups) {
+        if (empty($groupIds)) {
             $this->body['visits'] = [];
             return self::apiResponse(200, null, $this->body);
         }
 
-        $now        = Carbon::now('Asia/Riyadh');
-        $startOfDay = $now->copy()->startOfDay();                        // today at 00:00
-        $endOfDay   = $now->copy()->addDay()->startOfDay()->addHours(2); // tomorrow at 2:00 AM
+        $now = Carbon::now('Asia/Riyadh');
 
-        $orders = Visit::whereHas('booking', function ($q) use ($startOfDay, $endOfDay) {
-            $q->whereBetween('date', [$startOfDay->toDateString(), $endOfDay->toDateString()])
+        // Determine the target "visible" order date:
+        // If it's after midnight but before 2:00 AM, we still want to show *yesterday's* orders
+        $targetDate = $now->lt($now->copy()->startOfDay()->addHours(2))
+        ? $now->copy()->subDay()->toDateString()
+        : $now->toDateString();
+
+        $orders = Visit::whereHas('booking', function ($q) use ($targetDate) {
+            $q->whereDate('date', $targetDate)
                 ->whereHas('customer')
                 ->whereHas('address');
         })
@@ -197,7 +240,6 @@ class VisitsController extends Controller
                     'note'             => $request->note,
                 ];
                 $image = null;
-                
 
                 if ($request->hasFile('image')) {
                     $image            = $request->file('image');
@@ -275,8 +317,6 @@ class VisitsController extends Controller
                     }
                 }
 
-                
-
                 if (in_array($request->status_id, [5, 6])) {
                     $order      = $model->booking->order;
                     $visits_ids = [];
@@ -352,7 +392,6 @@ class VisitsController extends Controller
                     } else {
                         $point = $wallet;
                     }
-                    
 
                     $newPoint = max(0, round($user->point - $point));
                     $user->update([
