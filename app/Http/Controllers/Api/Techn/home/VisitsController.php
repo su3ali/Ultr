@@ -20,6 +20,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Validator;
 
 class VisitsController extends Controller
 {
@@ -303,9 +304,16 @@ class VisitsController extends Controller
             $rules = [
                 'type'             => 'required|in:visit,order,booking',
                 'cancel_reason_id' => 'nullable|exists:reason_cancels,id',
+                'id'               => 'nullable|exists:visits,id',
                 'image'            => 'nullable|mimes:jpeg,png,jpg,gif',
                 'note'             => 'nullable|string|min:3|max:255',
             ];
+
+            $validator = Validator::make($request->all(), $rules);
+            // Check if validation fails
+            if ($validator->fails()) {
+                return self::apiResponse(400, __('api.validation_failed'), $validator->errors());
+            }
             if ($request->type == 'visit') {
                 $rules['id']        = 'required|exists:visits,id';
                 $rules['status_id'] = 'required|exists:visits_statuses,id';
@@ -313,7 +321,12 @@ class VisitsController extends Controller
                 $request->validate($rules, $request->all());
 
                 $model = Visit::with('booking.order')->where('id', $request->id)->first();
-                // $model = Visit::with(['booking.order', 'group.technicians'])->where('id', $request->id)->first();
+                if (! $model) {
+                    return self::apiResponse(400, __('api.visit not found'), $this->body);
+                }
+                if ($model->visits_status_id == 6 && $request->status_id == 6) {
+                    return self::apiResponse(400, __('api.this_visit_is_already_canceled'));
+                }
 
                 $data = [
                     'visits_status_id' => $request->status_id,
@@ -426,6 +439,10 @@ class VisitsController extends Controller
 
                     //refund
 
+                    // $user = Auth::user();
+
+                    // dd($user->point);
+
                     $yourDate       = Carbon::parse($booking->Date)->timezone('Asia/Riyadh');
                     $currentDate    = Carbon::now('Asia/Riyadh');
                     $daysDifference = $yourDate->diffInDays($currentDate);
@@ -462,26 +479,23 @@ class VisitsController extends Controller
                 ];
 
                 if ($request->status_id == 6) {
-                    $user = User::where('id', $model->booking->user_id)->first();
+                    $user    = User::where('id', $model->booking->user_id)->first();
+                    $order   = $model->booking->order;
+                    $total   = $order->sub_total;
+                    $booking = $model->booking;
 
-                    $walletSetting = CustomerWallet::query()->first();
+                    // Reset booking + order status
+                    $booking->update(['booking_status_id' => 2]);
+                    $order->update(['status_id' => 5]);
 
-                    $wallet = ($total * $walletSetting->order_percentage) / 100;
+                    // Revert reward points (added from wallet())
+                    $walletSetting = CustomerWallet::first();
+                    $reward        = ($total * $walletSetting->order_percentage) / 100;
+                    $rewardPoints  = min($reward, $walletSetting->refund_amount);
 
-                    if ($wallet > $walletSetting->refund_amount) {
-                        $point = $walletSetting->refund_amount;
-                    } else {
-                        $point = $wallet;
-                    }
-
-                    $newPoint = max(0, round($user->point - $point));
-                    $user->update([
-                        'point' => $newPoint,
-                    ]);
-
-                    $user->update([
-                        'order_cancel' => 1,
-                    ]);
+                    $user->point        = max(0, $user->point - round($rewardPoints));
+                    $user->order_cancel = 1;
+                    $user->save();
                 }
 
                 $this->pushNotificationBackground($notify);

@@ -746,51 +746,7 @@ class CheckoutController extends Controller
                     }
                 }
 
-                //
-
-                // $group = Group::where('active', 1)->whereHas('regions', function ($qu) use ($address) {
-                //     $qu->where('region_id', $address->region_id);
-                // })->whereIn('id', $techIdsOnThisDay);
-
-                // if ($group->get()->isEmpty()) {
-                //     DB::rollback();
-                //     return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
-                // }
-                // // dd($cart->time);
-
-                // if ($cart->time == '23:00:00') {
-                //     $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()
-                //             ->addMinutes(($bookSetting->service_duration) * $cart->quantity)
-                //             ->format('H:i:s'))
-                //         ->where('end_time', '>', $cart->time)
-                //         ->activeVisits()->whereIn('booking_id', $booking_id)
-                //         ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id');
-                //     // dd($takenGroupsIds);
-                // } else {
-
-                //     $takenGroupsIds = Visit::where('start_time', '<', Carbon::parse($cart->time)->copy()
-                //             ->addMinutes(($bookSetting->service_duration + $bookSetting->buffering_time) * $cart->quantity)
-                //             ->format('H:i:s'))
-                //         ->where('end_time', '>', $cart->time)
-                //         ->activeVisits()->whereIn('booking_id', $booking_id)
-                //         ->whereIn('assign_to_id', $techIdsOnThisDay)->pluck('assign_to_id');
-                // }
-
-                // // dd($takenGroupsIds);
-                // if ($takenGroupsIds->isNotEmpty()) {
-                //     $assign_to_id = $group->whereNotIn('id', $takenGroupsIds)->inRandomOrder()?->first()?->id;
-                //     // dd($assign_to_id);
-                //     if (! isset($assign_to_id)) {
-                //         DB::rollback();
-                //         return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-                //     }
-                // } else {
-                //     $assign_to_id = $group->inRandomOrder()?->first()?->id;
-                //     if (! isset($assign_to_id)) {
-                //         DB::rollback();
-                //         return self::apiResponse(400, __('api.This Time is not available'), $this->body);
-                //     }
-                // }
+                // ------------------[ Group Availability Check ]------------------
 
                 $group = Group::where('active', 1)
                     ->whereHas('regions', function ($qu) use ($address) {

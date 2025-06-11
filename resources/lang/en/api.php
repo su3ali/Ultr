@@ -77,5 +77,8 @@ return [
     'successfully_updated'                                                            => 'Successfully updated',
     'validation_error'                                                                => 'Validation error',
     'cannot_cancel_order'                                                             => 'Cannot cancel order',
+    'validation_failed'                                                               => 'Validation failed',
+    'this_visit_is_already_canceled'                                                  => 'This visit is already canceled',
+    'visit not found'                                                                 => 'Visit not found',
 
 ];
