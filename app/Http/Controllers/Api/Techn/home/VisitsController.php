@@ -493,7 +493,9 @@ class VisitsController extends Controller
                     $reward        = ($total * $walletSetting->order_percentage) / 100;
                     $rewardPoints  = min($reward, $walletSetting->refund_amount);
 
-                    $user->point        = max(0, $user->point - round($rewardPoints));
+                    // $user->point        = max(0, $user->point - round($rewardPoints));
+                    $user->point = max(0, $user->point - $rewardPoints);
+
                     $user->order_cancel = 1;
                     $user->save();
                 }
