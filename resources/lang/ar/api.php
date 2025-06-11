@@ -78,5 +78,8 @@ return [
     'validation_error'                                                                => 'خطأ في التحقق من صحة البيانات',
     'cannot_cancel_order'                                                             => 'لا يمكن إلغاء الطلب',
     'successfully_updated'                                                            => 'تم التحديث بنجاح',
+    'validation_failed'                                                               => 'خطاء في التحقق من صحة البيانات',
+    'this_visit_is_already_canceled'                                                 => 'هذه الزيارة ملغاة بالفعل',
+    'visit not found'                                                                 => 'الزيارة غير موجودة',
 
 ];
