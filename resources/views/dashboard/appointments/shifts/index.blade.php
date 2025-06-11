@@ -2,12 +2,7 @@
 
 @push('style')
 <style>
-    .table>thead>tr>th {
-        white-space: pre-wrap !important;
-        text-align: right;
-    }
-
-    /* RTL adjustments */
+    /* RTL and Table Header */
     body {
         direction: rtl;
     }
@@ -16,11 +11,16 @@
         justify-content: flex-end;
     }
 
+    .table>thead>tr>th {
+        white-space: pre-wrap !important;
+        text-align: right;
+    }
+
     .btn {
         float: left;
     }
 
-    /* Custom switch toggle styling */
+    /* Switch Toggle */
     .custom-switch {
         position: relative;
         display: inline-block;
@@ -42,172 +42,147 @@
         right: 0;
         bottom: 0;
         background-color: #dc3545;
-        transition: .4s;
         border-radius: 25px;
+        transition: .4s;
     }
 
-    .slider:before {
-        position: absolute;
+    .slider::before {
         content: "";
-        height: 20px;
+        position: absolute;
         width: 20px;
+        height: 20px;
         left: 5px;
         bottom: 2.5px;
         background-color: white;
-        transition: .4s;
         border-radius: 50%;
+        transition: .4s;
     }
 
     input:checked+.slider {
         background-color: #28a745;
     }
 
-    input:checked+.slider:before {
+    input:checked+.slider::before {
         transform: translateX(28px);
     }
 
-    // for group name style
-    .group-names-container {
-        max-height: 50px;
-        /* Set a maximum height */
-        overflow-y: auto;
-        /* Enable vertical scrolling */
-        border: 1px solid #ddd;
-        /* Add a border for separation */
-        border-radius: 4px;
-        /* Round the corners */
-        padding: 5px;
-        /* Add some padding */
-        background-color: #f9f9f9;
-        /* Light background color */
-    }
-
-    .group-names-list {
-        list-style-type: none;
-        /* Remove bullet points */
-        padding: 0;
-        /* Remove padding */
-        margin: 0;
-        /* Remove margin */
-    }
-
-    .group-name-item {
-        padding: 5px 10px;
-        /* Add padding for list items */
-        border-bottom: 1px solid #eaeaea;
-        /* Separate items with a line */
-        cursor: default;
-        /* Indicate non-clickable items */
-    }
-
-    /* Optional: Add hover effect */
-    .group-name-item:hover {
-        background-color: #f1f1f1;
-        /* Change background on hover */
-    }
-
-
-
-    /* Style For Group Name  */
+    /* Group Name Badge Container */
     .group-names-badges {
         display: flex;
-        /* Use flexbox for alignment */
         flex-wrap: wrap;
-        /* Allow badges to wrap to the next line if needed */
-        gap: 5px;
-        /* Add space between badges */
+        gap: 8px;
         max-height: 50px;
-        /* Set a maximum height */
         overflow-y: auto;
-        /* Enable vertical scrolling if needed */
+        transition: max-height 0.3s ease;
     }
 
+    .group-names-badges::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .group-names-badges::-webkit-scrollbar-thumb {
+        background: #2B68A6;
+        border-radius: 10px;
+    }
+
+    .group-names-badges::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    /* Badge Styling */
     .badge {
-        padding: 5px 10px;
-        /* Add padding for better appearance */
-        font-size: 0.9em;
-        /* Adjust font size */
-        border-radius: 5px;
-        /* Round the corners of the badges */
+        padding: 6px 12px;
+        font-size: 0.95em;
+        border-radius: 12px;
         color: white;
-        /* Text color */
+        transition: transform 0.2s ease;
     }
 
     .badge-primary {
         background-color: #2B68A6;
-        /* Blue background for group names */
     }
 
     .badge-secondary {
         background-color: #6c757d;
-        /* Grey background for 'N/A' */
     }
 
-    /* Optional: Adjust hover effect */
     .badge:hover {
-        opacity: 0.8;
-        /* Change opacity on hover for feedback */
+        transform: scale(1.1);
+        opacity: 0.9;
     }
-</style>
-<style>
-    /* Button and SweetAlert styling */
+
+    /* Group Name List (Legacy Support) */
+    .group-names-container {
+        max-height: 50px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px;
+        background-color: #f9f9f9;
+    }
+
+    .group-names-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .group-name-item {
+        padding: 5px 10px;
+        border-bottom: 1px solid #eaeaea;
+        cursor: default;
+    }
+
+    .group-name-item:hover {
+        background-color: #f1f1f1;
+    }
+
+    /* SweetAlert Buttons */
     .swal-button--danger,
     .swal-button--cancel {
         border: 0;
         border-radius: 5px;
         font-weight: bold;
         padding: 10px 20px;
-        /* Uniform padding for both buttons */
         font-size: 16px;
-        /* Consistent font size */
-        transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-        /* Transitions for smoothness */
         cursor: pointer;
         flex: 1;
-        /* Make buttons the same size */
         margin: 0 5px;
-        /* Add margin for spacing */
+        transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
     }
 
     .swal-button--danger {
         background-color: #dc3545 !important;
-        /* Danger button color */
         color: white;
     }
 
     .swal-button--danger:hover {
         background-color: #c82333 !important;
-        /* Darker red on hover */
         transform: scale(1.05);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
 
     .swal-button--danger:active {
         background-color: #bd2130 !important;
-        /* Darker on click */
         transform: scale(0.95);
     }
 
     .swal-button--cancel {
         background-color: #6c757d !important;
-        /* Cancel button color */
         color: white;
     }
 
     .swal-button--cancel:hover {
         background-color: #5a6268 !important;
-        /* Darker gray on hover */
         transform: scale(1.05);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
 
     .swal-button--cancel:active {
         background-color: #4e555b !important;
-        /* Darker on click */
         transform: scale(0.95);
     }
 
-    /* Customizing the SweetAlert modal */
     .swal-modal {
         border-radius: 10px;
         font-family: "Arial", sans-serif;
@@ -224,80 +199,15 @@
         color: #555;
     }
 
-    /* Center buttons with space in between */
     .swal-footer {
         display: flex;
         justify-content: center;
         gap: 10px;
-        /* Adjust gap as needed */
         width: 100%;
-        /* Ensure footer takes full width */
-    }
-
-    /* for group name  */
-    .group-names-badges {
-        display: flex;
-        /* Use flexbox for alignment */
-        flex-wrap: wrap;
-        /* Allow badges to wrap to the next line if needed */
-        gap: 8px;
-        /* Add space between badges */
-        max-height: 50px;
-        /* Set a maximum height */
-        overflow-y: auto;
-        /* Enable vertical scrolling if needed */
-        transition: max-height 0.3s ease;
-        /* Smooth transition for height */
-    }
-
-    .badge {
-        padding: 6px 12px;
-        /* Add padding for better appearance */
-        font-size: 0.95em;
-        /* Adjust font size */
-        border-radius: 12px;
-        /* Rounded corners for badges */
-        color: white;
-        /* Text color */
-        transition: transform 0.2s;
-        /* Animation for badge hover */
-    }
-
-    .badge-primary {
-        background-color: #2B68A6;
-        /* Blue background for group names */
-    }
-
-    .badge-secondary {
-        background-color: #6c757d;
-        /* Grey background for 'N/A' */
-    }
-
-    .badge:hover {
-        transform: scale(1.1);
-        /* Scale up on hover */
-        opacity: 0.9;
-        /* Slightly change opacity for effect */
-    }
-
-    /* Optional: Add custom scrollbars for better aesthetics */
-    .group-names-badges::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    .group-names-badges::-webkit-scrollbar-thumb {
-        background: #2B68A6;
-        /* Color of the scrollbar */
-        border-radius: 10px;
-        /* Rounded scrollbar */
-    }
-
-    .group-names-badges::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        /* Background of the scrollbar track */
     }
 </style>
 @endpush
+
 
 @section('sub-header')
 <div class="sub-header-container">

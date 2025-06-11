@@ -1177,5 +1177,7 @@ return [
     'select'                                => 'Select',
     'employees_coupons'                     => 'Employee Coupons',
     'days_off'                              => ' Days Off',
+    'days'                                  => 'Days',
+    'shift_name'                            => 'Shift Name',
 
 ];
