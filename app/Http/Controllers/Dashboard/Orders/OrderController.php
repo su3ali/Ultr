@@ -38,127 +38,127 @@ class OrderController extends Controller
 {
     use schedulesTrait;
 
-        public function index(Request $request)
-        {
-            if ($request->ajax()) {
-                $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
+    public function index(Request $request)
+    {
+        if ($request->ajax()) {
+            $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
-                // $ordersQuery = Order::with([
-                //     'user', 'bookings', 'transaction', 'status',
-                //     'bookings.visit.status', 'services.category',
-                // ])
-                //     ->whereHas('userAddress', fn($query) => $query->whereIn('region_id', $regionIds))
-                //     ->when($request->search_value, function ($query, $searchTerm) {
-                //         $query->where(function ($q) use ($searchTerm) {
-                //             $q->where('id', 'like', "%{$searchTerm}%")
-                //                 ->orWhere('total', 'like', "%{$searchTerm}%")
-                //                 ->orWhere('created_at', 'like', "%{$searchTerm}%")
-                //                 ->orWhere('user_id', 'like', "%{$searchTerm}%")
-                //                 ->orWhereHas('user', fn($q) => $q->where('first_name', 'like', "%{$searchTerm}%"));
-                //         });
-                //     })
-                //     ->when($request->ajax(), function ($query) use ($request) {
-                //         if ($request->status) {
-                //             $query->where('status_id', $request->status);
-                //         }
-                //         if ($request->page) {
-                //             $query->where('status_id', '!=', 5)
-                //                 ->whereDate('created_at', Carbon::now('Asia/Riyadh')->toDateString());
-                //         }
-                //         $query->where('is_active', 1);
-                //     })
-                //     ->orderByDesc('created_at');
+            // $ordersQuery = Order::with([
+            //     'user', 'bookings', 'transaction', 'status',
+            //     'bookings.visit.status', 'services.category',
+            // ])
+            //     ->whereHas('userAddress', fn($query) => $query->whereIn('region_id', $regionIds))
+            //     ->when($request->search_value, function ($query, $searchTerm) {
+            //         $query->where(function ($q) use ($searchTerm) {
+            //             $q->where('id', 'like', "%{$searchTerm}%")
+            //                 ->orWhere('total', 'like', "%{$searchTerm}%")
+            //                 ->orWhere('created_at', 'like', "%{$searchTerm}%")
+            //                 ->orWhere('user_id', 'like', "%{$searchTerm}%")
+            //                 ->orWhereHas('user', fn($q) => $q->where('first_name', 'like', "%{$searchTerm}%"));
+            //         });
+            //     })
+            //     ->when($request->ajax(), function ($query) use ($request) {
+            //         if ($request->status) {
+            //             $query->where('status_id', $request->status);
+            //         }
+            //         if ($request->page) {
+            //             $query->where('status_id', '!=', 5)
+            //                 ->whereDate('created_at', Carbon::now('Asia/Riyadh')->toDateString());
+            //         }
+            //         $query->where('is_active', 1);
+            //     })
+            //     ->orderByDesc('created_at');
 
-                // Add 2 Hours For Day
+            // Add 2 Hours For Day
 
-                $startOfDay = Carbon::now('Asia/Riyadh')->startOfDay();
-                $endOfDay   = Carbon::now('Asia/Riyadh')->copy()->addDay()->startOfDay()->addHours(2);
+            $startOfDay = Carbon::now('Asia/Riyadh')->startOfDay();
+            $endOfDay   = Carbon::now('Asia/Riyadh')->copy()->addDay()->startOfDay()->addHours(2);
 
-                $ordersQuery = Order::with([
-                    'user', 'bookings', 'transaction', 'status',
-                    'bookings.visit.status', 'services.category',
-                ])
-                    ->whereHas('userAddress', fn($query) => $query->whereIn('region_id', $regionIds))
-                    ->when($request->search_value, function ($query, $searchTerm) {
-                        $query->where(function ($q) use ($searchTerm) {
-                            $q->where('id', 'like', "%{$searchTerm}%")
-                                ->orWhere('total', 'like', "%{$searchTerm}%")
-                                ->orWhere('created_at', 'like', "%{$searchTerm}%")
-                                ->orWhere('user_id', 'like', "%{$searchTerm}%")
-                                ->orWhereHas('user', fn($q) => $q->where('first_name', 'like', "%{$searchTerm}%"));
-                        });
-                    })
-                    ->when($request->ajax(), function ($query) use ($request, $startOfDay, $endOfDay) {
-                        if ($request->status) {
-                            $query->where('status_id', $request->status);
-                        }
-                        if ($request->page) {
-                            $query->where('status_id', '!=', 5)
-                                ->whereBetween('created_at', [$startOfDay, $endOfDay]);
-                        }
-                        $query->where('is_active', 1);
-                    })
-                    ->orderByDesc('created_at');
+            $ordersQuery = Order::with([
+                'user', 'bookings', 'transaction', 'status',
+                'bookings.visit.status', 'services.category',
+            ])
+                ->whereHas('userAddress', fn($query) => $query->whereIn('region_id', $regionIds))
+                ->when($request->search_value, function ($query, $searchTerm) {
+                    $query->where(function ($q) use ($searchTerm) {
+                        $q->where('id', 'like', "%{$searchTerm}%")
+                            ->orWhere('total', 'like', "%{$searchTerm}%")
+                            ->orWhere('created_at', 'like', "%{$searchTerm}%")
+                            ->orWhere('user_id', 'like', "%{$searchTerm}%")
+                            ->orWhereHas('user', fn($q) => $q->where('first_name', 'like', "%{$searchTerm}%"));
+                    });
+                })
+                ->when($request->ajax(), function ($query) use ($request, $startOfDay, $endOfDay) {
+                    if ($request->status) {
+                        $query->where('status_id', $request->status);
+                    }
+                    if ($request->page) {
+                        $query->where('status_id', '!=', 5)
+                            ->whereBetween('created_at', [$startOfDay, $endOfDay]);
+                    }
+                    $query->where('is_active', 1);
+                })
+                ->orderByDesc('created_at');
 
-                $date  = $request->query('date');
-                $date2 = $request->query('date2');
+            $date  = $request->query('date');
+            $date2 = $request->query('date2');
 
-                if ($date && $date2) {
-                    // Use whereBetween for both dates
-                    $carbonDate  = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
-                    $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
-                    $ordersQuery->whereBetween('created_at', [
-                        $carbonDate->startOfDay(),
-                        $carbonDate2->endOfDay(),
-                    ]);
-                } elseif ($date) {
-                    $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
-                    $ordersQuery->where('created_at', '>=', $carbonDate->startOfDay());
-                } elseif ($date2) {
-                    $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
-                    $ordersQuery->where('created_at', '<=', $carbonDate2->endOfDay());
-                }
+            if ($date && $date2) {
+                // Use whereBetween for both dates
+                $carbonDate  = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
+                $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
+                $ordersQuery->whereBetween('created_at', [
+                    $carbonDate->startOfDay(),
+                    $carbonDate2->endOfDay(),
+                ]);
+            } elseif ($date) {
+                $carbonDate = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
+                $ordersQuery->where('created_at', '>=', $carbonDate->startOfDay());
+            } elseif ($date2) {
+                $carbonDate2 = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
+                $ordersQuery->where('created_at', '<=', $carbonDate2->endOfDay());
+            }
 
-                return DataTables::of($ordersQuery)
-                // ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id ?? '')
-                    ->addColumn('user', fn($row) => $row->user?->first_name . ' ' . $row->user?->last_name)
-                    ->addColumn('phone', fn($row) => $row->user?->phone
-                        ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->user->phone . '</a>'
-                        : 'N/A')
-                    ->addColumn('service', function ($row) {
-                        return $row->services->unique('id')->map(fn($service) =>
-                            '<button class="btn-sm btn-primary">' . $service->title . '</button>'
-                        )->implode(' ');
-                    })
-                    ->addColumn('quantity', fn($row) => $row->services->sum('pivot.quantity'))
-                    ->addColumn('total', function ($row) {
-                        return number_format($row->total, 2);
-                    })
-                    ->addColumn('payment_method', fn($row) => match ($row->transaction?->payment_method) {
-                        'cache', 'cash' => __('api.payment_method_cach'),
-                        'wallet' => __('api.payment_method_wallet'),
-                        'mada'   => __('api.payment_method_network'),
-                        default  => __('api.payment_method_visa'),
-                    })
-                    ->addColumn('region', fn($row) => optional($row->userAddress?->region)->title ?? '')
-                    ->addColumn('status', fn($row) => app()->getLocale() === 'ar'
-                        ? optional($row->bookings?->first()?->visit?->status)->name_ar
-                        : optional($row->bookings?->first()?->visit?->status)->name_en)
-                    ->addColumn('created_at', fn($row) => $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d"))
-                    ->addColumn('control', function ($row) {
-                        $html = '';
+            return DataTables::of($ordersQuery)
+            // ->addColumn('booking_id', fn($row) => optional($row->bookings->first())->id ?? '')
+                ->addColumn('user', fn($row) => $row->user?->first_name . ' ' . $row->user?->last_name)
+                ->addColumn('phone', fn($row) => $row->user?->phone
+                    ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->user->phone . '</a>'
+                    : 'N/A')
+                ->addColumn('service', function ($row) {
+                    return $row->services->unique('id')->map(fn($service) =>
+                        '<button class="btn-sm btn-primary">' . $service->title . '</button>'
+                    )->implode(' ');
+                })
+                ->addColumn('quantity', fn($row) => $row->services->sum('pivot.quantity'))
+                ->addColumn('total', function ($row) {
+                    return number_format($row->total, 2);
+                })
+                ->addColumn('payment_method', fn($row) => match ($row->transaction?->payment_method) {
+                    'cache', 'cash' => __('api.payment_method_cach'),
+                    'wallet' => __('api.payment_method_wallet'),
+                    'mada'   => __('api.payment_method_network'),
+                    default  => __('api.payment_method_visa'),
+                })
+                ->addColumn('region', fn($row) => optional($row->userAddress?->region)->title ?? '')
+                ->addColumn('status', fn($row) => app()->getLocale() === 'ar'
+                    ? optional($row->bookings?->first()?->visit?->status)->name_ar
+                    : optional($row->bookings?->first()?->visit?->status)->name_en)
+                ->addColumn('created_at', fn($row) => $row->created_at->timezone('Asia/Riyadh')->format("Y-m-d"))
+                ->addColumn('control', function ($row) {
+                    $html = '';
 
-                        // Confirm order button
-                        if ($row->status_id == 2) {
-                            $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '"
+                    // Confirm order button
+                    if ($row->status_id == 2) {
+                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '"
                                         class="btn btn-outline-primary btn-sm mr-2"
                                         title="تأكيد الطلب">
                                         <i class="far fa-thumbs-up fa-2x"></i>
                                     </a>';
-                        }
+                    }
 
-                        // Show bookings modal
-                        $html .= '<button type="button"
+                    // Show bookings modal
+                    $html .= '<button type="button"
                                         class="btn btn-outline-primary btn-sm mr-2"
                                         data-id="' . $row->id . '"
                                         data-toggle="modal"
@@ -167,23 +167,23 @@ class OrderController extends Controller
                                         <i class="fas fa-clock fa-2x"></i>
                                 </button>';
 
-                        // Order details
-                        $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '"
+                    // Order details
+                    $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '"
                                     class="btn btn-outline-primary btn-sm mr-2"
                                     title="عرض تفاصيل الطلب">
                                     <i class="far fa-eye fa-2x"></i>
                                 </a>';
 
-                        // Service details
-                        $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '"
+                    // Service details
+                    $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '"
                                     class="btn btn-outline-info btn-sm mr-2"
                                     title="عرض الخدمات">
                                     <i class="fas fa-tools fa-2x"></i>
                                 </a>';
 
-                        // Delete (Super Admin only)
-                        if (auth()->user()->id == 1 && auth()->user()->first_name == 'Super Admin') {
-                            $html .= '<a href="javascript:void(0);"
+                    // Delete (Super Admin only)
+                    if (auth()->user()->id == 1 && auth()->user()->first_name == 'Super Admin') {
+                        $html .= '<a href="javascript:void(0);"
                                         data-table_id="html5-extension"
                                         data-href="' . route('dashboard.orders.destroy', $row->id) . '"
                                         data-id="' . $row->id . '"
@@ -191,14 +191,14 @@ class OrderController extends Controller
                                         title="حذف الطلب">
                                         <i class="far fa-trash-alt fa-2x"></i>
                                     </a>';
-                        }
+                    }
 
-                        // Reschedule (Super Admin or permission)
-                        if (
-                            (auth()->user()->id == 1 && auth()->user()->first_name == 'Super Admin') ||
-                            auth()->user()->can('view_Reschedule_orders')
-                        ) {
-                            $html .= '<a href="javascript:void(0);"
+                    // Reschedule (Super Admin or permission)
+                    if (
+                        (auth()->user()->id == 1 && auth()->user()->first_name == 'Super Admin') ||
+                        auth()->user()->can('view_Reschedule_orders')
+                    ) {
+                        $html .= '<a href="javascript:void(0);"
                                         class="btn btn-outline-warning btn-sm mr-2 open-reschedule"
                                         data-id="' . $row->id . '"
                                         data-toggle="modal"
@@ -206,18 +206,18 @@ class OrderController extends Controller
                                         title="إعادة جدولة الطلب">
                                         <i class="fas fa-calendar-alt fa-2x"></i>
                                     </a>';
-                        }
+                    }
 
-                        return $html;
-                    })
+                    return $html;
+                })
 
-                    ->rawColumns(['booking_id', 'user', 'phone', 'service', 'quantity', 'total', 'payment_method', 'region', 'status', 'created_at', 'control'])
-                    ->make(true);
-            }
-
-            $statuses = OrderStatus::pluck('name_ar', 'id');
-            return view('dashboard.orders.index', compact('statuses'));
+                ->rawColumns(['booking_id', 'user', 'phone', 'service', 'quantity', 'total', 'payment_method', 'region', 'status', 'created_at', 'control'])
+                ->make(true);
         }
+
+        $statuses = OrderStatus::pluck('name_ar', 'id');
+        return view('dashboard.orders.index', compact('statuses'));
+    }
 
     public function ordersToday()
     {
@@ -713,188 +713,102 @@ class OrderController extends Controller
 
     public function canceledOrders(Request $request)
     {
-        $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
+        $regionIds = auth()->user()->regions->pluck('region_id')->toArray();
 
-        $start  = $request->input('start', 0);   // default 0
-        $length = $request->input('length', 10); // default 10
-
-        // Start building the query
+        // Base query for canceled orders
         $ordersQuery = Order::query()
-            ->where('status_id', 5) // Filter for canceled orders
-            ->where('is_active', 1) // Ensure active orders are returned
+            ->where('status_id', 5)
+            ->where('is_active', 1)
             ->whereHas('userAddress', function ($query) use ($regionIds) {
                 $query->whereIn('region_id', $regionIds);
             })
-            ->with(['user', 'status', 'bookings.visit.status', 'bookings.visit', 'services.category', 'userAddress'])->orderByDesc('updated_at');
+            ->with(['user', 'status', 'bookings.visit.status', 'bookings.visit', 'services.category', 'userAddress'])
+            ->orderByDesc('updated_at');
 
-        // Count total records before applying pagination
-        $totalOrders = $ordersQuery->count();
-
-        // Apply additional filtering and pagination
+        // Handle AJAX DataTable
         if ($request->ajax()) {
-            if ($request->status) {
+            if ($request->filled('status')) {
                 $ordersQuery->where('status_id', $request->status);
             }
 
-            if ($request->page) {
-                $now = Carbon::now('Asia/Riyadh')->toDateString();
-                $ordersQuery->whereDate('created_at', '=', $now);
+            if ($request->filled('page')) {
+                $now = now('Asia/Riyadh')->toDateString();
+                $ordersQuery->whereDate('created_at', $now);
             }
 
-            $orders = $ordersQuery->skip($start)
-                ->take($length)
-                ->get();
-
-            return DataTables::of($orders)
-            // ->addColumn('booking_id', function ($row) {
-            //     $booking = $row->bookings->first();
-            //     return $booking ? $booking->id : '';
-            // })
-                ->addColumn('user', function ($row) {
-                    return $row->user?->first_name . ' ' . $row->user?->last_name;
-                })
+            return DataTables($ordersQuery)
+                ->addColumn('user', fn($row) => $row->user?->first_name . ' ' . $row->user?->last_name)
                 ->addColumn('phone', function ($row) {
                     return $row->user?->phone
                     ? '<a href="https://api.whatsapp.com/send?phone=' . $row->user->phone . '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->user->phone . '</a>'
                     : 'N/A';
                 })
+
+                // 🔍 Enable search on user name
+                ->filterColumn('user', function ($query, $keyword) {
+                    $query->whereHas('user', function ($q) use ($keyword) {
+                        $q->where('first_name', 'like', "%{$keyword}%")
+                            ->orWhere('last_name', 'like', "%{$keyword}%");
+                    });
+                })
+
+                // 🔍 Enable search on user phone
+                ->filterColumn('phone', function ($query, $keyword) {
+                    $query->whereHas('user', function ($q) use ($keyword) {
+                        $q->where('phone', 'like', "%{$keyword}%");
+                    });
+                })
+
                 ->addColumn('service', function ($row) {
-                    $qu           = OrderService::where('order_id', $row->id)->get()->pluck('service_id')->toArray();
-                    $services_ids = array_unique($qu);
-                    $services     = Service::whereIn('id', $services_ids)->get();
-                    $html         = '';
-                    foreach ($services as $service) {
-                        $html .= '<button class="btn-sm btn-primary">' . $service->title . '</button>';
-                    }
-                    return $html;
+                    $services = Service::whereIn('id', OrderService::where('order_id', $row->id)->pluck('service_id')->unique())->get();
+                    return $services->map(fn($service) => '<button class="btn-sm btn-primary">' . e($service->title) . '</button>')->implode(' ');
                 })
                 ->addColumn('quantity', function ($row) {
-                    $qu = OrderService::where('order_id', $row->id)->get()->pluck('quantity')->toArray();
-                    return array_sum($qu);
+                    return OrderService::where('order_id', $row->id)->sum('quantity');
                 })
                 ->addColumn('cancelled_by', function ($row) {
-                    // Get the first booking
-                    $firstBooking = $row->bookings->first();
-
-                    // Check if the first booking has a visit and a cancellation reason
-                    $cancelReason = $firstBooking?->visit?->cancelReason;
-
-                    return $cancelReason?->is_for_tech === 1 ? "الفني" : "العميل";
+                    $cancelReason = optional($row->bookings->first()?->visit)->cancelReason;
+                    return $cancelReason?->is_for_tech ? 'الفني' : 'العميل';
                 })
-
                 ->addColumn('total', function ($row) {
-                    return $row->total ? (fmod($row->total, 1) == 0 ? (int) $row->total : number_format($row->total, 2)) : '';
+                    return $row->total ? (fmod($row->total, 1) === 0.0 ? (int) $row->total : number_format($row->total, 2)) : '';
                 })
-
-                ->addColumn('status', function ($row) {
-                    return $row->status?->name;
-                })
-
-                ->addColumn('region', function ($row) {
-                    return optional($row->userAddress?->region)->title ?? '';
-                })
-
-                ->addColumn('created_at', function ($row) {
-                    return Carbon::parse($row->created_at)
-                        ->locale('ar')
-                        ->timezone('Asia/Riyadh')
-                        ->format("Y-m-d");
-                })
-                ->addColumn('updated_at', function ($row) {
-                    return Carbon::parse($row->updated_at)
-                        ->locale('ar')
-                        ->timezone('Asia/Riyadh')
-                        ->format("Y-m-d");
-                })
-
+                ->addColumn('status', fn($row) => $row->status?->name)
+                ->addColumn('region', fn($row) => optional($row->userAddress?->region)->title ?? '')
+                ->addColumn('created_at', fn($row) => Carbon::parse($row->created_at)->locale('ar')->timezone('Asia/Riyadh')->format("Y-m-d"))
+                ->addColumn('updated_at', fn($row) => Carbon::parse($row->updated_at)->locale('ar')->timezone('Asia/Riyadh')->format("Y-m-d"))
                 ->addColumn('control', function ($row) {
                     $html = '';
 
-                    // Confirm button
                     if ($row->status_id == 2) {
-                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '"
-                                    class="mr-2 btn btn-outline-success btn-sm"
-                                    title="تأكيد الطلب">
-                                    <i class="fas fa-check-circle fa-2x mx-1"></i>
-                                 </a>';
+                        $html .= '<a href="' . route('dashboard.order.confirmOrder', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-success btn-sm" title="تأكيد الطلب"><i class="fas fa-check-circle fa-2x mx-1"></i></a>';
                     }
 
-                    // View order details
-                    $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '"
-                                  class="mr-2 btn btn-outline-info btn-sm"
-                                  title="عرض تفاصيل الطلب">
-                                  <i class="far fa-eye fa-2x"></i>
-                              </a>';
+                    $html .= '<a href="' . route('dashboard.order.orderDetail', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-info btn-sm" title="عرض تفاصيل الطلب"><i class="far fa-eye fa-2x"></i></a>';
+                    $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '" class="mr-2 btn btn-outline-primary btn-sm" title="عرض الخدمات"><i class="fas fa-tools fa-2x"></i></a>';
 
-                    // Show services
-                    $html .= '<a href="' . route('dashboard.order.showService', ['id' => $row->id]) . '"
-                                  class="mr-2 btn btn-outline-primary btn-sm"
-                                  title="عرض الخدمات">
-                                  <i class="fas fa-tools fa-2x"></i>
-                              </a>';
-
-                    // Delete button with permission check
-
-                    if ((Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') || Auth::user()->can('delete_orders')) {
-                        $html .= '<a data-table_id="html5-extension"
-                                      data-href="' . route('dashboard.orders.destroy', $row->id) . '"
-                                      data-id="' . $row->id . '"
-                                      class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech"
-                                      title="حذف الطلب">
-                                      <i class="far fa-trash-alt fa-2x"></i>
-                                  </a>';
+                    if ((auth()->id() == 1 && auth()->user()->first_name === 'Super Admin') || auth()->user()->can('delete_orders')) {
+                        $html .= '<a data-table_id="html5-extension" data-href="' . route('dashboard.orders.destroy', $row->id) . '" data-id="' . $row->id . '" class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech" title="حذف الطلب"><i class="far fa-trash-alt fa-2x"></i></a>';
                     }
 
-                    // if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin' || Auth::user()->can('delete_orders')) {
-                    //     $html .= '<a href="javascript:void(0);"
-                    //                class="mr-2 btn btn-outline-danger btn-sm open-reschedule"
-                    //                data-id="' . $row->id . '"
-                    //                data-toggle="modal"
-                    //                data-target="#rescheduleModal"
-                    //                title="إعادة جدولة الطلب">
-                    //                 <i class="fas fa-calendar-alt fa-2x"></i>
-                    //               </a>';
-                    // }
-                    if ((Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') || Auth::user()->can('orders_change_status')) {
-
-                        $html .= '<button type="button"
-                            class="btn btn-sm btn-outline-warning change-status-btn"
-                            data-id="' . $row->id . '"
-                            data-current-status="' . $row->status_id . '"
-                            title="' . __('dash.change_status') . '">
-                            <i class="fas fa-exchange-alt fa-2x"></i>
-                        </button>';
+                    if ((auth()->id() == 1 && auth()->user()->first_name === 'Super Admin') || auth()->user()->can('orders_change_status')) {
+                        $html .= '<button type="button" class="btn btn-sm btn-outline-warning change-status-btn" data-id="' . $row->id . '" data-current-status="' . $row->status_id . '" title="' . __('dash.change_status') . '"><i class="fas fa-exchange-alt fa-2x"></i></button>';
                     }
+
                     return $html;
                 })
-
                 ->rawColumns([
-                    'user',
-                    'phone',
-                    'service',
-                    'quantity',
-                    'cancelled_by',
-                    'total',
-                    'status',
-                    'region',
-                    'created_at',
-                    'updated_at',
-                    'control',
-                ])
-                ->with([
-                    'recordsTotal'    => $totalOrders, // Total records count (without filtering)
-                    'recordsFiltered' => $totalOrders, // Filtered count (same here, as no additional filters applied)
-
+                    'user', 'phone', 'service', 'quantity', 'cancelled_by',
+                    'total', 'status', 'region', 'created_at', 'updated_at', 'control',
                 ])
                 ->make(true);
         }
 
-        // Non-AJAX request (Initial page load)
-        $statuses = OrderStatus::all()->pluck('name', 'id');
-
+        // Initial page load (non-AJAX)
+        $statuses            = OrderStatus::pluck('name_ar', 'id');
         $changeableStatusIds = [3, 4];
+        $orderStatusOptions  = $statuses->only($changeableStatusIds);
 
-        $orderStatusOptions = $statuses->only($changeableStatusIds);
         return view('dashboard.orders.canceled_orders', compact('statuses', 'orderStatusOptions'));
     }
 
@@ -1579,7 +1493,6 @@ class OrderController extends Controller
 
     protected function getAvailableTime(Request $request)
     {
-        
 
         $rules = [
             'date'          => 'required|date',
