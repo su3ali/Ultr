@@ -180,6 +180,20 @@ class BookingController extends Controller
                     </button>';
                     }
 
+                    if (
+                        (auth()->user()->id == 1 && auth()->user()->first_name == 'Super Admin') ||
+                        auth()->user()->can('view_Reschedule_orders')
+                    ) {
+                        $html .= '<a href="javascript:void(0);"
+                                        class="btn btn-outline-warning btn-sm mr-2 open-reschedule"
+                                        data-id="' . $row->visit?->booking?->order?->id . '"
+                                        data-toggle="modal"
+                                        data-target="#rescheduleModal"
+                                        title="إعادة جدولة الطلب">
+                                        <i class="fas fa-calendar-alt fa-2x"></i>
+                                    </a>';
+                    }
+
                     // Return the generated HTML
 
                     return [
@@ -201,7 +215,12 @@ class BookingController extends Controller
                         : $row->order->services->where('category_id', $row->category_id)->map(function ($service) {
                             return '<button class="btn-sm btn-primary">' . $service->title . '</button>';
                         })->join(' '),
-                        'time'           => $row->time ? Carbon::parse($row->time)->timezone('Asia/Riyadh')->format('g:i A') : 'N/A',
+                        'start_time'     => $row->visit?->start_time
+                        ? Carbon::parse($row->visit->start_time)->timezone('Asia/Riyadh')->format('g:i A')
+                        : 'N/A',
+                        'end_time'       => $row->visit?->end_time
+                        ? Carbon::parse($row->visit->end_time)->timezone('Asia/Riyadh')->format('g:i A')
+                        : 'N/A',
 
                         'group'          => $row->visit?->group?->name ?? 'N/A',
                         'total'          => isset($row->visit?->booking?->order?->total) && is_float($row->visit?->booking?->order?->total)

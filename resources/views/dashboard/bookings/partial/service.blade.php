@@ -3,14 +3,15 @@
         <tr>
             {{-- <th>رقم اتسلسلي</th> --}}
             <th> {{ __('dash.booking_number') }}</th>
-            <th> {{ __('dash.order_number') }}</th>
+            {{-- <th> {{ __('dash.order_number') }}</th> --}}
             {{-- <th>رقم طلب الفني</th>
             <th>رقم طلب العميل</th> --}}
             <th> {{ __('dash.customer_name') }}</th>
             <th> {{ __('dash.phone') }}</th>
-            <th> {{ __('dash.service') }}</th>
+            {{-- <th> {{ __('dash.service') }}</th> --}}
             <th> {{ __('dash.date') }}</th>
             <th> {{ __('dash.start_time') }}</th>
+            <th> {{ __('dash.end_time') }}</th>
 
             <th> {{ __('dash.quantity') }}</th>
             <th> {{ __('dash.zone') }}</th>
