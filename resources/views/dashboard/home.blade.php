@@ -665,7 +665,7 @@
                                 <th>{{ __('dash.phone') }}</th>
                                 <th>{{ __('dash.services') }}</th>
                                 <th>{{ __('dash.date') }}</th>
-                                <th>{{ __('dash.time') }}</th>
+                                <th>{{ __('dash.start_time') }}</th>
                                 <th>{{ __('dash.status') }}</th>
                             </tr>
                         </thead>
@@ -817,8 +817,8 @@
                         name: 'date'
                     },
                     {
-                        data: 'time',
-                        name: 'time'
+                        data: 'start_time',
+                        name: 'start_time'
                     },
                     {
                         data: 'status',
