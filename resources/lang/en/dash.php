@@ -1179,5 +1179,7 @@ return [
     'days_off'                              => ' Days Off',
     'days'                                  => 'Days',
     'shift_name'                            => 'Shift Name',
+    'no_team_available'                     => 'No team available at this time',
+    'no_team_available_at_time'             => 'No team is available at the selected time',
 
 ];

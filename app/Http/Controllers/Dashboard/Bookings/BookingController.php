@@ -6,13 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingSetting;
 use App\Models\BookingStatus;
-use App\Models\CategoryGroup;
-use App\Models\ContractPackage;
 use App\Models\Coupon;
 use App\Models\Group;
 use App\Models\Order;
 use App\Models\Region;
 use App\Models\Service;
+use App\Models\Shift;
 use App\Models\User;
 use App\Models\UserAddresses;
 use App\Models\Visit;
@@ -549,155 +548,168 @@ class BookingController extends Controller
         return response('success');
     }
 
-    protected function getGroupByService(Request $request)
-    {
-
-        $address = UserAddresses::where('id', $request->address_id)->first();
-
-        $region_id = $address->region_id;
-
-        // Return the data as a JSON response
-        if ($request->type == 'package') {
-
-            $package = ContractPackage::where('id', $request->service_id)->first();
-
-            $service = Service::where('id', $package->service_id)->first('category_id');
-
-            $groupIds = CategoryGroup::where('category_id', $service->category_id)->pluck('group_id')->toArray();
-
-            $group = Group::where('active', 1)->whereIn('id', $groupIds)->whereHas('regions', function ($qu) use ($address) {
-                $qu->where('region_id', $address->region_id);
-            })->get()->pluck('name', 'id')->toArray();
-        } else {
-            $category_id = $request->category_id;
-            $groupIds    = CategoryGroup::where('category_id', $request->category_id)->pluck('group_id')->toArray();
-            $address     = UserAddresses::where('id', $request->address_id)->first();
-
-            $dayIndex      = Carbon::parse()->timezone('Asia/Riyadh')->dayOfWeek;
-            $adjustedIndex = ($dayIndex == 5) ? 1 : ($dayIndex == 6 ? 7 : $dayIndex + 2);
-            // Ensure $adjustedIndex is cast to a string
-
-            $groupIds = Group::groupInRegionCategory($address->region_id, [$category_id])->pluck('id')->toArray();
-
-            // return $groupIds;
-
-            $booking_id = Booking::whereHas('category', function ($qu) use ($category_id) {
-                $qu->where('category_id', $category_id);
-            })->where('date', $request->date)->pluck('id')->toArray();
-
-            // return $shift;
-
-            $bookSetting = BookingSetting::first();
-
-            $start_time = $request->time;
-
-            $duration = $bookSetting->service_duration;
-
-            $formated_start_time = Carbon::createFromFormat('H:i:s', $start_time);
-
-            $end_time = $formated_start_time->addMinutes($duration * $request->quantity)->format('H:i:s');
-
-            $takenIds = Visit::
-                where('start_time', '<', $end_time)   // Visit starts before the passed end_time
-                ->where('end_time', '>', $start_time) // Visit ends after the passed start_time
-                ->activeVisits()                      // Assuming this is a custom scope for active visits
-                ->whereIn('booking_id', $booking_id)
-                ->whereIn('assign_to_id', $groupIds)
-                ->pluck('assign_to_id')
-                ->toArray();
-
-            $availableGroupsIds = array_diff($groupIds, $takenIds);
-
-            if (empty($availableGroupsIds)) {
-                return [];
-            }
-            // return $address;
-
-            $availableGroups = Group::
-                whereIn('id', $availableGroupsIds)
-                ->pluck('name_ar', 'id')
-                ->toArray();
-
-            return response($availableGroups);
-
-        }
-
-    }
     // protected function getGroupByService(Request $request)
     // {
-    //     $address   = UserAddresses::find($request->address_id);
-    //     $region_id = $address?->region_id;
 
-    //     if (! $region_id) {
-    //         return response([]);
-    //     }
+    //     $address = UserAddresses::where('id', $request->address_id)->first();
 
-    //     $dayOfWeek = Carbon::parse($request->date)->timezone('Asia/Riyadh')->dayOfWeek;
-    //     $dayId     = match ($dayOfWeek) {
-    //         6 => 1, // Saturday
-    //         0 => 2, // Sunday
-    //         1 => 3, // Monday
-    //         2 => 4, // Tuesday
-    //         3 => 5, // Wednesday
-    //         4 => 6, // Thursday
-    //         5 => 7, // Friday
-    //     };
+    //     $region_id = $address->region_id;
 
-    //     $start_time = Carbon::createFromFormat('H:i:s', $request->time);
-    //     $duration   = BookingSetting::first()?->service_duration ?? 30;
-    //     $end_time   = $start_time->copy()->addMinutes($duration * $request->quantity)->format('H:i:s');
+    //     // Return the data as a JSON response
+    //     if ($request->type == 'package') {
 
-    //     // Resolve category_id from package or request
-    //     if ($request->type === 'package') {
-    //         $package     = ContractPackage::find($request->service_id);
-    //         $category_id = Service::find($package?->service_id)?->category_id;
+    //         $package = ContractPackage::where('id', $request->service_id)->first();
+
+    //         $service = Service::where('id', $package->service_id)->first('category_id');
+
+    //         $groupIds = CategoryGroup::where('category_id', $service->category_id)->pluck('group_id')->toArray();
+
+    //         $group = Group::where('active', 1)->whereIn('id', $groupIds)->whereHas('regions', function ($qu) use ($address) {
+    //             $qu->where('region_id', $address->region_id);
+    //         })->get()->pluck('name', 'id')->toArray();
     //     } else {
     //         $category_id = $request->category_id;
+    //         $groupIds    = CategoryGroup::where('category_id', $request->category_id)->pluck('group_id')->toArray();
+    //         $address     = UserAddresses::where('id', $request->address_id)->first();
+
+    //         $dayIndex      = Carbon::parse()->timezone('Asia/Riyadh')->dayOfWeek;
+    //         $adjustedIndex = ($dayIndex == 5) ? 1 : ($dayIndex == 6 ? 7 : $dayIndex + 2);
+    //         // Ensure $adjustedIndex is cast to a string
+
+    //         $groupIds = Group::groupInRegionCategory($address->region_id, [$category_id])->pluck('id')->toArray();
+
+    //         // return $groupIds;
+
+    //         $booking_id = Booking::whereHas('category', function ($qu) use ($category_id) {
+    //             $qu->where('category_id', $category_id);
+    //         })->where('date', $request->date)->pluck('id')->toArray();
+
+    //         // return $shift;
+
+    //         $bookSetting = BookingSetting::first();
+
+    //         $start_time = $request->time;
+
+    //         $duration = $bookSetting->service_duration;
+
+    //         $formated_start_time = Carbon::createFromFormat('H:i:s', $start_time);
+
+    //         $end_time = $formated_start_time->addMinutes($duration * $request->quantity)->format('H:i:s');
+
+    //         $takenIds = Visit::
+    //             where('start_time', '<', $end_time)   // Visit starts before the passed end_time
+    //             ->where('end_time', '>', $start_time) // Visit ends after the passed start_time
+    //             ->activeVisits()                      // Assuming this is a custom scope for active visits
+    //             ->whereIn('booking_id', $booking_id)
+    //             ->whereIn('assign_to_id', $groupIds)
+    //             ->pluck('assign_to_id')
+    //             ->toArray();
+
+    //         $availableGroupsIds = array_diff($groupIds, $takenIds);
+
+    //         if (empty($availableGroupsIds)) {
+    //             return [];
+    //         }
+    //         // return $address;
+
+    //         $availableGroups = Group::
+    //             whereIn('id', $availableGroupsIds)
+    //             ->pluck('name_ar', 'id')
+    //             ->toArray();
+
+    //         return response($availableGroups);
+
     //     }
 
-    //     if (! $category_id) {
-    //         return response([]);
-    //     }
-
-    //     // Get all groups allowed by category and region
-    //     $groupIds = CategoryGroup::where('category_id', $category_id)->pluck('group_id')->toArray();
-
-    //     // Filter groups available by region and in working shift
-    //     $availableGroups = Group::where('active', 1)
-    //         ->whereIn('id', $groupIds)
-    //         ->whereHas('regions', fn($q) => $q->where('region_id', $region_id))
-    //         ->get();
-
-    //     // Check shift match
-    //     $availableGroupIds = $availableGroups->filter(function ($group) use ($dayId, $start_time, $end_time) {
-    //         return Shift::whereJsonContains('group_id', $group->id)
-    //             ->whereJsonContains('day_id', $dayId)
-    //             ->whereTime('start_time', '<=', $start_time)
-    //             ->whereTime('end_time', '>=', $end_time)
-    //             ->exists();
-    //     })->pluck('id')->toArray();
-
-    //     if (empty($availableGroupIds)) {
-    //         return response([]);
-    //     }
-
-    //     // Get overlapping bookings for the same category that conflict with time
-    //     $bookingIds = Booking::whereHas('category', fn($q) => $q->where('category_id', $category_id))
-    //         ->where('date', $request->date)
-    //         ->pluck('id');
-
-    //     $busyGroupIds = Visit::where('start_time', '<', $end_time)
-    //         ->where('end_time', '>', $request->time)
-    //         ->whereIn('booking_id', $bookingIds)
-    //         ->whereIn('assign_to_id', $availableGroupIds)
-    //         ->activeVisits()
-    //         ->pluck('assign_to_id')
-    //         ->toArray();
-
-    //     $finalGroupIds = array_diff($availableGroupIds, $busyGroupIds);
-
-    //     return Group::whereIn('id', $finalGroupIds)->pluck('name_ar', 'id');
     // }
+
+    protected function getGroupByService(Request $request)
+    {
+        $address = UserAddresses::find($request->address_id);
+        if (! $address) {
+            return response()->json([], 404);
+        }
+
+        $region_id   = $address->region_id;
+        $category_id = $request->category_id;
+
+        // تحويل التاريخ إلى اسم اليوم
+        $dayName = Carbon::parse($request->date)->format('l');
+
+        // تحويل اليوم إلى رقم day_id من المصفوفة
+        $daysMap = collect([
+            ['id' => 1, 'name' => 'Saturday'],
+            ['id' => 2, 'name' => 'Sunday'],
+            ['id' => 3, 'name' => 'Monday'],
+            ['id' => 4, 'name' => 'Tuesday'],
+            ['id' => 5, 'name' => 'Wednesday'],
+            ['id' => 6, 'name' => 'Thursday'],
+            ['id' => 7, 'name' => 'Friday'],
+        ]);
+
+        $dayItem = $daysMap->firstWhere('name', $dayName);
+        if (! $dayItem) {
+            return response()->json([], 422);
+        }
+        $dayId = $dayItem['id'];
+
+        // حساب المدة الزمنية
+        $bookSetting = BookingSetting::first();
+        $duration    = $bookSetting->service_duration * $request->quantity;
+
+        $start_time = $request->time;
+        $end_time   = Carbon::createFromFormat('H:i:s', $start_time)
+            ->addMinutes($duration)
+            ->format('H:i:s');
+
+        // المجموعات المتاحة من حيث المنطقة والفئة
+        $regionGroupIds = Group::groupInRegionCategory($region_id, [$category_id])->pluck('id')->toArray();
+
+        // جلب الشفتات المناسبة
+        $shifts = Shift::whereJsonContains('day_id', (string) $dayId)
+            ->where('start_time', '<=', $start_time)
+            ->where('end_time', '>=', $end_time)
+            ->get();
+
+        $matchedGroupIds = collect();
+
+        foreach ($shifts as $shift) {
+            $shiftGroupIds   = json_decode($shift->group_id, true) ?? [];
+            $intersection    = array_intersect($shiftGroupIds, $regionGroupIds);
+            $matchedGroupIds = $matchedGroupIds->merge($intersection);
+        }
+
+        $matchedGroupIds = $matchedGroupIds->unique()->values()->toArray();
+
+        if (empty($matchedGroupIds)) {
+            return response()->json([]);
+        }
+
+        // زيارات مشغولة بنفس التاريخ
+        $booking_ids = Booking::whereHas('category', function ($q) use ($category_id) {
+            $q->where('category_id', $category_id);
+        })->where('date', $request->date)->pluck('id')->toArray();
+
+        $takenGroupIds = Visit::where('start_time', '<', $end_time)
+            ->where('end_time', '>', $start_time)
+            ->activeVisits()
+            ->whereIn('booking_id', $booking_ids)
+            ->whereIn('assign_to_id', $matchedGroupIds)
+            ->pluck('assign_to_id')
+            ->toArray();
+
+        $availableGroupIds = array_diff($matchedGroupIds, $takenGroupIds);
+
+        if (empty($availableGroupIds)) {
+            return response()->json([]);
+        }
+
+        $availableGroups = Group::whereIn('id', $availableGroupIds)
+            ->pluck('name_ar', 'id')
+            ->toArray();
+
+        return response()->json($availableGroups);
+    }
 
     public function changeStatus(Request $request)
     {
