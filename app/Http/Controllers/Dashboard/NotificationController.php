@@ -39,8 +39,6 @@ class NotificationController extends Controller
     public function sendNotification(Request $request)
     {
 
-       
-
         $request->validate([
             'subject_id'    => 'nullable',
             'technician_id' => 'nullable',
@@ -49,7 +47,25 @@ class NotificationController extends Controller
             'type'          => 'required',
         ]);
 
-        $message = preg_replace('/&nbsp;|&#160;/', ' ', $request->message);
+        // $message = preg_replace('/&nbsp;|&#160;/', ' ', $request->message);
+        // Decode HTML entities (e.g., &hellip;, &nbsp;)
+        $message = html_entity_decode($request->message, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        // Replace non-breaking spaces and similar
+        $message = preg_replace('/(&nbsp;|&#160;)/i', ' ', $message);
+
+        // Convert <p> and <br> to new lines
+        $message = preg_replace('/<\/?p>/i', "\n", $message);
+        $message = preg_replace('/<br\s*\/?>/i', "\n", $message);
+
+        // Remove all other HTML tags
+        $message = strip_tags($message, "\n");
+
+        // Collapse multiple newlines into a single one
+        $message = preg_replace('/\n+/', "\n", $message);
+
+        // Final trim
+        $message = trim($message);
 
         // Convert <p> and </p> to new lines
         $message = preg_replace('/<\/?p>/i', "\n", $message);
