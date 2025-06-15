@@ -20,6 +20,9 @@ class Technician extends Authenticatable
     public const TECHNICIAN = 0;
     public const TRAINEE    = 1;
 
+    public const ACTIVE   = 1;
+    public const INACTIVE = 0;
+
     use HasApiTokens, HasPassword, HasFactory, HasRoles, Notifiable;
     protected $guard   = 'technician';
     protected $guarded = [];
@@ -151,7 +154,5 @@ class Technician extends Authenticatable
         return Group::where('client_project_id', $this->client_project_id)
             ->where('branch_id', $this->branch_id);
     }
-
-    
 
 }

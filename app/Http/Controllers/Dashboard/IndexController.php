@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\CustomerComplaint;
 use App\Models\Day;
+use App\Models\Group;
 use App\Models\Order;
 use App\Models\Technician;
 use App\Models\User;
@@ -63,12 +64,14 @@ class IndexController extends Controller
         })
             ->count();
 
-        // $technicians = Technician::where('is_trainee', Technician::TECHNICIAN)->where('active', 1)->count();
-
         $technicians = Technician::where('is_trainee', Technician::TECHNICIAN)
-            ->where('active', 1)
+            ->where('active', Technician::ACTIVE)
+            ->whereHas('group', function ($q) {
+                $q->where('active', Group::ACTIVE);
+            })
             ->workingToday()
             ->count();
+
         $carbonDayOfWeek = Carbon::now('Asia/Riyadh')->dayOfWeek; // 0 = Sunday to 6 = Saturday
 
         $todayEnglishName = $carbonToDayName[$carbonDayOfWeek] ?? null;
@@ -78,7 +81,7 @@ class IndexController extends Controller
         $todayDayId = $day ? $day->id : null;
 
         $technicians_offToday = Technician::where('is_trainee', Technician::TECHNICIAN)
-            ->where('active', 1)
+            ->where('active', Technician::ACTIVE)
             ->offToday()
             ->count();
 
