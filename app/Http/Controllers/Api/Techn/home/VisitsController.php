@@ -111,32 +111,36 @@ class VisitsController extends Controller
 
     protected function myPreviousOrders()
     {
-
         try {
             $groupIds = Group::where('technician_id', auth('sanctum')->user()->id)->pluck('id')->toArray();
             $groups   = Group::where('technician_id', auth('sanctum')->user()->id)->first();
+
             if (! $groups) {
                 $this->body['visits'] = [];
                 return self::apiResponse(200, null, $this->body);
             }
 
-            $cacheKey = 'myPreviousOrders_' . auth('sanctum')->user()->id;
-            $orders   = cache()->remember($cacheKey, 300, function () use ($groupIds) {
-                return Visit::whereHas('booking', function ($q) {
-                    $q->whereHas('customer')->whereHas('address');
-                })->with('booking', function ($q) {
-                    $q->with(['service' => function ($q) {
+            $orders = Visit::whereHas('booking', function ($q) {
+                $q->whereHas('customer')->whereHas('address');
+            })->with(['booking' => function ($q) {
+                $q->with([
+                    'service' => function ($q) {
                         $q->with('category');
-                    }, 'customer', 'address']);
-                })->with('status')->whereIn('visits_status_id', [5, 6])
-                    ->whereIn('assign_to_id', $groupIds)->orderBy('created_at', 'desc')->take(24)->get();
-            });
+                    },
+                    'customer',
+                    'address',
+                ]);
+            }, 'status'])
+                ->whereIn('visits_status_id', [5, 6])
+                ->whereIn('assign_to_id', $groupIds)
+                ->orderBy('created_at', 'desc')
+                ->take(30) // Limit to 30 records
+                ->get();
 
             $this->body['visits'] = VisitsResource::collection($orders);
             return self::apiResponse(200, null, $this->body);
         } catch (\Exception $e) {
             return self::apiResponse(500, __('api.Something went wrong, please try again later'), $this->body);
-
         }
     }
 

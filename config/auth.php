@@ -13,8 +13,8 @@ return [
     |
     */
 
-    'defaults' => [
-        'guard' => 'user',
+    'defaults'         => [
+        'guard'     => 'user',
         'passwords' => 'users',
     ],
 
@@ -35,18 +35,24 @@ return [
     |
     */
 
-    'guards' => [
-        'user' => [
-            'driver' => 'session',
+    'guards'           => [
+        'user'         => [
+            'driver'   => 'session',
             'provider' => 'users',
         ],
-        'dashboard' => [
-            'driver' => 'session',
+        'dashboard'    => [
+            'driver'   => 'session',
             'provider' => 'admins',
         ],
-        'technician' => [
-            'driver' => 'session',
+        'technician'   => [
+            'driver'   => 'session',
             'provider' => 'technicians',
+        ],
+
+        // new guard for client admin
+        'client_admin' => [
+            'driver'   => 'session',
+            'provider' => 'admins',
         ],
     ],
 
@@ -67,20 +73,20 @@ return [
     |
     */
 
-    'providers' => [
-        'admins' => [
+    'providers'        => [
+        'admins'      => [
             'driver' => 'eloquent',
-            'model' => App\Models\Admin::class,
+            'model'  => App\Models\Admin::class,
         ],
 
-         'users' => [
-             'driver' => 'eloquent',
-             'model' => App\Models\User::class,
-         ],
+        'users'       => [
+            'driver' => 'eloquent',
+            'model'  => App\Models\User::class,
+        ],
 
         'technicians' => [
             'driver' => 'eloquent',
-            'model' => App\Models\Technician::class,
+            'model'  => App\Models\Technician::class,
         ],
     ],
 
@@ -99,11 +105,11 @@ return [
     |
     */
 
-    'passwords' => [
+    'passwords'        => [
         'users' => [
             'provider' => 'users',
-            'table' => 'password_resets',
-            'expire' => 60,
+            'table'    => 'password_resets',
+            'expire'   => 60,
             'throttle' => 60,
         ],
     ],

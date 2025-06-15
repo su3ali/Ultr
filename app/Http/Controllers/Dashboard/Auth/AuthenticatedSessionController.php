@@ -7,7 +7,7 @@ use App\Http\Requests\Dashboard\Auth\LoginRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class AuthenticatedSessionController extends Controller
+class AuthenticatedSessionController extends Controller 
 {
     /**
      * Display the login view.

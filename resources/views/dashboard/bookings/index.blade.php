@@ -3,6 +3,50 @@
 @push('style')
 
 <style>
+    details summary {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    details[open] summary {
+        color: #0d6efd;
+    }
+
+    #log-list li {
+        line-height: 1.8;
+        font-size: 0.95rem;
+    }
+
+    #log-list i.fas.fa-arrow-left {
+        transform: rotate(180deg);
+        /* flip arrow for RTL */
+    }
+
+    #log-list .badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.6em;
+    }
+
+    #log-list ul {
+        direction: rtl;
+        text-align: right;
+    }
+
+    #log-list li.ms-3 {
+        margin-right: 1.5rem;
+        font-size: 0.9em;
+    }
+
+    #log-list pre {
+        font-family: monospace;
+        background-color: #f8f9fa;
+        direction: ltr;
+        text-align: left;
+    }
+
+
+
+
     .table td,
     .table th {
         font-weight: bold !important;
@@ -281,11 +325,31 @@ $type = 'package';
 @include('dashboard.bookings.partial.couponModal')
 @include('dashboard.bookings.partial.change_status')
 
+<div class="modal fade" id="logsModal" tabindex="-1" aria-labelledby="logsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logsModalLabel">سجل النشاط</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+
+            </div>
+            <div class="modal-body">
+                <ul id="log-list" class="list-group">
+                    <li class="list-group-item text-center">جاري التحميل...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 @endsection
 @push('script')
 
 <!-- Bootstrap 5 & Select2 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script type="text/javascript">
@@ -850,6 +914,184 @@ $('#rescheduleModal').on('hidden.bs.modal', function () {
     $('body').removeClass('modal-open').css('padding-right', '');
 });
 
+// Modal open handler
+$(document).on('click', '.show-logs-btn', function () {
+    const bookingId = $(this).data('booking-id');
+    const list = $('#log-list');
+
+    list.html('<li class="list-group-item text-center text-muted">جاري التحميل...</li>');
+
+    $.ajax({
+        url: `/admin/bookings/${bookingId}/logs`,
+        method: 'GET',
+        success: function (res) {
+            if (res.logs && res.logs.length > 0) {
+                const grouped = { Visit: [], Booking: [], Order: [] };
+
+                res.logs.forEach(log => {
+                    if (log.model_type?.includes('Visit')) grouped.Visit.push(log);
+                    else if (log.model_type?.includes('Booking')) grouped.Booking.push(log);
+                    else if (log.model_type?.includes('Order')) grouped.Order.push(log);
+                });
+
+                let html = '';
+
+                for (const [type, logs] of Object.entries(grouped)) {
+                    if (logs.length === 0) continue;
+
+                    const title = {
+                        Visit: 'سجلات الزيارة',
+                        Booking: 'سجلات الحجز',
+                        Order: 'سجلات الطلب'
+                    }[type];
+
+                    const icon = {
+                        Visit: 'fa-map-marker-alt',
+                        Booking: 'fa-calendar-check',
+                        Order: 'fa-shopping-cart'
+                    }[type];
+
+                    html += `
+                        <details class="mb-3 border rounded shadow-sm p-2">
+                            <summary class="text-primary fw-bold fs-6 mb-2">
+                                <i class="fas ${icon} me-1"></i>${title} (${logs.length})
+                            </summary>
+                            <ul class="list-group mt-2">
+                                ${logs.map(renderLogCard).join('')}
+                            </ul>
+                        </details>`;
+                }
+
+                list.html(html);
+            } else {
+                list.html('<li class="list-group-item text-center text-danger">لا يوجد سجلات.</li>');
+            }
+        },
+        error: function () {
+            list.html('<li class="list-group-item text-center text-danger">فشل في تحميل السجل.</li>');
+        }
+    });
+});
+
+function formatValue(value) {
+    if (value === null || value === undefined) return '-';
+
+    if (typeof value === 'object') {
+        return value.name_ar || value.name_en || value.name || 
+               Object.values(value).find(v => typeof v === 'string') || '-';
+    }
+
+    if (typeof value === 'number') return Number(value).toFixed(2);
+
+    if (typeof value === 'string' && /^\d{2}:\d{2}(:\d{2})?$/.test(value)) {
+        const date = new Date(`1970-01-01T${value}`);
+        return date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+    }
+
+    return String(value);
+}
+
+function translateField(key) {
+    const map = {
+        start_time: 'وقت البداية',
+        end_time: 'وقت النهاية',
+        group_id: 'الفريق',
+        discount: 'الخصم',
+        total: 'الإجمالي',
+        status: 'الحالة'
+    };
+    return map[key] || key;
+}
+
+function renderLogCard(log) {
+    const createdAt = new Date(log.created_at).toLocaleString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+
+    const user = log.user?.first_name || 'غير معروف';
+    const description = log.description || '';
+
+    const modelType = log.model_type || '';
+    let modelLabel = 'حجز';
+    if (modelType.includes('Visit')) modelLabel = 'زيارة';
+    else if (modelType.includes('Order')) modelLabel = 'طلب';
+
+    let changesHtml = '';
+    if (log.changes) {
+        try {
+            const parsed = typeof log.changes === 'string' ? JSON.parse(log.changes) : log.changes;
+
+            const lines = Object.entries(parsed).map(([key, value]) => {
+                if (typeof value === 'object' && value !== null && 'from' in value && 'to' in value) {
+                    const fromVal = formatValue(value.from);
+                    const toVal = formatValue(value.to);
+
+                    if (fromVal !== toVal) {
+                        return `
+                            <li>
+                                <strong>${translateField(key)}</strong>: 
+                                <span class="text-danger">من: ${fromVal}</span>
+                                <i class="fas fa-arrow-right mx-1" style="transform: rotate(180deg); color:#aaa;"></i>
+                                <span class="text-success">إلى: ${toVal}</span>
+                            </li>`;
+                    }
+                }
+
+                if (key === 'from' && parsed.to && typeof value === 'object' && typeof parsed.to === 'object') {
+                    const fromVal = formatValue(value);
+                    const toVal = formatValue(parsed.to);
+
+                    if (fromVal !== toVal) {
+                        return `
+                            <li>
+                                <strong>${translateField('status')}</strong>: 
+                                <span class="text-danger">من: ${fromVal}</span>
+                                <i class="fas fa-arrow-right mx-1" style="transform: rotate(180deg); color:#aaa;"></i>
+                                <span class="text-success">إلى: ${toVal}</span>
+                            </li>`;
+                    }
+                }
+                return '';
+            }).join('');
+
+            changesHtml = `
+                <details class="mt-2">
+                    <summary class="text-muted small fw-bold">تفاصيل التغييرات</summary>
+                    <ul class="mt-2 small text-muted ps-3 pe-2">${lines || '<li>لا تغييرات فعلية</li>'}</ul>
+                </details>`;
+        } catch (e) {
+            changesHtml = `
+                <details class="mt-2">
+                    <summary class="text-muted small">بيانات التغيير</summary>
+                    <pre class="bg-light p-2 rounded small text-danger">تعذر قراءة التغييرات</pre>
+                </details>`;
+        }
+    }
+
+    return `
+        <li class="list-group-item border rounded mb-3 shadow-sm log-card">
+            <div class="d-flex justify-content-between flex-wrap">
+                <div>
+                    <span class="badge bg-secondary me-1">${modelLabel}</span>
+                    <p class="fw-bold mb-1 mt-2">${description}</p>
+                    ${changesHtml}
+                </div>
+                <div class="text-end text-muted small mt-2" style="min-width: 160px;">
+                    <div>بواسطة: ${user}</div>
+                    <div>${createdAt}</div>
+                </div>
+            </div>
+        </li>`;
+}
 
 </script>
 @endpush

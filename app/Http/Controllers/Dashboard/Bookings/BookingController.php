@@ -1,24 +1,27 @@
 <?php
 namespace App\Http\Controllers\Dashboard\Bookings;
 
-use App\Helpers\ActivityLogger;
-use App\Http\Controllers\Controller;
-use App\Models\Booking;
-use App\Models\BookingSetting;
-use App\Models\BookingStatus;
-use App\Models\Coupon;
+use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Group;
 use App\Models\Order;
-use App\Models\Region;
-use App\Models\Service;
 use App\Models\Shift;
-use App\Models\User;
-use App\Models\UserAddresses;
 use App\Models\Visit;
+use App\Models\Coupon;
+use App\Models\Region;
+use App\Models\Booking;
+use App\Models\Service;
 use App\Models\VisitsStatus;
-use Carbon\Carbon;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use App\Models\BookingStatus;
+use App\Models\CategoryGroup;
+use App\Models\UserAddresses;
+use App\Models\BookingSetting;
+use App\Helpers\ActivityLogger;
+use App\Models\ContractPackage;
+use App\Http\Controllers\Controller;
+use App\Services\ActivityLogService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -163,6 +166,14 @@ class BookingController extends Controller
                        <i class="far fa-trash-alt fa-2x"></i>
                     </a>';
                     }
+
+                    $html .= '<button type="button" class="btn btn-sm btn-info show-logs-btn"
+                        data-booking-id="' . $row->id . '"
+                        data-toggle="modal"
+                        data-target="#logsModal">
+                        <i class="fas fa-history"></i> عرض السجل
+                    </button>';
+
                     if (auth()->user()->hasRole('admin') || auth()->user()->can('bookings_change_status')) {
                         $html .= '<button type="button" class="btn btn-sm btn-outline-warning change-status-btn"
                                 data-id="' . $row->id . '" data-current-status="' . $row->status_id . '"
@@ -779,6 +790,20 @@ class BookingController extends Controller
             'success' => true,
             'msg'     => __("dash.updated_success"),
         ]);
+    }
+
+    public function logs($bookingId)
+    {
+        $booking = Booking::with('visit', 'order')->findOrFail($bookingId);
+
+        $logs = app(ActivityLogService::class)
+            ->getLogsForEntities([
+                ['type' => Booking::class, 'id' => $booking->id],
+                ['type' => Visit::class, 'id' => optional($booking->visit)->id],
+                ['type' => Order::class, 'id' => optional($booking->order)->id],
+            ]);
+
+        return response()->json(['logs' => $logs]);
     }
 
 }
