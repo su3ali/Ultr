@@ -1,16 +1,16 @@
 <?php
-use App\Models\Setting;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\VersionController;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Checkout\v2\CartController as CartControllerV2;
+use App\Http\Controllers\Api\Client\Orders\BusinessOrderController;
 use App\Http\Controllers\Api\Core\HomeController;
 use App\Http\Controllers\Api\Core\ServiceController;
-use App\Http\Controllers\Api\Orders\OrdersController;
 use App\Http\Controllers\Api\Coupons\CouponsController;
+use App\Http\Controllers\Api\Orders\OrdersController;
 use App\Http\Controllers\Api\Settings\SettingsController;
-use App\Http\Controllers\Api\Client\Orders\BusinessOrderController;
-use App\Http\Controllers\Api\Checkout\v2\CartController as CartControllerV2;
 use App\Http\Controllers\Dashboard\Client\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\VersionController;
+use App\Models\Setting;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,6 +37,9 @@ Route::post('/verify', [AuthController::class, 'verify']);
 Route::prefix('client-admin')->group(function () {
     Route::post('/login', [AuthenticatedSessionController::class, 'doLogin']);
 });
+
+Route::get('/client-project/{id}/order-stats', [BusinessOrderController::class, 'orderStats']);
+Route::get('/client-projects', [BusinessOrderController::class, 'allProjects']);
 
 Route::get('/settings', function () {
     $setting = Setting::select('logo', 'site_name', 'site_description')->first();

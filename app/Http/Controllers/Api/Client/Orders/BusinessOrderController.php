@@ -6,6 +6,7 @@ use App\Models\Admin;
 use App\Models\BusinessOrder;
 use App\Models\BusinessOrderStatus;
 use App\Models\BusinessOrderTechnicianHistory;
+use App\Models\BusinessProject\ClientProject;
 use App\Models\Group;
 use App\Models\Technician;
 use App\Models\User;
@@ -95,8 +96,6 @@ class BusinessOrderController extends Controller
             }),
         ]);
     }
-
-    
 
     public function store(Request $request)
     {
@@ -357,6 +356,29 @@ class BusinessOrderController extends Controller
         ]);
 
         return response()->json(['message' => 'تم تحديث الحالة بنجاح']);
+    }
+
+    public function orderStats($id)
+    {
+        $today = now('Asia/Riyadh')->toDateString();
+
+        return response()->json([
+            'data' => [
+                'client_orders'    => BusinessOrder::where('client_project_id', $id)->count(),
+                'orders_today'     => BusinessOrder::where('client_project_id', $id)->whereDate('created_at', $today)->count(),
+                'orders_completed' => BusinessOrder::where('client_project_id', $id)->where('status_id', 3)->count(),
+                'orders_canceled'  => BusinessOrder::where('client_project_id', $id)->where('status_id', 4)->count(),
+            ],
+        ]);
+    }
+
+    public function allProjects()
+    {
+        $projects = ClientProject::select('id', 'name_ar', 'name_en')->get();
+
+        return response()->json([
+            'data' => $projects,
+        ]);
     }
 
 }
