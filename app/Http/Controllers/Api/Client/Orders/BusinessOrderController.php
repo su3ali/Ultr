@@ -19,7 +19,14 @@ class BusinessOrderController extends Controller
     public function index(Request $request)
     {
 
-        $authUser = auth()->user();
+        // $authUser = auth()->user();
+        $authUser = (object) session('client_admin_user');
+
+        // echo json_encode($authUser, JSON_PRETTY_PRINT);exit;
+
+        $token = $request->bearerToken();
+
+        $authUser = Admin::where('id', 2)->first();
 
         if (! $authUser || $authUser->type !== 'client_admin') {
             return response()->json([

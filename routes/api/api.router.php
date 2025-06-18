@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Route;
  */
 
 Route::middleware('auth:sanctum')->prefix('client')->group(function () {
-    Route::post('business_orders', [BusinessOrderController::class, 'index']);
+    Route::post('business_orders', [BusinessOrderController::class, 'index'])->name('business_orders.index');
 
 });
 
