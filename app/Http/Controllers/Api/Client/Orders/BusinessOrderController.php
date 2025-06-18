@@ -1,145 +1,102 @@
 <?php
-namespace App\Http\Controllers\Dashboard\BusinessProject;
+namespace App\Http\Controllers\Api\Client\Orders;
 
-use App\Models\City;
-use App\Models\User;
-use App\Models\Admin;
-use App\Models\Group;
-use App\Models\CarType;
-use App\Models\Service;
-use App\Models\CarModel;
-use App\Models\Category;
-use App\Models\CarClient;
-use App\Models\Technician;
-use App\Models\ReasonCancel;
-use Illuminate\Http\Request;
-use App\Models\BusinessOrder;
-use App\Models\PaymentMethod;
-use Yajra\DataTables\DataTables;
-use Illuminate\Support\Facades\DB;
-use App\Models\BusinessOrderStatus;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cache;
-use App\Notifications\SendPushNotification;
-use Illuminate\Support\Facades\Notification;
-use App\Models\BusinessProject\ClientProject;
+use App\Models\Admin;
+use App\Models\BusinessOrder;
+use App\Models\BusinessOrderStatus;
 use App\Models\BusinessOrderTechnicianHistory;
+use App\Models\Group;
+use App\Models\Technician;
+use App\Models\User;
+use App\Notifications\SendPushNotification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 
 class BusinessOrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // ====== Always prepare status list at the beginning ======
-        $statusesModel = Cache::remember('business_order_statuses', 60, function () {
-            return BusinessOrderStatus::select('id', 'name_ar', 'name_en')->get();
-        });
 
-        if (request()->ajax()) {
-            $orders = BusinessOrder::with([
-                'user', 'category', 'service', 'group', 'car', 'paymentMethod', 'status',
-            ])->orderBy('id', 'desc');
+        $authUser = auth()->user();
 
-            // ==========  Date Filter ==========
-            if (request()->filled('date_from')) {
-                $orders->whereDate('created_at', '>=', request('date_from'));
-            }
-
-            if (request()->filled('date_to')) {
-                $orders->whereDate('created_at', '<=', request('date_to'));
-            }
-
-            // ==========  Status  filter ==========
-            if (request()->filled('status') && request('status') !== 'all') {
-                $orders->where('status_id', request('status'));
-            }
-
-            // ==========   Payment methods filter ==========
-            if (request()->filled('payment_method') && request('payment_method') !== 'all') {
-                $orders->where('payment_method_id', request('payment_method'));
-            }
-
-            return DataTables::of($orders)
-                ->addColumn('user', fn($row) => $row->user?->first_name . ' ' . $row->user?->last_name)
-                ->addColumn('phone', fn($row) => $row->user?->phone ?? '-')
-                ->addColumn('car', fn($row) => $row->car?->Plate_number ?? '-')
-                ->addColumn('service', fn($row) => '<button class="btn-sm btn-primary">' . $row->service?->title . '</button>')
-                ->addColumn('total', fn($row) => number_format($row->total, 2))
-                ->addColumn('group', fn($row) => $row->group?->name_ar ?? '-')
-                ->addColumn('payment_method', fn($row) => $row->paymentMethod?->name ?? '-')
-
-                ->addColumn('status', function ($row) {
-                    $currentStatus = $row->status?->name ?? '-';
-                    $html          = '<select class="form-control form-control-sm change-status" data-order-id="' . $row->id . '" data-current-status="' . $row->status_id . '">';
-                    foreach (BusinessOrderStatus::all() as $status) {
-                        $selected = $row->status_id == $status->id ? 'selected' : '';
-                        $html .= '<option value="' . $status->id . '" ' . $selected . '>' . $status->{app()->getLocale() == 'ar' ? 'name_ar' : 'name_en'} . '</option>';
-                    }
-                    $html .= '</select>';
-
-                    return $html . '<span class="d-none export-status">' . $currentStatus . '</span>';
-                })
-
-                ->addColumn('created_at', fn($row) => $row->created_at?->format('Y-m-d'))
-
-                ->addColumn('controll', function ($row) {
-                    $user = auth()->user();
-                    $html = '';
-
-                    if ($user->can('update_business_orders') || $user->hasRole('admin')) {
-                        $html .= '<button type="button" onclick="openEditModal(' . $row->id . ')" class="btn btn-sm btn-primary">
-                    <i class="far fa-edit fa-2x"></i>
-                  </button>';
-                    }
-
-                    if ($user->can('update_business_orders') || $user->hasRole('admin')) {
-                        $html .= '<button type="button" class="btn btn-primary"
-                        data-toggle="modal"
-                        data-target="#changeGroupModel"
-                        data-order_id="' . $row->id . '"
-                        data-group_id="' . $row->assign_to_id . '">'
-                        . __('dash.change_team') .
-                            '</button>';
-                    }
-
-                    if ($user->can('delete_business_orders') || $user->hasRole('admin')) {
-                        $html .= '<a href="javascript:void(0);" data-href="' . route('dashboard.business_orders.destroy', $row->id) . '"
-                     data-id="' . $row->id . '"
-                     class="btn btn-sm btn-outline-danger btn-delete">
-                     <i class="far fa-trash-alt fa-2x"></i>
-                  </a>';
-                    }
-
-                    return $html;
-                })
-
-                ->rawColumns(['service', 'controll', 'status'])
-                ->make(true);
+        if (! $authUser || $authUser->type !== 'client_admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
         }
 
-        // ========  Dropdwon  ==========
+        $clientProjectId = $authUser->client_project_id ?? null;
+        $isClientAdmin   = $authUser->type === 'client_admin';
 
-        $cars            = CarClient::all();
-        $users           = User::select('id', 'first_name', 'last_name')->limit(100)->get(); // or paginate or via AJAX
-        $categories      = Category::select('id', 'title_ar', 'title_en')->get();
-        $services        = Service::select('id', 'title_ar','title_en')->get();
-        $groups          = Group::select('id', 'name_ar', 'name_en')->get();
-        $paymentMethods  = Cache::remember('active_payment_methods', 60, fn() => PaymentMethod::where('active', 1)->get());
-        $reasons         = ReasonCancel::all();
-        $cities          = City::where('active', 1)->pluck(app()->getLocale() === 'ar' ? 'title_ar' : 'title_en', 'id');
-        $types           = CarType::pluck('name_ar', 'id');
-        $models          = CarModel::pluck('name_ar', 'id');
-        $clientProjects  = ClientProject::select('id', 'name_ar', 'name_en')->get();
-        $projects        = $clientProjects->pluck(app()->getLocale() === 'ar' ? 'name_ar' : 'name_en', 'id');
-        $payment_methods = $paymentMethods->pluck(app()->getLocale() === 'ar' ? 'name_ar' : 'name_en', 'id');
-        $statuses        = $statusesModel->pluck(app()->getLocale() === 'ar' ? 'name_ar' : 'name_en', 'id');
+        if ($isClientAdmin && ! $clientProjectId) {
+            return response()->json([
+                'success' => true,
+                'message' => 'No project assigned to this admin.',
+                'data'    => [],
+            ]);
+        }
 
-        return view('dashboard.business_orders.index', compact(
-            'users', 'categories', 'services', 'groups', 'cars', 'paymentMethods',
-            'reasons', 'cities', 'types', 'models', 'clientProjects', 'projects',
-            'payment_methods', 'statuses'
-        ));
+        $orders = BusinessOrder::with([
+            'user:id,first_name,last_name,phone',
+            'category:id,title_ar,title_en',
+            'service:id,title_ar,title_en,category_id',
+            'group:id,name_ar,name_en',
+            'car:id,Plate_number',
+            'paymentMethod:id,name_ar,name_en',
+            'status:id,name_ar,name_en',
+        ])->orderBy('id', 'desc');
+
+        // Filter by project only if available
+        if ($clientProjectId) {
+            $orders->where('client_project_id', $clientProjectId);
+        }
+
+        // Additional filters
+        if (request()->filled('date_from')) {
+            $orders->whereDate('created_at', '>=', request('date_from'));
+        }
+
+        if (request()->filled('date_to')) {
+            $orders->whereDate('created_at', '<=', request('date_to'));
+        }
+
+        if (request()->filled('status') && request('status') !== 'all') {
+            $status = BusinessOrderStatus::where('name_en', request('status'))
+                ->orWhere('name_ar', request('status'))
+                ->first();
+
+            if ($status) {
+                $orders->where('status_id', $status->id);
+            } else {
+                $orders->whereRaw('1 = 0'); // no match
+            }
+        }
+
+        if (request()->filled('payment_method') && request('payment_method') !== 'all') {
+            $orders->where('payment_method_id', request('payment_method'));
+        }
+
+        return response()->json([
+            'success' => true,
+            'data'    => $orders->get()->map(function ($order) {
+                return [
+                    'id'             => $order->id,
+                    'user'           => $order->user,
+                    'car'            => $order->car,
+                    'service'        => $order->service,
+                    'group'          => $order->group,
+                    'payment_method' => $order->paymentMethod,
+                    'status'         => $order->status,
+                    'total'          => $order->total,
+                    'created_at'     => $order->created_at,
+                ];
+            }),
+        ]);
     }
+
+    
 
     public function store(Request $request)
     {

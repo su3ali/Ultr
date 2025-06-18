@@ -1,7 +1,7 @@
 <?php
-
 namespace App\Models;
 
+use App\Models\BusinessProject\ClientProject;
 use App\Support\Traits\HasPassword;
 use App\Support\Traits\WithBoot;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,6 +14,7 @@ class Admin extends Authenticatable
 {
     use HasApiTokens, WithBoot, HasPassword, HasFactory, HasRoles, Notifiable;
     protected $guard = 'dashboard';
+
     protected $fillable = [
         'first_name',
         'last_name',
@@ -33,11 +34,18 @@ class Admin extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'phone_verified_at' => 'datetime',
+        'type'              => 'string',
+
     ];
 
     public function regions()
     {
         return $this->hasMany(AdminRegion::class);
+    }
+
+    public function clientProject()
+    {
+        return $this->belongsTo(ClientProject::class);
     }
 
 }
