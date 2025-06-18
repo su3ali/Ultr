@@ -7,6 +7,7 @@ use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -45,8 +46,18 @@ class AuthenticatedSessionController extends Controller
 
         Auth::guard('dashboard')->login($user, $remember_me);
 
+        //  Generate and store token manually
+        $token           = Str::random(60);
+        $user->api_token = $token;
+        $user->save();
+
+        //  Store in session for client_admin usage
+        session([
+            'client_admin_user'  => $user,
+            'client_admin_token' => $token,
+        ]);
+
         if ($isApi) {
-            $token = $user->createToken('client_admin_api')->plainTextToken;
             return response()->json([
                 'message' => __('dash.logged_in_successfully'),
                 'token'   => $token,

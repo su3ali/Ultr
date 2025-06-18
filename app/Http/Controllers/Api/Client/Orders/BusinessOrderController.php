@@ -24,9 +24,18 @@ class BusinessOrderController extends Controller
 
         // echo json_encode($authUser, JSON_PRETTY_PRINT);exit;
 
-        $token = $request->bearerToken();
+        $token = $request->bearerToken(); // Bearer from Authorization header
 
-        $authUser = Admin::where('id', 2)->first();
+        if (! $token) {
+            return response()->json(['success' => false, 'message' => 'Token missing'], 401);
+        }
+
+// Replace Admin with your actual model (e.g. ClientAdmin if applicable)
+        $authUser = Admin::where('api_token', $token)->first();
+
+        if (! $authUser) {
+            return response()->json(['success' => false, 'message' => 'Invalid token'], 401);
+        }
 
         if (! $authUser || $authUser->type !== 'client_admin') {
             return response()->json([
