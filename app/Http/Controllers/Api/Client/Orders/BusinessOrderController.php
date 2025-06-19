@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\Client\Orders;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\BusinessOrder;
-use App\Models\BusinessOrderStatus;
 use App\Models\BusinessOrderTechnicianHistory;
 use App\Models\BusinessProject\ClientProject;
 use App\Models\Group;
@@ -18,6 +17,7 @@ class BusinessOrderController extends Controller
 {
     public function index(Request $request)
     {
+        // dd('This endpoint is deprecated. Please use the new API endpoints for client admins.');
 
         // $authUser = auth()->user();
         $authUser = (object) session('client_admin_user');
@@ -25,6 +25,7 @@ class BusinessOrderController extends Controller
         // echo json_encode($authUser, JSON_PRETTY_PRINT);exit;
 
         $token = $request->bearerToken(); // Bearer from Authorization header
+                                          // dd($token);
 
         if (! $token) {
             return response()->json(['success' => false, 'message' => 'Token missing'], 401);
@@ -36,6 +37,7 @@ class BusinessOrderController extends Controller
         if (! $authUser) {
             return response()->json(['success' => false, 'message' => 'Invalid token'], 401);
         }
+        // dd($authUser);
 
         if (! $authUser || $authUser->type !== 'client_admin') {
             return response()->json([
@@ -71,27 +73,20 @@ class BusinessOrderController extends Controller
         }
 
         // Additional filters
-        if (request()->filled('date_from')) {
+        if (request()->request('date_from')) {
             $orders->whereDate('created_at', '>=', request('date_from'));
         }
 
-        if (request()->filled('date_to')) {
+        if (request()->request('date_to')) {
             $orders->whereDate('created_at', '<=', request('date_to'));
         }
 
-        if (request()->filled('status') && request('status') !== 'all') {
-            $status = BusinessOrderStatus::where('name_en', request('status'))
-                ->orWhere('name_ar', request('status'))
-                ->first();
-
-            if ($status) {
-                $orders->where('status_id', $status->id);
-            } else {
-                $orders->whereRaw('1 = 0'); // no match
-            }
+        $status = request('status');
+        if ($status !== null && $status !== 'all' && is_numeric($status)) {
+            $orders->where('status_id', (int) $status);
         }
 
-        if (request()->filled('payment_method') && request('payment_method') !== 'all') {
+        if (request()->request('payment_method') && request('payment_method') !== 'all') {
             $orders->where('payment_method_id', request('payment_method'));
         }
 
