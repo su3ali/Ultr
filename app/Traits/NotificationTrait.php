@@ -13,50 +13,106 @@ use Kreait\Firebase\Messaging\Notification;
 trait NotificationTrait
 {
 
+    // public function pushNotification($notification)
+    // {
+    //     $factory   = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
+    //     $messaging = $factory->createMessaging();
+
+    //     $device_token = $notification['device_token'];
+
+    //     $data = [
+    //         'id'    => random_int(1, 9999),
+    //         'title' => $notification['title'],
+    //         'body'  => $notification['message'],
+    //         'type'  => $notification['type'],
+    //         'code'  => $notification['code'],
+    //     ];
+
+    //     $message = CloudMessage::new ()
+    //         ->withNotification(Notification::fromArray([
+    //             'title' => $notification['title'],
+    //             'body'  => $notification['message'],
+    //         ]))
+    //         ->withAndroidConfig(AndroidConfig::new ()->withHighMessagePriority())
+    //         ->withApnsConfig(ApnsConfig::new ()->withImmediatePriority())
+    //         ->withData($data);
+
+    //     try {
+    //         $report = $messaging->sendMulticast($message, $device_token);
+    //         Log::info('Successful sends: ' . $report->successes()->count() . ' Failed sends: ' . $report->failures()->count());
+
+    //     } catch (MessagingException $e) {
+    //         Log::info($e);
+    //     } catch (MessagingErrors\NotFound $e) {
+    //         Log::info('The target device could not be found.');
+    //     } catch (MessagingErrors\InvalidMessage $e) {
+    //         Log::info('The given message is malformatted.');
+    //     } catch (MessagingErrors\ServerUnavailable $e) {
+    //         $retryAfter = $e->retryAfter();
+    //         Log::info('The FCM servers are currently unavailable. Retrying at ' . $retryAfter->format(\DATE_ATOM));
+    //         $messaging->sendMulticast($message, $device_token);
+    //     } catch (MessagingErrors\ServerError $e) {
+    //         Log::info('The FCM servers are down.');
+    //     } catch (MessagingException $e) {
+    //         Log::info('Unable to send message: ' . $e->getMessage());
+    //     }
+
+    // }
     public function pushNotification($notification)
     {
         $factory   = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
         $messaging = $factory->createMessaging();
 
-        $device_token = $notification['device_token'];
+        // Ensure device_token is a non-empty, filtered array
+        $device_token = collect($notification['device_token'] ?? [])
+            ->filter()
+            ->values();
+
+        // If no tokens, skip sending
+        if ($device_token->isEmpty()) {
+            Log::info('❌ No valid FCM tokens to send.');
+            return;
+        }
 
         $data = [
             'id'    => random_int(1, 9999),
-            'title' => $notification['title'],
-            'body'  => $notification['message'],
-            'type'  => $notification['type'],
-            'code'  => $notification['code'],
+            'title' => $notification['title'] ?? '',
+            'body'  => $notification['message'] ?? '',
+            'type'  => $notification['type'] ?? '',
+            'code'  => $notification['code'] ?? 0,
         ];
 
         $message = CloudMessage::new ()
             ->withNotification(Notification::fromArray([
-                'title' => $notification['title'],
-                'body'  => $notification['message'],
+                'title' => $data['title'],
+                'body'  => $data['body'],
             ]))
             ->withAndroidConfig(AndroidConfig::new ()->withHighMessagePriority())
             ->withApnsConfig(ApnsConfig::new ()->withImmediatePriority())
             ->withData($data);
 
         try {
-            $report = $messaging->sendMulticast($message, $device_token);
-            Log::info('Successful sends: ' . $report->successes()->count() . ' Failed sends: ' . $report->failures()->count());
+            $report = $messaging->sendMulticast($message, $device_token->all());
+            Log::info(' Push Notification: Success = ' . $report->successes()->count() . ', Failures = ' . $report->failures()->count());
 
-        } catch (MessagingException $e) {
-            Log::info($e);
+            if ($report->hasFailures()) {
+                foreach ($report->failures()->getItems() as $failure) {
+                    Log::warning(' FCM failure: ' . $failure->error()->getMessage());
+                }
+            }
         } catch (MessagingErrors\NotFound $e) {
-            Log::info('The target device could not be found.');
+            Log::warning(' FCM NotFound: ' . $e->getMessage());
         } catch (MessagingErrors\InvalidMessage $e) {
-            Log::info('The given message is malformatted.');
+            Log::warning(' FCM InvalidMessage: ' . $e->getMessage());
         } catch (MessagingErrors\ServerUnavailable $e) {
             $retryAfter = $e->retryAfter();
-            Log::info('The FCM servers are currently unavailable. Retrying at ' . $retryAfter->format(\DATE_ATOM));
-            $messaging->sendMulticast($message, $device_token);
+            Log::warning(' FCM Unavailable. Retrying at ' . $retryAfter->format(\DATE_ATOM));
+            $messaging->sendMulticast($message, $device_token->all());
         } catch (MessagingErrors\ServerError $e) {
-            Log::info('The FCM servers are down.');
+            Log::warning(' FCM ServerError: ' . $e->getMessage());
         } catch (MessagingException $e) {
-            Log::info('Unable to send message: ' . $e->getMessage());
+            Log::error(' FCM MessagingException: ' . $e->getMessage());
         }
-
     }
 
     // public function pushNotificationBackground($notification)
