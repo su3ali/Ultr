@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Dashboard\Auth;
 
 use App\Http\Controllers\Controller;
@@ -7,7 +6,7 @@ use App\Http\Requests\Dashboard\Auth\LoginRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class AuthenticatedSessionController extends Controller 
+class AuthenticatedSessionController extends Controller
 {
     /**
      * Display the login view.
@@ -18,13 +17,15 @@ class AuthenticatedSessionController extends Controller
     {
         $pageConfigs = ['bodyCustomClass' => 'login-bg', 'isCustomizer' => false];
 
+        // dd($pageConfigs);
+
         return view('dashboard.auth.login', ['pageConfigs' => $pageConfigs]);
     }
 
     public function doLogin(LoginRequest $request)
     {
         $remember_me = $request->has('remember_me');
-        if (!Auth::guard('dashboard')->attempt(['email' => $request->email, 'password' => $request->password], $remember_me)) {
+        if (! Auth::guard('dashboard')->attempt(['email' => $request->email, 'password' => $request->password], $remember_me)) {
             return back()
                 ->with('message', trans('dash.logged_in_faild_data'))
                 ->with('class', 'alert alert-danger');

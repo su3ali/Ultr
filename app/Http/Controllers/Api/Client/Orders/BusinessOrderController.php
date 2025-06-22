@@ -7,104 +7,187 @@ use App\Models\BusinessOrder;
 use App\Models\BusinessOrderTechnicianHistory;
 use App\Models\BusinessProject\ClientProject;
 use App\Models\Group;
+use App\Models\GroupTechnician;
+use App\Models\Models\BusinessProject\ClientProjectBranch;
 use App\Models\Technician;
 use App\Models\User;
 use App\Notifications\SendPushNotification;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 
 class BusinessOrderController extends Controller
 {
+
+    private function buildBaseOrderQuery($clientProjectId)
+    {
+        return BusinessOrder::with([
+            'user:id,first_name,last_name,phone',
+            'service:id,title_ar,title_en,category_id',
+            'group:id,name_ar,name_en',
+            'car:id,Plate_number,type_id', // Include type_id for relationship
+            'car.type:id,name_ar,name_en', // Eager load the type relation
+            'paymentMethod:id,name_ar,name_en',
+            'status:id,name_ar,name_en',
+            'technicianHistories:id',
+        ])
+            ->where('client_project_id', $clientProjectId)
+            ->orderBy('id', 'desc');
+
+    }
+
+    public function show($projectId)
+    {
+        $ordersQuery = BusinessOrder::where('client_project_id', $projectId);
+
+        $today = Carbon::now('Asia/Riyadh')->toDateString();
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'client_orders'    => $ordersQuery->count(),
+                'orders_today'     => (clone $ordersQuery)->whereDate('created_at', $today)->count(),
+                'orders_completed' => (clone $ordersQuery)->where('status_id', 4)->count(),
+                'orders_canceled'  => (clone $ordersQuery)->where('status_id', 5)->count(),
+            ],
+        ]);
+    }
+
     public function index(Request $request)
     {
-        // dd('This endpoint is deprecated. Please use the new API endpoints for client admins.');
-
-        // $authUser = auth()->user();
-        $authUser = (object) session('client_admin_user');
-
-        // echo json_encode($authUser, JSON_PRETTY_PRINT);exit;
-
-        $token = $request->bearerToken(); // Bearer from Authorization header
-                                          // dd($token);
+        $token = $request->bearerToken();
 
         if (! $token) {
             return response()->json(['success' => false, 'message' => 'Token missing'], 401);
         }
 
-// Replace Admin with your actual model (e.g. ClientAdmin if applicable)
         $authUser = Admin::where('api_token', $token)->first();
 
-        if (! $authUser) {
-            return response()->json(['success' => false, 'message' => 'Invalid token'], 401);
+        if (! $authUser || $authUser->type !== 'client_admin') {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
-        // dd($authUser);
+
+        $clientProjectId = $authUser->client_project_id;
+
+        if (! $clientProjectId) {
+            return response()->json(['success' => false, 'message' => 'Client project not found'], 404);
+        }
+
+        $orders = $this->buildBaseOrderQuery($clientProjectId); // assumed to include ->with([...])
+
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $from = Carbon::parse($request->input('date_from'))->startOfDay();
+            $to   = Carbon::parse($request->input('date_to'))->endOfDay();
+            $orders->whereBetween('created_at', [$from, $to]);
+        }
+
+        if ($request->filled('status') && $request->input('status') !== 'all') {
+            $orders->where('status_id', (int) $request->input('status'));
+        }
+
+        if ($request->filled('payment_method') && $request->input('payment_method') !== 'all') {
+            $orders->where('payment_method_id', (int) $request->input('payment_method'));
+        }
+
+        if ($request->filled('branch_id') && $request->input('branch_id') !== 'all') {
+            $orders->where('branch_id', (int) $request->input('branch_id'));
+        }
+
+        
+
+        $branches = ClientProjectBranch::where('client_project_id', $clientProjectId)
+            ->select('id', 'name_ar', 'name_en')
+            ->get();
+
+        $data = $orders->get()->map(function ($order) {
+            $groupId      = optional($order->group)->id;
+            $technicianId = GroupTechnician::where('group_id', $groupId)->value('technician_id');
+            $cleanerPhone = Technician::where('id', $technicianId)->value('phone') ?? '-';
+
+            $timeIn = optional(BusinessOrderTechnicianHistory::where('order_id', $order->id)
+                    ->whereNotNull('start_time')->orderBy('start_time')->first())->start_time;
+
+            $timeOut = optional(BusinessOrderTechnicianHistory::where('order_id', $order->id)
+                    ->whereNotNull('end_time')->orderByDesc('end_time')->first())->end_time;
+
+            return [
+                'id'             => $order->id,
+                'user'           => $order->user,
+                'car'            => $order->car,
+                'car_type'       => $order->car->type ?? '-',
+                'service'        => $order->service,
+                'group'          => $order->group,
+                'cleaner_phone'  => $cleanerPhone,
+                'payment_method' => $order->paymentMethod,
+                'status'         => $order->status,
+                'total'          => $order->total,
+                'created_at'     => $order->created_at->format('Y-m-d'),
+                'time_in'        => $timeIn ? Carbon::parse($timeIn)->format('h:i A') : '-',
+                'time_out'       => $timeOut ? Carbon::parse($timeOut)->format('h:i A') : '-',
+            ];
+        });
+
+        return response()->json([
+            'success'  => true,
+            'branches' => $branches,
+            'data'     => $data,
+        ]);
+    }
+
+    public function todayOrders(Request $request)
+    {
+        return $this->filteredOrdersByType('today', $request);
+    }
+
+    public function completedOrders(Request $request)
+    {
+        return $this->filteredOrdersByType('completed', $request);
+    }
+
+    public function canceledOrders(Request $request)
+    {
+        return $this->filteredOrdersByType('canceled', $request);
+    }
+
+    private function filteredOrdersByType(string $type, Request $request)
+    {
+        $token = $request->bearerToken();
+
+        if (! $token) {
+            return response()->json(['success' => false, 'message' => 'Token missing'], 401);
+        }
+
+        $authUser = Admin::where('api_token', $token)->first();
 
         if (! $authUser || $authUser->type !== 'client_admin') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized',
-            ], 401);
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
-        $clientProjectId = $authUser->client_project_id ?? null;
-        $isClientAdmin   = $authUser->type === 'client_admin';
+        $clientProjectId = $authUser->client_project_id;
+        $orders          = $this->buildBaseOrderQuery($clientProjectId);
 
-        if ($isClientAdmin && ! $clientProjectId) {
-            return response()->json([
-                'success' => true,
-                'message' => 'No project assigned to this admin.',
-                'data'    => [],
-            ]);
-        }
-
-        $orders = BusinessOrder::with([
-            'user:id,first_name,last_name,phone',
-            'category:id,title_ar,title_en',
-            'service:id,title_ar,title_en,category_id',
-            'group:id,name_ar,name_en',
-            'car:id,Plate_number',
-            'paymentMethod:id,name_ar,name_en',
-            'status:id,name_ar,name_en',
-        ])->orderBy('id', 'desc');
-
-        // Filter by project only if available
-        if ($clientProjectId) {
-            $orders->where('client_project_id', $clientProjectId);
-        }
-
-        // Additional filters
-        if (request()->request('date_from')) {
-            $orders->whereDate('created_at', '>=', request('date_from'));
-        }
-
-        if (request()->request('date_to')) {
-            $orders->whereDate('created_at', '<=', request('date_to'));
-        }
-
-        $status = request('status');
-        if ($status !== null && $status !== 'all' && is_numeric($status)) {
-            $orders->where('status_id', (int) $status);
-        }
-
-        if (request()->request('payment_method') && request('payment_method') !== 'all') {
-            $orders->where('payment_method_id', request('payment_method'));
+        if ($type === 'today') {
+            $today = now('Asia/Riyadh')->toDateString();
+            $orders->whereDate('created_at', $today);
+        } elseif ($type === 'completed') {
+            $orders->where('status_id', 4);
+        } elseif ($type === 'canceled') {
+            $orders->where('status_id', 5);
         }
 
         return response()->json([
             'success' => true,
-            'data'    => $orders->get()->map(function ($order) {
-                return [
-                    'id'             => $order->id,
-                    'user'           => $order->user,
-                    'car'            => $order->car,
-                    'service'        => $order->service,
-                    'group'          => $order->group,
-                    'payment_method' => $order->paymentMethod,
-                    'status'         => $order->status,
-                    'total'          => $order->total,
-                    'created_at'     => $order->created_at,
-                ];
-            }),
+            'data'    => $orders->get()->map(fn($order) => [
+                'id'             => $order->id,
+                'user'           => $order->user,
+                'car'            => $order->car,
+                'service'        => $order->service,
+                'group'          => $order->group,
+                'payment_method' => $order->paymentMethod,
+                'status'         => $order->status,
+                'total'          => $order->total,
+                'created_at'     => $order->created_at,
+            ]),
         ]);
     }
 

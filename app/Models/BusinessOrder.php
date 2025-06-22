@@ -3,7 +3,17 @@ namespace App\Models;
 
 use App\Models\BusinessOrderStatus;
 use App\Models\BusinessOrderTechnicianHistory;
+use App\Models\BusinessProject\ClientProject;
+use App\Models\BusinessProject\ClientProjectBranchFloor;
 use App\Models\CarClient;
+use App\Models\Category;
+use App\Models\Group;
+use App\Models\Models\BusinessProject\ClientProjectBranch;
+use App\Models\PaymentMethod;
+use App\Models\ReasonCancel;
+use App\Models\Service;
+use App\Models\Technician;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -93,6 +103,14 @@ class BusinessOrder extends Model
     public function technicianHistories()
     {
         return $this->hasMany(BusinessOrderTechnicianHistory::class, 'order_id');
+    }
+
+    public function technicians()
+    {
+        return $this->belongsToMany(Technician::class, 'business_order_technician_histories', 'order_id', 'technician_id')
+            ->withTimestamps()
+            ->withPivot('start_time', 'end_time', 'group_id', 'notes')
+        ; // if your Technician model uses SoftDeletes
     }
 
 }

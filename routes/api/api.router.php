@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Core\ServiceController;
 use App\Http\Controllers\Api\Coupons\CouponsController;
 use App\Http\Controllers\Api\Orders\OrdersController;
 use App\Http\Controllers\Api\Settings\SettingsController;
+use App\Http\Controllers\Dashboard\BusinessProject\ProjectBranchController;
 use App\Http\Controllers\Dashboard\Client\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\VersionController;
 use App\Models\Setting;
@@ -25,6 +26,14 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('client')->group(function () {
     Route::post('business_orders', [BusinessOrderController::class, 'index']);
+
+    Route::get('client-project/{project}/order-stats', [BusinessOrderController::class, 'show']);
+
+    Route::get('orders/today', [BusinessOrderController::class, 'todayOrders'])->name('orders.today');
+    Route::get('orders/completed', [BusinessOrderController::class, 'completedOrders'])->name('orders.completed');
+    Route::get('orders/canceled', [BusinessOrderController::class, 'canceledOrders'])->name('orders.canceled');
+
+    Route::get('client/project-branches', [ProjectBranchController::class, 'getByClientProject'])->name('project-branches');
 
 });
 
