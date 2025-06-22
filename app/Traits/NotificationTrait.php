@@ -59,20 +59,107 @@ trait NotificationTrait
 
     }
 
+    // public function pushNotificationBackground($notification)
+    // {
+    //     $factory   = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
+    //     $messaging = $factory->createMessaging();
+
+    //     $device_token = $notification['device_token']->filter()->toArray();
+
+    //     $data = [
+    //         'data' => json_encode($notification['data']),
+    //     ];
+
+    //     if ($notification['fromFunc'] == 'latlong') {
+    //         if ($device_token[0]) {
+    //             $message = CloudMessage::withTarget('token', $device_token[0])
+    //                 ->withData($data);
+    //             try {
+    //                 $messaging->send($message);
+    //             } catch (MessagingException $e) {
+    //                 Log::info($e);
+    //             } catch (MessagingErrors\NotFound $e) {
+    //                 Log::info('message: ' . $e->getMessage() . ' errors: ' . $e->errors() . ' token: ' . $e->token());
+    //             }
+    //         } else {
+    //             Log::info('error: not fcm token');
+    //         }
+    //     } else {
+    //         $statusList = [
+    //             'طلبك باقي نرسلك افضل الأخصائيين عندنا',
+    //             ' فريقنا جايين لعندك ياريت تجهز مكان العمل',
+    //             ' فريق الترا بدأ بالخدمة هالحين',
+    //             'ارسلنا لك طلب تسليم اذا شغلنا زين وافق عليها',
+    //             'حبينا نشكرك على انتظارك طلبك مكتمل الحين',
+    //             'تم إلغاء الطلب للأسباب التالية: ',
+    //             ' للزيارة رقم ',
+    //         ];
+    //         $title        = $notification['data']['order_details']['group']['name'] . $statusList[6] . $notification['data']['order_details']['id'];
+    //         $body         = '';
+    //         $notification = json_decode(json_encode($notification));
+
+    //         $booking_details = $notification->data->order_details->booking_details;
+    //         if (! (is_null($booking_details->status))) {
+
+    //             if ($booking_details->status->id == 6) {
+    //                 $body = $statusList[$booking_details->status->id - 1] . $notification->data->order_details->cancel_reason->reason;
+    //             } else {
+    //                 $body = $statusList[$booking_details->status->id - 1];
+    //             }
+    //         } else {
+
+    //             $body = $statusList[0];
+    //         }
+
+    //         $message = CloudMessage::new ()
+    //             ->withNotification(Notification::fromArray([
+    //                 'title' => $title,
+    //                 'body'  => $body,
+    //             ]))
+    //             ->withAndroidConfig(AndroidConfig::new ()->withHighMessagePriority())
+    //             ->withApnsConfig(ApnsConfig::new ()->withImmediatePriority());
+    //         try {
+    //             $report = $messaging->sendMulticast($message, $device_token);
+    //             Log::info('Successful sends: ' . $report->successes()->count() . ' Failed sends: ' . $report->failures()->count());
+    //             if ($report->hasFailures()) {
+    //                 foreach ($report->failures()->getItems() as $failure) {
+    //                     Log::info($failure->error()->getMessage());
+    //                 }
+    //             }
+    //         } catch (MessagingException $e) {
+    //             Log::info($e);
+    //         } catch (MessagingErrors\NotFound $e) {
+    //             Log::info('The target device could not be found.');
+    //         } catch (MessagingErrors\InvalidMessage $e) {
+    //             Log::info('The given message is malformatted.');
+    //         } catch (MessagingErrors\ServerUnavailable $e) {
+    //             $retryAfter = $e->retryAfter();
+    //             Log::info('The FCM servers are currently unavailable. Retrying at ' . $retryAfter->format(\DATE_ATOM));
+    //             $messaging->sendMulticast($message, $device_token);
+    //         } catch (MessagingErrors\ServerError $e) {
+    //             Log::info('The FCM servers are down.');
+    //         } catch (MessagingException $e) {
+    //             Log::info('Unable to send message: ' . $e->getMessage());
+    //         }
+    //     }
+
+    // }
+
     public function pushNotificationBackground($notification)
     {
         $factory   = (new Factory)->withServiceAccount(storage_path('app/firebase-auth.json'));
         $messaging = $factory->createMessaging();
 
-        $device_token = $notification['device_token']->filter()->toArray();
+        // Safely cast device_token to collection
+        $device_token = collect($notification['device_token'] ?? [])->filter()->values();
 
         $data = [
             'data' => json_encode($notification['data']),
         ];
 
-        if ($notification['fromFunc'] == 'latlong') {
-            if ($device_token[0]) {
-                $message = CloudMessage::withTarget('token', $device_token[0])
+        if ($notification['fromFunc'] === 'latlong') {
+            if ($device_token->isNotEmpty()) {
+                $message = CloudMessage::withTarget('token', $device_token->first())
                     ->withData($data);
                 try {
                     $messaging->send($message);
@@ -82,7 +169,7 @@ trait NotificationTrait
                     Log::info('message: ' . $e->getMessage() . ' errors: ' . $e->errors() . ' token: ' . $e->token());
                 }
             } else {
-                Log::info('error: not fcm token');
+                Log::info('error: no valid FCM token');
             }
         } else {
             $statusList = [
@@ -94,20 +181,21 @@ trait NotificationTrait
                 'تم إلغاء الطلب للأسباب التالية: ',
                 ' للزيارة رقم ',
             ];
-            $title        = $notification['data']['order_details']['group']['name'] . $statusList[6] . $notification['data']['order_details']['id'];
-            $body         = '';
-            $notification = json_decode(json_encode($notification));
 
-            $booking_details = $notification->data->order_details->booking_details;
-            if (! (is_null($booking_details->status))) {
+            $notificationObj = json_decode(json_encode($notification));
+            $orderDetails    = $notificationObj->data->order_details ?? null;
+            $groupName       = $orderDetails->group->name ?? 'الترا';
+            $orderId         = $orderDetails->id ?? '---';
+            $bookingStatus   = $orderDetails->booking_details->status->id ?? null;
+            $cancelReason    = $orderDetails->cancel_reason->reason ?? '';
 
-                if ($booking_details->status->id == 6) {
-                    $body = $statusList[$booking_details->status->id - 1] . $notification->data->order_details->cancel_reason->reason;
-                } else {
-                    $body = $statusList[$booking_details->status->id - 1];
-                }
+            $title = $groupName . $statusList[6] . $orderId;
+
+            if ($bookingStatus === 6) {
+                $body = $statusList[5] . $cancelReason;
+            } elseif ($bookingStatus !== null && isset($statusList[$bookingStatus - 1])) {
+                $body = $statusList[$bookingStatus - 1];
             } else {
-
                 $body = $statusList[0];
             }
 
@@ -118,30 +206,30 @@ trait NotificationTrait
                 ]))
                 ->withAndroidConfig(AndroidConfig::new ()->withHighMessagePriority())
                 ->withApnsConfig(ApnsConfig::new ()->withImmediatePriority());
+
             try {
-                $report = $messaging->sendMulticast($message, $device_token);
+                $report = $messaging->sendMulticast($message, $device_token->all());
                 Log::info('Successful sends: ' . $report->successes()->count() . ' Failed sends: ' . $report->failures()->count());
+
                 if ($report->hasFailures()) {
                     foreach ($report->failures()->getItems() as $failure) {
                         Log::info($failure->error()->getMessage());
                     }
                 }
             } catch (MessagingException $e) {
-                Log::info($e);
+                Log::info('Unable to send message: ' . $e->getMessage());
             } catch (MessagingErrors\NotFound $e) {
                 Log::info('The target device could not be found.');
             } catch (MessagingErrors\InvalidMessage $e) {
                 Log::info('The given message is malformatted.');
             } catch (MessagingErrors\ServerUnavailable $e) {
                 $retryAfter = $e->retryAfter();
-                Log::info('The FCM servers are currently unavailable. Retrying at ' . $retryAfter->format(\DATE_ATOM));
-                $messaging->sendMulticast($message, $device_token);
+                Log::info('FCM servers unavailable. Retrying at ' . $retryAfter->format(DATE_ATOM));
+                $messaging->sendMulticast($message, $device_token->all());
             } catch (MessagingErrors\ServerError $e) {
                 Log::info('The FCM servers are down.');
-            } catch (MessagingException $e) {
-                Log::info('Unable to send message: ' . $e->getMessage());
             }
         }
-
     }
+
 }
