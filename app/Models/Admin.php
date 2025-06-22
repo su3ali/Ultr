@@ -23,6 +23,9 @@ class Admin extends Authenticatable
         'password',
         'active',
         'fcm_token',
+        'client_project_id',
+        'type',
+        'api_token',
 
     ];
 

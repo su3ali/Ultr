@@ -1118,5 +1118,6 @@ return [
     'shift_name'                               => 'اسم المناوبة',
     'no_team_available'                        => 'لا يوجد فريق متاح لهذا الوقت',
     'no_team_available_at_time'                => 'لا يوجد فريق متاح في الوقت المحدد',
+    'admin_data'                               => 'بيانات المدير',
 
 ];
