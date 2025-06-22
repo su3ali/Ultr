@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use App\Models\BusinessOrder;
 use App\Models\PaymentMethod;
 use Yajra\DataTables\DataTables;
+use App\Traits\NotificationTrait;
 use Illuminate\Support\Facades\DB;
 use App\Models\BusinessOrderStatus;
 use Illuminate\Support\Facades\Log;
