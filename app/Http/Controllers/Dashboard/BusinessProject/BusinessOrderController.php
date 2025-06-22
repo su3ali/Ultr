@@ -1,33 +1,34 @@
 <?php
 namespace App\Http\Controllers\Dashboard\BusinessProject;
 
-use App\Models\City;
-use App\Models\User;
-use App\Models\Admin;
-use App\Models\Group;
-use App\Models\CarType;
-use App\Models\Service;
-use App\Models\CarModel;
-use App\Models\Category;
-use App\Models\CarClient;
-use App\Models\Technician;
-use App\Models\ReasonCancel;
-use Illuminate\Http\Request;
-use App\Models\BusinessOrder;
-use App\Models\PaymentMethod;
-use Yajra\DataTables\DataTables;
-use Illuminate\Support\Facades\DB;
-use App\Models\BusinessOrderStatus;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cache;
-use App\Notifications\SendPushNotification;
-use Illuminate\Support\Facades\Notification;
-use App\Models\BusinessProject\ClientProject;
+use App\Models\Admin;
+use App\Models\BusinessOrder;
+use App\Models\BusinessOrderStatus;
 use App\Models\BusinessOrderTechnicianHistory;
+use App\Models\BusinessProject\ClientProject;
+use App\Models\CarClient;
+use App\Models\CarModel;
+use App\Models\CarType;
+use App\Models\Category;
+use App\Models\City;
+use App\Models\Group;
+use App\Models\PaymentMethod;
+use App\Models\ReasonCancel;
+use App\Models\Service;
+use App\Models\Technician;
+use App\Models\User;
+use App\Notifications\SendPushNotification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Notification;
+use Yajra\DataTables\DataTables;
 
 class BusinessOrderController extends Controller
 {
+
+    use ApiResponse, imageTrait, NotificationTrait;
+
     public function index()
     {
         // ====== Always prepare status list at the beginning ======
@@ -122,7 +123,7 @@ class BusinessOrderController extends Controller
         $cars            = CarClient::all();
         $users           = User::select('id', 'first_name', 'last_name')->limit(100)->get(); // or paginate or via AJAX
         $categories      = Category::select('id', 'title_ar', 'title_en')->get();
-        $services        = Service::select('id', 'title_ar','title_en')->get();
+        $services        = Service::select('id', 'title_ar', 'title_en')->get();
         $groups          = Group::select('id', 'name_ar', 'name_en')->get();
         $paymentMethods  = Cache::remember('active_payment_methods', 60, fn() => PaymentMethod::where('active', 1)->get());
         $reasons         = ReasonCancel::all();
@@ -211,7 +212,9 @@ class BusinessOrderController extends Controller
                 $title   = __('api.new_appointment');
                 $message = __('api.you_have_new_visit_appointment') . ' ' . $order->id;
 
-                Notification::send($technician, new SendPushNotification($title, $message));
+                $notification = Notification::send($technician, new SendPushNotification($title, $message));
+
+                $this->pushNotification($notification);
 
                 // FCM + Admins
                 $adminTokens = Admin::whereNotNull('fcm_token')->pluck('fcm_token')->toArray();
