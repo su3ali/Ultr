@@ -1,20 +1,22 @@
 <?php
 namespace App\Http\Controllers\Api\Client\Orders;
 
-use App\Http\Controllers\Controller;
-use App\Models\Admin;
-use App\Models\BusinessOrder;
-use App\Models\BusinessOrderTechnicianHistory;
-use App\Models\BusinessProject\ClientProject;
-use App\Models\Group;
-use App\Models\GroupTechnician;
-use App\Models\Models\BusinessProject\ClientProjectBranch;
-use App\Models\Technician;
-use App\Models\User;
-use App\Notifications\SendPushNotification;
 use Carbon\Carbon;
+use App\Models\User;
+use App\Models\Admin;
+use App\Models\Group;
+use App\Models\Technician;
 use Illuminate\Http\Request;
+use App\Models\BusinessOrder;
+use App\Models\GroupTechnician;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use App\Notifications\SendPushNotification;
 use Illuminate\Support\Facades\Notification;
+use App\Models\BusinessProject\ClientProject;
+use App\Models\BusinessOrderTechnicianHistory;
+use App\Models\Models\BusinessProject\ClientProjectBranch;
 
 class BusinessOrderController extends Controller
 {
@@ -55,83 +57,117 @@ class BusinessOrderController extends Controller
 
     public function index(Request $request)
     {
-        $token = $request->bearerToken();
+        try {
+            // dd($request->all());
+            $token = $request->bearerToken();
 
-        if (! $token) {
-            return response()->json(['success' => false, 'message' => 'Token missing'], 401);
+            // $token = $request->bearerToken() ?? $request->input('token');
+
+            // dd($token);
+
+            
+
+            
+
+
+            // dd($token);
+
+            // if (! $token) {
+            //     return response()->json(['success' => false, 'message' => 'Token missing'], 401);
+            // }
+
+            $authUser = Admin::where('api_token', $token)->first();
+
+            // dd($authUser);
+
+            if (! $authUser || $authUser->type !== 'client_admin') {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            }
+
+            $clientProjectId = $authUser->client_project_id;
+
+            if (! $clientProjectId) {
+                return response()->json(['success' => false, 'message' => 'Client project not found'], 404);
+            }
+
+            // Build base query (make sure request() helper is used properly inside)
+            $orders = $this->buildBaseOrderQuery($clientProjectId);
+
+            if ($request->filled('date_from') && $request->filled('date_to')) {
+                $from = Carbon::parse($request->input('date_from'))->startOfDay();
+                $to   = Carbon::parse($request->input('date_to'))->endOfDay();
+                $orders->whereBetween('created_at', [$from, $to]);
+            }
+
+            if ($request->filled('status') && $request->input('status') !== 'all') {
+                $orders->where('status_id', (int) $request->input('status'));
+            }
+
+            if ($request->filled('payment_method') && $request->input('payment_method') !== 'all') {
+                $orders->where('payment_method_id', (int) $request->input('payment_method'));
+            }
+
+            if ($request->filled('branch_id') && $request->input('branch_id') !== 'all') {
+                $orders->where('branch_id', (int) $request->input('branch_id'));
+            }
+
+            $branches = ClientProjectBranch::where('client_project_id', $clientProjectId)
+                ->select('id', 'name_ar', 'name_en')
+                ->get();
+
+            $data = $orders->get()->map(function ($order) {
+                $groupId      = optional($order->group)->id;
+                $technicianId = GroupTechnician::where('group_id', $groupId)->value('technician_id');
+                $cleanerPhone = Technician::where('id', $technicianId)->value('phone') ?? '-';
+
+                $timeIn = optional(
+                    BusinessOrderTechnicianHistory::where('order_id', $order->id)
+                        ->whereNotNull('start_time')
+                        ->orderBy('start_time')->first()
+                )->start_time;
+
+                $timeOut = optional(
+                    BusinessOrderTechnicianHistory::where('order_id', $order->id)
+                        ->whereNotNull('end_time')
+                        ->orderByDesc('end_time')->first()
+                )->end_time;
+
+                return [
+                    'id'             => $order->id,
+                    'user'           => $order->user,
+                    'car'            => $order->car,
+                    'car_type'       => $order->car->type ?? '-',
+                    'service'        => $order->service,
+                    'group'          => $order->group,
+                    'cleaner_phone'  => $cleanerPhone,
+                    'payment_method' => $order->paymentMethod,
+                    'status'         => $order->status,
+                    'total'          => $order->total,
+                    'created_at'     => $order->created_at->format('Y-m-d'),
+                    'time_in'        => $timeIn ? Carbon::parse($timeIn)->format('h:i A') : '-',
+                    'time_out'       => $timeOut ? Carbon::parse($timeOut)->format('h:i A') : '-',
+                ];
+            });
+
+            return response()->json([
+                'success'  => true,
+                'branches' => $branches,
+                'data'     => $data,
+            ]);
+
+        } catch (\Throwable $e) {
+            \Log::error('❌ Admin API Error in BusinessOrderController@index', [
+                'error' => $e->getMessage(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'message' => 'Server Error.',
+                'error'   => $e->getMessage() . ' on line ' . $e->getLine(). ' in ' . $e->getFile(),
+            ], 500);
         }
-
-        $authUser = Admin::where('api_token', $token)->first();
-
-        if (! $authUser || $authUser->type !== 'client_admin') {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
-        }
-
-        $clientProjectId = $authUser->client_project_id;
-
-        if (! $clientProjectId) {
-            return response()->json(['success' => false, 'message' => 'Client project not found'], 404);
-        }
-
-        $orders = $this->buildBaseOrderQuery($clientProjectId); // assumed to include ->with([...])
-
-        if ($request->filled('date_from') && $request->filled('date_to')) {
-            $from = Carbon::parse($request->input('date_from'))->startOfDay();
-            $to   = Carbon::parse($request->input('date_to'))->endOfDay();
-            $orders->whereBetween('created_at', [$from, $to]);
-        }
-
-        if ($request->filled('status') && $request->input('status') !== 'all') {
-            $orders->where('status_id', (int) $request->input('status'));
-        }
-
-        if ($request->filled('payment_method') && $request->input('payment_method') !== 'all') {
-            $orders->where('payment_method_id', (int) $request->input('payment_method'));
-        }
-
-        if ($request->filled('branch_id') && $request->input('branch_id') !== 'all') {
-            $orders->where('branch_id', (int) $request->input('branch_id'));
-        }
-
-        
-
-        $branches = ClientProjectBranch::where('client_project_id', $clientProjectId)
-            ->select('id', 'name_ar', 'name_en')
-            ->get();
-
-        $data = $orders->get()->map(function ($order) {
-            $groupId      = optional($order->group)->id;
-            $technicianId = GroupTechnician::where('group_id', $groupId)->value('technician_id');
-            $cleanerPhone = Technician::where('id', $technicianId)->value('phone') ?? '-';
-
-            $timeIn = optional(BusinessOrderTechnicianHistory::where('order_id', $order->id)
-                    ->whereNotNull('start_time')->orderBy('start_time')->first())->start_time;
-
-            $timeOut = optional(BusinessOrderTechnicianHistory::where('order_id', $order->id)
-                    ->whereNotNull('end_time')->orderByDesc('end_time')->first())->end_time;
-
-            return [
-                'id'             => $order->id,
-                'user'           => $order->user,
-                'car'            => $order->car,
-                'car_type'       => $order->car->type ?? '-',
-                'service'        => $order->service,
-                'group'          => $order->group,
-                'cleaner_phone'  => $cleanerPhone,
-                'payment_method' => $order->paymentMethod,
-                'status'         => $order->status,
-                'total'          => $order->total,
-                'created_at'     => $order->created_at->format('Y-m-d'),
-                'time_in'        => $timeIn ? Carbon::parse($timeIn)->format('h:i A') : '-',
-                'time_out'       => $timeOut ? Carbon::parse($timeOut)->format('h:i A') : '-',
-            ];
-        });
-
-        return response()->json([
-            'success'  => true,
-            'branches' => $branches,
-            'data'     => $data,
-        ]);
     }
 
     public function todayOrders(Request $request)

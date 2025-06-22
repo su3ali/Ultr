@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Route;
  */
 
 Route::prefix('client')->group(function () {
+
     Route::post('business_orders', [BusinessOrderController::class, 'index']);
 
     Route::get('client-project/{project}/order-stats', [BusinessOrderController::class, 'show']);
