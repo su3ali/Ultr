@@ -18,7 +18,7 @@ class AdminProfileController extends Controller
     protected string $model = Admin::class;
     public function __construct()
     {
-        $this->middleware('permission:admin_profile');
+        // $this->middleware('permission:admin_profile');
     }
     public function index(): View
     {

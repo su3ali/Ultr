@@ -94,6 +94,7 @@ class AdminController extends Controller
 
     protected function formData(?Model $model = null): array
     {
+        
 
         $regions = Region::pluck('title_ar', 'id');
 
