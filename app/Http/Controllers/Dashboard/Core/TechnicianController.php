@@ -41,6 +41,7 @@ class TechnicianController extends Controller
                 // If the date filter is 'today', add the workingToday scope
                 $techniciansQuery = Technician::where('is_trainee', Technician::TECHNICIAN)
                     ->where('is_business', 0)
+                    ->where('active', 1)
                     ->with(['group', 'specialization', 'workingDays'])
                     ->workingToday(); //
             } else {
@@ -225,7 +226,7 @@ class TechnicianController extends Controller
 
             return response()->json([
                 'draw'            => $request->input('draw'),
-                'recordsTotal'    => Technician::count(),
+                'recordsTotal'    => $techniciansQuery->count(),
                 'recordsFiltered' => $filteredRecords,
                 'data'            => $data,
             ]);
