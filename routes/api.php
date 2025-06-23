@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Checkout\v2\CartController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,5 +21,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 // Start Version 2 routes
 Route::prefix('v2/carts')->group(function () {
-    Route::get('/get_avail_times_from_date', [CartControllerV2::class, 'getAvailableTimesFromDate']);
+    Route::get('/get_avail_times_from_date', [CartController::class, 'getAvailableTimesFromDate']);
 });

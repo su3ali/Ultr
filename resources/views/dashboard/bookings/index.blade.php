@@ -133,9 +133,7 @@
         padding: 6px 12px !important;
         font-size: 0.95rem !important;
     }
-</style>
 
-<style>
     .whatsapp-link {
         color: #0c58aa;
         /* Default color */
