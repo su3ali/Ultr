@@ -676,6 +676,7 @@ class BookingController extends Controller
 
     public function changeStatus(Request $request)
     {
+       
         $request->validate([
             'booking_id' => 'required|exists:bookings,id',
             'status_id'  => 'required|exists:visits_statuses,id',

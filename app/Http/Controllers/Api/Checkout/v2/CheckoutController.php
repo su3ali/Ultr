@@ -327,6 +327,8 @@ class CheckoutController extends Controller
 
     }
 
+    
+
     protected function checkout(Request $request)
     {
 
