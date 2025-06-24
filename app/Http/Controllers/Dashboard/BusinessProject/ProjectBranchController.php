@@ -150,4 +150,21 @@ class ProjectBranchController extends Controller
         return response()->json($branches);
     }
 
+    public function getByClientProject(Request $request)
+    {
+        
+        $request->validate([
+            'client_project_id' => 'required|exists:client_projects,id',
+        ]);
+
+        $branches = ClientProjectBranch::where('client_project_id', $request->client_project_id)
+            ->select('id', 'name_ar', 'name_en')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $branches,
+        ]);
+    }
+
 }

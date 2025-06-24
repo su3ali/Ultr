@@ -23,301 +23,7 @@
         </div>
     </div>
 </div>
-
-
-@push('script')
-<script>
-    const storeCustomerUrl = "{{ route('dashboard.core.customer.store') }}"; 
-    const applyCouponUrl = "{{ route('dashboard.orders.applyCoupon') }}";
-    const csrfToken = '{{ csrf_token() }}';
-    let createdUserId = null;
-
-    $('#checkPhoneBtn').on('click', function () {
-        const phone = $('#phoneInput').val();
-        if (phone.length !== 9 || !phone.startsWith('5')) {
-            toastr.warning('يرجى إدخال رقم صحيح يبدأ بـ 5 ويتكون من 9 أرقام');
-            return;
-        }
-        const fullPhone = '966' + phone;
-        $.post('{{ route("dashboard.customer.check") }}', {_token: '{{ csrf_token() }}', phone: fullPhone}, function (res) {
-            if (res.exists) {
-                createdUserId = res.user_id;
-                $('#car_user_id, #order_user_id').val(createdUserId);
-                $('#stepperTabs .nav-link').eq(1).tab('show');
-                toastr.success('العميل موجود، تم الانتقال للخطوة التالية');
-                fetchCustomerCars(createdUserId);
-            } else {
-                toastr.info('العميل غير موجود، يرجى تعبئة البيانات');
-            }
-        }).fail(() => toastr.error('فشل في التحقق من العميل'));
-    });
-
-    $(document).ready(function () {
-        $('#saveCustomer').on('click', function () {
-            const phone = $('#phoneInput').val().trim();
-            const fullPhone = '966' + phone;
-            const $btn = $(this);
-
-            if (phone.length !== 9 || !phone.startsWith('5')) {
-                toastr.error('الرجاء إدخال رقم جوال صحيح مكون من 9 أرقام ويبدأ بـ 5');
-                return;
-            }
-
-            $('input[name="phone"]').val(fullPhone);
-
-            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> جاري الحفظ...');
-
-            $.post(storeCustomerUrl, $('#createCustomerForm').serialize())
-                .done(function (res) {
-                    debugger;
-                    const userId = res.user_id;
-                    $('#car_user_id, #order_user_id').val(userId);
-                    createdUserId = userId;
-                    fetchCustomerCars(userId);
-                    $('#stepperTabs .nav-link').eq(1).tab('show');
-                    toastr.success('تم حفظ العميل بنجاح');
-                })
-                .fail(function (xhr) {
-                    if (xhr.status === 422 && xhr.responseJSON?.errors) {
-                        debugger;
-                        let messages = [];
-                        $.each(xhr.responseJSON.errors, function (field, messagesArray) {
-                            messages.push(messagesArray[0]);
-                        });
-                        toastr.error(messages.join('<br>'));
-                    } else {
-                        console.error(xhr.responseText);
-                        toastr.error('حدث خطأ أثناء حفظ العميل');
-                    }
-                })
-                .always(function () {
-                    $btn.prop('disabled', false).html('التالي');
-                });
-        });
-    });
-
-    function fetchCustomerCars(userId) {
-        $.get(`/admin/user/${userId}/cars`, function (cars) {
-            handleCustomerCars(cars);
-        }).fail(() => {
-            toastr.error('فشل في جلب سيارات العميل');
-        });
-    }
-
-    function handleCustomerCars(cars = []) {
-    const container = $('#existingCarsContainer');
-    let html = `<label class="mb-3 font-weight-bold d-block">اختر سيارة:</label>`;
-    html += `<div class="row">`;
-
-    if (cars.length > 0) {
-        cars.forEach((car) => {
-            html += `
-                <div class="col-md-6 mb-3">
-                    <div class="card car-card car-select-option shadow-sm border" data-id="${car.id}">
-                        <input type="radio" name="car_id" id="car_${car.id}" value="${car.id}" class="d-none">
-                        <div class="p-3 d-flex align-items-center cursor-pointer">
-                            <div class="car-icon rounded-circle d-flex align-items-center justify-content-center mr-3">
-                                <i class="fas fa-car"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-1">${car.Plate_number || 'لوحة غير متوفرة'}</h6>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-
-        html += `</div>`;
-        container.html(html).show();
-    } else {
-        container.html('<div class="alert alert-warning">لا توجد سيارات مسجلة لهذا العميل.</div>').show();
-    }
-}
-
-
-
-
-
-// زر الانتقال إلى الخطوة 3 بعد اختيار السيارة
-$(document).on('click', '#goToStep3', function () {
-    const selectedCar = $('input[name="car_id"]:checked').val();
-
-    if (!selectedCar) {
-        toastr.warning('يرجى اختيار سيارة أولاً');
-        return;
-    }
-
-    // حفظ قيمة car_id داخل الحقل المخفي في فورم الطلب
-    $('input[name="car_id"]').val(selectedCar);
-
-    // الانتقال للخطوة 3
-    $('#stepperTabs .nav-link').eq(2).tab('show');
-});
-
-
-// عند تغيير المشروع، نحمل الفروع
-$('#client_project_id').on('change', function () {
-    const projectId = $(this).val();
-    $('#branch_id').html('<option value="">جارٍ التحميل...</option>');
-    $('#floor_id').html('<option value="">اختر الفرع أولاً</option>');
-
-    if (projectId) {
-        $.get(`/admin/get-project-branches/${projectId}`, function (branches) {
-            let branchOptions = '<option value="">{{ __("dash.choose") }}</option>';
-            $.each(branches, function (i, branch) {
-                branchOptions += `<option value="${branch.id}">${branch.name_ar}</option>`;
-            });
-            $('#branch_id').html(branchOptions);
-        }).fail(() => {
-            toastr.error('فشل في تحميل الفروع');
-            $('#branch_id').html('<option value="">فشل في التحميل</option>');
-        });
-    }
-});
-
-// عند تغيير الفرع، نحمل الطوابق
-$('#branch_id').on('change', function () {
-    const branchId = $(this).val();
-    $('#floor_id').html('<option>جارٍ التحميل...</option>');
-
-    if (branchId) {
-        $.get(`/admin/get-branch-floors/${branchId}`, function (floors) {
-            let floorOptions = '<option value="">{{ __("dash.choose") }}</option>';
-            $.each(floors, function (i, floor) {
-                floorOptions += `<option value="${floor.id}">${floor.name_ar}</option>`;
-            });
-            $('#floor_id').html(floorOptions);
-        }).fail(() => {
-            toastr.error('فشل في تحميل الطوابق');
-            $('#floor_id').html('<option>فشل في التحميل</option>');
-        });
-    }
-});
-
-
-// عند تغيير المشروع أو الخدمة، جلب السعر
-function fetchServicePrice() {
-    const projectId = $('#client_project_id').val();
-    const serviceId = $('#serviceSelect').val();
-
-    console.log("Sending to backend:", { projectId, serviceId });
-
-   
-    if (projectId && serviceId) {
-        $.ajax({
-            url: '{{ route('dashboard.get.service.price') }}',
-            method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                client_project_id: projectId,
-                service_id: serviceId
-            },
-            success: function (res) {
-                debugger;
-
-                console.log("Response:", res);
-                if (res.price !== undefined && res.price !== null) {
-                    $('#servicePriceInput').val(res.price);
-                } else {
-                    $('#servicePriceInput').val('');
-                }
-            },
-            error: function (xhr) {
-                debugger;
-
-                console.error("Error:", xhr.responseText);
-                toastr.error('فشل في جلب سعر الخدمة');
-                $('#servicePriceInput').val('');
-            }
-        });
-    } else {
-        $('#servicePriceInput').val('');
-    }
-}
-
-// Always fetch price when service or project changes
-$('#client_project_id, #serviceSelect').on('change', fetchServicePrice);
-
-$('#createModal').on('shown.bs.modal', function () {
-    fetchServicePrice();
-});
-
-
-// ربط تغيير المشروع أو الخدمة بالكود أعلاه
-$('#client_project_id, #serviceSelect').on('change', fetchServicePrice);
-
-// جلب السعر عند فتح المودال أيضاً
-$('#createModal').on('shown.bs.modal', function () {
-    fetchServicePrice();
-});
-
-
-$('#createModal').on('shown.bs.modal', function () {
-    $('.modal-backdrop:not(:first)').remove();
-});
-
-$(document).on('change', 'input[name="car_id"]', function () {
-    $('.car-option').removeClass('active');
-    $(this).closest('.car-option').addClass('active');
-});
-
-$(document).on('click', '.car-select-option', function () {
-    const selectedCard = $(this);
-    const input = selectedCard.find('input[type="radio"]');
-
-    $('input[name="car_id"]').prop('checked', false);
-    $('.car-select-option').removeClass('selected');
-
-    input.prop('checked', true);
-    selectedCard.addClass('selected');
-});
-    // السكريبتات الأخرى هنا...
-
-    $(document).ready(function () {
-        $('#applyCouponBtn').on('click', function () {
-            const code = $('#couponCodeInput').val().trim();
-            const serviceId = $('#serviceSelect').val();
-            const userId = $('#order_user_id').val();
-            const originalPrice = parseFloat($('#servicePriceInput').val());
-
-            if (!code) {
-                toastr.warning('يرجى إدخال كود الخصم');
-                return;
-            }
-
-            if (!serviceId || !userId || isNaN(originalPrice)) {
-                toastr.warning('يرجى تحديد الخدمة أولاً');
-                return;
-            }
-
-            $.ajax({
-                url: applyCouponUrl,
-                method: 'POST',
-                data: {
-                    _token: csrfToken,
-                    code: code,
-                    user_id: userId,
-                    service_id: serviceId,
-                    price: originalPrice
-                },
-                success: function (res) {
-                    $('#servicePriceInput').val(res.sub_total);
-                    toastr.success(res.message || 'تم تطبيق الخصم بنجاح');
-                },
-                error: function (xhr) {
-                    let message = 'فشل في تطبيق الكوبون';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        message = xhr.responseJSON.message;
-                    }
-                    toastr.error(message);
-                }
-            });
-        });
-    });
-</script>
-<Style>
+<style>
     .modal-backdrop {
         opacity: 0.3 !important;
         z-index: 1030 !important;
@@ -351,6 +57,267 @@ $(document).on('click', '.car-select-option', function () {
     .cursor-pointer {
         cursor: pointer;
     }
-</Style>
 
+    /* Enhance phone input and button */
+    #phoneSearchSection .input-group {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        background-color: #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    #phoneSearchSection .input-group-text {
+        background-color: #f1f1f1;
+        font-weight: bold;
+        border: none;
+        color: #333;
+    }
+
+    #phoneSearchSection input#phoneInput {
+        border: none;
+        padding: 10px 12px;
+        font-size: 15px;
+        box-shadow: none;
+    }
+
+    #phoneSearchSection .btn-outline-primary {
+        border: none;
+        background-color: #007bff;
+        color: white !important;
+        transition: all 0.2s ease-in-out;
+        font-weight: 600;
+        padding: 8px 20px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    #phoneSearchSection .btn-outline-primary:hover {
+        background-color: #0056b3;
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+        transform: translateY(-1px);
+    }
+</style>
+@push('script')
+<script>
+    const storeCustomerUrl = "{{ route('dashboard.core.customer.store') }}";
+    const checkCustomerUrl = "{{ route('dashboard.customer.check') }}";
+    const applyCouponUrl = "{{ route('dashboard.orders.applyCoupon') }}";
+    const csrfToken = "{{ csrf_token() }}";
+    let createdUserId = null;
+
+    $(document).ready(function () {
+        // Check phone and fetch customer
+        $('#checkPhoneBtn').on('click', function () {
+            const phone = $('#phoneInput').val().trim();
+            if (!/^5\d{8}$/.test(phone)) {
+                toastr.warning("يرجى إدخال رقم صحيح يبدأ بـ 5 ويتكون من 9 أرقام");
+                return;
+            }
+
+            const fullPhone = '966' + phone;
+
+            $.post(checkCustomerUrl, { _token: csrfToken, phone: fullPhone }, function (res) {
+                if (res.exists) {
+                    createdUserId = res.user_id;
+                    $('#car_user_id, #order_user_id').val(createdUserId);
+                    $('#stepperTabs .nav-link').eq(1).tab('show');
+                    toastr.success('العميل موجود، تم الانتقال للخطوة التالية');
+                    fetchCustomerCars(createdUserId);
+                } else {
+                    $('input[name="phone"]').val(fullPhone);
+                    $('#phoneSearchSection').hide();
+                    $('#customerFields').fadeIn().css('display', 'block');
+                    $('#saveCustomer').fadeIn().css('display', 'inline-block');
+                    toastr.info('العميل غير موجود، يرجى إكمال البيانات');
+                }
+            }).fail(() => {
+                toastr.error("فشل في التحقق من العميل");
+            });
+        });
+
+        // Save new customer
+        $('#saveCustomer').on('click', function () {
+            const $btn = $(this);
+            $btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm"></span> جاري الحفظ...');
+
+            $.post(storeCustomerUrl, $('#createCustomerForm').serialize())
+                .done(function (res) {
+                    createdUserId = res.user_id;
+                    $('#car_user_id, #order_user_id').val(createdUserId);
+                    $('#stepperTabs .nav-link').eq(1).tab('show');
+                    fetchCustomerCars(createdUserId);
+                    toastr.success(res.message || 'تم حفظ العميل بنجاح');
+                })
+                .fail(function (xhr) {
+                    const messages = xhr.responseJSON?.errors
+                        ? Object.values(xhr.responseJSON.errors).map(msg => msg[0])
+                        : ['حدث خطأ أثناء حفظ العميل'];
+                    toastr.error(messages.join('<br>'));
+                })
+                .always(() => {
+                    $btn.prop("disabled", false).html("التالي");
+                });
+        });
+
+        // Apply coupon
+        $('#applyCouponBtn').on('click', function () {
+            const code = $('#couponCodeInput').val().trim();
+            const serviceId = $('#serviceSelect').val();
+            const userId = $('#order_user_id').val();
+            const originalPrice = parseFloat($('#servicePriceInput').val());
+
+            if (!code) return toastr.warning('يرجى إدخال كود الخصم');
+            if (!serviceId || !userId || isNaN(originalPrice)) return toastr.warning('يرجى تحديد الخدمة أولاً');
+
+            $.post(applyCouponUrl, {
+                _token: csrfToken, code, user_id: userId, service_id: serviceId, price: originalPrice
+            }, function (res) {
+                $('#servicePriceInput').val(res.sub_total);
+                toastr.success(res.message || 'تم تطبيق الخصم بنجاح');
+            }).fail(function (xhr) {
+                const message = xhr.responseJSON?.message || 'فشل في تطبيق الكوبون';
+                toastr.error(message);
+            });
+        });
+
+        // Move to step 3 after selecting car
+        $(document).on('click', '#goToStep3', function () {
+            const selectedCar = $('input[name="car_id"]:checked').val();
+            if (!selectedCar) return toastr.warning('يرجى اختيار سيارة أولاً');
+            $('input[name="car_id"]').val(selectedCar);
+            $('#stepperTabs .nav-link').eq(2).tab('show');
+        });
+
+        // Fetch branches by project
+        $('#client_project_id').on('change', function () {
+            const projectId = $(this).val();
+            $('#branch_id').html('<option value="">جارٍ التحميل...</option>');
+            $('#floor_id').html('<option value="">اختر الفرع أولاً</option>');
+
+            if (projectId) {
+                $.get(`/admin/get-project-branches/${projectId}`, function (branches) {
+                    let options = '<option value="">{{ __("dash.choose") }}</option>';
+                    branches.forEach(branch => {
+                        options += `<option value="${branch.id}">${branch.name_ar}</option>`;
+                    });
+                    $('#branch_id').html(options);
+                }).fail(() => {
+                    toastr.error('فشل في تحميل الفروع');
+                    $('#branch_id').html('<option value="">فشل في التحميل</option>');
+                });
+            }
+        });
+
+        // Fetch floors by branch
+        $('#branch_id').on('change', function () {
+            const branchId = $(this).val();
+            $('#floor_id').html('<option>جارٍ التحميل...</option>');
+
+            if (branchId) {
+                $.get(`/admin/get-branch-floors/${branchId}`, function (floors) {
+                    let options = '<option value="">{{ __("dash.choose") }}</option>';
+                    floors.forEach(floor => {
+                        options += `<option value="${floor.id}">${floor.name_ar}</option>`;
+                    });
+                    $('#floor_id').html(options);
+                }).fail(() => {
+                    toastr.error('فشل في تحميل الطوابق');
+                    $('#floor_id').html('<option>فشل في التحميل</option>');
+                });
+            }
+        });
+
+        // Fetch service price
+        $('#client_project_id, #serviceSelect').on('change', fetchServicePrice);
+        $('#createModal').on('shown.bs.modal', function () {
+            fetchServicePrice();
+            $('.modal-backdrop:not(:first)').remove();
+        });
+    });
+
+    function fetchServicePrice() {
+        const projectId = $('#client_project_id').val();
+        const serviceId = $('#serviceSelect').val();
+
+        if (projectId && serviceId) {
+            $.post('{{ route('dashboard.get.service.price') }}', {
+                _token: csrfToken,
+                client_project_id: projectId,
+                service_id: serviceId
+            }, function (res) {
+                $('#servicePriceInput').val(res.price ?? '');
+            }).fail(function () {
+                toastr.error('فشل في جلب سعر الخدمة');
+                $('#servicePriceInput').val('');
+            });
+        } else {
+            $('#servicePriceInput').val('');
+        }
+    }
+
+    function fetchCustomerCars(userId) {
+        $.get(`/admin/user/${userId}/cars`, function (cars) {
+            if (cars.length > 0) {
+                renderUserCars(cars);
+            } else {
+                showCreateCarOption();
+            }
+        }).fail(() => {
+            toastr.error("فشل في جلب سيارات العميل");
+        });
+    }
+
+    function renderUserCars(cars) {
+        let html = `<label class="mb-2 font-weight-bold d-block">اختر سيارة:</label>`;
+           cars.forEach((car) => {
+            html += `
+             
+                <div class="col-md-6 mb-3">
+                    <div class="card car-card car-select-option shadow-sm border" data-id="${car.id}">
+                        <input type="radio" name="car_id" id="car_${car.id}" value="${car.id}" class="d-none">
+                        <div class="p-3 d-flex align-items-center cursor-pointer">
+                            <div class="car-icon rounded-circle d-flex align-items-center justify-content-center mr-3">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">${car.Plate_number || 'لوحة غير متوفرة'}</h6>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `
+            ;
+        });
+
+        $("#existingCarsContainer").html(html).show();
+        $("#createCarSection").hide();
+
+        $('input[name="car_id"]').on("change", function () {
+            $(".car-radio-wrapper").removeClass("bg-selected");
+            $(this).closest(".car-radio-wrapper").addClass("bg-selected");
+        });
+    }
+
+    function showCreateCarOption() {
+        $("#existingCarsContainer").html(
+            '<div class="alert alert-warning">لا توجد سيارات مسجلة لهذا العميل.</div>'
+        ).show();
+        $("#createCarSection").show();
+    }
+
+    // Visual selection for car cards
+    $(document).on('click', '.car-select-option', function () {
+        const selectedCard = $(this);
+        const input = selectedCard.find('input[type="radio"]');
+        $('input[name="car_id"]').prop('checked', false);
+        $('.car-select-option').removeClass('selected');
+        input.prop('checked', true);
+        selectedCard.addClass('selected');
+    });
+</script>
 @endpush

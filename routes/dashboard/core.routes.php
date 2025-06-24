@@ -1,6 +1,7 @@
 <?php
 
-use App\Http\Controllers\Dashboard\Reports\CustomerReportsController;
+use App\Http\Controllers\Dashboard\Core\SupplierController;
+use Illuminate\Support\Facades\Route;
 
 route_group('core', function () {
 
@@ -59,8 +60,6 @@ route_group('core', function () {
 
     Route::get('customer/change_status', 'CustomerController@change_status')->name('customer.change_status');
     Route::resource('customer', 'CustomerController');
-
-
 
     Route::get('customers/orders', 'CustomerController@withOrders')->name('customer.orders');
 

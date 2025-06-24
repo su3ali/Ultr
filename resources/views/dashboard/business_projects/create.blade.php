@@ -43,42 +43,37 @@
                     {{-- Admin Data Card --}}
                     <div class="card border rounded shadow-sm mb-4">
                         <div class="card-header bg-light">
-                            <strong>بيانات مدير المشروع</strong>
+                            <h4>{{ __('dash.admin_data') }}</h4>
                         </div>
                         <div class="card-body">
 
                             <div class="form-row mb-3">
                                 <div class="form-group col-md-6 text-right">
-                                    <label for="admin_first_name">الاسم الأول</label>
                                     <input type="text" name="admin_first_name" id="admin_first_name"
-                                        class="form-control" placeholder="الاسم الأول" required>
+                                        class="form-control" placeholder="{{ __('dash.first_name') }}" required>
                                 </div>
 
                                 <div class="form-group col-md-6 text-right">
-                                    <label for="admin_last_name">الاسم الآخر</label>
                                     <input type="text" name="admin_last_name" id="admin_last_name" class="form-control"
-                                        placeholder="الاسم الآخر" required>
+                                        placeholder="{{ __('dash.last_name') }}" required>
                                 </div>
                             </div>
 
                             <div class="form-row mb-3">
                                 <div class="form-group col-md-6 text-right">
-                                    <label for="admin_phone">الهاتف</label>
                                     <input type="text" name="admin_phone" id="admin_phone" class="form-control"
-                                        placeholder="الهاتف">
+                                        placeholder="{{ __('dash.phone') }}">
                                 </div>
 
                                 <div class="form-group col-md-6 text-right">
-                                    <label for="admin_email">عنوان البريد الإلكتروني</label>
                                     <input type="email" name="admin_email" id="admin_email" class="form-control"
-                                        placeholder="عنوان البريد الإلكتروني" required>
+                                        placeholder="{{ __('dash.email') }}" required>
                                 </div>
                             </div>
 
                             <div class="form-row mb-3">
                                 {{-- كلمة المرور --}}
                                 <div class="form-group col-md-6 text-right position-relative">
-                                    <label for="admin_password">كلمة المرور</label>
                                     <input type="password" name="admin_password" id="admin_password"
                                         class="form-control" placeholder="كلمة المرور" required>
                                     <span toggle="#admin_password"
@@ -87,7 +82,6 @@
 
                                 {{-- إعادة تأكيد كلمة المرور --}}
                                 <div class="form-group col-md-6 text-right position-relative">
-                                    <label for="admin_password_confirmation">إعادة تأكيد كلمة المرور</label>
                                     <input type="password" name="admin_password_confirmation"
                                         id="admin_password_confirmation" class="form-control"
                                         placeholder="إعادة تأكيد كلمة المرور" required>
@@ -116,15 +110,13 @@
 <style>
     .field-icon {
         position: absolute;
-        top: 50%;
+        top: 70%;
         left: 15px;
         transform: translateY(-50%);
         cursor: pointer;
         color: #888;
         z-index: 2;
     }
-</style>
-
 </style>
 
 @push('script')

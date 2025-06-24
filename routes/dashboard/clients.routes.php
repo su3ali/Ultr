@@ -6,6 +6,8 @@ use App\Http\Controllers\Dashboard\Client\Auth\PasswordResetLinkController;
 
 Route::prefix('client')->name('client.')->group(function () {
 
+
+    
     // Guests only
     Route::middleware('guest:client_admin')->group(function () {
         Route::get('/login', [AuthenticatedSessionController::class, 'loginForm'])->name('login');

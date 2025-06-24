@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Dashboard\BusinessProject;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Models\BookingSetting;
 use App\Models\BusinessOrder;
 use App\Models\BusinessOrderStatus;
 use App\Models\BusinessOrderTechnicianHistory;
@@ -19,6 +20,8 @@ use App\Models\Service;
 use App\Models\Technician;
 use App\Models\User;
 use App\Notifications\SendPushNotification;
+use App\Traits\NotificationTrait;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
@@ -26,6 +29,9 @@ use Yajra\DataTables\DataTables;
 
 class BusinessOrderController extends Controller
 {
+
+    use NotificationTrait;
+
     public function index()
     {
         // ====== Always prepare status list at the beginning ======
@@ -120,7 +126,7 @@ class BusinessOrderController extends Controller
         $cars            = CarClient::all();
         $users           = User::select('id', 'first_name', 'last_name')->limit(100)->get(); // or paginate or via AJAX
         $categories      = Category::select('id', 'title_ar', 'title_en')->get();
-        $services        = Service::select('id', 'title_ar','title_en')->get();
+        $services        = Service::select('id', 'title_ar', 'title_en')->get();
         $groups          = Group::select('id', 'name_ar', 'name_en')->get();
         $paymentMethods  = Cache::remember('active_payment_methods', 60, fn() => PaymentMethod::where('active', 1)->get());
         $reasons         = ReasonCancel::all();
@@ -141,7 +147,7 @@ class BusinessOrderController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'user_id'           => 'required|exists:users,id',
             'car_id'            => 'nullable|exists:car_clients,id',
             'service_id'        => 'required|exists:services,id',
@@ -156,79 +162,97 @@ class BusinessOrderController extends Controller
             'floor_id'          => 'required|exists:client_project_branch_floors,id',
         ]);
 
-        $data                = $request->except('_token', 'price');
-        $data['category_id'] = 7;
-        $data['status_id']   = BusinessOrder::STATUS_PENDING;
-        $data['sub_total']   = $request->price;
-        $data['total']       = $request->price;
+        $validated['category_id'] = 7;
+        $validated['status_id']   = BusinessOrder::STATUS_PENDING;
+        $validated['sub_total']   = $validated['price'];
+        $validated['total']       = $validated['price'];
 
-        $order = BusinessOrder::create($data);
+        unset($validated['price']);
 
-        // First attempt: technician assigned to the same project + branch + floor
-        $technician = Technician::business()
-            ->where('client_project_id', $request->client_project_id)
-            ->where('branch_id', $request->branch_id)
-            ->whereHas('floors', fn($q) => $q->where('floor_id', $request->floor_id))
-        // ->withCount(['orderHistories' => function ($q) use ($request) {
-        //     $q->whereHas('order', fn($oq) =>
-        //         $oq->where('client_project_id', $request->client_project_id)
-        //             ->where('branch_id', $request->branch_id)
-        //             ->where('floor_id', $request->floor_id)
-        //     );
-        // }])
-        // ->orderBy('order_histories_count', 'asc')
-            ->first();
+        $order = BusinessOrder::create($validated);
 
-        // Second attempt: only if no technician was found for the floor — try technician with same project + branch (without floor)
-        if (! $technician) {
-            $technician = Technician::business()
-                ->where('client_project_id', $request->client_project_id)
-                ->where('branch_id', $request->branch_id)
-                ->withCount(['orderHistories' => function ($q) use ($request) {
-                    $q->whereHas('order', fn($oq) =>
-                        $oq->where('client_project_id', $request->client_project_id)
-                            ->where('branch_id', $request->branch_id)
-                    );
-                }])
-                ->orderBy('order_histories_count', 'asc')
-                ->first();
-        }
+        $setting = BookingSetting::first();
+
+        $duration = $setting->service_duration;
+
+        // Try to assign technician (by floor > fallback to branch)
+        $technician = $this->findAvailableTechnician($request);
 
         if ($technician) {
-            $order->assign_to_id = $technician->group_id;
-            $order->save();
+            $order->update(['assign_to_id' => $technician->group_id]);
+
+            $existingOrders = BusinessOrderTechnicianHistory::where('group_id', $technician->group_id)
+                ->whereHas('order', function ($q) {
+                    $q->whereNotIn('status_id', [BusinessOrder::STATUS_COMPLETED, BusinessOrder::STATUS_CANCELED]);
+                })
+                ->orderByDesc('end_time')
+                ->first();
+
+            $startTime = $existingOrders && $existingOrders->end_time
+            ? Carbon::parse($existingOrders->end_time)
+            : Carbon::now();
+
+            $endTime = $startTime->copy()->addMinutes($duration ?? 45);
 
             BusinessOrderTechnicianHistory::create([
                 'order_id'      => $order->id,
                 'technician_id' => $technician->id,
                 'group_id'      => $technician->group_id,
+                'start_time'    => $startTime,
+                'end_time'      => $endTime,
             ]);
 
-            // Send notification to the technician
-            if (filled($technician->fcm_token)) {
-                $title   = __('api.new_appointment');
-                $message = __('api.you_have_new_visit_appointment') . ' ' . $order->id;
-
-                Notification::send($technician, new SendPushNotification($title, $message));
-
-                // FCM + Admins
-                $adminTokens = Admin::whereNotNull('fcm_token')->pluck('fcm_token')->toArray();
-                $fcmTokens   = array_filter(array_unique(array_merge([$technician->fcm_token], $adminTokens)));
-
-                if (! empty($fcmTokens)) {
-                    $this->pushNotification([
-                        'device_token' => $fcmTokens,
-                        'title'        => $title,
-                        'message'      => $message,
-                        'type'         => 'technician',
-                        'code'         => 1,
-                    ]);
-                }
-            }
+            $this->notifyTechnicianAndAdmins($technician, $order);
         }
 
-        session()->flash('success', __('dash.created_successfully'));
-        return redirect()->back();
+        return redirect()->back()->with('success', __('dash.created_successfully'));
+    }
+
+    protected function findAvailableTechnician(Request $request)
+    {
+        // Priority 1: Match floor
+        $technician = Technician::business()
+            ->where('client_project_id', $request->client_project_id)
+            ->where('branch_id', $request->branch_id)
+            ->whereHas('floors', fn($q) => $q->where('floor_id', $request->floor_id))
+            ->first();
+
+        if ($technician) {
+            return $technician;
+        }
+
+        // Priority 2: Match branch (fallback)
+        return Technician::business()
+            ->where('client_project_id', $request->client_project_id)
+            ->where('branch_id', $request->branch_id)
+            ->withCount(['orderHistories' => function ($q) use ($request) {
+                $q->whereHas('order', fn($oq) =>
+                    $oq->where('client_project_id', $request->client_project_id)
+                        ->where('branch_id', $request->branch_id)
+                );
+            }])
+            ->orderBy('order_histories_count', 'asc')
+            ->first();
+    }
+    protected function notifyTechnicianAndAdmins(Technician $technician, BusinessOrder $order)
+    {
+        $title   = __('api.new_appointment');
+        $message = __('api.you_have_new_visit_appointment') . ' ' . $order->id;
+
+        Notification::send($technician, new SendPushNotification($title, $message));
+
+        $adminTokens = Admin::whereNotNull('fcm_token')->pluck('fcm_token')->toArray();
+        $fcmTokens   = array_filter(array_unique(array_merge([$technician->fcm_token], $adminTokens)));
+
+        if (! empty($fcmTokens)) {
+            $this->pushNotification([
+                'device_token' => $fcmTokens,
+                'title'        => $title,
+                'message'      => $message,
+                'type'         => 'technician',
+                'code'         => 1,
+            ]);
+        }
     }
 
     public function update(Request $request, $id)

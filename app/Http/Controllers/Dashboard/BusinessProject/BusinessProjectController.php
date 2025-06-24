@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Dashboard\BusinessProject;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\BusinessProject\ClientProject;
 use App\Models\BusinessProject\ClientProjectBranch;
 use App\Models\ClientProjectServicePrice;
@@ -9,6 +10,8 @@ use App\Models\Service;
 use App\Traits\imageTrait;
 use Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
 
 class BusinessProjectController extends Controller
@@ -86,26 +89,61 @@ class BusinessProjectController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
 
-        $user = Auth::user();
-
-        $request->validate([
-            'name_ar'     => 'required|string|max:255',
-            'name_en'     => 'required|string|max:255',
-            'description' => 'nullable|string',
+        $validated = $request->validate([
+            'name_ar'          => ['required', 'string', 'max:255'],
+            'name_en'          => ['required', 'string', 'max:255'],
+            'description'      => ['nullable', 'string'],
+            'admin_first_name' => ['required', 'string', 'max:100'],
+            'admin_last_name'  => ['required', 'string', 'max:100'],
+            'admin_phone'      => ['nullable', 'numeric', 'unique:admins,phone'],
+            'admin_email'      => ['required', 'email', 'unique:admins,email'],
+            'admin_password'   => ['required', 'confirmed', 'min:6'],
         ]);
 
-        ClientProject::create([
-            'name_ar'     => $request->name_ar,
-            'name_en'     => $request->name_en,
-            'description' => $request->description ?? null,
-            'code'        => $request->code ?? null,
-            'active'      => true,
-            'created_by'  => $user->id,
-            'updated_by'  => $user->id,
-        ]);
+        DB::beginTransaction();
 
-        return redirect()->route('dashboard.business_projects.index')->with('success', 'تم إنشاء المشروع بنجاح.');
+        try {
+            $project = ClientProject::create([
+                'name_ar'     => $validated['name_ar'],
+                'name_en'     => $validated['name_en'],
+                'description' => $validated['description'] ?? null,
+                'code'        => $request->code ?? null,
+                'active'      => true,
+                'created_by'  => $user->id,
+                'updated_by'  => $user->id,
+            ]);
+
+            Admin::create([
+                'first_name'        => $validated['admin_first_name'],
+                'last_name'         => $validated['admin_last_name'],
+                'phone'             => $validated['admin_phone'] ?? null,
+                'email'             => $validated['admin_email'],
+                'password'          => bcrypt($validated['admin_password']),
+                'type'              => 'client_admin',
+                'client_project_id' => $project->id,
+                'active'            => true,
+                'created_by'        => $user->id,
+                'updated_by'        => $user->id,
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('dashboard.business_projects.index')
+                ->with('success', 'تم إنشاء المشروع بنجاح.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error('Project creation failed', [
+                'error'   => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
+
+            return back()->withErrors('حدث خطأ أثناء إنشاء المشروع. الرجاء المحاولة مرة أخرى.');
+        }
     }
 
     public function showBranchesAndFloors($projectId)

@@ -627,6 +627,8 @@ class CheckoutController extends Controller
                     })
                     ->whereIn('id', $techIdsOnThisDay);
 
+                // dd($group->get());
+
                 if ($group->get()->isEmpty()) {
                     DB::rollback();
                     return self::apiResponse(400, __('api.There is a category for which there are currently no technical groups available'), $this->body);
@@ -670,6 +672,8 @@ class CheckoutController extends Controller
                 }
 
             }
+
+            // dd($takenGroupsIds);
 
             $bookingInsert = Booking::query()->create([
                 'booking_no'        => $booking_no,
