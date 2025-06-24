@@ -9,6 +9,8 @@
             <th>{{ __('dash.price') }}</th>
             <th>{{ __('dash.technician') }}</th>
             <th>{{ __('dash.payment_method') }}</th>
+            <th>{{ __('dash.client') }}</th>
+            <th>{{ __('dash.branch') }}</th>
             <th>{{ __('dash.status') }}</th>
             <th>{{ __('dash.date') }}</th>
             <th class="no-content">{{ __('dash.actions') }}</th>

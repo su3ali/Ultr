@@ -34,6 +34,7 @@ class BusinessOrderController extends Controller
 
     public function index()
     {
+
         // ====== Always prepare status list at the beginning ======
         $statusesModel = Cache::remember('business_order_statuses', 60, function () {
             return BusinessOrderStatus::select('id', 'name_ar', 'name_en')->get();
@@ -41,7 +42,7 @@ class BusinessOrderController extends Controller
 
         if (request()->ajax()) {
             $orders = BusinessOrder::with([
-                'user', 'category', 'service', 'group', 'car', 'paymentMethod', 'status',
+                'user', 'category', 'service', 'group', 'car', 'paymentMethod', 'status', 'project', 'branch', 'floor',
             ])->orderBy('id', 'desc');
 
             // ==========  Date Filter ==========
@@ -63,6 +64,15 @@ class BusinessOrderController extends Controller
                 $orders->where('payment_method_id', request('payment_method'));
             }
 
+            // ==========   Clients Projects  filter ==========
+            if (request()->filled('client_project_id') && request('client_project_id') !== 'all') {
+                $orders->where('client_project_id', request('client_project_id'));
+            }
+            // ==========   Branches  filter ==========
+            if (request()->filled('branch_id') && request('branch_id') !== 'all') {
+                $orders->where('branch_id', request('branch_id'));
+            }
+
             return DataTables::of($orders)
                 ->addColumn('user', fn($row) => $row->user?->first_name . ' ' . $row->user?->last_name)
                 ->addColumn('phone', fn($row) => $row->user?->phone ?? '-')
@@ -71,6 +81,22 @@ class BusinessOrderController extends Controller
                 ->addColumn('total', fn($row) => number_format($row->total, 2))
                 ->addColumn('group', fn($row) => $row->group?->name_ar ?? '-')
                 ->addColumn('payment_method', fn($row) => $row->paymentMethod?->name ?? '-')
+
+                ->addColumn('client_project', function ($row) {
+                    $locale = app()->getLocale();
+                    if ($row->project) {
+                        return $locale === 'ar' ? ($row->project->name_ar ?? '-') : ($row->project->name_en ?? '-');
+                    }
+                    return '-';
+                })
+
+                ->addColumn('client_project_branch', function ($row) {
+                    $locale = app()->getLocale();
+                    if ($row->branch) {
+                        return $locale === 'ar' ? ($row->branch->name_ar ?? '-') : ($row->branch->name_en ?? '-');
+                    }
+                    return '-';
+                })
 
                 ->addColumn('status', function ($row) {
                     $currentStatus = $row->status?->name ?? '-';

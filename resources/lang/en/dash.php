@@ -1182,5 +1182,9 @@ return [
     'no_team_available'                     => 'No team available at this time',
     'no_team_available_at_time'             => 'No team is available at the selected time',
     'admin_data'                            => 'Admin Data',
+    'clients_projects'                      => 'Clients Projects',
+    'client_project'                        => 'Client Project',
+    'branches'                              => 'Branches',
+    'floors'                                => 'Floors',
 
 ];

@@ -1119,5 +1119,9 @@ return [
     'no_team_available'                        => 'لا يوجد فريق متاح لهذا الوقت',
     'no_team_available_at_time'                => 'لا يوجد فريق متاح في الوقت المحدد',
     'admin_data'                               => 'بيانات المدير',
+    'clients_projects'                         => 'مشاريع العملاء',
+    'client_project'                           => 'مشروع العميل',
+    'branches'                                 => 'الفروع',
+    'floors'                                   => 'الطوابق',
 
 ];
