@@ -95,6 +95,7 @@ class ReportsController extends Controller
                     )->implode(' ')
                 )
                 ->addColumn('service_number', fn($row) => $row->services->count())
+                ->addColumn('quantity', fn($row) => $row?->orderServices?->sum('quantity') ?? 'N/A')
                 ->addColumn('price', fn($row) => number_format(($row->total / 115 * 100), 2))
                 ->addColumn('payment_method', fn($row) => match ($row->transaction?->payment_method ?? '') {
                     'cache', 'cash' => __('api.payment_method_cach'),
@@ -105,7 +106,7 @@ class ReportsController extends Controller
                 ->addColumn('total', fn($row) => $row->total)
                 ->addColumn('region', fn($row) => optional($row->userAddress?->region)->title ?? '')
                 ->rawColumns([
-                    'booking_id', 'tech_name', 'user_name', 'created_at', 'service', 'service_number',
+                    'booking_id', 'tech_name', 'user_name', 'created_at', 'service', 'service_number', 'quantity',
                     'price', 'payment_method', 'total', 'region',
                 ])
                 ->make(true);
@@ -462,5 +463,4 @@ class ReportsController extends Controller
         return view('dashboard.reports.services');
     }
 
-    
 }

@@ -1124,4 +1124,6 @@ return [
     'branches'                                 => 'الفروع',
     'floors'                                   => 'الطوابق',
 
+    'technician_image'                         => ' صورة الفني',
+
 ];

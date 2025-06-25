@@ -25,6 +25,7 @@ class VisitsController extends Controller
 
     protected function index(Request $request)
     {
+       
 
         // Get the region IDs the user has access to
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
@@ -108,12 +109,6 @@ class VisitsController extends Controller
             $visit = Visit::query()->whereHas('booking.address', function ($query) use ($regionIds) {
                 $query->whereIn('region_id', $regionIds);
             });
-
-            // $now = Carbon::now('Asia/Riyadh')->toDateString();
-
-            // $visit->whereHas('booking', function ($qu) use ($now) {
-            //     $qu->whereDate('date', '=', $now);
-            // });
 
             $now       = Carbon::now('Asia/Riyadh')->toDateString();
             $tomorrow  = Carbon::tomorrow('Asia/Riyadh')->toDateString();

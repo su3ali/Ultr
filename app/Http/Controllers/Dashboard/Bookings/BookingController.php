@@ -240,7 +240,7 @@ class BookingController extends Controller
                         : ($row->visit?->status?->name_en ?? ''),
                         'new'            => $row->visit?->status?->name_ar ?? 'N/A',
                         'date'           => $row->date ?? 'N/A',
-                        'quantity'       => $row->quantity ?? 'N/A',
+                        'quantity'       => $row?->order?->orderServices?->sum('quantity') ?? 'N/A',
                         'zone'           => optional($row->order->userAddress?->region)->title ?? '',
                         'total'          => isset($row->visit?->booking?->order?->total) && is_numeric($row->visit->booking->order->total)
                         ? number_format((float) $row->visit->booking->order->total, 2)
@@ -676,7 +676,7 @@ class BookingController extends Controller
 
     public function changeStatus(Request $request)
     {
-       
+
         $request->validate([
             'booking_id' => 'required|exists:bookings,id',
             'status_id'  => 'required|exists:visits_statuses,id',

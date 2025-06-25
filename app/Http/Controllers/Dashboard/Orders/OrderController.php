@@ -130,7 +130,7 @@ class OrderController extends Controller
                         '<button class="btn-sm btn-primary">' . $service->title . '</button>'
                     )->implode(' ');
                 })
-                ->addColumn('quantity', fn($row) => $row->services->sum('pivot.quantity'))
+                ->addColumn('quantity', fn($row) => $row?->orderServices?->sum('quantity'))
                 ->addColumn('total', function ($row) {
                     return number_format($row->total, 2);
                 })

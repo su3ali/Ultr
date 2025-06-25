@@ -1186,5 +1186,6 @@ return [
     'client_project'                        => 'Client Project',
     'branches'                              => 'Branches',
     'floors'                                => 'Floors',
+    'technician_image'                      => ' Technician Image',
 
 ];

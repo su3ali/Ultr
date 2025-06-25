@@ -268,6 +268,9 @@
             // Set form action
             let action = "{{ route('dashboard.core.technician.update', 'id') }}";
             $('#edit_tech_form').attr('action', action.replace('id', id));
+
+loadShiftsForEdit(group_id);
+
 });
 
 
@@ -293,5 +296,14 @@
             });
         });
     });
+
+    function loadShiftsForEdit(groupId) {
+    $('#edit_shift_ids').val(null).trigger('change');
+
+    $.get('/admin/shifts-by-group/' + groupId, function (shiftIds) {
+        $('#edit_shift_ids').val(shiftIds).trigger('change');
+    });
+}
+
 </script>
 @endpush
