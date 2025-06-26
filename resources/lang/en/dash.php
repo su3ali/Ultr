@@ -1187,5 +1187,13 @@ return [
     'branches'                              => 'Branches',
     'floors'                                => 'Floors',
     'technician_image'                      => ' Technician Image',
+    'refund_success'                        => 'The refund was successful',
+    'can_refund_cancled_order'              => 'You can refund the canceled order only',
+    'refund_title'                          => 'Refund Amount',
+    'refund_text'                           => 'Are you sure the next refund will be sent to the customer  wallet?',
+    'refund_confirm'                        => 'Confirm Refund',
+    'order_already_refunded'                => 'This order has already been refunded',
+    'invalid_refund_method'                 => 'Invalid refund method',
+    'order_is_refunded'                     => 'This order has already been refunded and cannot be rescheduled.',
 
 ];

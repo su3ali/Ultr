@@ -211,6 +211,51 @@
         color: white;
         transition: all 0.3s ease-in-out;
     }
+
+    .dropdown-menu {
+        min-width: 220px;
+        border-radius: 0.5rem;
+        padding: 0.25rem 0;
+        font-size: 14px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        border: none;
+    }
+
+    .dropdown-menu .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 16px;
+        color: #2c3e50;
+        font-weight: 700;
+        transition: background-color 0.2s ease;
+    }
+
+    .dropdown-menu .dropdown-item i {
+        min-width: 18px;
+        text-align: center;
+    }
+
+    .dropdown-menu .dropdown-item:hover {
+        background-color: #f0f4f7;
+        color: #0c63e4;
+    }
+
+    .dropdown-toggle::after {
+        margin-right: 8px;
+    }
+
+    .btn.dropdown-toggle {
+        background-color: #4a8df6;
+        border-color: #4a8df6;
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .btn.dropdown-toggle:hover {
+        background-color: #3a7ee2;
+        border-color: #3a7ee2;
+    }
 </style>
 
 @endpush
@@ -322,6 +367,7 @@ $type = 'package';
 @include('dashboard.bookings.partial.add_group')
 @include('dashboard.bookings.partial.couponModal')
 @include('dashboard.bookings.partial.change_status')
+@include('dashboard.bookings.partial.refundModal')
 
 <div class="modal fade" id="logsModal" tabindex="-1" aria-labelledby="logsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -1091,5 +1137,7 @@ function renderLogCard(log) {
         </li>`;
 }
 
+
+    
 </script>
 @endpush

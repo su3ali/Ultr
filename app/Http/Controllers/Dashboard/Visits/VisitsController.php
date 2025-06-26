@@ -25,7 +25,6 @@ class VisitsController extends Controller
 
     protected function index(Request $request)
     {
-       
 
         // Get the region IDs the user has access to
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();

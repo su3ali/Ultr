@@ -1974,16 +1974,19 @@ $name = 'name_' . app()->getLocale();
                                             </div>
                                         </div>
 
+
+                                        {{-- Refund Booking --}}
+
                                         <div class="card component-card_2 col-md-12 px-0">
                                             <div class="form-group h-50 mb-0 px-3 pt-2"
                                                 style="background-color: #0072ff42;">
                                                 <label
                                                     class="new-control new-checkbox new-checkbox-text checkbox-success">
                                                     <input type="checkbox"
-                                                        class="new-control-input check-all-change_status">
+                                                        class="new-control-input check-all-refund_booking">
                                                     <span class="new-control-indicator"></span><span
-                                                        class="new-chk-content text-primary"><b>تغيير حالة
-                                                            الطلب</b></span>
+                                                        class="new-chk-content text-primary"><b>
+                                                            استعادة مبلغ الحجز </b></span>
                                                 </label>
                                             </div>
                                             <div class="card-body">
@@ -1992,13 +1995,13 @@ $name = 'name_' . app()->getLocale();
                                                         <label
                                                             class="new-control new-checkbox new-checkbox-text checkbox-success">
                                                             <input type="checkbox"
-                                                                name="permissions[{{ $permissions[128]->id }}]"
-                                                                class="new-control-input perm-check perm-check-change_status"
-                                                                {{ isset($model) ? (in_array($permissions[128]->id,
+                                                                name="permissions[{{ $permissions[131]->id }}]"
+                                                                class="new-control-input perm-check perm-check-refund_booking"
+                                                                {{ isset($model) ? (in_array($permissions[131]->id,
                                                             $model->permissions->pluck('id')->toArray()) ? 'checked' :
                                                             '') : '' }}>
                                                             <span class="new-control-indicator"></span><span
-                                                                class="new-chk-content"><b>{{ $permissions[128]->$name
+                                                                class="new-chk-content"><b>{{ $permissions[131]->$name
                                                                     }}</b></span>
                                                         </label>
                                                     </div>
@@ -2511,6 +2514,16 @@ $name = 'name_' . app()->getLocale();
 
         $(".check-all-apply_coupon").click(function() {
             let boxes = $('.perm-check-apply_coupon');
+            boxes.prop('checked', this.checked);
+            let matches = $("input.perm-check:checkbox:not(:checked)");
+            checkViewAll(matches)
+        });
+
+        // refund_booking
+
+
+         $(".check-all-refund_booking").click(function() {
+            let boxes = $('.perm-check-refund_booking');
             boxes.prop('checked', this.checked);
             let matches = $("input.perm-check:checkbox:not(:checked)");
             checkViewAll(matches)

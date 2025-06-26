@@ -26,15 +26,292 @@ use Illuminate\Validation\ValidationException;
 class BookingController extends Controller
 {
 
+    // public function index(Request $request)
+    // {
+
+    //     $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
+
+    //     if (request()->ajax()) {
+
+    //         $date     = \request()->query('date');
+    //         $date2    = \request()->query('date2');
+    //         $bookings = Booking::query()->whereHas('address', function ($query) use ($regionIds) {
+    //             $query->whereIn('region_id', $regionIds);
+    //         })->with(['visit.group', 'visit.status', 'order.services.category', 'package', 'service.category.groups', 'customer', 'order.transaction'])
+    //             ->where('is_active', 1)->where('type', 'service')->with(['order', 'customer', 'service', 'group', 'booking_status']);
+
+    //         if (request()->page) {
+    //             $now = Carbon::now('Asia/Riyadh')->toDateString();
+    //             $bookings->where('booking_status_id', '!=', 2)->whereDate('date', '=', $now);
+    //         }
+
+    //         if (\request()->query('type') == 'package') {
+    //             $bookings = Booking::query()->whereHas('address', function ($query) use ($regionIds) {
+    //                 $query->whereIn('region_id', $regionIds);
+    //             })->where('is_active', 1)->where('type', 'contract')->with(['order', 'customer', 'service', 'group', 'booking_status']);
+    //         }
+
+    //         if ($status = \request()->query('status')) {
+    //             $bookings->whereHas('visit', function ($query) use ($status) {
+    //                 $query->where('visits_status_id', $status);
+    //             });
+    //         }
+
+    //         if ($date) {
+    //             $carbonDate    = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
+    //             $formattedDate = $carbonDate->format('Y-m-d');
+    //             $bookings->where('date', '>=', $formattedDate);
+    //         }
+
+    //         if ($date2) {
+    //             $carbonDate2    = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
+    //             $formattedDate2 = $carbonDate2->format('Y-m-d');
+    //             $bookings->where('date', '<=', $formattedDate2);
+    //         }
+
+    //         if ($request->has('zone') && $request->zone !== 'all') {
+    //             $zoneId = $request->zone;
+    //             $bookings->whereHas('order.userAddress.region', function ($query) use ($zoneId) {
+    //                 $query->where('region_id', $zoneId);
+    //             });
+    //         }
+
+    //         // Apply search filter
+    //         if ($request->filled('search.value')) {
+    //             $search = $request->input('search.value');
+    //             $bookings->where(function ($query) use ($search) {
+
+    //                 $query->WhereHas('customer', function ($query) use ($search) {
+    //                     $query->Where('first_name', 'LIKE', "%$search%")
+    //                         ->orWhere('phone', 'LIKE', "%$search%");
+    //                 })
+
+    //                     ->orWhereHas('visit.booking.order', function ($query) use ($search) {
+    //                         $query->where('id', 'LIKE', "%$search%");
+    //                     })
+
+    //                     ->orWhereHas('visit.group', function ($query) use ($search) {
+    //                         $query->where('name_ar', 'LIKE', "%$search%");
+    //                     })
+
+    //                     ->orWhere('id', 'LIKE', "%$search%")
+    //                     ->orWhere('date', 'LIKE', "%$search%");
+    //             });
+    //         }
+
+    //         $visits = Visit::query()->pluck('booking_id')->toArray();
+
+    //         $filteredRecords = $bookings->clone()->count();
+
+    //         $bookings = $bookings->orderBy('created_at', 'desc')->skip($request->input('start', 0))
+    //             ->take($request->input('length', 10))
+    //             ->get();
+
+    //         return response()->json([
+    //             'draw'            => $request->input('draw'),
+    //             'recordsTotal'    => $bookings->count(), // Total count of bookings
+    //             'recordsFiltered' => $filteredRecords,   // Adjust as per your filtering logic
+    //             'data'            => $bookings->map(function ($row) use ($visits) {
+    //                 // Determine the service ID or package ID based on the 'type' query parameter
+    //                 $data = \request()->query('type') == 'package' ? $row->package_id : $row->service_id;
+
+    //                 // Initialize the HTML variable to store the button HTML
+    //                 $html = '';
+
+    //                 // Check if the row ID is not in the visits array
+    //                 if (! in_array($row->id, $visits)) {
+    //                     // If the row is not in visits, display the "Add Team" button
+    //                     $html .= '
+    //                     <button type="button" id="add-work-exp" class="btn btn-sm btn-primary card-tools edit"
+    //                         data-address_id="' . $row->user_address_id . '"
+    //                         data-id="' . $row->id . '"
+    //                         data-category_id="' . $row->category_id . '"
+    //                         data-service_id="' . $data . '"
+
+    //                         data-type="' . \request()->query('type') . '"
+    //                         data-toggle="modal" data-target="#addGroupModel">
+    //                         اضافة فريق
+    //                     </button>';
+    //                 } else {
+    //                     // If the row is in visits, display the "Change Team" button
+    //                     $html .= '
+    //                     <button type="button" id="add-work-exp" class="btn btn-sm btn-primary card-tools edit"
+    //                         data-address_id="' . $row->user_address_id . '"
+    //                         data-visit_id="' . ($row->visit ? $row->visit->id : '') . '"
+    //                         data-id="' . $row->id . '"
+    //                         data-category_id="' . $row->category_id . '"
+    //                         data-service_id="' . $data . '"
+
+    //                          data-date="' . $row->date . '"
+    //                         data-time="' . Carbon::createFromTimestamp($row->time)->format('H:i:s') . '"
+    //                         data-group_id="' . $row->visit?->group?->id . '"
+    //                         data-quantity="' . $row->quantity . '"
+
+    //                         data-type="' . \request()->query('type') . '"
+    //                         data-toggle="modal" data-target="#changeGroupModel">
+    //                         تغيير الفريق
+    //                     </button>';
+    //                 }
+
+    //                 // Add delete button
+    //                 if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
+
+    //                     $html .= '
+    //                 <a data-table_id="html5-extension"
+    //                    data-href="' . route('dashboard.bookings.destroy', $row->id) . '"
+    //                    data-id="' . $row->id . '"
+    //                    class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
+    //                    <i class="far fa-trash-alt fa-2x"></i>
+    //                 </a>';
+    //                 }
+
+    //                 $html .= '<button type="button" class="btn btn-sm btn-info show-logs-btn"
+    //                     data-booking-id="' . $row->id . '"
+    //                     data-toggle="modal"
+    //                     data-target="#logsModal">
+    //                     <i class="fas fa-history"></i> عرض السجل
+    //                 </button>';
+
+    //                 if (auth()->user()->hasRole('admin') || auth()->user()->can('bookings_change_status')) {
+    //                     $html .= '<button type="button" class="btn btn-sm btn-outline-warning change-status-btn"
+    //                             data-id="' . $row->id . '" data-current-status="' . $row->status_id . '"
+    //                             title="' . __('dash.change_status') . '">
+    //                             <i class="fas fa-exchange-alt fa-2x"></i></button>';
+    //                 }
+
+    //                 // coupon
+    //                 if (auth()->user()->hasRole('admin') || auth()->user()->can('apply_coupon')) {
+    //                     $html .= '<button type="button" class="btn btn-sm btn-outline-warning apply-coupon-btn"
+    //                     data-order_id="' . ($row->visit?->booking?->order?->id ?? '') . '"
+    //                     data-booking_id="' . $row->id . '"
+    //                     title="تطبيق كوبون">
+    //                     <i class="fas fa-gift fa-2x coupon-icon"></i>
+    //                 </button>';
+    //                 }
+
+    //                 if (
+    //                     (auth()->user()->id == 1 && auth()->user()->first_name == 'Super Admin') ||
+    //                     auth()->user()->can('view_Reschedule_orders')
+    //                 ) {
+    //                     $html .= '<a href="javascript:void(0);"
+    //                                     class="btn btn-outline-warning btn-sm mr-2 open-reschedule"
+    //                                     data-id="' . $row->visit?->booking?->order?->id . '"
+    //                                     data-toggle="modal"
+    //                                     data-target="#rescheduleModal"
+    //                                     title="إعادة جدولة الطلب">
+    //                                     <i class="fas fa-calendar-alt fa-2x"></i>
+    //                                 </a>';
+    //                 }
+
+    //                 if (auth()->user()->hasRole('admin')) {
+    //                     $html .= '
+    //                         <button type="button"
+    //                             class="btn btn-sm btn-warning refund-btn"
+    //                             title="استرداد المبلغ إلى رصيد العميل"
+    //                             data-toggle="modal"
+    //                             data-target="#refundModal"
+    //                             data-order_id="' . $row->order->id . '"
+    //                             data-order_total="' . $row->order->total . '"
+    //                             data-order_status="' . $row->order->status_id . '"
+    //                             data-is_refunded="' . ($row->order->is_refunded ? '1' : '0') . '">
+    //                             <i class="fas fa-undo-alt"></i>
+    //                         </button>';
+    //                 }
+
+    //                 // Return the generated HTML
+
+    //                 return [
+    //                     'id'             => $row->id,
+    //                     'order'          => $row->visit?->booking?->order?->id ?? 'N/A',
+    //                     'customer'       => '<a href="' . route('dashboard.customer.bookings', ['customer_id' => $row->customer->id ?? '']) . '"
+    //                         class="customer-link"
+    //                         title="عرض حجوزات ' . ($row->customer?->first_name ?? '') . ' ' . ($row->customer?->last_name ?? '') . '">
+    //                             ' . ($row->customer?->first_name ?? '') . ' ' . ($row->customer?->last_name ?? '') . '
+
+    //                         </a>',
+
+    //                     'customer_phone' => $row->customer?->phone
+    //                     ? '<a href="https://api.whatsapp.com/send?phone=' . $row->customer->phone . '" target="_blank" class="whatsapp-link">' . $row->customer->phone . '</a>'
+    //                     : 'N/A',
+
+    //                     'service'        => \request()->query('type') == 'package'
+    //                     ? $row->package?->name
+    //                     : $row->order->services->where('category_id', $row->category_id)->map(function ($service) {
+    //                         return '<button class="btn-sm btn-primary">' . $service->title . '</button>';
+    //                     })->join(' '),
+    //                     'start_time'     => $row->visit?->start_time
+    //                     ? Carbon::parse($row->visit->start_time)->timezone('Asia/Riyadh')->format('g:i A')
+    //                     : 'N/A',
+    //                     'end_time'       => $row->visit?->end_time
+    //                     ? Carbon::parse($row->visit->end_time)->timezone('Asia/Riyadh')->format('g:i A')
+    //                     : 'N/A',
+
+    //                     'group'          => $row->visit?->group?->name ?? 'N/A',
+    //                     'total'          => isset($row->visit?->booking?->order?->total) && is_float($row->visit?->booking?->order?->total)
+    //                     ? number_format($row->visit->booking->order->total, 2)
+    //                     : 'N/A',
+    //                     'status'         => app()->getLocale() === 'ar'
+    //                     ? ($row->visit?->status?->name_ar ?? '')
+    //                     : ($row->visit?->status?->name_en ?? ''),
+    //                     'new'            => $row->visit?->status?->name_ar ?? 'N/A',
+    //                     'date'           => $row->date ?? 'N/A',
+    //                     'quantity'       => $row?->order?->orderServices?->sum('quantity') ?? 'N/A',
+    //                     'zone'           => optional($row->order->userAddress?->region)->title ?? '',
+    //                     'total'          => isset($row->visit?->booking?->order?->total) && is_numeric($row->visit->booking->order->total)
+    //                     ? number_format((float) $row->visit->booking->order->total, 2)
+    //                     : 'N/A',
+    //                     'payment_method' => match ($row->visit?->booking?->order?->transaction?->payment_method ?? 'N/A') {
+    //                         'cache', 'cash' => __('api.payment_method_cach'),
+    //                         'wallet'         => __('api.payment_method_wallet'),
+    //                         'mada'           => __('api.payment_method_network'),
+    //                         default          => __('api.payment_method_visa'),
+    //                     },
+
+    //                     'notes'          => $row->notes ?? 'N/A',
+    //                     'control'        => $html ?? 'N/A',
+    //                 ];
+    //             }),
+    //         ]);
+
+    //     }
+
+    //     $zones = Region::where('title_ar', '!=', 'old')
+    //         ->where('title_en', '!=', 'old')
+    //         ->pluck(app()->getLocale() === 'ar' ? 'title_ar' : 'title_en', 'id');
+
+    //     $visitsStatuses = VisitsStatus::query()->get()->pluck('name', 'id');
+    //     $statuses       = BookingStatus::get()->pluck('name', 'id');
+
+    //     $changeableStatusIds  = [6, 5];
+    //     $bookingStatusOptions = $visitsStatuses->only($changeableStatusIds);
+
+    //     // Coupon
+
+    //     $today = Carbon::today();
+
+    //     // Valid client coupons (not for employees, active, within date range)
+    //     $clientCoupons = Coupon::where('active', 1)
+    //         ->whereDate('start', '<=', $today)
+    //         ->whereDate('end', '>=', $today)
+    //         ->where('is_employee_only', 0) // only for clients
+    //         ->pluck('code', 'id');
+
+    //     $employeeCoupons = Coupon::where('active', 1)
+    //         ->whereDate('start', '<=', $today)
+    //         ->whereDate('end', '>=', $today)
+    //         ->where('is_employee_only', 1)
+    //         ->get(['id', 'code', 'title_ar']);
+
+    //     return view('dashboard.bookings.index', compact('visitsStatuses', 'statuses', 'zones', 'bookingStatusOptions', 'clientCoupons', 'employeeCoupons'));
+    // }
+
     public function index(Request $request)
     {
-
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
         if (request()->ajax()) {
-
-            $date     = \request()->query('date');
-            $date2    = \request()->query('date2');
+            $date     = request()->query('date');
+            $date2    = request()->query('date2');
             $bookings = Booking::query()->whereHas('address', function ($query) use ($regionIds) {
                 $query->whereIn('region_id', $regionIds);
             })->with(['visit.group', 'visit.status', 'order.services.category', 'package', 'service.category.groups', 'customer', 'order.transaction'])
@@ -45,27 +322,25 @@ class BookingController extends Controller
                 $bookings->where('booking_status_id', '!=', 2)->whereDate('date', '=', $now);
             }
 
-            if (\request()->query('type') == 'package') {
+            if (request()->query('type') == 'package') {
                 $bookings = Booking::query()->whereHas('address', function ($query) use ($regionIds) {
                     $query->whereIn('region_id', $regionIds);
                 })->where('is_active', 1)->where('type', 'contract')->with(['order', 'customer', 'service', 'group', 'booking_status']);
             }
 
-            if ($status = \request()->query('status')) {
+            if ($status = request()->query('status')) {
                 $bookings->whereHas('visit', function ($query) use ($status) {
                     $query->where('visits_status_id', $status);
                 });
             }
 
             if ($date) {
-                $carbonDate    = \Carbon\Carbon::parse($date)->timezone('Asia/Riyadh');
-                $formattedDate = $carbonDate->format('Y-m-d');
+                $formattedDate = Carbon::parse($date)->timezone('Asia/Riyadh')->format('Y-m-d');
                 $bookings->where('date', '>=', $formattedDate);
             }
 
             if ($date2) {
-                $carbonDate2    = \Carbon\Carbon::parse($date2)->timezone('Asia/Riyadh');
-                $formattedDate2 = $carbonDate2->format('Y-m-d');
+                $formattedDate2 = Carbon::parse($date2)->timezone('Asia/Riyadh')->format('Y-m-d');
                 $bookings->where('date', '<=', $formattedDate2);
             }
 
@@ -76,31 +351,25 @@ class BookingController extends Controller
                 });
             }
 
-            // Apply search filter
             if ($request->filled('search.value')) {
                 $search = $request->input('search.value');
                 $bookings->where(function ($query) use ($search) {
-
-                    $query->WhereHas('customer', function ($query) use ($search) {
-                        $query->Where('first_name', 'LIKE', "%$search%")
+                    $query->whereHas('customer', function ($query) use ($search) {
+                        $query->where('first_name', 'LIKE', "%$search%")
                             ->orWhere('phone', 'LIKE', "%$search%");
                     })
-
                         ->orWhereHas('visit.booking.order', function ($query) use ($search) {
                             $query->where('id', 'LIKE', "%$search%");
                         })
-
                         ->orWhereHas('visit.group', function ($query) use ($search) {
                             $query->where('name_ar', 'LIKE', "%$search%");
                         })
-
                         ->orWhere('id', 'LIKE', "%$search%")
                         ->orWhere('date', 'LIKE', "%$search%");
                 });
             }
 
-            $visits = Visit::query()->pluck('booking_id')->toArray();
-
+            $visits          = Visit::pluck('booking_id')->toArray();
             $filteredRecords = $bookings->clone()->count();
 
             $bookings = $bookings->orderBy('created_at', 'desc')->skip($request->input('start', 0))
@@ -109,114 +378,105 @@ class BookingController extends Controller
 
             return response()->json([
                 'draw'            => $request->input('draw'),
-                'recordsTotal'    => $bookings->count(), // Total count of bookings
-                'recordsFiltered' => $filteredRecords,   // Adjust as per your filtering logic
+                'recordsTotal'    => $bookings->count(),
+                'recordsFiltered' => $filteredRecords,
                 'data'            => $bookings->map(function ($row) use ($visits) {
-                    // Determine the service ID or package ID based on the 'type' query parameter
-                    $data = \request()->query('type') == 'package' ? $row->package_id : $row->service_id;
+                    $data = request()->query('type') == 'package' ? $row->package_id : $row->service_id;
 
-                    // Initialize the HTML variable to store the button HTML
-                    $html = '';
+                    $html = '<div class="dropdown">
+                            <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
+                                 الإجراءات
+                            </button>
+                            <div class="dropdown-menu">';
 
-                    // Check if the row ID is not in the visits array
                     if (! in_array($row->id, $visits)) {
-                        // If the row is not in visits, display the "Add Team" button
-                        $html .= '
-                        <button type="button" id="add-work-exp" class="btn btn-sm btn-primary card-tools edit"
-                            data-address_id="' . $row->user_address_id . '"
-                            data-id="' . $row->id . '"
-                            data-category_id="' . $row->category_id . '"
-                            data-service_id="' . $data . '"
-
-                            data-type="' . \request()->query('type') . '"
-                            data-toggle="modal" data-target="#addGroupModel">
-                            اضافة فريق
-                        </button>';
+                        $html .= '<a class="dropdown-item" href="#" data-toggle="modal" data-target="#addGroupModel"
+                        data-address_id="' . $row->user_address_id . '"
+                        data-id="' . $row->id . '"
+                        data-category_id="' . $row->category_id . '"
+                        data-service_id="' . $data . '"
+                        data-type="' . request()->query('type') . '">
+                        <i class="fas fa-users"></i> إضافة فريق
+                    </a>';
                     } else {
-                        // If the row is in visits, display the "Change Team" button
-                        $html .= '
-                        <button type="button" id="add-work-exp" class="btn btn-sm btn-primary card-tools edit"
-                            data-address_id="' . $row->user_address_id . '"
-                            data-visit_id="' . ($row->visit ? $row->visit->id : '') . '"
-                            data-id="' . $row->id . '"
-                            data-category_id="' . $row->category_id . '"
-                            data-service_id="' . $data . '"
-
-                             data-date="' . $row->date . '"
-                            data-time="' . Carbon::createFromTimestamp($row->time)->format('H:i:s') . '"
-                            data-group_id="' . $row->visit?->group?->id . '"
-                            data-quantity="' . $row->quantity . '"
-
-                            data-type="' . \request()->query('type') . '"
-                            data-toggle="modal" data-target="#changeGroupModel">
-                            تغيير الفريق
-                        </button>';
-                    }
-
-                    // Add delete button
-                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
-
-                        $html .= '
-                    <a data-table_id="html5-extension"
-                       data-href="' . route('dashboard.bookings.destroy', $row->id) . '"
-                       data-id="' . $row->id . '"
-                       class="mr-2 btn btn-outline-danger btn-sm btn-delete btn-sm delete_tech">
-                       <i class="far fa-trash-alt fa-2x"></i>
+                        $html .= '<a class="dropdown-item" href="#" data-toggle="modal" data-target="#changeGroupModel"
+                        data-address_id="' . $row->user_address_id . '"
+                        data-visit_id="' . ($row->visit ? $row->visit->id : '') . '"
+                        data-id="' . $row->id . '"
+                        data-category_id="' . $row->category_id . '"
+                        data-service_id="' . $data . '"
+                        data-date="' . $row->date . '"
+                        data-time="' . Carbon::createFromTimestamp($row->time)->format('H:i:s') . '"
+                        data-group_id="' . $row->visit?->group?->id . '"
+                        data-quantity="' . $row->quantity . '"
+                        data-type="' . request()->query('type') . '">
+                        <i class="fas fa-sync-alt"></i> تغيير الفريق
                     </a>';
                     }
 
-                    $html .= '<button type="button" class="btn btn-sm btn-info show-logs-btn"
-                        data-booking-id="' . $row->id . '"
-                        data-toggle="modal"
-                        data-target="#logsModal">
-                        <i class="fas fa-history"></i> عرض السجل
-                    </button>';
+                    if (Auth()->user()->id == 1 && Auth()->user()->first_name == 'Super Admin') {
+                        $html .= '<a class="dropdown-item text-danger btn-delete delete_tech"
+                                data-table_id="html5-extension"
+                                data-href="' . route('dashboard.bookings.destroy', $row->id) . '"
+                                data-id="' . $row->id . '">
+                                <i class="far fa-trash-alt"></i> حذف
+                            </a>';
+                    }
+
+                    $html .= '<a class="dropdown-item show-logs-btn" href="#"
+                            data-booking-id="' . $row->id . '"
+                            data-toggle="modal" data-target="#logsModal">
+                            <i class="fas fa-history"></i> عرض السجل
+                        </a>';
 
                     if (auth()->user()->hasRole('admin') || auth()->user()->can('bookings_change_status')) {
-                        $html .= '<button type="button" class="btn btn-sm btn-outline-warning change-status-btn"
-                                data-id="' . $row->id . '" data-current-status="' . $row->status_id . '"
-                                title="' . __('dash.change_status') . '">
-                                <i class="fas fa-exchange-alt fa-2x"></i></button>';
+                        $html .= '<a class="dropdown-item change-status-btn" href="#"
+                                data-id="' . $row->id . '"
+                                data-current-status="' . $row->status_id . '">
+                                <i class="fas fa-exchange-alt"></i> تغيير الحالة
+                            </a>';
                     }
 
-                    // coupon
                     if (auth()->user()->hasRole('admin') || auth()->user()->can('apply_coupon')) {
-                        $html .= '<button type="button" class="btn btn-sm btn-outline-warning apply-coupon-btn"
-                        data-order_id="' . ($row->visit?->booking?->order?->id ?? '') . '"
-                        data-booking_id="' . $row->id . '"
-                        title="تطبيق كوبون">
-                        <i class="fas fa-gift fa-2x coupon-icon"></i>
-                    </button>';
+                        $html .= '<a class="dropdown-item apply-coupon-btn" href="#"
+                                data-order_id="' . ($row->visit?->booking?->order?->id ?? '') . '"
+                                data-booking_id="' . $row->id . '">
+                                <i class="fas fa-gift"></i> تطبيق كوبون
+                            </a>';
                     }
 
-                    if (
-                        (auth()->user()->id == 1 && auth()->user()->first_name == 'Super Admin') ||
-                        auth()->user()->can('view_Reschedule_orders')
-                    ) {
-                        $html .= '<a href="javascript:void(0);"
-                                        class="btn btn-outline-warning btn-sm mr-2 open-reschedule"
-                                        data-id="' . $row->visit?->booking?->order?->id . '"
-                                        data-toggle="modal"
-                                        data-target="#rescheduleModal"
-                                        title="إعادة جدولة الطلب">
-                                        <i class="fas fa-calendar-alt fa-2x"></i>
-                                    </a>';
+                    if (auth()->user()->id == 1 || auth()->user()->can('view_Reschedule_orders')) {
+                        $html .= '<a class="dropdown-item open-reschedule" href="#"
+                                data-id="' . $row->visit?->booking?->order?->id . '"
+                                data-toggle="modal" data-target="#rescheduleModal">
+                                <i class="fas fa-calendar-alt"></i> إعادة جدولة الطلب
+                            </a>';
                     }
 
-                    // Return the generated HTML
+                    if (auth()->user()->hasRole('admin') || auth()->user()->can('refund_bookings')) {
+                        $html .= '<a class="dropdown-item refund-btn" href="#" data-toggle="modal" data-target="#refundModal"
+                        data-order_id="' . $row->order->id . '"
+                        data-order_total="' . $row->order->total . '"
+                        data-order_status="' . $row->order->status_id . '"
+                        data-is_refunded="' . ($row->order->is_refunded ? '1' : '0') . '">
+                        <i class="fas fa-undo-alt"></i> استرداد
+                    </a>';
+                    }
+
+                    $html .= '</div></div>';
 
                     return [
                         'id'             => $row->id,
                         'order'          => $row->visit?->booking?->order?->id ?? 'N/A',
                         'customer'       => '<a href="' . route('dashboard.customer.bookings', ['customer_id' => $row->customer->id ?? '']) . '"
-                            class="customer-link"
-                            title="عرض حجوزات ' . ($row->customer?->first_name ?? '') . ' ' . ($row->customer?->last_name ?? '') . '">
-                                ' . ($row->customer?->first_name ?? '') . ' ' . ($row->customer?->last_name ?? '') . '
+                             class="customer-link"
+                             title="عرض حجوزات ' . ($row->customer?->first_name ?? '') . ' ' . ($row->customer?->last_name ?? '') . '">
+                                 ' . ($row->customer?->first_name ?? '') . ' ' . ($row->customer?->last_name ?? '') . '
 
-                            </a>',
+                             </a>',
 
                         'customer_phone' => $row->customer?->phone
-                        ? '<a href="https://api.whatsapp.com/send?phone=' . $row->customer->phone . '" target="_blank" class="whatsapp-link">' . $row->customer->phone . '</a>'
+                        ? '<a href="https:api.whatsapp.com/send?phone=' . $row->customer->phone . '" target="_blank" class="whatsapp-link">' . $row->customer->phone . '</a>'
                         : 'N/A',
 
                         'service'        => \request()->query('type') == 'package'
@@ -253,39 +513,21 @@ class BookingController extends Controller
                         },
 
                         'notes'          => $row->notes ?? 'N/A',
-                        'control'        => $html ?? 'N/A',
+                        'control'        => $html,
+                        // باقي الأعمدة كما هي
                     ];
                 }),
             ]);
-
         }
 
-        $zones = Region::where('title_ar', '!=', 'old')
-            ->where('title_en', '!=', 'old')
-            ->pluck(app()->getLocale() === 'ar' ? 'title_ar' : 'title_en', 'id');
-
-        $visitsStatuses = VisitsStatus::query()->get()->pluck('name', 'id');
-        $statuses       = BookingStatus::get()->pluck('name', 'id');
-
+        $zones                = Region::where('title_ar', '!=', 'old')->where('title_en', '!=', 'old')->pluck(app()->getLocale() === 'ar' ? 'title_ar' : 'title_en', 'id');
+        $visitsStatuses       = VisitsStatus::pluck('name_ar', 'id');
+        $statuses             = BookingStatus::pluck('name_ar', 'id');
         $changeableStatusIds  = [6, 5];
         $bookingStatusOptions = $visitsStatuses->only($changeableStatusIds);
-
-        // Coupon
-
-        $today = Carbon::today();
-
-        // Valid client coupons (not for employees, active, within date range)
-        $clientCoupons = Coupon::where('active', 1)
-            ->whereDate('start', '<=', $today)
-            ->whereDate('end', '>=', $today)
-            ->where('is_employee_only', 0) // only for clients
-            ->pluck('code', 'id');
-
-        $employeeCoupons = Coupon::where('active', 1)
-            ->whereDate('start', '<=', $today)
-            ->whereDate('end', '>=', $today)
-            ->where('is_employee_only', 1)
-            ->get(['id', 'code', 'title_ar']);
+        $today                = Carbon::today();
+        $clientCoupons        = Coupon::where('active', 1)->whereDate('start', '<=', $today)->whereDate('end', '>=', $today)->where('is_employee_only', 0)->pluck('code', 'id');
+        $employeeCoupons      = Coupon::where('active', 1)->whereDate('start', '<=', $today)->whereDate('end', '>=', $today)->where('is_employee_only', 1)->get(['id', 'code', 'title_ar']);
 
         return view('dashboard.bookings.index', compact('visitsStatuses', 'statuses', 'zones', 'bookingStatusOptions', 'clientCoupons', 'employeeCoupons'));
     }
@@ -699,6 +941,21 @@ class BookingController extends Controller
         $newStatusId             = $request->status_id;
         $visit->visits_status_id = $newStatusId;
         $visit->save();
+
+        $order = Order::find($booking->order->id);
+
+        if (is_null($order)) {
+            return response()->json([
+                'success' => false,
+                'msg'     => __("dash.order_not_found"),
+            ], 404);
+        }
+
+        if ($visit->visits_status_id == 6) {
+
+            $order->status_id = Order::STATUS_CANCELED;
+            $order->save();
+        }
 
         // Load new status relation if needed
         $visit->load('status');

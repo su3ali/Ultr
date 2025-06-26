@@ -214,6 +214,8 @@ class TechnicianController extends Controller
                         </a>';
                 }
 
+                
+
                 return [
                     'id'       => '<a href="' . route('dashboard.core.technician.details', ['id' => $row->id]) . '">' . $row->id . '</a>',
                     'name'     => '<a href="#">' . $row->name . '</a>',

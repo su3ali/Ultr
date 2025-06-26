@@ -2,13 +2,19 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
     use HasFactory;
     protected $guarded = [];
+
+    public const STATUS_CONFIRMED    = 1;
+    public const STATUS_UN_CONFIRMED = 2;
+    public const STATUS_PROCESSING   = 3;
+    public const STATUS_COMPLETED    = 4;
+    public const STATUS_CANCELED     = 5;
 
     // Order belongs to a User
     public function user()
