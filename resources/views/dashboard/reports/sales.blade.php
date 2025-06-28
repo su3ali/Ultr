@@ -149,6 +149,7 @@
                                 <th>اسم العميل</th>
                                 <th>الخدمة</th>
                                 <th>عدد الخدمات</th>
+                                <th> {{ __('dash.quantity') }}</th>
                                 <th>المبلغ</th>
                                 <th>طريقة الدفع</th>
                                 <th>المنطقة</th>
@@ -318,6 +319,7 @@
                 { data: 'user_name', name: 'user_name' },
                 { data: 'service', name: 'service' },
                 { data: 'service_number', name: 'service_number' },
+                { data: 'quantity', name: 'quantity' },
                 { data: 'price', name: 'price' },
                 { data: 'payment_method', name: 'payment_method' },
                 { data: 'region', name: 'region' },

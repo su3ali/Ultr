@@ -3,6 +3,11 @@
 use App\Http\Controllers\Dashboard\Orders\OrderController;
 
 Route::resource('orders', 'Orders\OrderController');
+
+// Refund to wallet
+Route::post('orders/{id}/refund', [OrderController::class, 'refund'])
+    ->name('orders.refund');
+
 Route::resource('order_statuses', 'Orders\OrderStatusController');
 Route::get('order_statuses/change_status/change', 'Orders\OrderStatusController@change_status')->name('order_statuses.change_status');
 

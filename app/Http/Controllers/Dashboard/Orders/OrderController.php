@@ -20,6 +20,7 @@ use App\Models\Service;
 use App\Models\User;
 use App\Models\UserAddresses;
 use App\Models\Visit;
+use App\Services\Wallet\WalletRefundService;
 use App\Traits\schedulesTrait;
 use Auth;
 use Carbon\CarbonInterval;
@@ -32,6 +33,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 use Yajra\DataTables\DataTables;
 
 class OrderController extends Controller
@@ -130,7 +132,7 @@ class OrderController extends Controller
                         '<button class="btn-sm btn-primary">' . $service->title . '</button>'
                     )->implode(' ');
                 })
-                ->addColumn('quantity', fn($row) => $row->services->sum('pivot.quantity'))
+                ->addColumn('quantity', fn($row) => $row?->orderServices?->sum('quantity'))
                 ->addColumn('total', function ($row) {
                     return number_format($row->total, 2);
                 })
@@ -1698,6 +1700,41 @@ class OrderController extends Controller
         $statuses = OrderStatus::pluck('name_ar', 'id');
         $user     = User::findOrFail($customer_id);
         return view('dashboard.orders.customer_orders', compact('statuses', 'customer_id', 'user'));
+    }
+
+    public function refund(Request $request, $id, WalletRefundService $service)
+    {
+        try {
+            $order = Order::with('user')->findOrFail($id);
+            $type  = $request->input('type', 'points');
+
+            $service->handle($order, null, $type);
+
+            if ($request->ajax()) {
+                return response()->json(['success' => true, 'message' => __('dash.refund_success')]);
+            }
+
+            return back()->with('success', __('dash.refund_success'));
+
+        } catch (ValidationException $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->validator->errors()->first(), // get first validation message
+                ], 422);
+            }
+
+            return back()->with('error', $e->validator->errors()->first());
+        } catch (\Throwable $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->with('error', $e->getMessage());
+        }
     }
 
 }

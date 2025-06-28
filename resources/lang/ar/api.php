@@ -79,7 +79,8 @@ return [
     'cannot_cancel_order'                                                             => 'لا يمكن إلغاء الطلب',
     'successfully_updated'                                                            => 'تم التحديث بنجاح',
     'validation_failed'                                                               => 'خطاء في التحقق من صحة البيانات',
-    'this_visit_is_already_canceled'                                                 => 'هذه الزيارة ملغاة بالفعل',
+    'this_visit_is_already_canceled'                                                  => 'هذه الزيارة ملغاة بالفعل',
     'visit not found'                                                                 => 'الزيارة غير موجودة',
+    'order_is_refunded'                                                               => 'لا يمكن إعادة جدولة هذا الطلب لأنه تم استرداد قيمته مسبقًا.',
 
 ];

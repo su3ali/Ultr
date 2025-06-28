@@ -47,6 +47,14 @@
     .border-danger {
         border: 2px solid #dc3545 !important;
     }
+
+    /* Fix for browsers/themes that make inputs look disabled */
+    input[type="date"] {
+        background-color: #fff !important;
+        color: #000 !important;
+        cursor: text !important;
+        border: 1px solid #ced4da;
+    }
 </style>
 @endpush
 
@@ -110,6 +118,8 @@
 {{-- @include('dashboard.business_orders.edit_modal') --}}
 @endsection
 @push('script')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
 <script>
     const editOrderUrl = "{{ url('admin/business_orders') }}";
 
@@ -139,6 +149,9 @@
                     d.date_to = $('#filter_date_to').val();
                     d.status = $('#filter_status').val();
                     d.payment_method = $('#filter_payment_method').val();
+                    d.client_project_id = $('#filter_client_project_id').val();
+                    d.branch_id = $('#filter_branch_id').val(); 
+
                 }
             },
             columns: [
@@ -150,6 +163,8 @@
                 { data: 'total', name: 'total' },
                 { data: 'group', name: 'group' },
                 { data: 'payment_method', name: 'payment_method' },
+                { data: 'client_project', name: 'client_project' },
+                { data: 'client_project_branch', name: 'client_project_branch' },
                 { data: 'status', name: 'status' },
                 { data: 'created_at', name: 'created_at' },
                 { 
@@ -372,20 +387,23 @@
     }
 
     // ========== Document Ready ==========
-    $(document).ready(function () {
-        loadOrdersTable();
+   $(document).ready(function () {
+    loadOrdersTable();
 
-        $('#applyFilters, #filter_date_from, #filter_date_to, #filter_status, #filter_payment_method').on('click change', function (e) {
-            e.preventDefault();
-            ordersTable.ajax.reload();
-        });
+    $('#applyFilters, #filter_date_from, #filter_date_to, #filter_status, #filter_payment_method, #filter_client_project_id, #filter_branch_id')
+    .on('click change', function (e) {
+        e.preventDefault();
+        ordersTable.ajax.reload();
+    });
 
-        $('#ordersTable').on('draw.dt', function () {
-            $('.change-status').each(function () {
-                applyStatusColor($(this), $(this).val());
-            });
+
+    $('#ordersTable').on('draw.dt', function () {
+        $('.change-status').each(function () {
+            applyStatusColor($(this), $(this).val());
         });
     });
+});
+
 
 
 // ========== [ Change Team - Open Modal ] ==========
@@ -455,5 +473,48 @@ $(document).on('submit', '#edit_group_form', function (e) {
 
     });
 });
+
+// Fetch branches dynamically on project change
+$(document).on('change', '#filter_client_project_id', function () {
+    const projectId = $(this).val();
+    const $branchSelect = $('#filter_branch_id');
+    
+    $branchSelect.html('<option value="all" selected>جارٍ التحميل...</option>');
+
+    if (projectId && projectId !== 'all') {
+        $.get(`/admin/get-project-branches/${projectId}`, function (branches) {
+            let options = '<option value="all" selected>{{ __("dash.all") }}</option>';
+            branches.forEach(branch => {
+                options += `<option value="${branch.id}">${branch.name_ar}</option>`;
+            });
+            $branchSelect.html(options);
+        }).fail(() => {
+            toastr.error('فشل في تحميل الفروع');
+            $branchSelect.html('<option value="all" selected>{{ __("dash.all") }}</option>');
+        });
+    } else {
+        $branchSelect.html('<option value="all" selected>{{ __("dash.all") }}</option>');
+    }
+});
+
+
+  flatpickr("#filter_date_from", {
+        dateFormat: "Y-m-d",
+    });
+
+    flatpickr("#filter_date_to", {
+        dateFormat: "Y-m-d",
+    });
+
+    // Optional: open calendar when clicking the calendar icon
+    $('.input-group-text').on('click', function () {
+        $(this).siblings('input').focus(); // focus the input to trigger flatpickr
+    });
+
+    $('.input-group-text').on('click', function () {
+    $(this).siblings('input').focus(); // triggers Flatpickr
+});
+
+
 </script>
 @endpush

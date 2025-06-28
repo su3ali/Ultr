@@ -1119,5 +1119,19 @@ return [
     'no_team_available'                        => 'لا يوجد فريق متاح لهذا الوقت',
     'no_team_available_at_time'                => 'لا يوجد فريق متاح في الوقت المحدد',
     'admin_data'                               => 'بيانات المدير',
+    'clients_projects'                         => 'مشاريع العملاء',
+    'client_project'                           => 'مشروع العميل',
+    'branches'                                 => 'الفروع',
+    'floors'                                   => 'الطوابق',
+
+    'technician_image'                         => ' صورة الفني',
+    'refund_success'                           => 'تم استرداد المبلغ بنجاح عبر النقاط.',
+    'can_refund_cancled_order'                 => 'يمكن استرداد المبلغ   للطلبات التي تم الغاءها.',
+    'refund_title'                             => 'استرداد المبلغ',
+    'refund_text'                              => 'هل أنت متأكد من استرداد المبلغ التالي إلى محفظة العميل؟',
+    'refund_confirm'                           => 'تاكيد الاسترداد',
+    'order_already_refunded'                   => 'هذا الطلب تم استرداده من قبل',
+    'invalid_refund_method'                    => 'طريقة الاسترداد غير صالحة',
+    'order_is_refunded'                        => 'لا يمكن إعادة جدولة هذا الطلب لأنه تم استرداد قيمته مسبقًا.',
 
 ];

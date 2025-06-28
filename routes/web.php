@@ -38,3 +38,17 @@ Route::get('/clear', function () {
 Route::get('/', function () {
     return redirect()->route('dashboard.home');
 });
+
+Route::get('/admin/shifts-by-group/{groupId}', function ($groupId) {
+    $shifts   = \App\Models\Shift::all();
+    $shiftIds = [];
+
+    foreach ($shifts as $shift) {
+        $groupIds = json_decode($shift->group_id, true);
+        if (is_array($groupIds) && in_array((string) $groupId, $groupIds)) {
+            $shiftIds[] = $shift->id;
+        }
+    }
+
+    return response()->json($shiftIds);
+});

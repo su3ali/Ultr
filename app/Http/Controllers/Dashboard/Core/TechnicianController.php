@@ -3,9 +3,14 @@ namespace App\Http\Controllers\Dashboard\Core;
 
 use App\Http\Controllers\Controller;
 use App\Models\BusinessProject\ClientProject;
+use App\Models\City;
+use App\Models\Country;
 use App\Models\Day;
 use App\Models\Group;
+use App\Models\GroupRegion;
+use App\Models\GroupTechnician;
 use App\Models\Region;
+use App\Models\Setting;
 use App\Models\Shift;
 use App\Models\Specialization;
 use App\Models\Technician;
@@ -209,6 +214,8 @@ class TechnicianController extends Controller
                         </a>';
                 }
 
+                
+
                 return [
                     'id'       => '<a href="' . route('dashboard.core.technician.details', ['id' => $row->id]) . '">' . $row->id . '</a>',
                     'name'     => '<a href="#">' . $row->name . '</a>',
@@ -241,12 +248,18 @@ class TechnicianController extends Controller
             "باكستان"   => "6",
             "مصر"       => "7",
         ];
-        $shifts = Shift::select('shift_no')->distinct()->get();
+        $shifts = Shift::select('id', 'shift_no')->distinct()->get();
 
         $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
 
+        $countries = Country::where('active', 1)->get()->pluck('title', 'id');
+        $cities    = City::where('active', 1)->get();
+        $regions   = Region::where('active', 1)
+            ->where('title_ar', '!=', 'old')
+            ->get();
+
         return view('dashboard.core.technicians.index', compact(
-            'groups', 'specs', 'days', 'nationalities', 'clientProjects', 'regions', 'shifts'
+            'groups', 'specs', 'days', 'nationalities', 'clientProjects', 'regions', 'shifts', 'cities', 'countries'
         ));
 
     }
@@ -397,27 +410,32 @@ class TechnicianController extends Controller
 
     protected function store(Request $request)
     {
+        $setting      = Setting::first();
+        $defaultImage = $setting->logo;
 
+        // Validation Rules
         $rules = [
-            'day_id'      => 'required|array|exists:days,id',
-            'name'        => 'required|string|min:3',
-            'email'       => 'required|email|unique:technicians,email',
-            'phone'       => 'required|unique:technicians,phone',
-            'user_name'   => ['required', 'regex:/^[^\\s]+$/', 'unique:technicians,user_name'],
-            'password'    => ['required', 'confirmed', Password::min(4)],
-            'spec_id'     => 'required|exists:specializations,id',
-            'country_id'  => 'required',
-            'identity_id' => 'required|numeric',
-            'birth_date'  => 'required|date',
-            'wallet_id'   => 'required',
-            'address'     => 'required|string',
-            'group_id'    => 'nullable',
-            'image'       => 'required|image|mimes:jpeg,jpg,png,gif',
-            'active'      => 'nullable|in:on,off',
-            'is_business' => 'nullable|in:0,1',
+            'name'         => 'required|string|min:3',
+            'email'        => 'required|email',
+            'phone'        => 'required|unique:technicians,phone',
+            'user_name'    => ['required', 'regex:/^[^\s]+$/', 'unique:technicians,user_name'],
+            'password'     => ['required', 'confirmed', Password::min(4)],
+            'spec_id'      => 'required|exists:specializations,id',
+            'city_id'      => 'nullable|exists:cities,id',
+            'identity_id'  => 'required|numeric',
+            'wallet_id'    => 'required',
+            'group_id'     => 'nullable|exists:groups,id',
+            'image'        => 'nullable|image|mimes:jpeg,jpg,png,gif',
+            'active'       => 'nullable|in:on,off',
+            'is_business'  => 'nullable|in:0,1',
+            'birth_date'   => 'nullable|date',
+            'address'      => 'nullable|string',
+            'day_id'       => 'nullable|array',
+            'region_ids'   => 'nullable|array',
+            'region_ids.*' => 'exists:regions,id',
+
         ];
 
-        // Add business-related rules if is_business is checked
         if ($request->is_business == 1) {
             $rules['client_project_id'] = 'required|exists:client_projects,id';
             $rules['branch_id']         = 'required|exists:client_project_branches,id';
@@ -425,61 +443,116 @@ class TechnicianController extends Controller
             $rules['floor_ids.*']       = 'exists:client_project_branch_floors,id';
         }
 
-        $validated = Validator::make($request->all(), $rules, [
+        $validator = Validator::make($request->all(), $rules, [
             'user_name.regex' => 'يجب أن لا يحتوي اسم المستخدم على أي مسافات',
         ]);
 
-        if ($validated->fails()) {
-            return redirect()->back()->withErrors($validated->errors())->withInput();
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator->errors())->withInput();
         }
 
-        $validated = $validated->validated();
+        $validated = $validator->validated();
 
-        // Convert active checkbox to boolean
-        $validated['active'] = isset($validated['active']) && $validated['active'] == 'on' ? 1 : 0;
+        $validated['active']      = isset($validated['active']) && $validated['active'] == 'on' ? 1 : 0;
+        $validated['is_business'] = $request->is_business == 1;
 
-        // Handle image upload
+        $days      = $request->day_id ?? [];
+        $floorIds  = $request->floor_ids ?? [];
+        $regions   = $request->region_ids ?? [];
+        $countryId = 1;
+
+        // Upload Image
         if ($request->hasFile('image')) {
             $image    = $request->file('image');
             $filename = time() . '.' . $image->getClientOriginalExtension();
             $image->move(storage_path('app/public/images/technicians/'), $filename);
             $validated['image'] = 'storage/images/technicians/' . $filename;
+        } else {
+            $validated['image'] = $defaultImage;
         }
 
-        // Extract and remove days from main array
-        $days = $validated['day_id'];
-        unset($validated['day_id']);
+        $validated['country_id'] = $countryId;
 
-        // Set default is_business if not present
-        $validated['is_business'] = $request->is_business == 1 ? true : false;
-
-        // dd($validated);
-        unset($validated['floor_ids']);
+        // Prevent array values and extra fields
+        unset($validated['day_id'], $validated['region_ids'], $validated['floor_ids'], $validated['city_id']);
 
         // Create technician
         $technician = Technician::create($validated);
 
-        // Save working days
-        $workingDays = [];
-        foreach ($days as $day) {
-            $workingDays[] = [
+        // Auto-create group if not provided
+        if (empty($validated['group_id'])) {
+            $group = Group::create([
+                'name_en'       => $validated['name'],
+                'name_ar'       => $validated['name'],
                 'technician_id' => $technician->id,
-                'day_id'        => $day,
-                'created_at'    => now(),
-                'updated_at'    => now(),
-            ];
-        }
-        TechnicianWorkingDay::insert($workingDays);
+                'country_id'    => $countryId,
+                'city_id'       => $request->city_id ?? null,
+            ]);
 
-        // If business, attach project/branch/floors
+            foreach ($regions as $regionId) {
+                GroupRegion::create([
+                    'group_id'  => $group->id,
+                    'region_id' => $regionId,
+                ]);
+            }
+
+            $validated['group_id'] = $group->id;
+        }
+
+        $technician->update([
+            'group_id' => $group->id,
+        ]);
+
+        // Assign technician to group
+        GroupTechnician::create([
+            'group_id'      => $validated['group_id'],
+            'technician_id' => $technician->id,
+        ]);
+
+        if ($request->filled('shift_ids')) {
+            foreach ($request->shift_ids as $shiftId) {
+                $shift = Shift::find($shiftId);
+
+                if ($shift) {
+                    // Ensure it's always an array of strings
+                    $groupIds = json_decode($shift->group_id, true) ?? [];
+
+                    $validatedGroupId = (string) $validated['group_id']; // ensure it's a string
+
+                    if (! in_array($validatedGroupId, $groupIds)) {
+                        $groupIds[] = $validatedGroupId;
+
+                        //  Encode as JSON with double-quoted string values
+                        $shift->group_id = json_encode(array_map('strval', $groupIds));
+                        $shift->save();
+                    }
+                }
+            }
+        }
+
+        // Save working days
+        if (! empty($days)) {
+            $workingDays = array_map(function ($dayId) use ($technician) {
+                return [
+                    'technician_id' => $technician->id,
+                    'day_id'        => $dayId,
+                    'created_at'    => now(),
+                    'updated_at'    => now(),
+                ];
+            }, $days);
+
+            TechnicianWorkingDay::insert($workingDays);
+        }
+
+        // Attach business floors
         if ($request->is_business == 1) {
             $technician->update([
                 'client_project_id' => $request->client_project_id,
                 'branch_id'         => $request->branch_id,
             ]);
-
-            $technician->floors()->sync($request->floor_ids);
+            $technician->floors()->sync($floorIds);
         }
+
         return redirect()->back()->with('success', __('dash.added_successfully'));
     }
 
@@ -497,7 +570,7 @@ class TechnicianController extends Controller
             'identity_id' => 'required|Numeric',
             'birth_date'  => 'required|Date',
             'wallet_id'   => 'required',
-            'address'     => 'required|String',
+            'address'     => 'nullable|String',
             'group_id'    => 'nullable',
             'image'       => 'nullable|image|mimes:jpeg,jpg,png,gif',
             'active'      => 'nullable|in:on,off',
@@ -553,6 +626,36 @@ class TechnicianController extends Controller
         }
 
         $tech->update($validated);
+
+        if ($request->filled('shift_ids')) {
+            $selectedShiftIds = array_map('intval', $request->shift_ids);
+            $groupId          = (string) $tech->group_id;
+
+            // 1. Get all shifts currently assigned to this group
+            $existingShifts = Shift::where('group_id', 'like', "%$groupId%")->get();
+
+            // 2. Remove this group from any shifts not in the new selection
+            foreach ($existingShifts as $shift) {
+                if (! in_array($shift->id, $selectedShiftIds)) {
+                    $groupIds        = json_decode($shift->group_id, true) ?? [];
+                    $groupIds        = array_filter($groupIds, fn($id) => $id != $groupId);
+                    $shift->group_id = json_encode(array_values($groupIds));
+                    $shift->save();
+                }
+            }
+
+            // 3. Add the group to new selected shifts if not already present
+            $selectedShifts = Shift::whereIn('id', $selectedShiftIds)->get();
+            foreach ($selectedShifts as $shift) {
+                $groupIds = json_decode($shift->group_id, true) ?? [];
+                if (! in_array($groupId, $groupIds)) {
+                    $groupIds[]      = $groupId;
+                    $shift->group_id = json_encode(array_map('strval', $groupIds));
+                    $shift->save();
+                }
+            }
+        }
+
         session()->flash('success', __('dash.update'));
 
         return redirect()->back();

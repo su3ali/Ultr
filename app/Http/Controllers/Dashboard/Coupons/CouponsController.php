@@ -295,7 +295,17 @@ class CouponsController extends Controller
             return response()->json(['message' => 'الطلب غير موجود أو لا يحتوي على حجز'], 400);
         }
 
-        $order    = $booking->order;
+        $order = $booking->order;
+
+        if ($order->is_refunded) {
+            return response()->json(['message' => 'لا يمكن استخدام الكوبون للطلبات المرتجعة'], 400);
+        }
+        
+        // 5=> completed
+        //6 = canceled
+        // if ($booking->first()->visit->visits_status_id == 5 || $booking->first()->visit->visits_status_id == 6) {
+        //     return response()->json(['message' => 'لا يمكن استخدام الكوبون للطلبات المكتملة او الملغية'], 400);
+        // }
         $userId   = $order->user_id;
         $subtotal = $order->sub_total;
 

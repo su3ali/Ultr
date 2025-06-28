@@ -109,12 +109,6 @@ class VisitsController extends Controller
                 $query->whereIn('region_id', $regionIds);
             });
 
-            // $now = Carbon::now('Asia/Riyadh')->toDateString();
-
-            // $visit->whereHas('booking', function ($qu) use ($now) {
-            //     $qu->whereDate('date', '=', $now);
-            // });
-
             $now       = Carbon::now('Asia/Riyadh')->toDateString();
             $tomorrow  = Carbon::tomorrow('Asia/Riyadh')->toDateString();
             $startTime = Carbon::tomorrow('Asia/Riyadh')->startOfDay()->toTimeString();

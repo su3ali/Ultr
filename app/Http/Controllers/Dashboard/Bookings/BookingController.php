@@ -29,6 +29,7 @@ class BookingController extends Controller
     public function index(Request $request)
     {
 
+       
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
         if (request()->ajax()) {
@@ -203,6 +204,21 @@ class BookingController extends Controller
                                     </a>';
                     }
 
+                    if (auth()->user()->hasRole('admin') || auth()->user()->can('refund_bookings')) {
+                        $html .= '
+                            <button type="button"
+                                class="btn btn-sm btn-warning refund-btn"
+                                title="استرداد المبلغ إلى رصيد العميل"
+                                data-toggle="modal"
+                                data-target="#refundModal"
+                                data-order_id="' . $row->order->id . '"
+                                data-order_total="' . $row->order->total . '"
+                                data-order_status="' . $row->order->status_id . '"
+                                data-is_refunded="' . ($row->order->is_refunded ? '1' : '0') . '">
+                                <i class="fas fa-undo-alt"></i>
+                            </button>';
+                    }
+
                     // Return the generated HTML
 
                     return [
@@ -240,7 +256,7 @@ class BookingController extends Controller
                         : ($row->visit?->status?->name_en ?? ''),
                         'new'            => $row->visit?->status?->name_ar ?? 'N/A',
                         'date'           => $row->date ?? 'N/A',
-                        'quantity'       => $row->quantity ?? 'N/A',
+                        'quantity'       => $row?->order?->orderServices?->sum('quantity') ?? 'N/A',
                         'zone'           => optional($row->order->userAddress?->region)->title ?? '',
                         'total'          => isset($row->visit?->booking?->order?->total) && is_numeric($row->visit->booking->order->total)
                         ? number_format((float) $row->visit->booking->order->total, 2)
@@ -676,7 +692,7 @@ class BookingController extends Controller
 
     public function changeStatus(Request $request)
     {
-       
+
         $request->validate([
             'booking_id' => 'required|exists:bookings,id',
             'status_id'  => 'required|exists:visits_statuses,id',
@@ -699,6 +715,21 @@ class BookingController extends Controller
         $newStatusId             = $request->status_id;
         $visit->visits_status_id = $newStatusId;
         $visit->save();
+
+        $order = Order::find($booking->order->id);
+
+        if (is_null($order)) {
+            return response()->json([
+                'success' => false,
+                'msg'     => __("dash.order_not_found"),
+            ], 404);
+        }
+
+        if ($visit->visits_status_id == 6) {
+
+            $order->status_id = Order::STATUS_CANCELED;
+            $order->save();
+        }
 
         // Load new status relation if needed
         $visit->load('status');
