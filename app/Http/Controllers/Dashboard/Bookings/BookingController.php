@@ -29,6 +29,7 @@ class BookingController extends Controller
     public function index(Request $request)
     {
 
+       
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
         if (request()->ajax()) {
