@@ -300,7 +300,7 @@ class CouponsController extends Controller
         if ($order->is_refunded) {
             return response()->json(['message' => 'لا يمكن استخدام الكوبون للطلبات المرتجعة'], 400);
         }
-        
+
         // 5=> completed
         //6 = canceled
         // if ($booking->first()->visit->visits_status_id == 5 || $booking->first()->visit->visits_status_id == 6) {

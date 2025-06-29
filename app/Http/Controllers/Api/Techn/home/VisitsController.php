@@ -400,17 +400,53 @@ class VisitsController extends Controller
 
                 $model->update($data);
 
-                if ($request->status_id == 2 && $model->booking->order->userAddress) {
-                    $userAddress = $model->booking->order->userAddress;
+                // if ($request->status_id == 2 && $model->booking->order->userAddress) {
+                //     $userAddress = $model->booking->order->userAddress;
 
-                    // Check if latitude and longitude are zero before updating
+                //     // Check if latitude and longitude are zero before updating
+                //     if ($model->lat == 0 && $model->long == 0) {
+                //         $dataToUpdate = [
+                //             'lat'  => $userAddress->lat ?? 0,
+                //             'long' => $userAddress->long ?? 0,
+                //         ];
+
+                //         // Combine the data updates into one call
+                //         $model->update(array_merge($data, $dataToUpdate));
+                //     }
+                // }
+
+                if ($request->status_id == 2 && $model->booking->order->userAddress) {
+
+                    $groupId          = $model->assign_to_id;
+                    $visitDate        = $model->booking->date;
+                    $currentStartTime = $model->start_time;
+
+                    $blockingVisits = Visit::where('assign_to_id', $groupId)
+                        ->whereHas('booking', function ($q) use ($visitDate) {
+                            $q->whereDate('date', $visitDate);
+                        })
+                        ->where('id', '!=', $model->id)
+                        ->where('start_time', '<', $currentStartTime)
+                        ->where(function ($query) {
+                            $query->whereNull('end_time')
+                                ->orWhere('end_time', '>', now()->format('H:i:s'));
+                        })
+                        ->whereNotIn('visits_status_id', [5, 6])
+                        ->exists();
+
+                    if ($blockingVisits) {
+                        return self::apiResponse(400, __('api.you_cannot_start_visit_before_completing_previous_visits_on_the_same_day'));
+                    }
+
+                    // تحديث الإحداثيات إذا كانت غير موجودة
                     if ($model->lat == 0 && $model->long == 0) {
+                        $userAddress = $model->booking->order->userAddress;
+
                         $dataToUpdate = [
                             'lat'  => $userAddress->lat ?? 0,
                             'long' => $userAddress->long ?? 0,
                         ];
 
-                        // Combine the data updates into one call
                         $model->update(array_merge($data, $dataToUpdate));
                     }
                 }
