@@ -214,8 +214,6 @@ class TechnicianController extends Controller
                         </a>';
                 }
 
-                
-
                 return [
                     'id'       => '<a href="' . route('dashboard.core.technician.details', ['id' => $row->id]) . '">' . $row->id . '</a>',
                     'name'     => '<a href="#">' . $row->name . '</a>',
@@ -387,11 +385,17 @@ class TechnicianController extends Controller
             "باكستان"   => "6",
             "مصر"       => "7",
         ];
-
+        $countries = Country::where('active', 1)->get()->pluck('title', 'id');
+        $cities    = City::where('active', 1)->get();
+        $regions   = Region::where('active', 1)
+            ->where('title_ar', '!=', 'old')
+            ->get();
         $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
 
+        $shifts = Shift::select('id', 'shift_no')->distinct()->get();
+
         return view('dashboard.core.technicians.off_today', compact(
-            'groups', 'specs', 'days', 'nationalities', 'clientProjects'
+            'groups', 'specs', 'days', 'nationalities', 'clientProjects', 'cities', 'regions', 'countries', 'shifts'
         ));
     }
 
