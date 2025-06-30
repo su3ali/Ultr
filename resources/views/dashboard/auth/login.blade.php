@@ -30,8 +30,10 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: #fff;
+        background-color: rgba(255, 255, 255, 0.15);
         border-radius: 20px;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
         padding: 2rem;
         animation: fadeIn 0.6s ease-in-out;
@@ -40,6 +42,13 @@
     .login-box {
         width: 100%;
         max-width: 420px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 16px;
+        background-color: rgba(255, 255, 255, 0.55);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
     }
 
     .login-box img {
@@ -78,6 +87,20 @@
         font-size: 0.95rem;
     }
 
+    .password-wrapper {
+        position: relative;
+    }
+
+    .password-wrapper .toggle-password {
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #888;
+        font-size: 1.1rem;
+    }
+
     .btn-primary {
         background-color: var(--primary-color);
         border: none;
@@ -90,7 +113,7 @@
     }
 
     .btn-primary:hover {
-        background-color: #1781bf;
+        background-color: #126da4;
     }
 
     .form-check-label {
@@ -191,10 +214,11 @@
                     <input type="email" id="email" name="email" class="form-control" placeholder="you@example.com"
                         required>
                 </div>
-                <div class="mb-3">
+                <div class="mb-3 password-wrapper">
                     <label for="password" class="form-label">{{ __('dash.password') }}</label>
                     <input type="password" id="password" name="password" class="form-control" placeholder="••••••••"
                         required>
+                    <span class="toggle-password" onclick="togglePassword(this)"><i class="fas fa-eye"></i></span>
                 </div>
                 <div class="form-check mb-3 text-start">
                     <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me">
@@ -220,13 +244,14 @@
                         <img src="{{ asset('images/slider/slider3.jpg') }}" alt="Slide 3">
                     </div>
                     <div class="carousel-item">
-                        <img src="{{ asset('images/slider/slider4.jpg') }}" alt="Slide 3">
+                        <img src="{{ asset('images/slider/slider4.jpg') }}" alt="Slide 4">
                     </div>
                 </div>
                 <div class="carousel-indicators mb-3">
                     <button type="button" data-bs-target="#imageSlider" data-bs-slide-to="0" class="active"></button>
                     <button type="button" data-bs-target="#imageSlider" data-bs-slide-to="1"></button>
                     <button type="button" data-bs-target="#imageSlider" data-bs-slide-to="2"></button>
+                    <button type="button" data-bs-target="#imageSlider" data-bs-slide-to="3"></button>
                 </div>
             </div>
         </div>
@@ -234,4 +259,20 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script>
+    function togglePassword(el) {
+        const input = document.querySelector('#password');
+        const icon = el.querySelector('i');
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+        } else {
+            input.type = "password";
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
+        }
+    }
+</script>
 @endsection
