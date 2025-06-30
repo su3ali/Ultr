@@ -14,7 +14,7 @@
         height: 100%;
         margin: 0;
         font-family: 'Cairo', sans-serif;
-        background-color: #f9fbfd;
+        background-color: #ffffff !important;
     }
 
     .login-wrapper {
@@ -23,6 +23,7 @@
         overflow: hidden;
         padding: 2rem;
         gap: 2rem;
+        background-color: #ffffff !important;
     }
 
     .login-left {
@@ -91,10 +92,10 @@
         position: relative;
     }
 
-    .password-wrapper .toggle-password {
+    .password-wrapper #toggle-password {
         position: absolute;
-        top: 50%;
-        right: 12px;
+        top: 70%;
+        right: 90%;
         transform: translateY(-50%);
         cursor: pointer;
         color: #888;
@@ -219,10 +220,9 @@
                 </div>
                 <div class="mb-3 password-wrapper">
                     <label for="password" class="form-label">{{ __('dash.password') }}</label>
-                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••"
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••"
                         required>
-                    <i id="toggle-password" class="feather feather-eye"></i>
-
+                    <i id="toggle-password" class="fas fa-eye" onclick="togglePasswordIcon(this)"></i>
                 </div>
                 <div class="form-check mb-3 text-start">
                     <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me">
@@ -265,18 +265,18 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js" crossorigin="anonymous"></script>
 <script>
-    function togglePassword(el) {
+    function togglePasswordIcon(el) {
         const input = document.querySelector('#password');
-        const icon = el.querySelector('i');
         if (input.type === "password") {
             input.type = "text";
-            icon.classList.remove("fa-eye");
-            icon.classList.add("fa-eye-slash");
+            el.classList.remove("fa-eye");
+            el.classList.add("fa-eye-slash");
         } else {
             input.type = "password";
-            icon.classList.remove("fa-eye-slash");
-            icon.classList.add("fa-eye");
+            el.classList.remove("fa-eye-slash");
+            el.classList.add("fa-eye");
         }
     }
 </script>
+
 @endsection
