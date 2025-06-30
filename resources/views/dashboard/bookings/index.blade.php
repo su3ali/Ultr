@@ -828,6 +828,7 @@ $('#applyCouponForm').on('submit', function (e) {
             booking_id: booking_id,
             force_apply: force_apply 
         },
+        
         success: function (response) {
             $('#couponModal').modal('hide');
             toastr.success(response.message);
