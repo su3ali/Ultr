@@ -122,7 +122,7 @@ class BusinessOrderController extends Controller
                   </button>';
                     }
 
-                    if ($user->can('update_business_orders') || $user->hasRole('admin')) {
+                    if ($user->can('business_orders_change_team') || $user->hasRole('admin')) {
                         $html .= '<button type="button" class="btn btn-primary"
                         data-toggle="modal"
                         data-target="#changeGroupModel"

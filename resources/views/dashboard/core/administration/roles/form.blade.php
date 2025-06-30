@@ -809,6 +809,43 @@ $name = 'name_' . app()->getLocale();
                                         {{-- End business order branches --}}
 
 
+                                        {{-- Change Team --}}
+
+                                        <div class="card component-card_2 col-md-12 px-0">
+                                            <div class="form-group h-50 mb-0 px-3 pt-2"
+                                                style="background-color: #0072ff42;">
+                                                <label
+                                                    class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                    <input type="checkbox"
+                                                        class="new-control-input check-all-business_orders_change_team">
+                                                    <span class="new-control-indicator"></span><span
+                                                        class="new-chk-content text-primary"><b>
+                                                            {{ __('dash.business_orders_change_team') }}</b></span>
+                                                </label>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="n-chk col-md-3 form-row">
+                                                        <label
+                                                            class="new-control new-checkbox new-checkbox-text checkbox-success">
+                                                            <input type="checkbox"
+                                                                name="permissions[{{ $permissions[132]->id }}]"
+                                                                class="new-control-input perm-check perm-check-business_orders_change_team"
+                                                                {{ isset($model) ? (in_array($permissions[132]->id,
+                                                            $model->permissions->pluck('id')->toArray()) ? 'checked' :
+                                                            '') : '' }}>
+                                                            <span class="new-control-indicator"></span><span
+                                                                class="new-chk-content"><b>{{ $permissions[132]->$name
+                                                                    }}</b></span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+
+
 
                                         <div class="card component-card_2 col-md-12 px-0">
                                             <div class="form-group h-50 mb-0 px-3 pt-2"
@@ -2562,6 +2599,15 @@ $name = 'name_' . app()->getLocale();
             let matches = $("input.perm-check:checkbox:not(:checked)");
             checkViewAll(matches)
         });
+
+        // Change Team
+        $(".check-all-business_orders_change_team").click(function() {
+            let boxes = $('.perm-check-business_orders_change_team');
+            boxes.prop('checked', this.checked);
+            let matches = $("input.perm-check:checkbox:not(:checked)");
+            checkViewAll(matches)
+        });
+        
 
       
 

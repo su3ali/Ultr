@@ -94,11 +94,14 @@
     .password-wrapper .toggle-password {
         position: absolute;
         top: 50%;
-        right: 15px;
+        right: 12px;
         transform: translateY(-50%);
         cursor: pointer;
         color: #888;
         font-size: 1.1rem;
+        z-index: 10;
+        background: transparent;
+        border: none;
     }
 
     .btn-primary {
@@ -218,7 +221,8 @@
                     <label for="password" class="form-label">{{ __('dash.password') }}</label>
                     <input type="password" id="password" name="password" class="form-control" placeholder="••••••••"
                         required>
-                    <span class="toggle-password" onclick="togglePassword(this)"><i class="fas fa-eye"></i></span>
+                    <i id="toggle-password" class="feather feather-eye"></i>
+
                 </div>
                 <div class="form-check mb-3 text-start">
                     <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me">
@@ -259,7 +263,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js" crossorigin="anonymous"></script>
 <script>
     function togglePassword(el) {
         const input = document.querySelector('#password');
