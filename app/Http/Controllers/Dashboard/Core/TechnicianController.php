@@ -214,8 +214,6 @@ class TechnicianController extends Controller
                         </a>';
                 }
 
-                
-
                 return [
                     'id'       => '<a href="' . route('dashboard.core.technician.details', ['id' => $row->id]) . '">' . $row->id . '</a>',
                     'name'     => '<a href="#">' . $row->name . '</a>',
@@ -486,7 +484,7 @@ class TechnicianController extends Controller
                 'name_ar'       => $validated['name'],
                 'technician_id' => $technician->id,
                 'country_id'    => $countryId,
-                'city_id'       => $request->city_id ?? null,
+                'city_id'       => $request->city_id ?? 1,
             ]);
 
             foreach ($regions as $regionId) {
