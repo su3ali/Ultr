@@ -1,19 +1,23 @@
 <?php
 namespace App\Http\Controllers\Dashboard\BusinessProject;
 
-use App\Http\Controllers\Controller;
-use App\Models\BusinessProject\ClientProject;
 use App\Models\Day;
+use App\Models\City;
 use App\Models\Group;
-use App\Models\Specialization;
-use App\Models\Technician;
-use App\Models\TechnicianWorkingDay;
+use App\Models\Shift;
 use App\Models\Visit;
+use App\Models\Region;
+use App\Models\Country;
+use App\Models\Technician;
 use App\Traits\imageTrait;
 use Illuminate\Http\Request;
+use App\Models\Specialization;
+use App\Http\Controllers\Controller;
+use App\Models\TechnicianWorkingDay;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
+use App\Models\BusinessProject\ClientProject;
 
 class BusinessTechnicianController extends Controller
 {
@@ -175,8 +179,16 @@ class BusinessTechnicianController extends Controller
 
         $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
 
+        $shifts = Shift::select('id', 'shift_no')->distinct()->get();
+
+        $countries = Country::where('active', 1)->get()->pluck('title', 'id');
+        $cities    = City::where('active', 1)->get();
+        $regions   = Region::where('active', 1)
+            ->where('title_ar', '!=', 'old')
+            ->get();
+
         return view('dashboard.business_technicians.index', compact(
-            'groups', 'specs', 'days', 'nationalities', 'clientProjects'
+            'groups', 'specs', 'days', 'nationalities', 'clientProjects', 'shifts', 'countries', 'cities', 'regions'
         ));
     }
 
