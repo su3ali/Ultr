@@ -830,11 +830,13 @@ $('#applyCouponForm').on('submit', function (e) {
         },
         
         success: function (response) {
+            debugger;
             $('#couponModal').modal('hide');
             toastr.success(response.message);
             $('#html5-extension').DataTable().ajax.reload();
         },
         error: function (xhr) {
+            debugger;
             const res = xhr.responseJSON;
             toastr.error(res.message || 'فشل تطبيق الكوبون');
             console.error(res);

@@ -1,10 +1,11 @@
 <?php
 namespace App\Models;
 
+use App\Models\Visit;
 use App\Models\Technician;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
 class Group extends Model
 {
@@ -93,5 +94,7 @@ class Group extends Model
         return $query->where('client_project_id', $projectId)
             ->where('branch_id', $branchId);
     }
+
+    
 
 }

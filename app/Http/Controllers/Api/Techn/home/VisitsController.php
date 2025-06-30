@@ -109,41 +109,6 @@ class VisitsController extends Controller
         return self::apiResponse(200, null, $this->body);
     }
 
-    protected function myPreviousOrders()
-    {
-        try {
-            $groupIds = Group::where('technician_id', auth('sanctum')->user()->id)->pluck('id')->toArray();
-            $groups   = Group::where('technician_id', auth('sanctum')->user()->id)->first();
-
-            if (! $groups) {
-                $this->body['visits'] = [];
-                return self::apiResponse(200, null, $this->body);
-            }
-
-            $orders = Visit::whereHas('booking', function ($q) {
-                $q->whereHas('customer')->whereHas('address');
-            })->with(['booking' => function ($q) {
-                $q->with([
-                    'service' => function ($q) {
-                        $q->with('category');
-                    },
-                    'customer',
-                    'address',
-                ]);
-            }, 'status'])
-                ->whereIn('visits_status_id', [5, 6])
-                ->whereIn('assign_to_id', $groupIds)
-                ->orderBy('created_at', 'desc')
-                ->take(30) // Limit to 30 records
-                ->get();
-
-            $this->body['visits'] = VisitsResource::collection($orders);
-            return self::apiResponse(200, null, $this->body);
-        } catch (\Exception $e) {
-            return self::apiResponse(500, __('api.Something went wrong, please try again later'), $this->body);
-        }
-    }
-
     // protected function myPreviousOrders()
     // {
     //     try {
@@ -155,50 +120,76 @@ class VisitsController extends Controller
     //             return self::apiResponse(200, null, $this->body);
     //         }
 
-    //         $cacheKey = 'myPreviousOrders_' . auth('sanctum')->user()->id;
+    //         $orders = Visit::whereHas('booking', function ($q) {
+    //             $q->whereHas('customer')->whereHas('address');
+    //         })->with(['booking' => function ($q) {
+    //             $q->with([
+    //                 'service' => function ($q) {
+    //                     $q->with('category');
+    //                 },
+    //                 'customer',
+    //                 'address',
+    //             ]);
+    //         }, 'status'])
+    //             ->whereIn('visits_status_id', [5, 6])
+    //             ->whereIn('assign_to_id', $groupIds)
+    //             ->orderBy('created_at', 'desc')
+    //             ->take(30) // Limit to 30 records
+    //             ->get();
 
-    //         $orders = cache()->remember($cacheKey, 300, function () use ($groupIds) {
-    //             return Visit::whereHas('booking', function ($q) {
-    //                 $q->whereHas('customer')->whereHas('address');
-    //             })->with(['booking' => function ($q) {
-    //                 $q->with([
-    //                     'service' => function ($q) {
-    //                         $q->with('category');
-    //                     },
-    //                     'customer',
-    //                     'address',
-    //                 ]);
-    //             }, 'status'])
-    //                 ->whereIn('visits_status_id', [5, 6])
-    //                 ->whereIn('assign_to_id', $groupIds)
-    //                 ->take(24) // Limit to 24 records
-    //                 ->get();
-    //         });
-
-    //         //  Sort by date desc, then time asc
-    //         $sorted = $orders->sort(function ($a, $b) {
-    //             $dateA = optional($a->booking)->date;
-    //             $dateB = optional($b->booking)->date;
-
-    //             $timeA = $a->start_time;
-    //             $timeB = $b->start_time;
-
-    //             // Compare dates descending (latest first)
-    //             if ($dateA !== $dateB) {
-    //                 return strcmp($dateB, $dateA); // reverse
-    //             }
-
-    //             // If dates are equal, compare times ascending (earliest first)
-    //             return strcmp($timeA, $timeB);
-    //         })->values();
-
-    //         $this->body['visits'] = VisitsResource::collection($sorted);
+    //         $this->body['visits'] = VisitsResource::collection($orders);
     //         return self::apiResponse(200, null, $this->body);
-
     //     } catch (\Exception $e) {
     //         return self::apiResponse(500, __('api.Something went wrong, please try again later'), $this->body);
     //     }
     // }
+
+    protected function myPreviousOrders()
+    {
+       
+        try {
+            $groupIds = Group::where('technician_id', auth('sanctum')->user()->id)->pluck('id')->toArray();
+            $groups   = Group::where('technician_id', auth('sanctum')->user()->id)->first();
+
+            if (! $groups) {
+                $this->body['visits'] = [];
+                return self::apiResponse(200, null, $this->body);
+            }
+
+            $startDate = Carbon::today()->subDays(3)->toDateString(); // 3 days ago
+            $endDate   = Carbon::today()->toDateString();             // today
+
+            // return $endDate;
+
+            $orders = Visit::whereHas('booking', function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('date', [$startDate, $endDate])
+                    ->whereHas('customer')
+                    ->whereHas('address');
+            })
+                ->with([
+                    'booking' => function ($q) {
+                        $q->with([
+                            'service' => function ($q) {
+                                $q->with('category');
+                            },
+                            'customer',
+                            'address',
+                        ]);
+                    },
+                    'status',
+                ])
+                ->whereIn('visits_status_id', [5, 6]) // completed or canceled
+                ->whereIn('assign_to_id', $groupIds)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $this->body['visits'] = VisitsResource::collection($orders);
+            return self::apiResponse(200, null, $this->body);
+
+        } catch (\Exception $e) {
+            return self::apiResponse(500, __('api.Something went wrong, please try again later'), $this->body);
+        }
+    }
 
     // protected function myOrdersByDateNow()
     // {
@@ -400,17 +391,53 @@ class VisitsController extends Controller
 
                 $model->update($data);
 
-                if ($request->status_id == 2 && $model->booking->order->userAddress) {
-                    $userAddress = $model->booking->order->userAddress;
+                // if ($request->status_id == 2 && $model->booking->order->userAddress) {
+                //     $userAddress = $model->booking->order->userAddress;
 
-                    // Check if latitude and longitude are zero before updating
+                //     // Check if latitude and longitude are zero before updating
+                //     if ($model->lat == 0 && $model->long == 0) {
+                //         $dataToUpdate = [
+                //             'lat'  => $userAddress->lat ?? 0,
+                //             'long' => $userAddress->long ?? 0,
+                //         ];
+
+                //         // Combine the data updates into one call
+                //         $model->update(array_merge($data, $dataToUpdate));
+                //     }
+                // }
+
+                if ($request->status_id == 2 && $model->booking->order->userAddress) {
+
+                    $groupId          = $model->assign_to_id;
+                    $visitDate        = $model->booking->date;
+                    $currentStartTime = $model->start_time;
+
+                    $blockingVisits = Visit::where('assign_to_id', $groupId)
+                        ->whereHas('booking', function ($q) use ($visitDate) {
+                            $q->whereDate('date', $visitDate);
+                        })
+                        ->where('id', '!=', $model->id)
+                        ->where('start_time', '<', $currentStartTime)
+                        ->where(function ($query) {
+                            $query->whereNull('end_time')
+                                ->orWhere('end_time', '>', now()->format('H:i:s'));
+                        })
+                        ->whereNotIn('visits_status_id', [5, 6])
+                        ->exists();
+
+                    if ($blockingVisits) {
+                        return self::apiResponse(400, __('api.you_cannot_start_visit_before_completing_previous_visits_on_the_same_day'));
+                    }
+
+                    // تحديث الإحداثيات إذا كانت غير موجودة
                     if ($model->lat == 0 && $model->long == 0) {
+                        $userAddress = $model->booking->order->userAddress;
+
                         $dataToUpdate = [
                             'lat'  => $userAddress->lat ?? 0,
                             'long' => $userAddress->long ?? 0,
                         ];
 
-                        // Combine the data updates into one call
                         $model->update(array_merge($data, $dataToUpdate));
                     }
                 }
