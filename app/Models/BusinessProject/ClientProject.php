@@ -2,11 +2,11 @@
 namespace App\Models\BusinessProject;
 
 use App\Models\Admin;
+use App\Models\BusinessProject\ClientProjectBranch;
+use App\Models\ClientProjectServicePrice;
 use App\Models\Service;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\ClientProjectServicePrice;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\BusinessProject\ClientProjectBranch;
 
 class ClientProject extends Model
 {
@@ -14,7 +14,7 @@ class ClientProject extends Model
 
     protected $fillable = ['name_ar', 'name_en', 'code', 'description', 'active', 'created_by', 'updated_by'];
 
-    public function getTitleAttribute()
+    public function getNameAttribute()
     {
         if (app()->getLocale() == 'ar') {
             return $this->name_ar;

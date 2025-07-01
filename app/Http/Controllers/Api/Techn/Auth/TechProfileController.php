@@ -115,14 +115,7 @@ class TechProfileController extends Controller
         return self::apiResponse(200, t_('Modified successfully'), $this->body);
     }
 
-    // protected function getNotification()
-    // {
-
-    //     $techn = auth('sanctum')->user();
-
-    //     $this->body['notification'] = NotificationResource::collection($techn->notifications);
-    //     return self::apiResponse(200, null, $this->body);
-    // }
+    
 
     protected function getNotification()
     {

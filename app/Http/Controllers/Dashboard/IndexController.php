@@ -1,17 +1,21 @@
 <?php
 namespace App\Http\Controllers\Dashboard;
 
-use App\Charts\CommonChart;
-use App\Http\Controllers\Controller;
-use App\Models\Booking;
-use App\Models\CustomerComplaint;
+use Carbon\Carbon;
 use App\Models\Day;
+use App\Models\User;
 use App\Models\Group;
 use App\Models\Order;
-use App\Models\Technician;
-use App\Models\User;
 use App\Models\Visit;
-use Carbon\Carbon;
+use App\Models\Booking;
+use App\Models\Technician;
+use App\Charts\CommonChart;
+use App\Models\BusinessOrder;
+use App\Models\CustomerComplaint;
+use App\Models\AdminClientProject;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Models\BusinessProject\ClientProject;
 
 class IndexController extends Controller
 {
@@ -20,6 +24,13 @@ class IndexController extends Controller
     {
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
+        $admin = auth()->user()->hasRole('admin');
+        if ($admin) {
+            $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
+        } else {
+            $clientProjectsIds = AdminClientProject::where('admin_id', auth()->user()->id)->pluck('client_project_id')->toArray();
+
+        }
         // Get the late orders
         // $lateOrders = Order::lateToServe()->get();
 
@@ -64,8 +75,19 @@ class IndexController extends Controller
         })
             ->count();
 
+        $business_orders = BusinessOrder::whereIn('client_project_id', $clientProjectsIds)->count();
+
         $technicians = Technician::where('is_trainee', Technician::TECHNICIAN)
             ->where('active', Technician::ACTIVE)
+            ->whereHas('group', function ($q) {
+                $q->where('active', Group::ACTIVE);
+            })
+            ->workingToday()
+            ->count();
+
+         $business_technicians = Technician::where('is_trainee', Technician::TECHNICIAN)
+            ->where('active', Technician::ACTIVE)
+            ->where('is_business', Technician::BUSINESS)
             ->whereHas('group', function ($q) {
                 $q->where('active', Group::ACTIVE);
             })
@@ -209,7 +231,7 @@ class IndexController extends Controller
             'canceled_orders', 'complaints_resolved', 'complaints_unresolved', 'todayCustomerComplaints',
             'customersHaveOrders', 'canceled_orders_today', 'tech_visits_today', 'finished_visits_today',
             'total_trainees', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers',
-            'client_orders', 'technicians', 'tech_visits', 'customer_complaints', 'lateOrderCount', 'bookings_count', 'technicians_offToday'
+            'client_orders', 'technicians', 'tech_visits', 'customer_complaints', 'lateOrderCount', 'bookings_count', 'technicians_offToday', 'business_orders','business_technicians'
         ));
     }
 

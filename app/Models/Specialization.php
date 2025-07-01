@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,17 +8,19 @@ class Specialization extends Model
 {
     use HasFactory;
     protected $guarded = [];
-    public function getNameAttribute(){
-        if (app()->getLocale()=='ar'){
+    public function getNameAttribute()
+    {
+        if (app()->getLocale() == 'ar') {
             return $this->name_ar;
-        }else{
+        } else {
             return $this->name_en;
         }
     }
-    public function getDescriptionAttribute(){
-        if (app()->getLocale()=='ar'){
+    public function getDescriptionAttribute()
+    {
+        if (app()->getLocale() == 'ar') {
             return $this->description_ar;
-        }else{
+        } else {
             return $this->description_en;
         }
     }

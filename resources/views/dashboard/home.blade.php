@@ -104,6 +104,76 @@
                 </div>
                 @endif
 
+                {{-- Start Business Orders --}}
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_business_orders'))
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.business_orders.index') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #0ea5e9;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            transition: 0.3s;">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">{{ $business_orders }}
+                                </div>
+                                <div style="font-size: 14px; color: #64748b;">{{ __('dash.business_orders') }}</div>
+                            </div>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-shopping-cart">
+                                    <circle cx="9" cy="21" r="1" />
+                                    <circle cx="20" cy="21" r="1" />
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                @endif
+
+                {{-- End Business Orders --}}
+
+
+                {{-- Start Business Technicians --}}
+                @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_business_orders'))
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
+                    <a href="{{ route('dashboard.businessTechnician.index') }}" class="text-decoration-none">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            background-color: #ffffff;
+                            border-left: 5px solid #0ea5e9;
+                            border-radius: 10px;
+                            padding: 16px 20px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            transition: 0.3s;">
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">{{ $business_technicians }}
+                                </div>
+                                <div style="font-size: 14px; color: #64748b;">{{ __('dash.business_technicians') }}</div>
+                            </div>
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                                    stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    class="feather feather-shopping-cart">
+                                    <circle cx="9" cy="21" r="1" />
+                                    <circle cx="20" cy="21" r="1" />
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                @endif
+
+                {{-- End Business Technicians --}}
+
+
                 @if (auth()->user()->hasRole('admin') || auth()->user()->can('view_technicians'))
                 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-3">
                     <a href="{{ route('dashboard.core.technician.index') }}" class="text-decoration-none">
@@ -147,7 +217,8 @@
                             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
                             transition: 0.3s;">
                             <div style="flex-grow: 1;">
-                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">{{ $technicians_offToday }}</div>
+                                <div style="font-size: 20px; font-weight: 700; color: #1e293b;">{{ $technicians_offToday
+                                    }}</div>
                                 <div style="font-size: 14px; color: #64748b;">{{ __('dash.Technicians_off_today') }}
                                 </div>
                             </div>
