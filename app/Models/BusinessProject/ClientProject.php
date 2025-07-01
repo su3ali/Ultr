@@ -1,11 +1,12 @@
 <?php
 namespace App\Models\BusinessProject;
 
-use App\Models\BusinessProject\ClientProjectBranch;
-use App\Models\ClientProjectServicePrice;
+use App\Models\Admin;
 use App\Models\Service;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ClientProjectServicePrice;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\BusinessProject\ClientProjectBranch;
 
 class ClientProject extends Model
 {
@@ -37,6 +38,11 @@ class ClientProject extends Model
         return $this->belongsToMany(Service::class, 'client_project_service_prices')
             ->withPivot('price')
             ->withTimestamps();
+    }
+
+    public function admins()
+    {
+        return $this->belongsToMany(Admin::class, 'admin_client_project');
     }
 
 }

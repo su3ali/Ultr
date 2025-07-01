@@ -115,24 +115,26 @@ class BusinessProjectController extends Controller
                 'updated_by'  => $user->id,
             ]);
 
-            Admin::create([
-                'first_name'        => $validated['admin_first_name'],
-                'last_name'         => $validated['admin_last_name'],
-                'phone'             => $validated['admin_phone'] ?? null,
-                'email'             => $validated['admin_email'],
-                'password'          => bcrypt($validated['admin_password']),
-                'type'              => 'client_admin',
-                'client_project_id' => $project->id,
-                'active'            => true,
-                'created_by'        => $user->id,
-                'updated_by'        => $user->id,
+            $admin = Admin::create([
+                'first_name' => $validated['admin_first_name'],
+                'last_name'  => $validated['admin_last_name'],
+                'phone'      => $validated['admin_phone'] ?? null,
+                'email'      => $validated['admin_email'],
+                'password'   => bcrypt($validated['admin_password']),
+                'type'       => 'client_admin',
+                'active'     => true,
+                'created_by' => $user->id,
+                'updated_by' => $user->id,
             ]);
+
+            //  Attach project to admin through pivot table
+            $admin->clientProjects()->attach($project->id);
 
             DB::commit();
 
             return redirect()
                 ->route('dashboard.business_projects.index')
-                ->with('success', 'تم إنشاء المشروع بنجاح.');
+                ->with('success', 'تم إنشاء المشروع وربط المسؤول به بنجاح.');
         } catch (\Throwable $e) {
             DB::rollBack();
 

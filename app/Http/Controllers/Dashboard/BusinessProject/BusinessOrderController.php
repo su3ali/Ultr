@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Dashboard\BusinessProject;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Models\AdminClientProject;
 use App\Models\BookingSetting;
 use App\Models\BusinessOrder;
 use App\Models\BusinessOrderStatus;
@@ -149,17 +150,25 @@ class BusinessOrderController extends Controller
 
         // ========  Dropdwon  ==========
 
-        $cars            = CarClient::all();
-        $users           = User::select('id', 'first_name', 'last_name')->limit(100)->get(); // or paginate or via AJAX
-        $categories      = Category::select('id', 'title_ar', 'title_en')->get();
-        $services        = Service::select('id', 'title_ar', 'title_en')->get();
-        $groups          = Group::select('id', 'name_ar', 'name_en')->get();
-        $paymentMethods  = Cache::remember('active_payment_methods', 60, fn() => PaymentMethod::where('active', 1)->get());
-        $reasons         = ReasonCancel::all();
-        $cities          = City::where('active', 1)->pluck(app()->getLocale() === 'ar' ? 'title_ar' : 'title_en', 'id');
-        $types           = CarType::pluck('name_ar', 'id');
-        $models          = CarModel::pluck('name_ar', 'id');
-        $clientProjects  = ClientProject::select('id', 'name_ar', 'name_en')->get();
+        $cars           = CarClient::all();
+        $users          = User::select('id', 'first_name', 'last_name')->limit(100)->get(); // or paginate or via AJAX
+        $categories     = Category::select('id', 'title_ar', 'title_en')->get();
+        $services       = Service::select('id', 'title_ar', 'title_en')->get();
+        $groups         = Group::select('id', 'name_ar', 'name_en')->get();
+        $paymentMethods = Cache::remember('active_payment_methods', 60, fn() => PaymentMethod::where('active', 1)->get());
+        $reasons        = ReasonCancel::all();
+        $cities         = City::where('active', 1)->pluck(app()->getLocale() === 'ar' ? 'title_ar' : 'title_en', 'id');
+        $types          = CarType::pluck('name_ar', 'id');
+        $models         = CarModel::pluck('name_ar', 'id');
+        $admin          = auth()->user()->hasRole('admin');
+        if ($admin) {
+            $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
+        } else {
+            $clientProjectsIds = AdminClientProject::where('admin_id', auth()->user()->id)->pluck('client_project_id')->toArray();
+            $clientProjects    = ClientProject::whereIn('id', $clientProjectsIds)->select('id', 'name_ar', 'name_en')->get();
+
+        }
+
         $projects        = $clientProjects->pluck(app()->getLocale() === 'ar' ? 'name_ar' : 'name_en', 'id');
         $payment_methods = $paymentMethods->pluck(app()->getLocale() === 'ar' ? 'name_ar' : 'name_en', 'id');
         $statuses        = $statusesModel->pluck(app()->getLocale() === 'ar' ? 'name_ar' : 'name_en', 'id');

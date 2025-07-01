@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Dashboard\Core\Administration;
 
 use App\Datatables\Dashboard\Core\Administration\AdminsDatatable;
@@ -7,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\Administration\AdminRequest;
 use App\Models\Admin;
 use App\Models\AdminRegion;
+use App\Models\BusinessProject\ClientProject;
 use App\Models\Region;
 use App\Support\Crud\WithDatatable;
 use App\Support\Crud\WithDestroy;
@@ -31,60 +31,71 @@ class AdminController extends Controller
     protected function storeAction(array $validated)
     {
         $roles = Arr::pull($validated, 'roles');
+        $type  = $validated['type'] ?? 'admin';
 
-        $regions = Arr::pull($validated, 'regions');
-        $regionsCollection = collect($regions);
+        // إنشاء المشرف
+        $admin = Admin::create($validated);
+        $admin->syncRoles($roles);
 
-        $model = Admin::create($validated);
-        foreach ($regionsCollection as $region) {
-            $exists = AdminRegion::where('region_id', $region)
-                ->where('admin_id', $model->id)
-                ->exists();
-
-            if (!$exists) {
-                $adminRegion = AdminRegion::create([
-                    'region_id' => $region,
-                    'admin_id' => $model->id,
+        if ($type === 'admin') {
+            // التعامل مع المناطق
+            $regions = Arr::pull($validated, 'regions', []);
+            foreach ($regions as $regionId) {
+                AdminRegion::firstOrCreate([
+                    'admin_id'  => $admin->id,
+                    'region_id' => $regionId,
                 ]);
             }
         }
 
-        $model->syncRoles($roles);
+        if ($type === 'client_admin') {
+            // التعامل مع المشاريع
+            $projects = Arr::pull($validated, 'client_projects', []);
+            $admin->clientProjects()->sync($projects); // طريقة مباشرة بدلاً من foreach
+        }
     }
 
     protected function updateAction(array $validated, Model $model)
     {
-
         $roles = Arr::pull($validated, 'roles');
-        $regions = Arr::pull($validated, 'regions');
-        $regionsCollection = collect($regions);
+        $type  = $validated['type'] ?? 'admin'; // افتراضي إذا لم يُرسل النوع
 
-        // Update the model with other validated data
+        // تحديث بيانات المشرف
         $model->update($validated);
+        $model->syncRoles($roles);
 
-        // Get existing region IDs for the admin
-        $existingRegions = AdminRegion::where('admin_id', $model->id)
-            ->pluck('region_id')
-            ->toArray();
+        // حذف العلاقات السابقة إن وجدت
+        if ($type === 'admin') {
+            // معالجة المناطق
+            $regions = Arr::pull($validated, 'regions', []);
 
-        // Find regions to be added and regions to be removed
-        $regionsToAdd = $regionsCollection->diff($existingRegions); // New regions
-        $regionsToRemove = collect($existingRegions)->diff($regionsCollection); // Old regions to be removed
+            $existingRegions = AdminRegion::where('admin_id', $model->id)->pluck('region_id')->toArray();
+            $regionsToAdd    = collect($regions)->diff($existingRegions);
+            $regionsToRemove = collect($existingRegions)->diff($regions);
 
-        // Add new regions
-        foreach ($regionsToAdd as $region) {
-            AdminRegion::create([
-                'region_id' => $region,
-                'admin_id' => $model->id,
-            ]);
+            foreach ($regionsToAdd as $region) {
+                AdminRegion::create([
+                    'admin_id'  => $model->id,
+                    'region_id' => $region,
+                ]);
+            }
+
+            AdminRegion::where('admin_id', $model->id)
+                ->whereIn('region_id', $regionsToRemove)
+                ->delete();
+
+            // تنظيف المشاريع إذا كانت موجودة
+            $model->clientProjects()->detach();
         }
 
-        // Remove old regions that are no longer in the updated list
-        AdminRegion::where('admin_id', $model->id)
-            ->whereIn('region_id', $regionsToRemove)
-            ->delete();
+        if ($type === 'client_admin') {
+            // معالجة المشاريع
+            $projects = Arr::pull($validated, 'client_projects', []);
+            $model->clientProjects()->sync($projects);
 
-        $model->syncRoles($roles);
+            // تنظيف المناطق إذا كانت موجودة
+            AdminRegion::where('admin_id', $model->id)->delete();
+        }
     }
 
     protected function validationAction(): array
@@ -94,17 +105,19 @@ class AdminController extends Controller
 
     protected function formData(?Model $model = null): array
     {
-        
-
-        $regions = Region::pluck('title_ar', 'id');
+        $regions        = Region::pluck('title_ar', 'id');
+        $clientProjects = ClientProject::pluck(app()->getLocale() == 'ar' ? 'name_ar' : 'name_en', 'id');
 
         return [
-            'jsValidator' => AdminRequest::class,
-            'selected' => $model?->getRoleNames(),
-            'roles' => toMap(Role::query()->where('guard_name', 'dashboard')
+            'jsValidator'        => AdminRequest::class,
+            'selected'           => $model?->getRoleNames(),
+            'roles'              => toMap(Role::query()
+                    ->where('guard_name', 'dashboard')
                     ->whereNotIn('name', ['super', 'admin', 'user'])
                     ->get(['id', 'name'])),
-            'regions' => $regions,
+            'regions'            => $regions,
+            'clientProjects'     => $clientProjects,
+            'selectedProjectIds' => $model?->clientProjects()->pluck('id')->toArray() ?? [],
         ];
     }
 
