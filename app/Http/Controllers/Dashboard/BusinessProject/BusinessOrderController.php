@@ -42,9 +42,19 @@ class BusinessOrderController extends Controller
         });
 
         if (request()->ajax()) {
+
             $orders = BusinessOrder::with([
                 'user', 'category', 'service', 'group', 'car', 'paymentMethod', 'status', 'project', 'branch', 'floor',
-            ])->orderBy('id', 'desc');
+            ])
+                ->orderBy('id', 'desc');
+
+            if (! auth()->user()->hasRole('admin')) {
+                $clientProjectsIds = AdminClientProject::where('admin_id', auth()->id())
+                    ->pluck('client_project_id')
+                    ->toArray();
+
+                $orders->whereIn('client_project_id', $clientProjectsIds);
+            }
 
             // ==========  Date Filter ==========
             if (request()->filled('date_from')) {
