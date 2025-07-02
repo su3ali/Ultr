@@ -1195,5 +1195,12 @@ return [
     'order_already_refunded'                => 'This order has already been refunded',
     'invalid_refund_method'                 => 'Invalid refund method',
     'order_is_refunded'                     => 'This order has already been refunded and cannot be rescheduled.',
-
+    'business_orders_change_team'           => 'Change Team',
+    'admin_type'                            => 'Admin Type',
+    'type_admin'                            => 'Operations',
+    'type_client_admin'                     => 'Business Operations',
+    'type_support'                          => 'Support',
+    'choose'                                => 'Choose',
+    'regions'                               => 'Regions',
+    'Admins'                                => 'Admins',
 ];

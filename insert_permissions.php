@@ -114,6 +114,9 @@ $permissions = [
     ['id' => 131, 'name' => 'apply_coupon', 'guard_name' => 'dashboard', 'name_ar' => 'تفعيل كوبونات الخصم', 'name_en' => 'Activate discount coupons'],
     ['id' => 132, 'name' => 'refund_bookings', 'guard_name' => 'dashboard', 'name_ar' => 'استعادة مبلغ الحجز الي المحفظة', 'name_en' => 'Refund Bookings'],
 
+    // Team Change
+    ['id' => 133, 'name' => 'business_orders_change_team', 'guard_name' => 'dashboard', 'name_ar' => 'تغيير الفريق لطلبات الأعمال', 'name_en' => 'Change Team'],
+
 ];
 
 // Insert or update permissions

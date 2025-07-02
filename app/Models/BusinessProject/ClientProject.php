@@ -1,6 +1,7 @@
 <?php
 namespace App\Models\BusinessProject;
 
+use App\Models\Admin;
 use App\Models\BusinessProject\ClientProjectBranch;
 use App\Models\ClientProjectServicePrice;
 use App\Models\Service;
@@ -13,7 +14,7 @@ class ClientProject extends Model
 
     protected $fillable = ['name_ar', 'name_en', 'code', 'description', 'active', 'created_by', 'updated_by'];
 
-    public function getTitleAttribute()
+    public function getNameAttribute()
     {
         if (app()->getLocale() == 'ar') {
             return $this->name_ar;
@@ -37,6 +38,11 @@ class ClientProject extends Model
         return $this->belongsToMany(Service::class, 'client_project_service_prices')
             ->withPivot('price')
             ->withTimestamps();
+    }
+
+    public function admins()
+    {
+        return $this->belongsToMany(Admin::class, 'admin_client_project');
     }
 
 }

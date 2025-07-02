@@ -23,6 +23,9 @@ class Technician extends Authenticatable
     public const ACTIVE   = 1;
     public const INACTIVE = 0;
 
+    public const BUSINESS = 1;
+    public const PERSONAL = 0;
+
     use HasApiTokens, HasPassword, HasFactory, HasRoles, Notifiable;
     protected $guard   = 'technician';
     protected $guarded = [];
@@ -31,6 +34,8 @@ class Technician extends Authenticatable
         'password',
         'remember_token',
     ];
+
+   
 
     public function scopeOffToday($query)
     {

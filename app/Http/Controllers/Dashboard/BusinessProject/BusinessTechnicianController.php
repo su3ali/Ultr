@@ -12,6 +12,7 @@ use App\Models\Technician;
 use App\Traits\imageTrait;
 use Illuminate\Http\Request;
 use App\Models\Specialization;
+use App\Models\AdminClientProject;
 use App\Http\Controllers\Controller;
 use App\Models\TechnicianWorkingDay;
 use Illuminate\Support\Facades\File;
@@ -26,6 +27,16 @@ class BusinessTechnicianController extends Controller
     public function index(Request $request)
     {
 
+        $admin = auth()->user()->hasRole('admin');
+        if ($admin) {
+            $clientProjects    = ClientProject::select('id', 'name_ar', 'name_en')->get();
+            $clientProjectsIds = AdminClientProject::pluck('client_project_id')->toArray();
+
+        } else {
+            $clientProjectsIds = AdminClientProject::where('admin_id', auth()->user()->id)->pluck('client_project_id')->toArray();
+
+        }
+
         $groups = cache()->remember('groups', 60, fn() => Group::all());
         $specs  = cache()->remember('specs', 60, fn() => Specialization::all());
         $days   = Day::where('is_active', 1)->get(['id', 'name_ar', 'name']);
@@ -34,6 +45,7 @@ class BusinessTechnicianController extends Controller
 
             // Build the base query
             $techniciansQuery = Technician::where('active', 1)->where('is_business', 1)
+                ->whereIn('client_project_id', $clientProjectsIds)
                 ->where('is_trainee', Technician::TECHNICIAN)
                 ->with(['group.region', 'specialization', 'workingDays']);
 
@@ -41,10 +53,14 @@ class BusinessTechnicianController extends Controller
                 // If the date filter is 'today', add the workingToday scope
                 $techniciansQuery = Technician::where('active', 1)
                     ->where('is_business', 1)
+                    ->whereIn('client_project_id', $clientProjectsIds)
+
                     ->with(['group', 'specialization', 'workingDays'])
                     ->workingToday();
             } else {
                 $techniciansQuery = Technician::where('is_business', 1)
+                    ->whereIn('client_project_id', $clientProjectsIds)
+
                     ->where('is_trainee', Technician::TECHNICIAN)
                     ->with(['group', 'specialization', 'workingDays']);
             }
@@ -91,12 +107,10 @@ class BusinessTechnicianController extends Controller
                 ? '<img class="img-fluid" style="width: 85px;" src="' . asset($row->image) . '"/>'
                 : __('dash.no_image');
 
-                $locale   = app()->getLocale();
-                $specName = $locale === 'ar'
-                ? $row->specialization?->name_ar
-                : $row->specialization?->name_en;
+                $specName =
+                $row->specialization?->name ?? '';
 
-                $regionTitle = $row->group?->region?->first()?->title ?? '';
+                $projectName = $row->clientProject?->name ?? '';
 
                 $statusToggle = '
                 <label class="switch s-outline s-outline-info mb-4 mr-2">
@@ -153,7 +167,7 @@ class BusinessTechnicianController extends Controller
                     'spec'    => $specName,
                     'phone'   => $whatsAppLink,
                     'group'   => $row->group?->name,
-                    'region'  => $regionTitle,
+                    'project' => $projectName,
                     'status'  => $statusToggle,
                     'control' => $control,
                 ];
@@ -380,13 +394,32 @@ class BusinessTechnicianController extends Controller
     }
     protected function changeStatus(Request $request)
     {
-        if ($request->active == 'true') {
-            error_log(1);
-            Technician::query()->where('id', $request->id)->update(['active' => 1]);
-        } else {
-            error_log(2);
-            Technician::query()->where('id', $request->id)->update(['active' => 0]);
+        $validated = $request->validate([
+            'id'     => 'required|exists:technicians,id',
+            'active' => 'required|in:true,false',
+        ]);
+
+        $isActive = filter_var($request->active, FILTER_VALIDATE_BOOLEAN);
+
+        // Load the technician model including the group
+        $technician = Technician::with('group')->findOrFail($request->id);
+
+        // Update technician status
+        $technician->update([
+            'active' => $isActive ? Technician::ACTIVE : Technician::INACTIVE,
+        ]);
+
+        // If technician has a group, update it too
+        if ($technician->group) {
+            $technician->group->update([
+                'active' => $isActive ? Group::ACTIVE : Group::INACTIVE,
+            ]);
         }
-        return response('success', __('dash.updated_success'));
+
+        return response()->json([
+            'status'  => true,
+            'message' => __('dash.updated_success'),
+        ]);
     }
+
 }

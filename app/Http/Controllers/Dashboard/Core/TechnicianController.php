@@ -490,7 +490,7 @@ class TechnicianController extends Controller
                 'name_ar'       => $validated['name'],
                 'technician_id' => $technician->id,
                 'country_id'    => $countryId,
-                'city_id'       => $request->city_id ?? null,
+                'city_id'       => $request->city_id ?? 1,
             ]);
 
             foreach ($regions as $regionId) {

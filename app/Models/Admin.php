@@ -51,4 +51,10 @@ class Admin extends Authenticatable
         return $this->belongsTo(ClientProject::class);
     }
 
+    public function clientProjects()
+    {
+        return $this->belongsToMany(ClientProject::class, 'admin_client_project')
+            ->select('client_projects.id', 'client_projects.name_ar');
+    }
+
 }

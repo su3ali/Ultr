@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Requests\Dashboard\Administration;
 
 use App\Support\Traits\ValidationRequest;
@@ -13,21 +12,24 @@ class AdminRequest extends FormRequest
     public function rules()
     {
         $rules = [
-            'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
-            'email' => 'required|email|max:255|unique:admins,email',
-            'phone' => 'required|numeric|unique:admins,phone',
-            'password' => ['required', 'confirmed', Password::min(4)],
-            'roles' => 'required|array',
-            'regions' => 'required|array',
-            'active' => 'nullable',
+            'first_name'        => 'required|string|max:100',
+            'last_name'         => 'required|string|max:100',
+            'email'             => 'required|email|max:255|unique:admins,email',
+            'phone'             => 'required|numeric|unique:admins,phone',
+            'password'          => ['required', 'confirmed', Password::min(4)],
+            'roles'             => 'required|array',
+            'regions'           => 'nullable|array',
+            'client_projects'   => 'nullable|array',
+            'client_projects.*' => 'exists:client_projects,id',
+            'type'              => 'required|in:admin,client_admin',
+            'active'            => 'nullable',
         ];
         if (str_contains(url()->current(), request()->route('id'))) {
             $rules['first_name'] = 'required|string|max:100';
-            $rules['last_name'] = 'required|string|max:100';
-            $rules['password'] = ['nullable', 'confirmed', Password::min(4)];
-            $rules['email'] = 'required|email|max:255|unique:admins,email,' . request()->route('id');
-            $rules['phone'] = 'required|numeric|unique:admins,phone,' . request()->route('id');
+            $rules['last_name']  = 'required|string|max:100';
+            $rules['password']   = ['nullable', 'confirmed', Password::min(4)];
+            $rules['email']      = 'required|email|max:255|unique:admins,email,' . request()->route('id');
+            $rules['phone']      = 'required|numeric|unique:admins,phone,' . request()->route('id');
         }
         return $rules;
     }

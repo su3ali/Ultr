@@ -30,7 +30,7 @@ return [
     'login_from_title'                         => 'نموذج تسجيل الدخول إلى لوحة المعلومات',
     'admin'                                    => 'مدير',
     'full_name'                                => 'الاسم الكامل',
-    'email'                                    => 'عنوان البريد الإلكتروني',
+    'email'                                    => ' البريد الإلكتروني',
     'password'                                 => 'كلمه المرور',
     'confirm_password'                         => 'تأكيد كلمة المرور',
     'gender'                                   => 'الجنس',
@@ -1133,5 +1133,13 @@ return [
     'order_already_refunded'                   => 'هذا الطلب تم استرداده من قبل',
     'invalid_refund_method'                    => 'طريقة الاسترداد غير صالحة',
     'order_is_refunded'                        => 'لا يمكن إعادة جدولة هذا الطلب لأنه تم استرداد قيمته مسبقًا.',
-
+    'business_orders_change_team'              => 'تغيير الفريق لطلبات الأعمال',
+    'admin_type'                               => 'نوع المسؤول',
+    'opreation_admin'                          => 'تشغيل الافراد',
+    'type_client_admin'                        => 'تشغيل الأعمال',
+    'type_support'                             => 'الدعم الفني',
+    'choose'                                   => 'اختر',
+    'regions'                                  => 'المناطق',
+    'projects'                                 => 'المشاريع',
+    'Admins'                                   => 'المسؤولين',
 ];

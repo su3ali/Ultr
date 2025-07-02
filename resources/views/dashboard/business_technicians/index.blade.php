@@ -83,7 +83,7 @@
                             <th>{{ __('dash.specialization') }}</th>
                             <th>{{ __('dash.phone') }}</th>
                             <th>{{ __('dash.group') }}</th>
-                            <th>{{ __('dash.zone') }}</th>
+                            <th>{{ __('dash.project') }}</th>
                             <th>{{ __('dash.status') }}</th>
                             <th class="no-content">{{ __('dash.actions') }}</th>
                         </tr>
@@ -144,7 +144,7 @@
                 { data: 'spec', name: 'spec' },
                 { data: 'phone', name: 'phone' },
                 { data: 'group', name: 'group' },
-                { data: 'region', name: 'region' },
+                { data: 'project', name: 'project' },
                 { data: 'status', name: 'status' },
                 { data: 'control', name: 'control', orderable: false, searchable: false }
             ],

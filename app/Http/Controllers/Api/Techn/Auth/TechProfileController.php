@@ -1,19 +1,14 @@
 <?php
-
 namespace App\Http\Controllers\Api\Techn\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Checkout\UserAddressResource;
 use App\Http\Resources\NotificationResource;
 use App\Http\Resources\Technician\auth\TechnicianResource;
-use App\Http\Resources\User\UserResource;
 use App\Models\Technician;
 use App\Models\User;
-use App\Models\UserAddresses;
 use App\Support\Api\ApiResponse;
 use App\Traits\SMSTrait;
 use Illuminate\Http\Request;
-use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Mail;
 
 class TechProfileController extends Controller
@@ -28,7 +23,7 @@ class TechProfileController extends Controller
 
     protected function getTechnInfo()
     {
-        $techn = TechnicianResource::make(auth('sanctum')->user());
+        $techn               = TechnicianResource::make(auth('sanctum')->user());
         $this->body['techn'] = $techn;
         return self::apiResponse(200, null, $this->body);
     }
@@ -42,97 +37,102 @@ class TechProfileController extends Controller
             'name' => 'nullable|min:3|max:100',
         ]);
 
-        if ($techn->phone != $request->phone && $techn->email == $request->email){
+        if ($techn->phone != $request->phone && $techn->email == $request->email) {
             $code = random_int(1000, 9999);
             $techn->update([
-                'code' => $code
+                'code' => $code,
             ]);
-            $m = "رمز التحقق: ".$code;
-            $msg = $this->sendMessage($techn->phone, $m);
+            $m             = "رمز التحقق: " . $code;
+            $msg           = $this->sendMessage($techn->phone, $m);
             $this->message = t_('To modify you need the code');
-        }elseif ($techn->phone == $request->phone && $techn->email != $request->email){
+        } elseif ($techn->phone == $request->phone && $techn->email != $request->email) {
             $code = random_int(1000, 9999);
             $techn->update([
-                'code' => $code
+                'code' => $code,
             ]);
 
-            Mail::send('mail.editProfileCode',["code"=>$code], function ($message) use ($techn) {
+            Mail::send('mail.editProfileCode', ["code" => $code], function ($message) use ($techn) {
                 $message->to($techn->email);
                 $message->subject(t_('edit profile code'));
             });
 
             $this->message = t_('To modify you need the code');
-        }elseif ($techn->phone == $request->phone && $techn->email == $request->email && $techn->name != $request->name){
+        } elseif ($techn->phone == $request->phone && $techn->email == $request->email && $techn->name != $request->name) {
             $techn->update([
                 'name' => $request->name,
             ]);
             $this->body['techn'] = $techn;
-            $this->message = t_('Modified successfully');
-        }else{
+            $this->message       = t_('Modified successfully');
+        } else {
             $code = random_int(1000, 9999);
             $techn->update([
-                'code' => $code
+                'code' => $code,
             ]);
-            $m = "رمز التحقق: ".$code;
-            $msg = $this->sendMessage($techn->phone, $m);
+            $m             = "رمز التحقق: " . $code;
+            $msg           = $this->sendMessage($techn->phone, $m);
             $this->message = t_('To modify you need the code');
         }
 
         return self::apiResponse(200, $this->message, $this->body);
     }
 
-
     protected function editByCode(Request $request)
     {
 
         $techn = Technician::query()->where('code', $request->code)->first();
 
-        if ($techn->phone != $request->phone && $techn->email == $request->email){
+        if ($techn->phone != $request->phone && $techn->email == $request->email) {
 
             $request->validate([
-                'phone' => 'required|numeric|unique:users,phone,'.$techn->id,
+                'phone' => 'required|numeric|unique:users,phone,' . $techn->id,
             ]);
             $techn->update([
-                'phone'=>$request->phone,
-                'code' => null
+                'phone' => $request->phone,
+                'code'  => null,
             ]);
 
-        }elseif ($techn->phone == $request->phone && $techn->email != $request->email){
+        } elseif ($techn->phone == $request->phone && $techn->email != $request->email) {
             $request->validate([
-                'email' => 'nullable|email|unique:users,email,'.$techn->id,
+                'email' => 'nullable|email|unique:users,email,' . $techn->id,
             ]);
             $techn->update([
-                'email'=>$request->email,
-                'code' => null
+                'email' => $request->email,
+                'code'  => null,
             ]);
-        }else{
+        } else {
             $request->validate([
-                'phone' => 'required|numeric|unique:users,phone,'.$techn->id,
-                'email' => 'nullable|email|unique:users,email,'.$techn->id,
+                'phone' => 'required|numeric|unique:users,phone,' . $techn->id,
+                'email' => 'nullable|email|unique:users,email,' . $techn->id,
             ]);
 
             $techn->update([
-                'phone'=>$request->phone,
-                'email'=>$request->email,
-                'code' => null
+                'phone' => $request->phone,
+                'email' => $request->email,
+                'code'  => null,
             ]);
         }
 
         return self::apiResponse(200, t_('Modified successfully'), $this->body);
     }
 
+    
+
     protected function getNotification()
     {
-
         $techn = auth('sanctum')->user();
-       
-        $this->body['notification'] = NotificationResource::collection($techn->notifications);
+
+        $notifications = $techn->notifications()
+            ->latest() // Order by created_at descending
+            ->take(10) // Limit to 10
+            ->get();
+
+        $this->body['notification'] = NotificationResource::collection($notifications);
         return self::apiResponse(200, null, $this->body);
     }
 
     protected function deleteNotification(Request $request)
     {
-        \DB::table('notifications')->where('id',$request->id)->delete();
+        \DB::table('notifications')->where('id', $request->id)->delete();
         $this->message = __('api.Delete successfully');
         return self::apiResponse(200, $this->message, $this->body);
     }
@@ -142,8 +142,8 @@ class TechProfileController extends Controller
         $techn = auth('sanctum')->user();
 
         foreach ($techn->unreadNotifications as $notification) {
-             $notification->update(['read_at' => now()]);
-         }
+            $notification->update(['read_at' => now()]);
+        }
 
         $this->message = __('api.Read Notification Successfully');
         return self::apiResponse(200, $this->message, $this->body);
