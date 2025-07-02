@@ -1,21 +1,20 @@
 <?php
 namespace App\Http\Controllers\Dashboard;
 
-use Carbon\Carbon;
+use App\Charts\CommonChart;
+use App\Http\Controllers\Controller;
+use App\Models\AdminClientProject;
+use App\Models\Booking;
+use App\Models\BusinessOrder;
+use App\Models\BusinessProject\ClientProject;
+use App\Models\CustomerComplaint;
 use App\Models\Day;
-use App\Models\User;
 use App\Models\Group;
 use App\Models\Order;
-use App\Models\Visit;
-use App\Models\Booking;
 use App\Models\Technician;
-use App\Charts\CommonChart;
-use App\Models\BusinessOrder;
-use App\Models\CustomerComplaint;
-use App\Models\AdminClientProject;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
-use App\Models\BusinessProject\ClientProject;
+use App\Models\User;
+use App\Models\Visit;
+use Carbon\Carbon;
 
 class IndexController extends Controller
 {
@@ -26,7 +25,9 @@ class IndexController extends Controller
 
         $admin = auth()->user()->hasRole('admin');
         if ($admin) {
-            $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
+            $clientProjects    = ClientProject::select('id', 'name_ar', 'name_en')->get();
+            $clientProjectsIds = AdminClientProject::pluck('client_project_id')->toArray();
+
         } else {
             $clientProjectsIds = AdminClientProject::where('admin_id', auth()->user()->id)->pluck('client_project_id')->toArray();
 
@@ -85,7 +86,7 @@ class IndexController extends Controller
             ->workingToday()
             ->count();
 
-         $business_technicians = Technician::where('is_trainee', Technician::TECHNICIAN)
+        $business_technicians = Technician::where('is_trainee', Technician::TECHNICIAN)
             ->where('active', Technician::ACTIVE)
             ->where('is_business', Technician::BUSINESS)
             ->whereHas('group', function ($q) {
@@ -231,7 +232,7 @@ class IndexController extends Controller
             'canceled_orders', 'complaints_resolved', 'complaints_unresolved', 'todayCustomerComplaints',
             'customersHaveOrders', 'canceled_orders_today', 'tech_visits_today', 'finished_visits_today',
             'total_trainees', 'client_orders_today', 'sells_chart_1', 'sells_chart_2', 'customers',
-            'client_orders', 'technicians', 'tech_visits', 'customer_complaints', 'lateOrderCount', 'bookings_count', 'technicians_offToday', 'business_orders','business_technicians'
+            'client_orders', 'technicians', 'tech_visits', 'customer_complaints', 'lateOrderCount', 'bookings_count', 'technicians_offToday', 'business_orders', 'business_technicians'
         ));
     }
 
