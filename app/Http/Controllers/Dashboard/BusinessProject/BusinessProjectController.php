@@ -122,6 +122,7 @@ class BusinessProjectController extends Controller
                 'email'      => $validated['admin_email'],
                 'password'   => bcrypt($validated['admin_password']),
                 'type'       => 'client_admin',
+                'client_project_id' => $project->id,
                 'active'     => true,
                 'created_by' => $user->id,
                 'updated_by' => $user->id,
