@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::resource('business_projects', 'BusinessProject\BusinessProjectController');
 
+Route::patch('business-projects/{id}', [BusinessProjectController::class, 'update'])->name('business_projects.update');
+
+
 // Resource route for Project Branches
 
 Route::resource('business-project-branches', 'BusinessProject\ProjectBranchController');

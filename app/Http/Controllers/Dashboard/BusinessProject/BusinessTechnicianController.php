@@ -1,24 +1,24 @@
 <?php
 namespace App\Http\Controllers\Dashboard\BusinessProject;
 
-use App\Models\Day;
+use App\Http\Controllers\Controller;
+use App\Models\AdminClientProject;
+use App\Models\BusinessProject\ClientProject;
 use App\Models\City;
-use App\Models\Group;
-use App\Models\Shift;
-use App\Models\Visit;
-use App\Models\Region;
 use App\Models\Country;
+use App\Models\Day;
+use App\Models\Group;
+use App\Models\Region;
+use App\Models\Shift;
+use App\Models\Specialization;
 use App\Models\Technician;
+use App\Models\TechnicianWorkingDay;
+use App\Models\Visit;
 use App\Traits\imageTrait;
 use Illuminate\Http\Request;
-use App\Models\Specialization;
-use App\Models\AdminClientProject;
-use App\Http\Controllers\Controller;
-use App\Models\TechnicianWorkingDay;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
-use App\Models\BusinessProject\ClientProject;
 
 class BusinessTechnicianController extends Controller
 {
@@ -26,15 +26,25 @@ class BusinessTechnicianController extends Controller
 
     public function index(Request $request)
     {
+        $user = auth()->user();
 
-        $admin = auth()->user()->hasRole('admin');
-        if ($admin) {
+        $globalRoles = [
+            'admin',
+            'مدير إدارة التشغيل',
+            'التسويق',
+            'الرئيس التنفيذي',
+            'نائب الرئيس التنفيذي',
+            'سكرتير تنفيذي',
+        ];
+
+        $isGlobalAdmin = $user->hasAnyRole($globalRoles);
+
+        if ($isGlobalAdmin) {
             $clientProjects    = ClientProject::select('id', 'name_ar', 'name_en')->get();
-            $clientProjectsIds = AdminClientProject::pluck('client_project_id')->toArray();
-
+            $clientProjectsIds = $clientProjects->pluck('id')->toArray();
         } else {
-            $clientProjectsIds = AdminClientProject::where('admin_id', auth()->user()->id)->pluck('client_project_id')->toArray();
-
+            $clientProjectsIds = AdminClientProject::where('admin_id', $user->id)->pluck('client_project_id')->toArray();
+            $clientProjects    = ClientProject::whereIn('id', $clientProjectsIds)->select('id', 'name_ar', 'name_en')->get();
         }
 
         $groups = cache()->remember('groups', 60, fn() => Group::all());
@@ -42,27 +52,17 @@ class BusinessTechnicianController extends Controller
         $days   = Day::where('is_active', 1)->get(['id', 'name_ar', 'name']);
 
         if ($request->ajax()) {
-
-            // Build the base query
-            $techniciansQuery = Technician::where('active', 1)->where('is_business', 1)
-                ->whereIn('client_project_id', $clientProjectsIds)
+            // Base query
+            $techniciansQuery = Technician::query()
+                ->where('active', 1)
+                ->where('is_business', 1)
                 ->where('is_trainee', Technician::TECHNICIAN)
-                ->with(['group.region', 'specialization', 'workingDays']);
+                ->whereIn('client_project_id', $clientProjectsIds)
+                ->with(['group.region', 'specialization', 'workingDays', 'floors', 'clientProject']);
 
-            if ($request->has('date_filter') && $request->date_filter == 'today') {
-                // If the date filter is 'today', add the workingToday scope
-                $techniciansQuery = Technician::where('active', 1)
-                    ->where('is_business', 1)
-                    ->whereIn('client_project_id', $clientProjectsIds)
-
-                    ->with(['group', 'specialization', 'workingDays'])
-                    ->workingToday();
-            } else {
-                $techniciansQuery = Technician::where('is_business', 1)
-                    ->whereIn('client_project_id', $clientProjectsIds)
-
-                    ->where('is_trainee', Technician::TECHNICIAN)
-                    ->with(['group', 'specialization', 'workingDays']);
+            // Apply "today" filter if specified
+            if ($request->input('date_filter') === 'today') {
+                $techniciansQuery->workingToday();
             }
 
             // Group filter
@@ -86,31 +86,24 @@ class BusinessTechnicianController extends Controller
                 });
             }
 
-            // Clone for filtered count
+            // Count before pagination
             $filteredRecords = (clone $techniciansQuery)->count();
 
-            // Pagination
+            // Fetch data
             $technicians = $techniciansQuery
                 ->skip($request->input('start', 0))
                 ->take($request->input('length', 10))
                 ->get();
 
-            // Format DataTables JSON response
-            $data = $technicians->map(function ($row) {
-                $whatsAppLink = $row->phone
-                ? '<a href="https://api.whatsapp.com/send?phone=' .
-                (preg_match('/^05/', $row->phone) ? '966' . substr($row->phone, 1) : $row->phone) .
-                '" target="_blank" class="whatsapp-link" title="فتح في الواتساب">' . $row->phone . '</a>'
+            // Map data
+            $data = $technicians->map(function ($row) use ($user) {
+                $phoneLink = $row->phone
+                ? '<a href="https://api.whatsapp.com/send?phone=' . (preg_match('/^05/', $row->phone) ? '966' . substr($row->phone, 1) : $row->phone) . '" target="_blank">' . $row->phone . '</a>'
                 : 'N/A';
 
                 $imageTag = $row->image
                 ? '<img class="img-fluid" style="width: 85px;" src="' . asset($row->image) . '"/>'
                 : __('dash.no_image');
-
-                $specName =
-                $row->specialization?->name ?? '';
-
-                $projectName = $row->clientProject?->name ?? '';
 
                 $statusToggle = '
                 <label class="switch s-outline s-outline-info mb-4 mr-2">
@@ -119,55 +112,54 @@ class BusinessTechnicianController extends Controller
                 </label>';
 
                 $control = '';
-
-                if (auth()->user()->hasRole('admin')) {
-                    $dayIds   = TechnicianWorkingDay::where('technician_id', $row->id)->pluck('day_id')->toArray();
+                if ($user->hasRole('admin')) {
+                    $dayIds   = $row->workingDays->pluck('id')->toArray();
                     $floorIds = $row->floors->pluck('id')->toArray();
                     $imageUrl = $row->image ? asset($row->image) : '';
 
                     $control .= '
-    <button type="button" id="edit-tech" class="btn btn-primary btn-sm edit"
-        data-id="' . $row->id . '"
-        data-name="' . $row->name . '"
-        data-user_name="' . $row->user_name . '"
-        data-email="' . $row->email . '"
-        data-phone="' . $row->phone . '"
-        data-specialization="' . $row->spec_id . '"
-        data-active="' . $row->active . '"
-        data-group_id="' . $row->group_id . '"
-        data-country_id="' . $row->country_id . '"
-        data-address="' . $row->address . '"
-        data-day_id=\'' . json_encode($dayIds) . '\'
-        data-wallet_id="' . $row->wallet_id . '"
-        data-birth_date="' . $row->birth_date . '"
-        data-identity_number="' . $row->identity_id . '"
-        data-image="' . $imageUrl . '"
-        data-is_business="' . $row->is_business . '"
-        data-client_project_id="' . $row->client_project_id . '"
-        data-branch_id="' . $row->branch_id . '"
-        data-floor_ids=\'' . json_encode($floorIds) . '\'
-        data-toggle="modal"
-        data-target="#editTechModel">
-        <i class="far fa-edit fa-2x"></i>
-    </button>';
+                    <button type="button" id="edit-tech" class="btn btn-primary btn-sm edit"
+                        data-id="' . $row->id . '"
+                        data-name="' . $row->name . '"
+                        data-user_name="' . $row->user_name . '"
+                        data-email="' . $row->email . '"
+                        data-phone="' . $row->phone . '"
+                        data-specialization="' . $row->spec_id . '"
+                        data-active="' . $row->active . '"
+                        data-group_id="' . $row->group_id . '"
+                        data-country_id="' . $row->country_id . '"
+                        data-address="' . $row->address . '"
+                        data-day_id=\'' . json_encode($dayIds) . '\'
+                        data-wallet_id="' . $row->wallet_id . '"
+                        data-birth_date="' . $row->birth_date . '"
+                        data-identity_number="' . $row->identity_id . '"
+                        data-image="' . $imageUrl . '"
+                        data-is_business="' . $row->is_business . '"
+                        data-client_project_id="' . $row->client_project_id . '"
+                        data-branch_id="' . $row->branch_id . '"
+                        data-floor_ids=\'' . json_encode($floorIds) . '\'
+                        data-toggle="modal"
+                        data-target="#editTechModel">
+                        <i class="far fa-edit fa-2x"></i>
+                    </button>';
 
                     $control .= '
-    <a data-table_id="html5-extension"
-       data-href="' . route('dashboard.businessTechnician.destroy', $row->id) . '"
-       data-id="' . $row->id . '"
-       class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech">
-        <i class="far fa-trash-alt fa-2x"></i>
-    </a>';
+                    <a data-table_id="html5-extension"
+                       data-href="' . route('dashboard.businessTechnician.destroy', $row->id) . '"
+                       data-id="' . $row->id . '"
+                       class="mr-2 btn btn-outline-danger btn-sm btn-delete delete_tech">
+                        <i class="far fa-trash-alt fa-2x"></i>
+                    </a>';
                 }
 
                 return [
                     'id'      => '<a href="' . route('dashboard.businessTechnician.details', ['id' => $row->id]) . '">' . $row->id . '</a>',
                     'name'    => '<a href="#">' . $row->name . '</a>',
                     't_image' => $imageTag,
-                    'spec'    => $specName,
-                    'phone'   => $whatsAppLink,
-                    'group'   => $row->group?->name,
-                    'project' => $projectName,
+                    'spec'    => $row->specialization?->name ?? '',
+                    'phone'   => $phoneLink,
+                    'group'   => $row->group?->name ?? '',
+                    'project' => $row->clientProject?->name ?? '',
                     'status'  => $statusToggle,
                     'control' => $control,
                 ];
@@ -175,12 +167,13 @@ class BusinessTechnicianController extends Controller
 
             return response()->json([
                 'draw'            => $request->input('draw'),
-                'recordsTotal'    => Technician::count(),
+                'recordsTotal'    => Technician::where('active', 1)->where('is_business', 1)->count(),
                 'recordsFiltered' => $filteredRecords,
                 'data'            => $data,
             ]);
         }
 
+        // Non-AJAX: Page data
         $nationalities = [
             "فلبين"     => "1",
             "اندونيسيا" => "2",
@@ -191,18 +184,17 @@ class BusinessTechnicianController extends Controller
             "مصر"       => "7",
         ];
 
-        $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
-
-        $shifts = Shift::select('id', 'shift_no')->distinct()->get();
-
-        $countries = Country::where('active', 1)->get()->pluck('title', 'id');
-        $cities    = City::where('active', 1)->get();
-        $regions   = Region::where('active', 1)
+        $shifts    = Shift::select('id', 'shift_no')->distinct()->get();
+        $countries = Country::where('active', 1)
+            ->pluck(app()->getLocale() === 'ar' ? 'title_ar' : 'title_en', 'id');
+        $cities  = City::where('active', 1)->get();
+        $regions = Region::where('active', 1)
             ->where('title_ar', '!=', 'old')
             ->get();
 
         return view('dashboard.business_technicians.index', compact(
-            'groups', 'specs', 'days', 'nationalities', 'clientProjects', 'shifts', 'countries', 'cities', 'regions'
+            'groups', 'specs', 'days', 'nationalities', 'clientProjects',
+            'shifts', 'countries', 'cities', 'regions'
         ));
     }
 

@@ -23,15 +23,25 @@ class IndexController extends Controller
     {
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
-        $admin = auth()->user()->hasRole('admin');
-        if ($admin) {
+        $user = auth()->user();
+
+        $allClientRoles = [
+            'admin',
+            'مدير إدارة التشغيل',
+            'التسويق',
+            'الرئيس التنفيذي',
+            'نائب الرئيس التنفيذي',
+            'سكرتير تنفيذي',
+        ];
+
+        if ($user->hasAnyRole($allClientRoles)) {
             $clientProjects    = ClientProject::select('id', 'name_ar', 'name_en')->get();
             $clientProjectsIds = AdminClientProject::pluck('client_project_id')->toArray();
-
         } else {
-            $clientProjectsIds = AdminClientProject::where('admin_id', auth()->user()->id)->pluck('client_project_id')->toArray();
-
+            $clientProjectsIds = AdminClientProject::where('admin_id', $user->id)->pluck('client_project_id')->toArray();
+            $clientProjects    = ClientProject::whereIn('id', $clientProjectsIds)->select('id', 'name_ar', 'name_en')->get();
         }
+
         // Get the late orders
         // $lateOrders = Order::lateToServe()->get();
 

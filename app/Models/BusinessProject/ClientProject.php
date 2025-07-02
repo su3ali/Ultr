@@ -2,11 +2,12 @@
 namespace App\Models\BusinessProject;
 
 use App\Models\Admin;
-use App\Models\BusinessProject\ClientProjectBranch;
-use App\Models\ClientProjectServicePrice;
 use App\Models\Service;
+use App\Models\AdminClientProject;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ClientProjectServicePrice;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\BusinessProject\ClientProjectBranch;
 
 class ClientProject extends Model
 {
@@ -43,6 +44,11 @@ class ClientProject extends Model
     public function admins()
     {
         return $this->belongsToMany(Admin::class, 'admin_client_project');
+    }
+
+    public function admin()
+    {
+        return $this->hasOne(AdminClientProject::class)->with('admin');
     }
 
 }

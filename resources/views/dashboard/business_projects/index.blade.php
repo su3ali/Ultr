@@ -1,11 +1,5 @@
 @extends('dashboard.layout.layout')
-{{--@php--}}
-{{--if(request('id') !=null){--}}
-{{--$url = route('dashboard.core.category.index','id='.request('id'));--}}
-{{--}else{--}}
-{{--$url = route('dashboard.core.category.index');--}}
-{{--}--}}
-{{--@endphp--}}
+
 
 
 
@@ -81,69 +75,55 @@
     </div>
 
 </div>
-@include('dashboard.business_orders.edit')
+@include('dashboard.business_projects.edit')
 
 @endsection
 
 
 @push('script')
-
 <script type="text/javascript">
     $(document).ready(function () {
-            $('#html5-extension').DataTable({
-                dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-6 d-flex justify-content-md-start justify-content-center'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
-                    "<'table-responsive'tr>" +
-                    "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count  mb-sm-0 mb-3'i><'dt--pagination'p>>",
-                "language": {
-                    "url": "{{app()->getLocale() == 'ar'? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json'}}"
-                },
-                buttons: {
-                    buttons: [
-                        {extend: 'copy', className: 'btn btn-sm',text:'نسخ'},
-                        {extend: 'csv', className: 'btn btn-sm',text:'تصدير إلى CSV'},
-                        {extend: 'excel', className: 'btn btn-sm',text:'تصدير إلى Excel'},
-                        {extend: 'print', className: 'btn btn-sm',text:'طباعة'}
-                    ]
-                },
-                charset: 'UTF-8',
-                order: [[0, 'desc']],
-                processing: true,
-                 serverSide: false,
-                ajax: '{{ route('dashboard.business_projects.index') }}',
-                columns: [
-                    {data: 'id', name: 'id'},
-                    {data: 'name', name: 'name'},
-                    {data: 'controll', name: 'controll', orderable: false, searchable: false},
-
-                ]
-            });
+        $('#html5-extension').DataTable({
+            dom: "<'dt--top-section'<'row'<'col-sm-12 col-md-6 d-flex justify-content-md-start justify-content-center'B><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center mt-md-0 mt-3'f>>>" +
+                "<'table-responsive'tr>" +
+                "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count  mb-sm-0 mb-3'i><'dt--pagination'p>>",
+            language: {
+                url: "{{ app()->getLocale() == 'ar'
+                    ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json'
+                    : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
+            },
+            buttons: [
+                { extend: 'copy', className: 'btn btn-sm', text: 'نسخ' },
+                { extend: 'csv', className: 'btn btn-sm', text: 'تصدير إلى CSV' },
+                { extend: 'excel', className: 'btn btn-sm', text: 'تصدير إلى Excel' },
+                { extend: 'print', className: 'btn btn-sm', text: 'طباعة' }
+            ],
+            order: [[0, 'desc']],
+            processing: true,
+            serverSide: false,
+            ajax: '{{ route('dashboard.business_projects.index') }}',
+            columns: [
+                { data: 'id', name: 'id' },
+                { data: 'name', name: 'name' },
+                { data: 'controll', name: 'controll', orderable: false, searchable: false },
+            ]
         });
 
-        $(document).on('click', '.edit-project', function () {
+        // Handle edit-project button click
+        $('body').on('click', '.edit-project', function () {
     const btn = $(this);
-    $('#name_ar').val(btn.data('name_ar'));
-    $('#name_en').val(btn.data('name_en'));
+
+    $('#edit_name_ar').val(btn.data('name_ar'));
+    $('#edit_name_en').val(btn.data('name_en'));
+    $('#edit_admin_first_name').val(btn.data('admin_first_name'));
+    $('#edit_admin_last_name').val(btn.data('admin_last_name'));
+    $('#edit_admin_phone').val(btn.data('admin_phone'));
+    $('#edit_admin_email').val(btn.data('admin_email'));
+
     $('#demo-form-edit').attr('action', btn.data('action'));
+    $('#editModel').modal('show');
 });
 
-function openEditModal(id) {
-    const btn = $('.edit-project[data-id="' + id + '"]');
-
-    const nameAr = btn.data('name_ar');
-    const nameEn = btn.data('name_en');
-    const action = btn.data('action');
-
-    $('#name_ar').val(nameAr);
-    $('#name_en').val(nameEn);
-    $('#demo-form-edit').attr('action', action);
-
-    $('#editModal').modal('show');
-}
-
-
-
-
+    });
 </script>
-
-
 @endpush

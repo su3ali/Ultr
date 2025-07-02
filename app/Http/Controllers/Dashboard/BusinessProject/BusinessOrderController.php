@@ -35,55 +35,64 @@ class BusinessOrderController extends Controller
 
     public function index()
     {
-
-        // ====== Always prepare status list at the beginning ======
+        // ====== Cache business order statuses ======
         $statusesModel = Cache::remember('business_order_statuses', 60, function () {
             return BusinessOrderStatus::select('id', 'name_ar', 'name_en')->get();
         });
 
+        $user = auth()->user();
+
+        $allClientRoles = [
+            'admin',
+            'مدير إدارة التشغيل',
+            'التسويق',
+            'الرئيس التنفيذي',
+            'نائب الرئيس التنفيذي',
+            'سكرتير تنفيذي',
+        ];
+
+        $isGlobalAdmin = $user->hasAnyRole($allClientRoles);
+
+        if ($isGlobalAdmin) {
+            $clientProjects    = ClientProject::select('id', 'name_ar', 'name_en')->get();
+            $clientProjectsIds = $clientProjects->pluck('id')->toArray(); // prepare just in case
+        } else {
+            $clientProjectsIds = AdminClientProject::where('admin_id', $user->id)->pluck('client_project_id')->toArray();
+            $clientProjects    = ClientProject::whereIn('id', $clientProjectsIds)->select('id', 'name_ar', 'name_en')->get();
+        }
+
         if (request()->ajax()) {
-
             $orders = BusinessOrder::with([
-                'user', 'category', 'service', 'group', 'car', 'paymentMethod', 'status', 'project', 'branch', 'floor',
-            ])
-                ->orderBy('id', 'desc');
+                'user', 'category', 'service', 'group', 'car', 'paymentMethod',
+                'status', 'project', 'branch', 'floor',
+            ])->orderBy('id', 'desc');
 
-            if (! auth()->user()->hasRole('admin')) {
-                $clientProjectsIds = AdminClientProject::where('admin_id', auth()->id())
-                    ->pluck('client_project_id')
-                    ->toArray();
-
+            // Limit to allowed projects
+            if (! $isGlobalAdmin) {
                 $orders->whereIn('client_project_id', $clientProjectsIds);
             }
 
-            // ==========  Date Filter ==========
+            // ========== Filters ==========
             if (request()->filled('date_from')) {
                 $orders->whereDate('created_at', '>=', request('date_from'));
             }
-
             if (request()->filled('date_to')) {
                 $orders->whereDate('created_at', '<=', request('date_to'));
             }
-
-            // ==========  Status  filter ==========
             if (request()->filled('status') && request('status') !== 'all') {
                 $orders->where('status_id', request('status'));
             }
-
-            // ==========   Payment methods filter ==========
             if (request()->filled('payment_method') && request('payment_method') !== 'all') {
                 $orders->where('payment_method_id', request('payment_method'));
             }
-
-            // ==========   Clients Projects  filter ==========
             if (request()->filled('client_project_id') && request('client_project_id') !== 'all') {
                 $orders->where('client_project_id', request('client_project_id'));
             }
-            // ==========   Branches  filter ==========
             if (request()->filled('branch_id') && request('branch_id') !== 'all') {
                 $orders->where('branch_id', request('branch_id'));
             }
 
+            // ========== Return DataTable ==========
             return DataTables::of($orders)
                 ->addColumn('user', fn($row) => $row->user?->first_name . ' ' . $row->user?->last_name)
                 ->addColumn('phone', fn($row) => $row->user?->phone ?? '-')
@@ -92,45 +101,33 @@ class BusinessOrderController extends Controller
                 ->addColumn('total', fn($row) => number_format($row->total, 2))
                 ->addColumn('group', fn($row) => $row->group?->name_ar ?? '-')
                 ->addColumn('payment_method', fn($row) => $row->paymentMethod?->name ?? '-')
-
                 ->addColumn('client_project', function ($row) {
                     $locale = app()->getLocale();
-                    if ($row->project) {
-                        return $locale === 'ar' ? ($row->project->name_ar ?? '-') : ($row->project->name_en ?? '-');
-                    }
-                    return '-';
+                    return $row->project?->{ $locale === 'ar' ? 'name_ar' : 'name_en'} ?? '-';
                 })
-
                 ->addColumn('client_project_branch', function ($row) {
                     $locale = app()->getLocale();
-                    if ($row->branch) {
-                        return $locale === 'ar' ? ($row->branch->name_ar ?? '-') : ($row->branch->name_en ?? '-');
-                    }
-                    return '-';
+                    return $row->branch?->{ $locale === 'ar' ? 'name_ar' : 'name_en'} ?? '-';
                 })
-
                 ->addColumn('status', function ($row) {
+                    $locale        = app()->getLocale();
                     $currentStatus = $row->status?->name ?? '-';
                     $html          = '<select class="form-control form-control-sm change-status" data-order-id="' . $row->id . '" data-current-status="' . $row->status_id . '">';
                     foreach (BusinessOrderStatus::all() as $status) {
                         $selected = $row->status_id == $status->id ? 'selected' : '';
-                        $html .= '<option value="' . $status->id . '" ' . $selected . '>' . $status->{app()->getLocale() == 'ar' ? 'name_ar' : 'name_en'} . '</option>';
+                        $html .= '<option value="' . $status->id . '" ' . $selected . '>' . $status->{$locale === 'ar' ? 'name_ar' : 'name_en'} . '</option>';
                     }
-                    $html .= '</select>';
-
-                    return $html . '<span class="d-none export-status">' . $currentStatus . '</span>';
+                    $html .= '</select><span class="d-none export-status">' . $currentStatus . '</span>';
+                    return $html;
                 })
-
                 ->addColumn('created_at', fn($row) => $row->created_at?->format('Y-m-d'))
-
-                ->addColumn('controll', function ($row) {
-                    $user = auth()->user();
+                ->addColumn('controll', function ($row) use ($user) {
                     $html = '';
 
                     if ($user->can('update_business_orders') || $user->hasRole('admin')) {
                         $html .= '<button type="button" onclick="openEditModal(' . $row->id . ')" class="btn btn-sm btn-primary">
-                    <i class="far fa-edit fa-2x"></i>
-                  </button>';
+                        <i class="far fa-edit fa-2x"></i>
+                    </button>';
                     }
 
                     if ($user->can('business_orders_change_team') || $user->hasRole('admin')) {
@@ -138,30 +135,26 @@ class BusinessOrderController extends Controller
                         data-toggle="modal"
                         data-target="#changeGroupModel"
                         data-order_id="' . $row->id . '"
-                        data-group_id="' . $row->assign_to_id . '">'
-                        . __('dash.change_team') .
-                            '</button>';
+                        data-group_id="' . $row->assign_to_id . '">' . __('dash.change_team') . '</button>';
                     }
 
                     if ($user->can('delete_business_orders') || $user->hasRole('admin')) {
                         $html .= '<a href="javascript:void(0);" data-href="' . route('dashboard.business_orders.destroy', $row->id) . '"
-                     data-id="' . $row->id . '"
-                     class="btn btn-sm btn-outline-danger btn-delete">
-                     <i class="far fa-trash-alt fa-2x"></i>
-                  </a>';
+                        data-id="' . $row->id . '"
+                        class="btn btn-sm btn-outline-danger btn-delete">
+                        <i class="far fa-trash-alt fa-2x"></i>
+                    </a>';
                     }
 
                     return $html;
                 })
-
                 ->rawColumns(['service', 'controll', 'status'])
                 ->make(true);
         }
 
-        // ========  Dropdwon  ==========
-
+        // ======= Load dropdowns for blade =======
         $cars           = CarClient::all();
-        $users          = User::select('id', 'first_name', 'last_name')->limit(100)->get(); // or paginate or via AJAX
+        $users          = User::select('id', 'first_name', 'last_name')->limit(100)->get();
         $categories     = Category::select('id', 'title_ar', 'title_en')->get();
         $services       = Service::select('id', 'title_ar', 'title_en')->get();
         $groups         = Group::select('id', 'name_ar', 'name_en')->get();
@@ -170,14 +163,6 @@ class BusinessOrderController extends Controller
         $cities         = City::where('active', 1)->pluck(app()->getLocale() === 'ar' ? 'title_ar' : 'title_en', 'id');
         $types          = CarType::pluck('name_ar', 'id');
         $models         = CarModel::pluck('name_ar', 'id');
-        $admin          = auth()->user()->hasRole('admin');
-        if ($admin) {
-            $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
-        } else {
-            $clientProjectsIds = AdminClientProject::where('admin_id', auth()->user()->id)->pluck('client_project_id')->toArray();
-            $clientProjects    = ClientProject::whereIn('id', $clientProjectsIds)->select('id', 'name_ar', 'name_en')->get();
-
-        }
 
         $projects        = $clientProjects->pluck(app()->getLocale() === 'ar' ? 'name_ar' : 'name_en', 'id');
         $payment_methods = $paymentMethods->pluck(app()->getLocale() === 'ar' ? 'name_ar' : 'name_en', 'id');

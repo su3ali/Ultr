@@ -220,7 +220,7 @@
                 </div>
                 <div class="mb-3 password-wrapper">
                     <label for="password" class="form-label">{{ __('dash.password') }}</label>
-                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••"
+                    <input type="password" id="password" name="password" class="form-control" placeholder="password"
                         required>
                     <i id="toggle-password" class="fas fa-eye" onclick="togglePasswordIcon(this)"></i>
                 </div>

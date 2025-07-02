@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Dashboard\BusinessProject;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Models\AdminClientProject;
 use App\Models\BusinessProject\ClientProject;
 use App\Models\BusinessProject\ClientProjectBranch;
 use App\Models\ClientProjectServicePrice;
@@ -24,9 +25,7 @@ class BusinessProjectController extends Controller
         $services = Service::all();
 
         if (request()->ajax()) {
-            $projects = ClientProject::withCount('branches')
-                ->with('branches.floors')
-                ->latest();
+            $projects = ClientProject::with(['branches.floors', 'admin.admin'])->latest();
 
             return DataTables::of($projects)
                 ->addColumn('name', function ($row) {
@@ -34,7 +33,9 @@ class BusinessProjectController extends Controller
                 })
 
                 ->addColumn('controll', function ($row) {
-                    $user = auth()->user();
+                    $user  = auth()->user();
+                    $admin = optional($row->admin)->admin;
+
                     $html = '';
 
                     // Edit button
@@ -45,6 +46,10 @@ class BusinessProjectController extends Controller
                         data-id="' . $row->id . '"
                         data-name_ar="' . e($row->name_ar) . '"
                         data-name_en="' . e($row->name_en) . '"
+                        data-admin_first_name="' . e(optional($admin)->first_name) . '"
+                        data-admin_last_name="' . e(optional($admin)->last_name) . '"
+                        data-admin_phone="' . e(optional($admin)->phone) . '"
+                        data-admin_email="' . e(optional($admin)->email) . '"
                         data-action="' . route('dashboard.business_projects.update', $row->id) . '"
                         data-toggle="modal"
                         data-target="#editModel"
@@ -75,16 +80,81 @@ class BusinessProjectController extends Controller
         return view('dashboard.business_projects.index', compact('projects', 'services'));
     }
 
+    public function edit($id)
+    {
+
+        return view('dashboard.business_projects.edit');
+    }
+
     public function create()
     {
         $clientProjects = ClientProject::select('id', 'name_ar', 'name_en')->get();
 
         return view('dashboard.business_projects.create');
     }
-    public function edit($id)
-    {
 
-        return view('dashboard.business_projects.edit');
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'name_ar'          => ['required', 'string', 'max:255'],
+            'name_en'          => ['required', 'string', 'max:255'],
+            'admin_first_name' => ['nullable', 'string', 'max:100'],
+            'admin_last_name'  => ['nullable', 'string', 'max:100'],
+            'admin_phone'      => ['nullable', 'numeric'],
+            'admin_email'      => ['nullable', 'email'],
+            'admin_password'   => ['nullable', 'confirmed', 'min:6'],
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $project = ClientProject::findOrFail($id);
+
+            $project->update([
+                'name_ar'    => $validated['name_ar'],
+                'name_en'    => $validated['name_en'],
+                'updated_by' => auth()->id(),
+            ]);
+
+            // Get the related admin (via admin_client_projects)
+            $adminRelation = AdminClientProject::where('client_project_id', $project->id)->first();
+
+            if ($adminRelation && $adminRelation->admin) {
+                $admin = $adminRelation->admin;
+
+                $admin->update([
+                    'first_name' => $validated['admin_first_name'],
+                    'last_name'  => $validated['admin_last_name'],
+                    'phone'      => $validated['admin_phone'],
+                    'email'      => $validated['admin_email'],
+                    'type'       => 'client_admin',
+                    'updated_by' => auth()->id(),
+                ]);
+
+                // Only update password if provided
+                if (! empty($validated['admin_password'])) {
+                    $admin->update([
+                        'password' => bcrypt($validated['admin_password']),
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('dashboard.business_projects.index')
+                ->with('success', 'تم تحديث بيانات المشروع والمسؤول بنجاح.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error('Project update failed', [
+                'error'   => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
+
+            return back()->withErrors('حدث خطأ أثناء التحديث. الرجاء المحاولة مرة أخرى.');
+        }
     }
 
     public function store(Request $request)
@@ -122,7 +192,6 @@ class BusinessProjectController extends Controller
                 'email'      => $validated['admin_email'],
                 'password'   => bcrypt($validated['admin_password']),
                 'type'       => 'client_admin',
-                'client_project_id' => $project->id,
                 'active'     => true,
                 'created_by' => $user->id,
                 'updated_by' => $user->id,
