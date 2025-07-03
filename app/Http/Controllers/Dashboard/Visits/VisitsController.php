@@ -225,8 +225,8 @@ class VisitsController extends Controller
                 $visit->where('visits_status_id', request()->status);
             }
 
-            $visits = $visit->where('is_active', 1)->get();
-
+            $visits = $visit->where('is_active', 1)->orderByDesc('updated_at')
+                ->get();
             return DataTables::of($visit)
 
                 ->addColumn('booking_id', function ($row) {

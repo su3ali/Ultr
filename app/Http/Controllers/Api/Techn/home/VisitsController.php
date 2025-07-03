@@ -146,7 +146,7 @@ class VisitsController extends Controller
 
     protected function myPreviousOrders()
     {
-       
+
         try {
             $groupIds = Group::where('technician_id', auth('sanctum')->user()->id)->pluck('id')->toArray();
             $groups   = Group::where('technician_id', auth('sanctum')->user()->id)->first();
@@ -327,6 +327,7 @@ class VisitsController extends Controller
                     'visits_status_id' => $request->status_id,
                     'reason_cancel_id' => $request->cancel_reason_id,
                     'note'             => $request->note,
+                    'updated_at'       => \Carbon\Carbon::now('Asia/Riyadh'),
                 ];
                 $image = null;
 
