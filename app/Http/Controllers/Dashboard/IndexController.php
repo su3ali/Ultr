@@ -25,8 +25,11 @@ class IndexController extends Controller
 
         $user = auth()->user();
 
+        // dd(auth()->user()->hasRole('admin'));
+
         $allClientRoles = [
             'admin',
+            'super',
             'مدير إدارة التشغيل',
             'التسويق',
             'الرئيس التنفيذي',
@@ -87,6 +90,8 @@ class IndexController extends Controller
             ->count();
 
         $business_orders = BusinessOrder::whereIn('client_project_id', $clientProjectsIds)->count();
+
+        // dd($business_orders);
 
         $technicians = Technician::where('is_trainee', Technician::TECHNICIAN)
             ->where('active', Technician::ACTIVE)

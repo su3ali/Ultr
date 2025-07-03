@@ -27,9 +27,8 @@ class BookingController extends Controller
 {
 
     public function index(Request $request)
-    { 
+    {
 
-       
         $regionIds = Auth()->user()->regions->pluck('region_id')->toArray();
 
         if (request()->ajax()) {
@@ -453,16 +452,21 @@ class BookingController extends Controller
                         : $row->order->services->where('category_id', $row->category_id)->map(function ($service) {
                             return '<button class="btn-sm btn-primary">' . $service->title . '</button>';
                         })->join(' '),
-                        'time'           => $row->time ? Carbon::parse($row->time)->timezone('Asia/Riyadh')->format('g:i A') : 'N/A',
 
+                        'region'         => $row->order?->userAddress?->region->title ?? 'N/A',
                         'group'          => $row->visit?->group?->name ?? 'N/A',
+
+                        'new'            => $row->visit?->status?->name_ar ?? 'N/A',
+                        'start_time'     => $row->visit ? Carbon::parse($row?->visit?->start_time)->timezone('Asia/Riyadh')->format('g:i A') : 'N/A',
+                        'end_time'       => $row->visit ? Carbon::parse($row?->visit?->end_time)->timezone('Asia/Riyadh')->format('g:i A') : 'N/A',
+
+                        'date'           => $row->date ?? 'N/A',
+                        'quantity'       => $row->quantity ?? 'N/A',
                         'total'          => isset($row->visit?->booking?->order?->total) && is_float($row->visit?->booking?->order?->total)
                         ? number_format($row->visit->booking->order->total, 2)
                         : 'N/A',
                         'status'         => $row->visit?->status?->name_ar ?? 'N/A',
-                        'new'            => $row->visit?->status?->name_ar ?? 'N/A',
-                        'date'           => $row->date ?? 'N/A',
-                        'quantity'       => $row->quantity ?? 'N/A',
+
                         'payment_method' => match ($row->visit?->booking?->order?->transaction?->payment_method ?? 'N/A') {
                             'cache', 'cash' => '<i class="fas fa-money-bill-wave text-success" title="Cash Payment (Cash or Physical Money)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> شبكة',     // Green with hover animation for cash
                             'wallet'         => '<i class="fas fa-wallet text-primary" title="Wallet Payment (e.g., Digital Wallet)" style="font-size: 1.2em; transition: transform 0.3s;" onmouseover="this.style.transform=\'scale(1.1)\';" onmouseout="this.style.transform=\'scale(1)\';"></i> محفظة',           // Blue with hover animation for wallet
