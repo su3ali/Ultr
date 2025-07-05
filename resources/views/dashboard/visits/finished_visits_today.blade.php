@@ -22,7 +22,8 @@
                         <ol class="breadcrumb mb-0 py-2">
                             <li class="breadcrumb-item"><a href="{{ route('dashboard.home') }}">{{ __('dash.home')
                                     }}</a></li>
-                            <li class="breadcrumb-item active" aria-current="page"> {{ __('dash.tech_orders_today') }}
+                            <li class="breadcrumb-item active" aria-current="page"> {{ __('dash.finished_orders_today')
+                                }}
                             </li>
                         </ol>
                     </nav>
@@ -46,7 +47,7 @@
                 <div class="col-md-12  mb-3">
 
 
-                    <div class="row">
+                    {{-- <div class="row">
 
 
 
@@ -62,7 +63,7 @@
                             </select>
                         </div>
 
-                    </div>
+                    </div> --}}
 
                 </div>
                 <div class="col-md-12 text-right mb-3">
@@ -104,7 +105,7 @@
                     "<'table-responsive'tr>" +
                     "<'dt--bottom-section d-sm-flex justify-content-sm-between text-center'<'dt--pages-count  mb-sm-0 mb-3'i><'dt--pagination'p>>",
                 order: [
-                    [0, 'desc']
+                  
                 ],
                 "language": {
                     "url": "{{ app()->getLocale() == 'ar' ? '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Arabic.json' : '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/English.json' }}"
@@ -133,7 +134,7 @@
                     ]
                 },
                 processing: true,
-                serverSide: false,
+                serverSide: true,
                 ajax: '{{ route('dashboard.visits.finishedVisitsToday') }}',
                 columns: [{
                         data: 'id',

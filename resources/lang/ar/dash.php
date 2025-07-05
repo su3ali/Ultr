@@ -1142,4 +1142,5 @@ return [
     'regions'                                  => 'المناطق',
     'projects'                                 => 'المشاريع',
     'Admins'                                   => 'المسؤولين',
+    'finished_orders_today'                    => 'الطلبات المكتملة اليوم',
 ];

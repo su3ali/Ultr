@@ -225,8 +225,10 @@ class VisitsController extends Controller
                 $visit->where('visits_status_id', request()->status);
             }
 
-            $visits = $visit->where('is_active', 1)->orderByDesc('updated_at')
-                ->get();
+            $visits = $visit->where('is_active', 1)
+                ->groupBy('end_date')
+                ->orderBy('end_date', 'desc')->get();
+
             return DataTables::of($visit)
 
                 ->addColumn('booking_id', function ($row) {
@@ -290,7 +292,6 @@ class VisitsController extends Controller
 
         return view('dashboard.visits.finished_visits_today', compact('statuses'));
     }
-
     protected function store(Request $request)
     {
         $rules = [

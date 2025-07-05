@@ -1203,4 +1203,5 @@ return [
     'choose'                                => 'Choose',
     'regions'                               => 'Regions',
     'Admins'                                => 'Admins',
+    'finished_orders_today'                 => 'Finished Orders Today',
 ];

@@ -239,9 +239,14 @@ class IndexController extends Controller
             $query->whereIn('region_id', $regionIds);
         })->where('status_id', 5)->where('is_active', 1)->whereDate('updated_at', $today)->count();
 
+        $now      = Carbon::now('Asia/Riyadh')->toDateString();
+        $tomorrow = Carbon::tomorrow('Asia/Riyadh')->toDateString();
+
         $finished_visits_today = Visit::whereHas('booking.address', function ($query) use ($regionIds) {
             $query->whereIn('region_id', $regionIds);
         })->whereDate('end_date', '=', $now)->count();
+
+        // dd($finished_visits_today);
 
         return view('dashboard.home', compact(
             'canceled_orders', 'complaints_resolved', 'complaints_unresolved', 'todayCustomerComplaints',
